@@ -193,6 +193,15 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
             }
         });
 
+        disks.add("Create disk from directory").addActionListener(new ActionListener()
+        {
+
+            public void actionPerformed(ActionEvent ev)
+            {
+                createDiskFromDirectory();
+            }
+        });
+
         for (int i = 0; i < 2; i++)
         {
             BlockDevice drive = drives.getFloppyDrive(i);
@@ -387,6 +396,32 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
             f.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(rootPane, "Failed to create blank disk " + e, "Create Disk", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void createDiskFromDirectory()
+    {
+        try {
+            JFileChooser chooser = diskImageChooser;
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+            // select directory to make drive from
+            JFileChooser directory = new JFileChooser(System.getProperty("user.dir"));
+            directory.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            if (directory.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+            File out = chooser.getSelectedFile();
+            File root = directory.getSelectedFile();
+            if (!out.exists())
+                out.createNewFile();
+            TreeBlockDevice tbd = new TreeBlockDevice(root, true);
+            DataOutput dataout = new DataOutputStream(new FileOutputStream(out));
+            tbd.writeImage(dataout);
+            System.out.println("Done saving disk image");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(rootPane, "Failed to create disk from directory" + e, "Create Disk", JOptionPane.ERROR_MESSAGE);
         }
     }
 

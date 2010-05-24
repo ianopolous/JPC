@@ -728,7 +728,7 @@ public class TreeBlockDevice implements BlockDevice
     }
     
     //write image of disk
-    private void writeImage(DataOutput dout) throws IOException
+    public void writeImage(DataOutput dout) throws IOException
     {
 	byte[] buffer=new byte[SECTOR_SIZE];
         
