@@ -590,18 +590,23 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		case CLC: cpu.setCarryFlag(false); break;
 		case STC: cpu.setCarryFlag(true); break;
 		case CLI:
-                    if (cpu.getIOPrivilegeLevel() >= cpu.getCPL()) {
-                        cpu.eflagsInterruptEnable = false;
-                        cpu.eflagsInterruptEnableSoon = false;
-                    } else {
-                        if ((cpu.getIOPrivilegeLevel() < cpu.getCPL()) && (cpu.getCPL() == 3) && ((cpu.getCR4() & 1) != 0)) {
-                            cpu.eflagsInterruptEnableSoon = false;
+                    /* uncomment if we support VME
+                        if ((cpu.getCPL() == 3) && ((cpu.getCR4() & 2) != 0)) {
+                            if (cpu.getIOPrivilegeLevel() < 3)
+                            {
+                               cpu.eflagsInterruptEnableSoon = false;
+                               return;
+                            }
                         } else
+                    */
+                    {
+                        if (cpu.getIOPrivilegeLevel() < cpu.getCPL())
                         {
-                            System.out.println("IOPL=" + cpu.getIOPrivilegeLevel() + ", CPL=" + cpu.getCPL());
+                            System.out.println("IOPL=" + cpu.getIOPrivilegeLevel() + ", CPL=" + cpu.getCPL() + "CR4=0x" + Integer.toHexString(cpu.getCR4()));
                             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
                         }
                     }
+                    cpu.eflagsInterruptEnable = false;
                     break;
 		case STI:
                     if (cpu.getIOPrivilegeLevel() >= cpu.getCPL()) {
@@ -960,40 +965,35 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 			leave_o16_a16();
 		} break;
 
-		case PUSH_O32_A16:
-		case PUSH_O32_A32: {
+		case PUSH_O32: {
 		    if (cpu.ss.getDefaultSizeFlag())
 			push_o32_a32(reg0);
 		    else
 			push_o32_a16(reg0);
 		} break;
 
-		case PUSH_O16_A16:
-		case PUSH_O16_A32: {
+		case PUSH_O16: {
 		    if (cpu.ss.getDefaultSizeFlag())
 			push_o16_a32((short)reg0);
 		    else
 			push_o16_a16((short)reg0);
 		} break;
 
-		case PUSHF_O32_A16:
-		case PUSHF_O32_A32: {
+		case PUSHF_O32: {
 		    if (cpu.ss.getDefaultSizeFlag())
 			push_o32_a32(~0x30000 & reg0);
 		    else
 			push_o32_a16(~0x30000 & reg0);
 		} break;
 
-		case PUSHF_O16_A16:
-		case PUSHF_O16_A32: {
+		case PUSHF_O16: {
 		    if (cpu.ss.getDefaultSizeFlag())
 			push_o16_a32((short)reg0);
 		    else
 			push_o16_a16((short)reg0);
 		} break;
 
-		case POP_O32_A16:
-		case POP_O32_A32: {
+		case POP_O32: {
 		    if (cpu.ss.getDefaultSizeFlag()) {
 			reg1 = cpu.esp + 4;
 			if (microcodes[position] == STORE0_SS)
@@ -1007,8 +1007,7 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		    }
 		} break; 
 	
-		case POP_O16_A16:
-		case POP_O16_A32: {
+		case POP_O16: {
 		    if (cpu.ss.getDefaultSizeFlag()) {
 			reg1 = cpu.esp + 2;
 			if (microcodes[position] == STORE0_SS)
@@ -1022,8 +1021,7 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		    }
 		} break; 
 
-		case POPF_O32_A16:
-		case POPF_O32_A32: {
+		case POPF_O32: {
 		    if (cpu.ss.getDefaultSizeFlag()) {
 			reg0 = cpu.ss.getDoubleWord(cpu.esp);
 			cpu.esp += 4;
@@ -1041,8 +1039,7 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		    }
 		} break;
 		    
-		case POPF_O16_A16:
-		case POPF_O16_A32: {
+		case POPF_O16: {
 		    if (cpu.ss.getDefaultSizeFlag()) {
 			reg0 = 0xffff & cpu.ss.getWord(cpu.esp);
 			cpu.esp += 2;
@@ -1056,31 +1053,28 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 			else
 			    reg0 = ((cpu.getEFlags() & 0x3000) | (reg0 & ~0x3000));
 		} break; 
-		    
-		case PUSHAD_A32:
+
+                case PUSHA:
+                    if (cpu.ss.getDefaultSizeFlag())
+                        pusha_a32();
+                    else
+                        pusha_a16();
+                    break;
+		case PUSHAD:
 		    if (cpu.ss.getDefaultSizeFlag())
 			pushad_a32();
 		    else
 			pushad_a16();
 			break;
 
-		case PUSHAD_A16: 
-		    if (cpu.ss.getDefaultSizeFlag())
-			pusha_a32();
-		    else
-			pusha_a16();
-			break;
-
-		case POPA_A32:
-		case POPA_A16: {
+		case POPA: {
 		    if (cpu.ss.getDefaultSizeFlag())
                         popa_a32();
 		    else
 			popa_a16();
 		} break;
 
-		case POPAD_A32:
-		case POPAD_A16: {
+		case POPAD: {
 		    if (cpu.ss.getDefaultSizeFlag())
 			popad_a32();
 		    else
@@ -1207,7 +1201,7 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		    } break;
 
 		case CLTS: if (cpu.getCPL() != 0) throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);//ProcessorException.GENERAL_PROTECTION_0;
-		    cpu.setCR3(cpu.getCR3() & ~0x4); break;
+		    cpu.setCR0(cpu.getCR0() & ~0x8); break;
 
 		case INVLPG: if (cpu.getCPL() != 0) throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);//ProcessorException.GENERAL_PROTECTION_0;
 		    cpu.linearMemory.invalidateTLBEntry(seg0.translateAddressRead(addr0)); break;
@@ -3620,14 +3614,14 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		    //check hardware interrupts
 		    cpu.es.setByte(addr, (byte)data);		
 		    count--;
-		    addr -= 1;
+		    addr = (addr - 1) & 0xFFFF;
 		}
 	    } else {
 		while (count != 0) {
 		    //check hardware interrupts
 		    cpu.es.setByte(addr, (byte)data);		
 		    count--;
-		    addr += 1;
+		    addr = (addr + 1) & 0xFFFF;
 		}
 	    }
 	}
@@ -3678,14 +3672,14 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		    //check hardware interrupts
 		    cpu.es.setWord(addr, (short)data);		
 		    count--;
-		    addr -= 2;
+		    addr = (addr - 2) & 0xFFFF;
 		}
 	    } else {
 		while (count != 0) {
 		    //check hardware interrupts
 		    cpu.es.setWord(addr, (short)data);		
 		    count--;
-		    addr += 2;
+		    addr = (addr + 2) & 0xFFFF;
 		}
 	    }
 	}
@@ -3736,14 +3730,14 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		    //check hardware interrupts
 		    cpu.es.setDoubleWord(addr, data);		
 		    count--;
-		    addr -= 4;
+		    addr = (addr - 4) & 0xFFFF;
 		}
 	    } else {
 		while (count != 0) {
 		    //check hardware interrupts
 		    cpu.es.setDoubleWord(addr, data);		
 		    count--;
-		    addr += 4;
+		    addr = (addr + 4) & 0xFFFF;
 		}
 	    }
 	}
@@ -4572,13 +4566,13 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
             if ((ldtSelector & 0xfffc ) != 0)
             {
                 cpu.gdtr.checkAddress((ldtSelector & ~0x7) + 7 ) ;// check ldtr is valid
-                if((cpu.readSupervisorByte(cpu.gdtr, ((ldtSelector & ~0x7) + 5 ))& 0xF) != 2) // not a ldt entry
+                if((cpu.readSupervisorByte(cpu.gdtr, ((ldtSelector & ~0x7) + 5 ))& 0xE) != 2) // not a ldt entry
                 {
                     System.out.println("Tried to load LDT in task switch with invalid segment type: 0x"  + Integer.toHexString(cpu.readSupervisorByte(cpu.gdtr, ((ldtSelector & ~0x7) + 5 )& 0xF)));
                     throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ldtSelector & 0xfffc, true);
                 }
 
-        	    Segment newLdtr=cpu.getSegment(ldtSelector); // get new ldt
+                Segment newLdtr=cpu.getSegment(ldtSelector); // get new ldt
                 if (!newLdtr.isSystem())
                     throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ldtSelector & 0xfffc, true);
 
@@ -5181,6 +5175,9 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 	    case 0x1a: // Non-conforming Code Segment
 	    case 0x1b: // Non-conforming Code Segment
 		{
+                    if(!newSegment.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, newSegment.getSelector(), true);
+
 		    if ((cpu.esp < 4) && (cpu.esp > 0))
 			throw ProcessorException.STACK_SEGMENT_0;
 		
@@ -7032,6 +7029,7 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
         
 	cpu.esp = (cpu.esp & ~0xffff) | (offset & 0xffff);
     }
+
     private final void pusha_a16() 
     {
 	int offset = 0xFFFF & cpu.esp;
@@ -7870,7 +7868,7 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 
         Segment s = cpu.getSegment(selector);
         if (!s.isPresent())
-            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, 0xc, true);
+            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
         return s;
     }
 

@@ -3532,74 +3532,117 @@ public class RealModeUCodeStaticMethods
         ioports.ioPortWriteLong(reg0, reg1);
     }
 
-    public static int esp_nef_PUSH_O16_A16_esp(int esp)
+    public static int esp_nef_PUSH_O16_ss_esp(Segment ss, int esp)
     {
- 	return (esp & ~0xffff) | (esp - 2) & 0xffff;
+        if (ss.getDefaultSizeFlag())
+            return esp - 2;
+        else
+            return (esp & ~0xffff) | (esp - 2) & 0xffff;
     }
 
-    public static void memorywrite_hef_PUSH_O16_A16_ss_reg0_esp(Segment ss, int reg0, int esp)
+    public static void memorywrite_hef_PUSH_O16_ss_reg0_esp(Segment ss, int reg0, int esp)
     {
-        ss.setWord((esp - 2) & 0xffff, (short) reg0);
+        if (ss.getDefaultSizeFlag())
+            ss.setWord(esp - 2, (short) reg0);
+        else
+            ss.setWord((esp - 2) & 0xffff, (short) reg0);
     }
 
-    public static int esp_nef_PUSH_O32_A16_esp(int esp)
+    public static int esp_nef_PUSH_O32_ss_esp(Segment ss, int esp)
     {
-	return (esp & ~0xffff) | (esp - 4) & 0xffff;
+        if (ss.getDefaultSizeFlag())
+            return esp - 4;
+        else
+            return (esp & ~0xffff) | (esp - 4) & 0xffff;
     }
 
-    public static void memorywrite_hef_PUSH_O32_A16_ss_reg0_esp(Segment ss, int reg0, int esp)
+    public static void memorywrite_hef_PUSH_O32_ss_reg0_esp(Segment ss, int reg0, int esp)
     {
-        ss.setDoubleWord((esp - 4) & 0xffff, reg0);
+        if (ss.getDefaultSizeFlag())
+            ss.setDoubleWord(esp - 4, reg0);
+        else
+            ss.setDoubleWord((esp - 4) & 0xffff, reg0);
     }
 
-    public static int reg0_hef_POP_O16_A16_ss_esp(Segment ss, int esp)
+    public static int reg0_hef_POP_O16_ss_esp(Segment ss, int esp)
     {
-        return ss.getWord(esp & 0xffff); 
+        if (ss.getDefaultSizeFlag())
+            return ss.getWord(esp); 
+        else
+            return ss.getWord(esp & 0xffff); 
     }
 
-    public static int reg1_nef_POP_O16_A16_esp(int esp)
+    public static int reg1_nef_POP_O16_ss_esp(Segment ss, int esp)
     {
-        return (esp & ~0xffff) | ((esp + 2) & 0xffff);		
+        if (ss.getDefaultSizeFlag())
+            return esp + 2;
+        else
+            return (esp & ~0xffff) | ((esp + 2) & 0xffff);		
     }
 
-    public static int reg0_hef_POP_O32_A16_ss_esp(Segment ss, int esp)
+    public static int reg0_hef_POP_O32_ss_esp(Segment ss, int esp)
     {
-        return ss.getDoubleWord(esp & 0xffff); 
+        if (ss.getDefaultSizeFlag())
+            return ss.getDoubleWord(esp);
+        else
+            return ss.getDoubleWord(esp & 0xffff); 
     }
 
-    public static int reg1_nef_POP_O32_A16_esp(int esp)
+    public static int reg1_nef_POP_O32_ss_esp(Segment ss, int esp)
     {
-        return (esp & ~0xffff) | ((esp + 4) & 0xffff);		
+        if (ss.getDefaultSizeFlag())
+            return esp + 4;
+        else
+            return (esp & ~0xffff) | ((esp + 4) & 0xffff);		
     }
 
-    public static int esp_nef_PUSHF_O16_A16_esp(int esp)
+    public static int esp_nef_PUSHF_O16_ss_esp(Segment ss, int esp)
     {
-	return (esp & ~0xffff) | (esp - 2) & 0xffff;
+        if (ss.getDefaultSizeFlag())
+            return esp - 2;
+        else
+            return (esp & ~0xffff) | (esp - 2) & 0xffff;
     }
 
-    public static void memorywrite_hef_PUSHF_O16_A16_ss_reg0_esp(Segment ss, int reg0, int esp)
+    public static void memorywrite_hef_PUSHF_O16_ss_reg0_esp(Segment ss, int reg0, int esp)
     {
-        ss.setWord((esp - 2) & 0xffff, (short) reg0);
+        if (ss.getDefaultSizeFlag())
+            ss.setWord(esp - 2, (short) reg0);
+        else
+            ss.setWord((esp - 2) & 0xffff, (short) reg0);
     }
 
-    public static int esp_nef_POPF_O16_A16_esp(int esp)
+    public static int esp_nef_POPF_O16_ss_esp(Segment ss, int esp)
     {
-        return (esp & ~0xffff) | ((esp + 2) & 0xffff);		
+        if (ss.getDefaultSizeFlag())
+            return esp + 2;
+        else
+            return (esp & ~0xffff) | ((esp + 2) & 0xffff);		
     }
 
-    public static int reg0_hef_POPF_O16_A16_ss_esp(Segment ss, int esp)
+    public static int reg0_hef_POPF_O16_ss_esp(Segment ss, int esp)
     {
-        return ss.getWord(esp & 0xffff);
+        if (ss.getDefaultSizeFlag())
+            return ss.getWord(esp);
+        else
+            return ss.getWord(esp & 0xffff);
     }
 
-    public static int esp_nef_PUSHA_A16_esp(int esp)
+    public static int esp_nef_PUSHA_ss_esp(Segment ss, int esp)
     {
-	return (esp & ~0xffff) | ((esp - 16) & 0xffff);
+        if (ss.getDefaultSizeFlag())
+            return esp - 16;
+        else
+            return (esp & ~0xffff) | ((esp - 16) & 0xffff);
     }
 
-    public static void memorywrite_hef_PUSHA_A16_edi_esi_ebp_ebx_edx_ecx_eax_ss_esp(int edi, int esi, int ebp, int ebx, int edx, int ecx, int eax, Segment ss, int esp)
+    public static void memorywrite_hef_PUSHA_edi_esi_ebp_ebx_edx_ecx_eax_ss_esp(int edi, int esi, int ebp, int ebx, int edx, int ecx, int eax, Segment ss, int esp)
     {
-	int offset = esp & 0xffff;
+	int offset;
+        if (ss.getDefaultSizeFlag())
+            offset = esp;
+        else
+            offset = esp & 0xffff;
 
 	offset -= 2;
 	ss.setWord(offset & 0xffff, (short) eax);
@@ -3619,7 +3662,7 @@ public class RealModeUCodeStaticMethods
 	ss.setWord(offset & 0xffff, (short) edi);
     }
 
-    public static int eax_hef_POPA_A16_eax_ss_esp(int eax, Segment ss, int esp)
+    /*public static int eax_hef_POPA_A16_eax_ss_esp(int eax, Segment ss, int esp)
     {
 	return (eax & ~0xffff) | (0xffff & ss.getWord(0xffff & (esp + 14)));
     }
@@ -3697,7 +3740,7 @@ public class RealModeUCodeStaticMethods
     public static int esp_nef_POPAD_A16_esp(int esp)
     {
 	return (esp & ~0xffff) | ((esp + 32) & 0xffff);
-    }
+        }*/
     
 // //     public static int ecx_hef_REPE_CMPSB_A16_dflag_ecx_es_edi_seg0_esi(boolean dflag, int ecx, Segment es, int edi, Segment seg0, int esi)
 // //     {

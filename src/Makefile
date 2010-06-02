@@ -4,7 +4,7 @@ JAVA_BUILD_OPTS = -source 1.5 -target 1.5
 build: jpc
 
 .PHONY: debugger
-debugger:
+debugger: build_core
 	mkdir -p build
 	echo "Name: JPC Debugger" > debugger.manifest
 	echo "Main-Class: org.jpc.debugger.JPC" >> debugger.manifest
@@ -30,6 +30,7 @@ build_core:
 	mkdir -p build
 	javac $(JAVA_BUILD_OPTS) -d build `find org/jpc/emulator -name \*.java` \
 	    `find org/jpc/support -name \*.java` \
+	    `find org/jpc/debugger -name \*.java` \
 	    `find org/jpc/classfile -name \*.java` \
 	    `find org/jpc/j2se -name \*.java`
 
@@ -73,7 +74,7 @@ jpc: core
 	rm -f jpc.manifest
 
 .PHONY: application
-application: core
+application: build_core
 	echo "Name: JPC Application" > application.manifest
 	echo "Main-Class: org.jpc.j2se.JPCApplication" >> application.manifest
 	echo "Build-Date: " `date` >> application.manifest

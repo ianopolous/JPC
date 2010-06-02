@@ -4329,7 +4329,7 @@ public class ProtectedModeUCodeStaticMethods
 // 	ss.setWord(offset & 0xffff, (short) edi);
 //     }
 
-    public static int eax_hef_POPA_A16_eax_ss_esp(int eax, Segment ss, int esp)
+    /*public static int eax_hef_POPA_A16_eax_ss_esp(int eax, Segment ss, int esp)
     {
         return eax_hef_POPA_A32_eax_ss_esp(eax, ss, esp);
     }
@@ -4367,7 +4367,7 @@ public class ProtectedModeUCodeStaticMethods
     public static int esp_nef_POPA_A16_ss_esp(Segment ss, int esp)
     {
         return esp_nef_POPA_A32_ss_esp(ss, esp);
-    }
+        }*/
     
     public static int eax_hef_POPA_A32_eax_ss_esp(int eax, Segment ss, int esp)
     {

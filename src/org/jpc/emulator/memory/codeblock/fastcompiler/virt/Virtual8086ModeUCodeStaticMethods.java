@@ -3611,7 +3611,7 @@ public class Virtual8086ModeUCodeStaticMethods
 	ss.setWord(offset & 0xffff, (short) edi);
     }
 
-    public static int eax_hef_POPA_A16_eax_ss_esp(int eax, Segment ss, int esp)
+    /*public static int eax_hef_POPA_A16_eax_ss_esp(int eax, Segment ss, int esp)
     {
 	return (eax & ~0xffff) | (0xffff & ss.getWord(0xffff & (esp + 14)));
     }
@@ -3689,7 +3689,7 @@ public class Virtual8086ModeUCodeStaticMethods
     public static int esp_nef_POPAD_A16_esp(int esp)
     {
 	return (esp & ~0xffff) | ((esp + 32) & 0xffff);
-    }
+        }*/
     
 // //     public static int ecx_hef_REPE_CMPSB_A16_dflag_ecx_es_edi_seg0_esi(boolean dflag, int ecx, Segment es, int edi, Segment seg0, int esi)
 // //     {
