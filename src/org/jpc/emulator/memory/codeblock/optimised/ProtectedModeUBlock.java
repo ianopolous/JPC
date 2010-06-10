@@ -1103,6 +1103,7 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		case LODSB_A32: lodsb_a32(seg0); break;
 		case LODSW_A16: lodsw_a16(seg0); break;
 		case LODSW_A32: lodsw_a32(seg0); break;
+		case LODSD_A16: lodsd_a16(seg0); break;
 		case LODSD_A32: lodsd_a32(seg0); break;
 		case REP_LODSB_A32: rep_lodsb_a32(seg0); break;
 		case REP_LODSW_A32: rep_lodsw_a32(seg0); break;
@@ -1145,6 +1146,7 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 		case REPNE_SCASB_A16: repne_scasb_a16(reg0); break;
 		case REPNE_SCASB_A32: repne_scasb_a32(reg0); break;
 		case REPNE_SCASW_A32: repne_scasw_a32(reg0); break;
+		case REPNE_SCASD_A16: repne_scasd_a16(reg0); break;
 		case REPNE_SCASD_A32: repne_scasd_a32(reg0); break;
 
 		case STOSB_A16: stosb_a16(reg0); break;
@@ -2481,6 +2483,19 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 	cpu.esi = addr;
     }
 
+    private final void lodsd_a16(Segment dataSegment)
+    {
+	int addr = cpu.esi & 0xFFFF;
+	cpu.eax = dataSegment.getDoubleWord(addr);
+	
+	if (cpu.eflagsDirection)
+	    addr -= 4;
+	else
+	    addr += 4;
+	
+	cpu.esi = (cpu.esi & ~0xffff) | (0xffff &  addr);
+    }
+
     private final void lodsd_a32(Segment dataSegment)
     {
 	int addr = cpu.esi;
@@ -3488,6 +3503,39 @@ public class ProtectedModeUBlock implements ProtectedModeCodeBlock
 	    cpu.edi = addr;
 	    if (used)
 		sub_o16_flags(data - input, data, input);
+	}
+    }
+
+    private final void repne_scasd_a16(int data)
+    {
+	int count = 0xFFFF & cpu.ecx;
+	int addr = 0xFFFF & cpu.edi;
+        boolean used = count != 0;
+	int input = 0;
+
+	try {
+	    if (cpu.eflagsDirection) {
+		while (count != 0) {
+		    input = cpu.es.getDoubleWord(addr);
+		    count--;
+		    addr -= 4;
+		    if (data == input) break;
+		}
+	    } else {
+		while (count != 0) {
+		    input = cpu.es.getDoubleWord(addr);
+		    count--;
+		    addr += 4;
+		    if (data == input) break;
+		}
+	    }
+	} finally {
+            executeCount += ((cpu.ecx & 0xFFFF) - count);
+	    cpu.ecx = (cpu.ecx & ~0xFFFF) | (0xFFFF & count);
+	    cpu.edi = (cpu.edi & ~0xFFFF) | (0xFFFF & addr);
+	    if (used)
+
+		sub_o32_flags((0xffffffffl & data) - (0xffffffffl & input), data, input);
 	}
     }
 

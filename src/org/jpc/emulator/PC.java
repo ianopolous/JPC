@@ -457,7 +457,7 @@ public class PC {
         }
         catch (ModeSwitchException e)
         {
-            LOGGING.log(Level.FINE, "Switching mode", e);
+            LOGGING.log(Level.FINE, "Mode switch in RM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return x86Count;
     }
@@ -486,7 +486,7 @@ public class PC {
         }
         catch (ModeSwitchException e)
         {
-            LOGGING.log(Level.FINE, "Switching mode", e);
+            LOGGING.log(Level.FINE, "Mode switch in PM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return x86Count;
     }
@@ -517,7 +517,7 @@ public class PC {
         }
         catch (ModeSwitchException e)
         {
-            LOGGING.log(Level.FINE, "Switching mode", e);
+            LOGGING.log(Level.FINE, "Mode switch in VM8086 @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return x86Count;
     }

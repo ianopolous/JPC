@@ -372,7 +372,7 @@ public class EthernetCard extends AbstractPCIDevice
         public void setAddress(int address)
         {
             this.address = address;
-            System.out.println("**\n\n\n**\n\nAddress is "+Integer.toHexString(address));
+            LOGGING.log(Level.FINE, "Ethernet IO address is "+Integer.toHexString(address));
         }
 
         //IOPortCapable Methods
