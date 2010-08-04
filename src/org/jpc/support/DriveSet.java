@@ -197,18 +197,24 @@ public class DriveSet extends AbstractHardwareComponent
             return null;
         }
 
+	if ((spec.indexOf("\"") == 0) && (spec.indexOf("\"", 1) > 0))
+	    spec = spec.substring(1, spec.length()-2);
+
+	
+
         int colon = spec.indexOf(':');
         String deviceKey = "DEFAULT";
-        if (colon >= 0) {
+	String deviceSpec = spec;
+        if ((colon >= 0) && (spec.indexOf("\\") != colon + 1)) {
             deviceKey = spec.substring(0, colon);
+	    deviceSpec = spec.substring(colon + 1);
         }
 
-        String deviceSpec = spec.substring(colon + 1);
         Object device;
         if (deviceKey.startsWith("caching")) {
             deviceKey = "DEFAULT";
             int secondcolon = deviceSpec.indexOf(':');
-            if (secondcolon > 0) {
+            if ((secondcolon > 0) && (deviceSpec.indexOf("\\") != secondcolon + 1)) {
                 deviceSpec = deviceSpec.substring(secondcolon + 1);
                 deviceKey = deviceSpec.substring(0, secondcolon);
             }

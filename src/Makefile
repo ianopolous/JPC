@@ -31,6 +31,7 @@ build_core:
 	javac $(JAVA_BUILD_OPTS) -d build `find org/jpc/emulator -name \*.java` \
 	    `find org/jpc/support -name \*.java` \
 	    `find org/jpc/classfile -name \*.java` \
+	    `find org/jpc/debugger -name \*.java` \
 	    `find org/jpc/j2se -name \*.java`
 
 .PHONY: build_nereus
