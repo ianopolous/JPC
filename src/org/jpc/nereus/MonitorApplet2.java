@@ -21,9 +21,9 @@
  
     Details (including contact information) can be found at: 
 
-    javapc.sourceforge.net
-             or
-    www-jpc.physics.ox.ac.uk
+    jpc.sourceforge.net
+    or the developer website
+    sourceforge.net/projects/jpc/
 
     Conceived and Developed by:
     Rhys Newman, Ian Preston, Chris Dennis
@@ -53,7 +53,7 @@ public class MonitorApplet2 extends JApplet
     private static final Logger LOGGING = Logger.getLogger(MonitorApplet.class.getName());
     
     private static MonitorApplet2 inUse = null;
-    private static String TITLE_TEXT = "Powered by JPC, the fast 100% Java PC Emulator (www-jpc.physics.ox.ac.uk)";
+    private static String TITLE_TEXT = "Powered by JPC, the fast 100% Java PC Emulator (jpc.sourceforge.net)";
 
     static 
     {

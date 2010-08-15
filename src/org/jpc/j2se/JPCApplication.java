@@ -21,9 +21,9 @@
  
     Details (including contact information) can be found at: 
 
-    javapc.sourceforge.net
-             or
-    www-jpc.physics.ox.ac.uk
+    jpc.sourceforge.net
+    or the developer website
+    sourceforge.net/projects/jpc/
 
     Conceived and Developed by:
     Rhys Newman, Ian Preston, Chris Dennis
@@ -59,7 +59,7 @@ import org.jpc.support.*;
 public class JPCApplication extends PCMonitorFrame implements PCControl
 {
     private static final Logger LOGGING = Logger.getLogger(JPCApplication.class.getName());
-    private static final URI JPC_URI = URI.create("http://www-jpc.physics.ox.ac.uk/");
+    private static final URI JPC_URI = URI.create("http://jpc.sourceforge.net/");
     private static final String IMAGES_PATH = "resources/images/";
     private static final int MONITOR_WIDTH = 720;
     private static final int MONITOR_HEIGHT = 400 + 100;

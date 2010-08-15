@@ -21,9 +21,9 @@
  
     Details (including contact information) can be found at: 
 
-    javapc.sourceforge.net
-             or
-    www-jpc.physics.ox.ac.uk
+    jpc.sourceforge.net
+    or the developer website
+    sourceforge.net/projects/jpc/
 
     Conceived and Developed by:
     Rhys Newman, Ian Preston, Chris Dennis

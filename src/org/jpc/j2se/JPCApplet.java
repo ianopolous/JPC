@@ -21,9 +21,9 @@
  
     Details (including contact information) can be found at: 
 
-    javapc.sourceforge.net
-             or
-    www-jpc.physics.ox.ac.uk
+    jpc.sourceforge.net
+    or the developer website
+    sourceforge.net/projects/jpc/
 
     Conceived and Developed by:
     Rhys Newman, Ian Preston, Chris Dennis
@@ -53,7 +53,7 @@ public class JPCApplet extends JApplet
 {
     public static final String VERSION = "2.035";
 
-    private static final String TITLE_TEXT = "Powered by JPC, the fast 100% Java PC Emulator (www-jpc.physics.ox.ac.uk)";
+    private static final String TITLE_TEXT = "Powered by JPC, the fast 100% Java PC Emulator (jpc.sourceforge.net)";
     private static final String[] STAGE_TEXT = {"Downloading Hard Disk image", "Downloading Floppy Disk image", "Downloading CDRom ISO image", "Loading Compiled Blocks", "Downloading Snapshot", "Starting JPC"};
 
     private static volatile boolean hasActiveInstance = false;

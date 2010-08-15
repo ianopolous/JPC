@@ -21,9 +21,9 @@
  
     Details (including contact information) can be found at: 
 
-    javapc.sourceforge.net
-             or
-    www-jpc.physics.ox.ac.uk
+    jpc.sourceforge.net
+    or the developer website
+    sourceforge.net/projects/jpc/
 
     Conceived and Developed by:
     Rhys Newman, Ian Preston, Chris Dennis
@@ -46,7 +46,7 @@ import javax.swing.border.*;
 public class LinkBorder extends LineBorder implements MouseListener, MouseMotionListener
 {
     private static final Logger LOGGING = Logger.getLogger(LinkBorder.class.getName());
-    private static final URI JPC_WEBSITE = URI.create("http://www-jpc.physics.ox.ac.uk/");
+    private static final URI JPC_WEBSITE = URI.create("http://jpc.sourceforge.net/");
 
     private final String text;
     private final Component targetComponent;
