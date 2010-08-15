@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:tns="http://xml.netbeans.org/schema/JpcConfigurationSchema"
+            elementFormDefault="qualified">
+    
+    <xsd:simpleType name="deviceType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="fda"/>
+            <xsd:enumeration value="fdb"/>
+            <xsd:enumeration value="hda"/>
+            <xsd:enumeration value="hdb"/>
+            <xsd:enumeration value="hdc"/>
+            <xsd:enumeration value="hdd"/>
+            <xsd:enumeration value="cdrom"/>            
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="bootdeviceType">
+        <xsd:restriction base="deviceType">
+            <xsd:enumeration value="fda"/>
+            <xsd:enumeration value="hda"/>
+            <xsd:enumeration value="cdrom"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+        
+    <xsd:attribute name="device" type="deviceType"/>
+    <xsd:attribute name="server" type="xsd:string"/>
+    <xsd:attribute name="port" type="xsd:unsignedShort"/>
+    <xsd:attribute name="file" type="xsd:string"/>
+    <xsd:attribute name="password" type="xsd:string"/>
+    <xsd:attribute name="bootdevice" type="bootdeviceType"/>
+    
+    <xsd:element name="drive">
+        <xsd:complexType>
+            <xsd:attribute ref="device" use="required"/>
+            <xsd:attribute ref="server" use="required"/>
+            <xsd:attribute ref="port" use="required"/>
+            <xsd:attribute ref="file" use="required"/>
+            <xsd:attribute ref="password" use="required"/>            
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="driveset">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="drive" maxOccurs="unbounded"/>
+            </xsd:sequence>
+            <xsd:attribute ref="bootdevice" use="required"/>
+        </xsd:complexType>
+        <xsd:key name="driveDevice">
+            <xsd:selector xpath="drive"/>
+            <xsd:field xpath="@device"/>
+        </xsd:key>
+        <xsd:keyref name="driveDeviceRef" refer="driveDevice">
+            <xsd:selector xpath="."/>
+            <xsd:field xpath="@bootdevice"/>
+        </xsd:keyref>
+    </xsd:element>
+    
+    <xsd:element name="jpcconfig">
+        <xsd:complexType>
+            <xsd:all>
+                <xsd:element ref="driveset"/>
+            </xsd:all>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>
