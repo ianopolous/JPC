@@ -526,6 +526,9 @@ public class LazyCodeBlockMemory extends AbstractMemory {
             } else {
                 Arrays.fill(buf, off, off + len, (byte) 0);
             }
+        } catch (ArrayIndexOutOfBoundsException e)
+        {
+            System.out.println("Array bounds exception reading from lazycodeblockmemory: address=0x" + Integer.toHexString(address) + ", off="+Integer.toHexString(off)  + ", len="+len);
         }
     }
 

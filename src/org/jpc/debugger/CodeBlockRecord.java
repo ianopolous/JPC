@@ -120,6 +120,34 @@ public class CodeBlockRecord {
         return true;
     }
 
+    public Memory getMemory(int address)
+    {
+        AddressSpace addressSpace = physical;
+        if (processor.isProtectedMode()) {
+            addressSpace = linear;
+        }
+        Memory memory = null;
+        try {
+            memory = (Memory) getMemory.invoke(addressSpace, new Object[]{Integer.valueOf(address)});
+        } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+        }
+
+        if ((memory == null) && (addressSpace == linear)) {
+            try {
+                memory = (Memory) validateBlock.invoke(addressSpace, new Object[]{Integer.valueOf(address)});
+            } catch (IllegalAccessException ex) {
+                ex.printStackTrace();
+            } catch (InvocationTargetException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        return memory;
+    }
+
     public CodeBlock decodeBlockAt(int address) {
         AddressSpace addressSpace = physical;
         if (processor.isProtectedMode()) {

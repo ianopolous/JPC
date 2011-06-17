@@ -41,6 +41,7 @@ import javax.swing.event.*;
 
 import org.jpc.debugger.util.*;
 import org.jpc.emulator.memory.codeblock.CodeBlock;
+import org.jpc.emulator.memory.*;
 
 public class ExecutionTraceFrame extends UtilityFrame implements PCListener, ListSelectionListener
 {
@@ -121,7 +122,7 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
     {
         TraceModel()
         {
-            super(new String[]{"Index", "Code Block", "Address", "X86 Length", "X86 Count", "Decimal address"}, new int[]{100, 400, 150, 150, 150, 150});
+            super(new String[]{"Index", "Code Block", "Address", "X86 Length", "X86 Count", "Decimal address", "raw x86"}, new int[]{100, 400, 150, 150, 150, 150, 400});
         }
 
         public int getRowCount()
@@ -151,10 +152,29 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
                 return Integer.valueOf(block.getX86Count());
             case 5:
                 return Integer.valueOf(codeBlocks.getBlockAddress(row));
+            case 6:
+                int address = codeBlocks.getBlockAddress(row);
+                int len = block.getX86Length();
+                byte[] buf = new byte[len];
+                Memory m = codeBlocks.getMemory(address);
+                if (m instanceof LinearAddressSpace.PageFaultWrapper)
+                    return "Page Fault";
+                
+                m.copyContentsIntoArray(address & AddressSpace.BLOCK_MASK, buf, 0, len);
+                return toHexString(buf);                
+                    
             default:
                 return "";
             }
         }
+    }
+
+    public static String toHexString(byte[] b)
+    {
+        StringBuffer sb = new StringBuffer();
+        for (int i=0; i< b.length; i++)
+            sb.append(Integer.toHexString(b[i] & 0xFF) + " ");
+        return sb.toString();
     }
 }
 
