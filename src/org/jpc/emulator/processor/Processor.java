@@ -1201,11 +1201,6 @@ public class Processor implements HardwareComponent
         if (vector == ProcessorException.Type.PAGE_FAULT.vector())
         {
             setCR2(linearMemory.getLastWalkedAddress());
-            if (linearMemory.getLastWalkedAddress() == 0xbff9a3c0)
-            {
-                System.out.println("Found it ********* @ " + Integer.toHexString(getInstructionPointer()));
-                System.exit(0);
-            }
         }
         
 	int selector = vector << 3; //multiply by 8 to get offset into idt	
@@ -1228,6 +1223,7 @@ public class Processor implements HardwareComponent
 	switch (gate.getType()) {
 	default:
             LOGGING.log(Level.INFO, "Invalid gate type for throwing interrupt: 0x{0}", Integer.toHexString(gate.getType()));
+            System.out.println("Vector=0x" + Integer.toHexString(vector) + ", error code=" + errorCode);
 	    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2 + EXT, true);
 	case 0x05: //Interrupt Handler: Task Gate
 	    throw new IllegalStateException("Unimplemented Interrupt Handler: Task Gate");
