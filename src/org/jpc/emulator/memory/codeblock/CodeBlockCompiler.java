@@ -33,30 +33,28 @@
 
 package org.jpc.emulator.memory.codeblock;
 
-/**
- * Converts a stream of JPC instructions into an executable codeblock.
- * @author Chris Dennis
- */
+import org.jpc.emulator.execution.decoder.BasicBlock;
+
 public interface CodeBlockCompiler
 {
     /**
      * Create a real-mode codeblock from the given instruction source.
-     * @param source instructions read from here
-     * @return codeblock instance
+     *
+     * @param block@return codeblock instance
      */
-    public RealModeCodeBlock getRealModeCodeBlock(InstructionSource source);
+    public RealModeCodeBlock getRealModeCodeBlock(BasicBlock block);
 
     /**
      * Create a protected-mode codeblock from the given instruction source.
-     * @param source instructions read from here
-     * @return codeblock instance
+     *
+     * @param block@return codeblock instance
      */
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(InstructionSource source);
+    public ProtectedModeCodeBlock getProtectedModeCodeBlock(BasicBlock block);
 
     /**
      * Create a virtual8086-mode codeblock from the given instruction source.
-     * @param source instructions read from here
-     * @return codeblock instance
+     *
+     * @param block@return codeblock instance
      */
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(InstructionSource source);
+    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(BasicBlock block);
 }

@@ -44,6 +44,10 @@ import org.jpc.emulator.processor.Processor;
 public interface Memory
 {
 
+    public void lock(int addr);
+
+    public void unlock(int addr);
+
     /**
      * Returns true if this <code>Memory</code> object has had heap allocated for
      * it.

@@ -31,14 +31,35 @@
     End of licence header
 */
 
-package org.jpc.debugger;
+package org.jpc.emulator.memory.codeblock;
 
-import org.jpc.emulator.memory.AddressSpace;
-import org.jpc.emulator.memory.codeblock.CodeBlock;
+import org.jpc.emulator.execution.decoder.BasicBlock;
+import org.jpc.emulator.memory.codeblock.*;
 
-public interface CodeBlockListener
-{
-    public void codeBlockDecoded(int address, AddressSpace memory, CodeBlock block);
+/**
+ *
+ * @author Ian Preston
+ */
+public class OptimisedCompiler implements CodeBlockCompiler {
 
-    public void codeBlockExecuted(int address, AddressSpace memory, CodeBlock block);
+    public OptimisedCompiler() {
+
+    }
+
+    public RealModeCodeBlock getRealModeCodeBlock(BasicBlock source)
+    {
+        return (RealModeCodeBlock) source;
+    }
+
+    public ProtectedModeCodeBlock getProtectedModeCodeBlock(BasicBlock block)
+    {
+
+        return (ProtectedModeCodeBlock) block;
+    }
+
+    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(BasicBlock block)
+    {
+
+        return (Virtual8086ModeCodeBlock) block;
+    }
 }

@@ -162,22 +162,6 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
                 }
             }
         });
-        snap.add("Start saving compiled classes").addActionListener(new ActionListener()
-        {
-
-            public void actionPerformed(ActionEvent ev)
-            {
-                org.jpc.emulator.memory.codeblock.fastcompiler.ClassFileBuilder.startSavingClasses(new File(System.getProperty("user.dir") + "/classy.jar"));
-            }
-        });
-        snap.add("Finish saving compiled classes").addActionListener(new ActionListener()
-        {
-
-            public void actionPerformed(ActionEvent ev)
-            {
-                org.jpc.emulator.memory.codeblock.fastcompiler.ClassFileBuilder.finishSavingClasses();
-            }
-        });
         bar.add(snap);
 
         DriveSet drives = (DriveSet) pc.getComponent(DriveSet.class);

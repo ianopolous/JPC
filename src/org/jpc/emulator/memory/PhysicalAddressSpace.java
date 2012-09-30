@@ -373,6 +373,12 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
             memory = mem;
         }
 
+        public void lock(int addr)
+        {}
+
+        public void unlock(int addr)
+        {}
+
         public long getSize() {
             return BLOCK_SIZE;
         }
@@ -584,6 +590,12 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         public boolean isAllocated() {
             return false;
         }
+
+        public void lock(int addr)
+        {}
+
+        public void unlock(int addr)
+        {}
 
         public void clear() {
         }

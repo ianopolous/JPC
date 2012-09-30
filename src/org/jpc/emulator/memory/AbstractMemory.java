@@ -40,6 +40,16 @@ package org.jpc.emulator.memory;
  */
 public abstract class AbstractMemory implements Memory
 {
+    public void lock(int addr)
+    {
+
+    }
+
+    public void unlock(int addr)
+    {
+
+    }
+
     public abstract long getSize();
 
     public abstract byte getByte(int offset);

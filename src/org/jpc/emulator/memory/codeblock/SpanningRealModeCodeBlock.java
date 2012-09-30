@@ -42,7 +42,7 @@ import org.jpc.emulator.memory.AddressSpace;
  */
 class SpanningRealModeCodeBlock extends SpanningCodeBlock implements RealModeCodeBlock
 {
-    private ByteSourceWrappedMemory byteSource = new ByteSourceWrappedMemory();
+    private PeekableMemoryStream byteSourceStream = new PeekableMemoryStream();
 
     private CodeBlockFactory[] factories;
 
@@ -59,12 +59,12 @@ class SpanningRealModeCodeBlock extends SpanningCodeBlock implements RealModeCod
 
 	for (int i = 0; (i < factories.length) && (block == null); i++) {
 	    try {
-		byteSource.set(memory, address);
-		block = factories[i].getRealModeCodeBlock(byteSource);
+		byteSourceStream.set(memory, address);
+		block = factories[i].getRealModeCodeBlock(byteSourceStream);
 	    } catch (IllegalStateException e) {}
 	}
 
-        byteSource.set(null, 0);
+        byteSourceStream.set(null, 0);
 	return block;
     }
 

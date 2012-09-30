@@ -35,7 +35,7 @@ package org.jpc.emulator.memory.codeblock;
 
 import java.util.logging.*;
 
-import org.jpc.emulator.memory.codeblock.optimised.*;
+import org.jpc.emulator.execution.decoder.BasicBlock;
 import org.jpc.emulator.processor.*;
 
 /**
@@ -96,10 +96,10 @@ class BackgroundCompiler implements CodeBlockCompiler {
 
                 if (src instanceof ReplacementBlockTrigger) {
                     continue;
-                } else if (src instanceof RealModeUBlock) {
-                    result = delayed.getRealModeCodeBlock(((RealModeUBlock) src).getAsInstructionSource());
-                } else if (src instanceof ProtectedModeUBlock) {
-                    result = delayed.getProtectedModeCodeBlock(((ProtectedModeUBlock) src).getAsInstructionSource());
+                } else if (src instanceof RealModeCodeBlock) {
+                    result = delayed.getRealModeCodeBlock((BasicBlock) src);
+                } else if (src instanceof ProtectedModeCodeBlock) {
+                    result = delayed.getProtectedModeCodeBlock((BasicBlock) src);
                 }
 
                 if (result == null) {
@@ -111,18 +111,18 @@ class BackgroundCompiler implements CodeBlockCompiler {
         }
     }
 
-    public RealModeCodeBlock getRealModeCodeBlock(InstructionSource source) {
-        RealModeCodeBlock imm = immediate.getRealModeCodeBlock(source);
+    public RealModeCodeBlock getRealModeCodeBlock(BasicBlock block) {
+        RealModeCodeBlock imm = immediate.getRealModeCodeBlock(block);
         return new RealModeCodeBlockWrapper(imm);
     }
 
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(InstructionSource source) {
-        ProtectedModeCodeBlock imm = immediate.getProtectedModeCodeBlock(source);
+    public ProtectedModeCodeBlock getProtectedModeCodeBlock(BasicBlock block) {
+        ProtectedModeCodeBlock imm = immediate.getProtectedModeCodeBlock(block);
         return new ProtectedModeCodeBlockWrapper(imm);
     }
 
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(InstructionSource source) {
-        Virtual8086ModeCodeBlock imm = immediate.getVirtual8086ModeCodeBlock(source);
+    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(BasicBlock block) {
+        Virtual8086ModeCodeBlock imm = immediate.getVirtual8086ModeCodeBlock(block);
         return new Virtual8086ModeCodeBlockWrapper(imm);
     }
 

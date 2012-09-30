@@ -36,9 +36,6 @@ package org.jpc.emulator.memory.codeblock;
 import java.util.logging.*;
 
 import org.jpc.emulator.memory.Memory;
-import org.jpc.emulator.memory.codeblock.fastcompiler.FASTCompiler;
-import org.jpc.emulator.memory.codeblock.optimised.*;
-import org.jpc.emulator.PC;
 
 /**
  * Provides the outer skin for the codeblock construction system.
@@ -52,7 +49,7 @@ public class CodeBlockManager {
     public static volatile int BLOCK_LIMIT = 1000; //minimum of 2 because of STI/CLI
     private CodeBlockFactory realModeChain,  protectedModeChain,  virtual8086ModeChain;
     private CodeBlockFactory compilingRealModeChain,  compilingProtectedModeChain,  compilingVirtual8086ModeChain;
-    private ByteSourceWrappedMemory byteSource;
+    private PeekableMemoryStream byteSourceStream;
 //    private SpanningRealModeCodeBlock spanningRealMode;
 //    private SpanningProtectedModeCodeBlock spanningProtectedMode;
 //    private SpanningVirtual8086ModeCodeBlock spanningVirtual8086Mode;
@@ -66,49 +63,28 @@ public class CodeBlockManager {
      * bytecode.
      */
     public CodeBlockManager() {
-        byteSource = new ByteSourceWrappedMemory();
+        byteSourceStream = new PeekableMemoryStream();
 
-        realModeChain = new DefaultCodeBlockFactory(new RealModeUDecoder(), new OptimisedCompiler(), BLOCK_LIMIT);
-        protectedModeChain = new DefaultCodeBlockFactory(new ProtectedModeUDecoder(), new OptimisedCompiler(), BLOCK_LIMIT);
-        virtual8086ModeChain = new DefaultCodeBlockFactory(new RealModeUDecoder(), new OptimisedCompiler(), BLOCK_LIMIT);
+        realModeChain = new DefaultCodeBlockFactory(new OptimisedCompiler(), BLOCK_LIMIT);
+        protectedModeChain = new DefaultCodeBlockFactory(new OptimisedCompiler(), BLOCK_LIMIT);
+        virtual8086ModeChain = new DefaultCodeBlockFactory(new OptimisedCompiler(), BLOCK_LIMIT);
 
 //        spanningRealMode = new SpanningRealModeCodeBlock(new CodeBlockFactory[]{realModeChain});
 //        spanningProtectedMode = new SpanningProtectedModeCodeBlock(new CodeBlockFactory[]{protectedModeChain});
 //        spanningVirtual8086Mode = new SpanningVirtual8086ModeCodeBlock(new CodeBlockFactory[]{virtual8086ModeChain});
 
-        boolean compile = PC.compile;
-        
-        if (compile) {
-            try {
-                SecurityManager sm = System.getSecurityManager();
-                if (sm != null) {
-                    sm.checkCreateClassLoader();
-                }
-                LOGGING.log(Level.INFO, "JVM allows classloader creation: using advanced compilers.");
-                bgc = new BackgroundCompiler(new OptimisedCompiler(), new FASTCompiler());
-                compilingRealModeChain = new DefaultCodeBlockFactory(new RealModeUDecoder(), bgc, BLOCK_LIMIT);
-                compilingProtectedModeChain = new DefaultCodeBlockFactory(new ProtectedModeUDecoder(), bgc, BLOCK_LIMIT);
-                compilingVirtual8086ModeChain = new DefaultCodeBlockFactory(new RealModeUDecoder(), bgc, BLOCK_LIMIT);
-            } catch (SecurityException e) {
-                LOGGING.log(Level.INFO, "JVM refused classloader creation: not using advanced compilers.");
-                bgc = new BackgroundCompiler(new OptimisedCompiler(), new CachedCodeBlockCompiler());
-                compilingRealModeChain = new DefaultCodeBlockFactory(new RealModeUDecoder(), bgc, BLOCK_LIMIT);//realModeChain;
-                compilingProtectedModeChain = new DefaultCodeBlockFactory(new ProtectedModeUDecoder(), bgc, BLOCK_LIMIT);//protectedModeChain;
-                compilingVirtual8086ModeChain = virtual8086ModeChain;
-            }
-        } else {
+
             LOGGING.log(Level.INFO, "Not using advanced compilers.");
-            bgc = new BackgroundCompiler(new OptimisedCompiler(), new CachedCodeBlockCompiler());
-            compilingRealModeChain = new DefaultCodeBlockFactory(new RealModeUDecoder(), bgc, BLOCK_LIMIT);//realModeChain;
-            compilingProtectedModeChain = new DefaultCodeBlockFactory(new ProtectedModeUDecoder(), bgc, BLOCK_LIMIT);//protectedModeChain;
+            bgc = new BackgroundCompiler(new OptimisedCompiler(), null);
+            compilingRealModeChain = new DefaultCodeBlockFactory(bgc, BLOCK_LIMIT);//realModeChain;
+            compilingProtectedModeChain = new DefaultCodeBlockFactory(bgc, BLOCK_LIMIT);//protectedModeChain;
             compilingVirtual8086ModeChain = virtual8086ModeChain;
-        }
     }
     
     private RealModeCodeBlock tryRealModeFactory(CodeBlockFactory ff, Memory memory, int offset) {
         try {
-            byteSource.set(memory, offset);
-            return ff.getRealModeCodeBlock(byteSource);
+            byteSourceStream.set(memory, offset);
+            return ff.getRealModeCodeBlock(byteSourceStream);
         } catch (ArrayIndexOutOfBoundsException e) {
             return new SpanningRealModeCodeBlock(new CodeBlockFactory[]{realModeChain});
         }
@@ -116,8 +92,8 @@ public class CodeBlockManager {
 
     private ProtectedModeCodeBlock tryProtectedModeFactory(CodeBlockFactory ff, Memory memory, int offset, boolean operandSizeFlag) {
         try {
-            byteSource.set(memory, offset);
-            return ff.getProtectedModeCodeBlock(byteSource, operandSizeFlag);
+            byteSourceStream.set(memory, offset);
+            return ff.getProtectedModeCodeBlock(byteSourceStream, operandSizeFlag);
         } catch (ArrayIndexOutOfBoundsException e) {
             return new SpanningProtectedModeCodeBlock(new CodeBlockFactory[]{protectedModeChain});
         }
@@ -125,8 +101,8 @@ public class CodeBlockManager {
 
     private Virtual8086ModeCodeBlock tryVirtual8086ModeFactory(CodeBlockFactory ff, Memory memory, int offset) {
         try {
-            byteSource.set(memory, offset);
-            return ff.getVirtual8086ModeCodeBlock(byteSource);
+            byteSourceStream.set(memory, offset);
+            return ff.getVirtual8086ModeCodeBlock(byteSourceStream);
         } catch (ArrayIndexOutOfBoundsException e) {
             return new SpanningVirtual8086ModeCodeBlock(new CodeBlockFactory[]{virtual8086ModeChain});
         }

@@ -33,37 +33,43 @@
 
 package org.jpc.emulator.memory.codeblock;
 
+import org.jpc.emulator.execution.decoder.BasicBlock;
+import org.jpc.emulator.execution.decoder.PeekableInputStream;
+
 /**
- * Converts a stream of x86 bytes into a stream of JPC instructions.
- * @author Chris Dennis
+ * Converts a stream of x86 bytes into a basic block
+ * @author Ian Preston
  */
 public interface Decoder
 {
     /**
      * Decodes a sequence of real-mode x86 bytes into an instruction stream.
+     *
      * @param source sequence of x86 bytes to decode.
      * @param limit max x86 instructions to decode.
      * @return decoded instruction stream
      */
-    public InstructionSource decodeReal(ByteSource source, int limit);
+    public BasicBlock decodeReal(PeekableInputStream source, int limit);
 
     /**
      * Decodes a sequence of protected-mode x86 bytes into an instruction stream.
      * <p>
      * If the default operand size is 32-bit then the operandSize flag should be
      * set.
+     *
      * @param source sequence of x86 bytes to decode
      * @param operandSize <code>true</code> true if the default operand size is 32-bit
      * @param limit max x86 instructions to decode.
      * @return decoded instruction stream
      */
-    public InstructionSource decodeProtected(ByteSource source, boolean operandSize, int limit);
+    public BasicBlock decodeProtected(PeekableInputStream source, boolean operandSize, int limit);
 
     /**
      * Decodes a sequence of virtual8086-mode x86 bytes into an instruction stream.
+     *
      * @param source sequence of x86 bytes to decode.
      * @param limit max x86 instructions to decode.
      * @return decoded instruction stream
      */
-    public InstructionSource decodeVirtual8086(ByteSource source, int limit);
+    public BasicBlock decodeVirtual8086(PeekableInputStream source, int limit);
 }

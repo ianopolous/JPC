@@ -42,7 +42,7 @@ import org.jpc.emulator.memory.AddressSpace;
  */
 class SpanningVirtual8086ModeCodeBlock extends SpanningCodeBlock implements Virtual8086ModeCodeBlock
 {
-    private ByteSourceWrappedMemory byteSource = new ByteSourceWrappedMemory();
+    private PeekableMemoryStream byteSourceStream = new PeekableMemoryStream();
 
     private CodeBlockFactory[] factories;
 
@@ -58,12 +58,12 @@ class SpanningVirtual8086ModeCodeBlock extends SpanningCodeBlock implements Virt
 	int address = cpu.getInstructionPointer();
 	for (int i = 0; (i < factories.length) && (block == null); i++) {
 	    try {
-		byteSource.set(memory, address);
-		block = factories[i].getVirtual8086ModeCodeBlock(byteSource);
+		byteSourceStream.set(memory, address);
+		block = factories[i].getVirtual8086ModeCodeBlock(byteSourceStream);
 	    } catch (IllegalStateException e) {}
 	}
 	
-        byteSource.set(null, 0);
+        byteSourceStream.set(null, 0);
 	return block;
     }
     

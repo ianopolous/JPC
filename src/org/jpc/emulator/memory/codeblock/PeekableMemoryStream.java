@@ -33,48 +33,79 @@
 
 package org.jpc.emulator.memory.codeblock;
 
+import org.jpc.emulator.execution.decoder.PeekableInputStream;
 import org.jpc.emulator.memory.Memory;
 
 /**
  * 
- * @author Chris Dennis
+ * @author Ian Preston
  */
-class ByteSourceWrappedMemory implements ByteSource
+class PeekableMemoryStream implements PeekableInputStream
 {
-    private Memory source;
-    private int offset, startingPosition;
+    private Memory memory;
+    private int position, start;
 
     public void set(Memory source, int offset)
     {
-	this.source = source;
-	this.offset = offset;
-        startingPosition = offset;
+	    memory = source;
+	    position = offset;
+        start = offset;
     }
 
-    public int getOffset()
+    public int peek()
     {
-        return offset;
+        return 0xFF & memory.getByte((int) (position));
     }
 
-    public byte getByte()
+    public void forward()
     {
-	return source.getByte(offset++);
+        position++;
     }
 
-    public void skip(int count)
-    {
-        if (offset + count >= source.getSize())
-            throw new IndexOutOfBoundsException();
-        offset += count;
+    public long position() {
+        return position;
     }
 
-    public void reset()
+    public long read(long bits)
     {
-        offset = startingPosition;
+        if (bits == 8)
+            return 0xFF & memory.getByte((int) (position++));
+        if (bits == 16)
+            return read16();
+        if (bits == 32)
+            return read32();
+        if (bits == 64)
+            return read32() | (((long)read32()) << 32);
+        throw new IllegalStateException("unimplemented read amount " + bits);
+    }
+
+    public int read16()
+    {
+        return (0xFF & memory.getByte((int) (position++))) | ((0xFF & memory.getByte((int) (position++))) << 8);
+    }
+
+    public int read32()
+    {
+        return read16() | (read16() << 16);
+    }
+
+    public long getAddress()
+    {
+        return position;
+    }
+
+    public int getCounter()
+    {
+        return (int)(position-start);
+    }
+
+    public void resetCounter()
+    {
+        start = position;
     }
     
     public String toString()
     {
-        return "ByteSourceWrappedMemory: [" + source + "] @ 0x" + Integer.toHexString(startingPosition); 
+        return "PeekableMemoryStream: [" + memory + "] @ 0x" + Integer.toHexString(start);
     }
 }

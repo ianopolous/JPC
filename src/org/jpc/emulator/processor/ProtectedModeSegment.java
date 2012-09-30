@@ -408,14 +408,14 @@ public abstract class ProtectedModeSegment extends Segment
             memory.setDoubleWord(initialAddress + 28, cpu.getCR3());
             memory.setDoubleWord(initialAddress + 32, cpu.eip);
             memory.setDoubleWord(initialAddress + 36, cpu.getEFlags());
-            memory.setDoubleWord(initialAddress + 40, cpu.eax);
-            memory.setDoubleWord(initialAddress + 44, cpu.ecx);
-            memory.setDoubleWord(initialAddress + 48, cpu.edx);
-            memory.setDoubleWord(initialAddress + 52, cpu.ebx);
-            memory.setDoubleWord(initialAddress + 56, cpu.esp);
-            memory.setDoubleWord(initialAddress + 60, cpu.ebp);
-            memory.setDoubleWord(initialAddress + 64, cpu.esi);
-            memory.setDoubleWord(initialAddress + 68, cpu.edi);
+            memory.setDoubleWord(initialAddress + 40, cpu.r_eax.get32());
+            memory.setDoubleWord(initialAddress + 44, cpu.r_ecx.get32());
+            memory.setDoubleWord(initialAddress + 48, cpu.r_edx.get32());
+            memory.setDoubleWord(initialAddress + 52, cpu.r_ebx.get32());
+            memory.setDoubleWord(initialAddress + 56, cpu.r_esp.get32());
+            memory.setDoubleWord(initialAddress + 60, cpu.r_ebp.get32());
+            memory.setDoubleWord(initialAddress + 64, cpu.r_esi.get32());
+            memory.setDoubleWord(initialAddress + 68, cpu.r_edi.get32());
             memory.setDoubleWord(initialAddress + 72, cpu.es.getSelector());
             memory.setDoubleWord(initialAddress + 76, cpu.cs.getSelector());
             memory.setDoubleWord(initialAddress + 80, cpu.ss.getSelector());
@@ -429,14 +429,14 @@ public abstract class ProtectedModeSegment extends Segment
             int initialAddress = translateAddressRead(0);
             cpu.eip = memory.getDoubleWord(initialAddress + 32);
             cpu.setEFlags(memory.getDoubleWord(initialAddress + 36));
-            cpu.eax = memory.getDoubleWord(initialAddress + 40);
-            cpu.ecx = memory.getDoubleWord(initialAddress + 44);
-            cpu.edx = memory.getDoubleWord(initialAddress + 48);
-            cpu.ebx = memory.getDoubleWord(initialAddress + 52);
-            cpu.esp = memory.getDoubleWord(initialAddress + 56);
-            cpu.ebp = memory.getDoubleWord(initialAddress + 60);
-            cpu.esi = memory.getDoubleWord(initialAddress + 64);
-            cpu.edi = memory.getDoubleWord(initialAddress + 68);
+            cpu.r_eax.set32(memory.getDoubleWord(initialAddress + 40));
+            cpu.r_ecx.set32(memory.getDoubleWord(initialAddress + 44));
+            cpu.r_edx.set32(memory.getDoubleWord(initialAddress + 48));
+            cpu.r_ebx.set32(memory.getDoubleWord(initialAddress + 52));
+            cpu.r_esp.set32(memory.getDoubleWord(initialAddress + 56));
+            cpu.r_ebp.set32(memory.getDoubleWord(initialAddress + 60));
+            cpu.r_esi.set32(memory.getDoubleWord(initialAddress + 64));
+            cpu.r_edi.set32(memory.getDoubleWord(initialAddress + 68));
             // non dynamic fields
             //cpu.ldtr = cpu.getSegment(0xFFFF & memory.getDoubleWord(initialAddress + 96));
             if (cpu.pagingEnabled())

@@ -33,10 +33,9 @@
 
 package org.jpc.emulator.memory.codeblock;
 
-/**
- * A single chunk of Protected mode executable code.
- * @author Chris Dennis
- */
+import org.jpc.emulator.execution.Executable;
+import org.jpc.emulator.execution.decoder.BasicBlock;
+
 public interface ProtectedModeCodeBlock extends CodeBlock
 {
 }

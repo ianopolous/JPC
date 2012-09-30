@@ -63,7 +63,7 @@ public class PC {
     public static final int DEFAULT_RAM_SIZE = 256 * 1024 * 1024;
     public static final int INSTRUCTIONS_BETWEEN_INTERRUPTS = 1; 
 
-    public static volatile boolean compile = true;
+    public static volatile boolean compile = false;
 
     private static final Logger LOGGING = Logger.getLogger(PC.class.getName());
 

@@ -881,6 +881,10 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
             pageFault = new ProcessorException(ProcessorException.Type.PAGE_FAULT, errorCode, true);
         }
 
+        public void lock(int addr) {}
+
+        public void unlock(int addr) {}
+
         public ProcessorException getException() 
         {
             return pageFault;

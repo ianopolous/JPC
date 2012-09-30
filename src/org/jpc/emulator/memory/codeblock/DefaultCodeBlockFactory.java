@@ -33,36 +33,37 @@
 
 package org.jpc.emulator.memory.codeblock;
 
+import org.jpc.emulator.execution.decoder.Disassembler;
+import org.jpc.emulator.execution.decoder.PeekableInputStream;
+
 /**
- * 
- * @author Chris Dennis
+ *
+ * @author Ian Preston
  */
 class DefaultCodeBlockFactory implements CodeBlockFactory
 {
-    private final Decoder decoder;
     private final CodeBlockCompiler compiler;
     private final int limit;
 
-    public DefaultCodeBlockFactory(Decoder decoder, CodeBlockCompiler compiler, int limit)
+    public DefaultCodeBlockFactory(CodeBlockCompiler compiler, int limit)
     {
-	this.decoder = decoder;
-	this.compiler = compiler;
+        this.compiler = compiler;
         this.limit = limit;
     }
 
-    public RealModeCodeBlock getRealModeCodeBlock(ByteSource source)
+    public RealModeCodeBlock getRealModeCodeBlock(PeekableInputStream source)
     {
-	return compiler.getRealModeCodeBlock(decoder.decodeReal(source, limit));
+        return compiler.getRealModeCodeBlock(Disassembler.disassembleBlock(source, 16));
     }
 
 
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(ByteSource source, boolean operandSize)
+    public ProtectedModeCodeBlock getProtectedModeCodeBlock(PeekableInputStream source, boolean operandSize)
     {
-	return compiler.getProtectedModeCodeBlock(decoder.decodeProtected(source, operandSize, limit));
+        return compiler.getProtectedModeCodeBlock(Disassembler.disassembleBlock(source, operandSize?32:16));
     }
 
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(ByteSource source)
+    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(PeekableInputStream source)
     {
-	return compiler.getVirtual8086ModeCodeBlock(decoder.decodeVirtual8086(source, limit));
+        return compiler.getVirtual8086ModeCodeBlock(Disassembler.disassembleBlock(source, 16));
     }
 }

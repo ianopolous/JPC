@@ -42,7 +42,7 @@ import org.jpc.emulator.memory.AddressSpace;
  */
 class SpanningProtectedModeCodeBlock extends SpanningCodeBlock implements ProtectedModeCodeBlock
 {
-    private ByteSourceWrappedMemory byteSource = new ByteSourceWrappedMemory();
+    private PeekableMemoryStream byteSourceStream = new PeekableMemoryStream();
 
     private CodeBlockFactory[] factories;
     private int length;
@@ -65,12 +65,12 @@ class SpanningProtectedModeCodeBlock extends SpanningCodeBlock implements Protec
 	boolean opSize = cpu.cs.getDefaultSizeFlag();
 	for (int i = 0; (i < factories.length) && (block == null); i++) {
 	    try {
-		byteSource.set(memory, address);
-		block = factories[i].getProtectedModeCodeBlock(byteSource, opSize);
+		byteSourceStream.set(memory, address);
+		block = factories[i].getProtectedModeCodeBlock(byteSourceStream, opSize);
 	    } catch (IllegalStateException e) {}
 	}
 	length = block.getX86Length();
-        byteSource.set(null, 0);
+        byteSourceStream.set(null, 0);
 	return block;
     }
     
