@@ -33,6 +33,7 @@
 
 package org.jpc.emulator.memory.codeblock;
 
+import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.processor.Processor;
 
 /**
@@ -58,7 +59,7 @@ public abstract class SpanningCodeBlock implements CodeBlock
 	}
     }
     
-    public int execute(Processor cpu)
+    public Executable.Branch execute(Processor cpu)
     {
 	lastBlock = decode(cpu);
 	return lastBlock.execute(cpu);

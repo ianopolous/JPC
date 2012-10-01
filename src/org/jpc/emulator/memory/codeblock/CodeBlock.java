@@ -33,6 +33,7 @@
 
 package org.jpc.emulator.memory.codeblock;
 
+import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.processor.Processor;
 
 /**
@@ -66,10 +67,11 @@ public interface CodeBlock
      * negative value should an error occur.  If execution of this block
      * terminates abruptly (for example due to a processor exception) then the
      * return value may not equal the return of <code>getX86Count</code>
+     *
      * @param cpu state on which to execute.
      * @return the number of x86 instructions executed or negative on error.
      */
-    public int execute(Processor cpu);
+    public Executable.Branch execute(Processor cpu);
 
     public String getDisplayString();
 

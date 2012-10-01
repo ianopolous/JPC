@@ -271,6 +271,9 @@ public class Processor implements HardwareComponent
         }
     }
 
+    public void lock(int addr){}
+    public void unlock(int addr){}
+
     private int cr0, cr1, cr2, cr3, cr4;
     public int dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7;
     public int flagOp1, flagOp2, flagResult, flagIns, flagStatus;
@@ -317,6 +320,12 @@ public class Processor implements HardwareComponent
         ioports = null;
         alignmentChecking = false;
         modelSpecificRegisters = new HashMap<Integer, Long>();
+    }
+
+    public void jumpFar(int seg, int eip)
+    {
+        cs.setSelector(seg);
+        this.eip = eip;
     }
 
     public void printState()

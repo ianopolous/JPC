@@ -53,7 +53,7 @@ class DefaultCodeBlockFactory implements CodeBlockFactory
 
     public RealModeCodeBlock getRealModeCodeBlock(PeekableInputStream source)
     {
-        return compiler.getRealModeCodeBlock(Disassembler.disassembleBlock(source, 16));
+        return compiler.getRealModeCodeBlock(new InterpretedRealModeBlock(Disassembler.disassembleBlock(source, 16)));
     }
 
 

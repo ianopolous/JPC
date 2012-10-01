@@ -33,6 +33,7 @@
 
 package org.jpc.emulator.memory.codeblock;
 
+import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.processor.Processor;
 
 /**
@@ -63,7 +64,7 @@ public abstract class AbstractCodeBlockWrapper implements CodeBlock
 	return actualBlock.getX86Count();
     }
     
-    public int execute(Processor cpu)
+    public Executable.Branch execute(Processor cpu)
     {
 	return actualBlock.execute(cpu);
     }

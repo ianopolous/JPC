@@ -33,6 +33,7 @@
 
 package org.jpc.emulator.memory.codeblock;
 
+import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.processor.Processor;
 
 /**
@@ -60,7 +61,7 @@ class ReplacementBlockTrigger implements CodeBlock
         return replacement.getX86Count();
     }
 
-    public int execute(Processor cpu)
+    public Executable.Branch execute(Processor cpu)
     {
         throw new CodeBlockReplacementException(replacement);
     }

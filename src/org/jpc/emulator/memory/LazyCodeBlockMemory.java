@@ -34,9 +34,10 @@
 package org.jpc.emulator.memory;
 
 import java.util.Arrays;
+
+import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.memory.codeblock.*;
 import org.jpc.emulator.processor.Processor;
-import org.jpc.emulator.processor.ProcessorException;
 
 /**
  * <code>Memory</code> object with simple execute capabilities.  Uses a
@@ -99,20 +100,23 @@ public class LazyCodeBlockMemory extends AbstractMemory {
         {
             try
             {
-                x86Count += block.execute(cpu);
+                x86Count += block.getX86Count();
+                block.execute(cpu);
             }
             catch (NullPointerException e)
             {
                 block = codeBlockManager.getProtectedModeCodeBlockAt(this, offset, cpu.cs.getDefaultSizeFlag());
                 setProtectedCodeBlockAt(offset, block);
-                x86Count += block.execute(cpu);
+                x86Count += block.getX86Count();
+                block.execute(cpu);
             }
         }
         catch (CodeBlockReplacementException e)
         {
             block = (ProtectedModeCodeBlock) e.getReplacement();
             protectedCodeBuffer[offset] = block;
-            x86Count += block.execute(cpu);
+            x86Count += block.getX86Count();
+            block.execute(cpu);
         }
 
         return x86Count;
@@ -128,20 +132,23 @@ public class LazyCodeBlockMemory extends AbstractMemory {
         {
             try
             {
-                x86Count += block.execute(cpu);
+                x86Count += block.getX86Count();
+                block.execute(cpu);
             }
             catch (NullPointerException e)
             {
                 block = codeBlockManager.getRealModeCodeBlockAt(this, offset);
                 setRealCodeBlockAt(offset, block);
-                x86Count += block.execute(cpu);
+                x86Count += block.getX86Count();
+                block.execute(cpu);
             }
         }
         catch (CodeBlockReplacementException e)
         {
             block = (RealModeCodeBlock) e.getReplacement();
             realCodeBuffer[offset] = block;
-            x86Count += block.execute(cpu);
+            x86Count += block.getX86Count();
+            block.execute(cpu);
         }
 
         return x86Count;
@@ -157,20 +164,23 @@ public class LazyCodeBlockMemory extends AbstractMemory {
         {
             try
             {
-                x86Count += block.execute(cpu);
+                x86Count += block.getX86Count();
+                block.execute(cpu);
             }
             catch (NullPointerException e)
             {
                 block = codeBlockManager.getVirtual8086ModeCodeBlockAt(this, offset);
                 setVirtual8086CodeBlockAt(offset, block);
-                x86Count += block.execute(cpu);
+                x86Count += block.getX86Count();
+                block.execute(cpu);
             }
         }
         catch (CodeBlockReplacementException e)
         {
             block = (Virtual8086ModeCodeBlock) e.getReplacement();
             virtual8086CodeBuffer[offset] = block;
-            x86Count += block.execute(cpu);
+            x86Count += block.getX86Count();
+            block.execute(cpu);
         }
 
         return x86Count;
@@ -447,7 +457,7 @@ public class LazyCodeBlockMemory extends AbstractMemory {
             return 0;
         }
 
-        public int execute(Processor cpu) {
+        public Executable.Branch execute(Processor cpu) {
             throw executeException;
         }
 

@@ -35,6 +35,7 @@ package org.jpc.emulator.memory.codeblock;
 
 import java.util.logging.*;
 
+import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.execution.decoder.BasicBlock;
 import org.jpc.emulator.processor.*;
 
@@ -135,7 +136,7 @@ class BackgroundCompiler implements CodeBlockCompiler {
             super(block);
         }
 
-        public int execute(Processor cpu) {
+        public Executable.Branch execute(Processor cpu) {
             executeCount++;
             if ((executeCount % COMPILE_REQUEST_THRESHOLD) == 0) {
                 if (!queued)
