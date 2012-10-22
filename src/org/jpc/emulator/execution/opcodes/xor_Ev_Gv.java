@@ -11,9 +11,9 @@ public class xor_Ev_Gv extends Executable
     final int op2Index;
     final int size;
 
-    public xor_Ev_Gv(Instruction parent)
+    public xor_Ev_Gv(int blockStart, Instruction parent)
     {
-        super(parent);
+        super(blockStart, parent);
         size = parent.operand[1].size;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
         op2Index = Processor.getRegIndex(parent.operand[1].toString());

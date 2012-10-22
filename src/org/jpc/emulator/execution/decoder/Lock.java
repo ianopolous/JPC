@@ -8,9 +8,9 @@ public class Lock extends Executable
 {
     Executable exec;
 
-    public Lock(Executable parent)
+    public Lock(int blockStart, Executable parent)
     {
-        super(null);
+        super(blockStart, null);
         this.exec = parent;
     }
 

@@ -51,7 +51,7 @@ public class Disassembler
                 {
                     Class c = Class.forName(file.replaceAll("/", "."));
                     int slash = file.lastIndexOf("/");
-                    instructions.put(file.substring(slash+1), c.getConstructor(Instruction.class));
+                    instructions.put(file.substring(slash+1), c.getConstructor(int.class, Instruction.class));
                     //System.out.println("Loaded: "+file.substring(slash+1));
                 } catch (Exception e)
                 {e.printStackTrace();}
@@ -60,7 +60,7 @@ public class Disassembler
         {e.printStackTrace();}
     }
 
-    public static Executable getExecutable(Instruction in)
+    public static Executable getExecutable(int blockStart, Instruction in)
     {
         try
         {
@@ -68,9 +68,9 @@ public class Disassembler
             if (instructions.containsKey(gen))
             {
                 //System.out.println("Found general class: " + gen);
-                Executable dis = instructions.get(gen).newInstance(in);
+                Executable dis = instructions.get(gen).newInstance(blockStart, in);
                 if (in.pfx.lock != 0)
-                    return new Lock(dis);
+                    return new Lock(blockStart, dis);
                 return dis;
             }
         } catch (InstantiationException e)
@@ -78,7 +78,7 @@ public class Disassembler
         catch (IllegalAccessException e)
         {}
         catch (InvocationTargetException e) {}
-        throw new IllegalStateException("Unimplemented opcode: "+in.toString() + ", general pattern: " + in.getGeneralClassName());
+        throw new IllegalStateException("Unimplemented opcode: "+in.toString() + ", general pattern: " + in.getGeneralClassName()+".");
     }
 
     public static Instruction disassemble16(PeekableInputStream input)
@@ -119,7 +119,7 @@ public class Disassembler
             insn = disassemble32(input);
         else
             insn = disassemble16(input);
-        Executable start = getExecutable(insn);
+        Executable start = getExecutable(startAddr, insn);
         //System.out.println("Disassemble block starting with "+start);
         Executable current = start;
         Instruction currentInsn = insn;
@@ -128,7 +128,7 @@ public class Disassembler
         while (!currentInsn.isBranch())
         {
             Instruction nextInsn = disassemble32(input);
-            Executable next = getExecutable(nextInsn);
+            Executable next = getExecutable(startAddr, nextInsn);
             count++;
             if (count > MAX_INSTRUCTIONS_PER_BLOCK)
                 throw new IllegalStateException(String.format("Exceeded maximum number of instructions in a block at %x", startAddr));

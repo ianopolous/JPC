@@ -11,9 +11,9 @@ public class out_Ib_AL extends Executable
     final int op2Index;
     final int imm;
 
-    public out_Ib_AL(Instruction parent)
+    public out_Ib_AL(int blockStart, Instruction parent)
     {
-        super(parent);
+        super(blockStart, parent);
         size = parent.operand[0].size;
         imm = 0xff & (int)parent.operand[0].lval;
         op2Index = Processor.getRegIndex(parent.operand[1].toString());

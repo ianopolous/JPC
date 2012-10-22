@@ -10,9 +10,9 @@ public class mov_Eb_Gb extends Executable
     final int op1Index;
     final int op2Index;
 
-    public mov_Eb_Gb(Instruction parent)
+    public mov_Eb_Gb(int blockStart, Instruction parent)
     {
-        super(parent);
+        super(blockStart, parent);
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }

@@ -9,9 +9,9 @@ public class jmp_Ap extends Executable
 {
     public int cs, targeteip;
 
-    public jmp_Ap(Instruction parent)
+    public jmp_Ap(int blockStart, Instruction parent)
     {
-        super(parent);
+        super(blockStart, parent);
         targeteip = parent.operand[0].ptr.off;
         cs = parent.operand[0].ptr.seg;
     }

@@ -24,7 +24,7 @@ public abstract class Executable
 
     public static enum Branch {None, T1, T2, Jmp_Unknown, Call, Call_Unknown, Ret, Exception};
 
-    public Executable(Instruction in){}
+    public Executable(int blockStart, Instruction in){}
 
     public abstract Branch execute(Processor cpu);
 }

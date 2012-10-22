@@ -11,9 +11,9 @@ public class add_Ev_Ib extends Executable
     final int size;
     final int imm;
 
-    public add_Ev_Ib(Instruction parent)
+    public add_Ev_Ib(int blockStart, Instruction parent)
     {
-        super(parent);
+        super(blockStart, parent);
         size = parent.operand[0].size;
         imm = (byte)parent.operand[1].lval;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());

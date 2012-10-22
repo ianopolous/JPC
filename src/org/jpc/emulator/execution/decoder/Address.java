@@ -39,19 +39,37 @@ public class Address
         {
             segment = Processor.getSegmentIndex(seg);
         } else
-            segment = -1;
+            segment = Processor.getSegmentIndex("ds");
     }
 
-    public int get(Processor cpu)
+    public int get32(Processor cpu)
     {
         int addr = offset;
-        if (segment != -1)
-            addr += cpu.segs[segment].getBase();
         if (base != -1)
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
-        return addr;
+        return cpu.segs[segment].getDoubleWord(addr);
+    }
+
+    public short get16(Processor cpu)
+    {
+        int addr = offset;
+        if (base != -1)
+            addr += cpu.regs[base].get32();
+        if (scale != 0)
+            addr += scale*cpu.regs[index].get32();
+        return cpu.segs[segment].getWord(addr);
+    }
+
+    public byte get8(Processor cpu)
+    {
+        int addr = offset;
+        if (base != -1)
+            addr += cpu.regs[base].get32();
+        if (scale != 0)
+            addr += scale*cpu.regs[index].get32();
+        return cpu.segs[segment].getByte(addr);
     }
 
     public String toString()

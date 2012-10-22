@@ -11,9 +11,9 @@ public class mov_Gv_Ev_mem extends Executable
     final Address op2;
     final int size;
 
-    public mov_Gv_Ev_mem(Instruction parent)
+    public mov_Gv_Ev_mem(int blockStart, Instruction parent)
     {
-        super(parent);
+        super(blockStart, parent);
         size = parent.operand[1].size;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
         op2 = new Address(parent.operand[1]);
@@ -25,11 +25,11 @@ public class mov_Gv_Ev_mem extends Executable
 
         if (size == 16)
         {
-            op1.set16(memory.getWord(op2.get(cpu)));
+            op1.set16(op2.get16(cpu));
         }
         else if (size == 32)
         {
-            op1.set32(memory.getDoubleWord(op2.get(cpu)));
+            op1.set32(op2.get32(cpu));
         }
         return Branch.None;
     }

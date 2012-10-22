@@ -132,7 +132,17 @@ public class Processor implements HardwareComponent
     public final Reg r_ebp = new Reg("ebp", null);
     public final Reg r_bp = r_ebp;
     public final Reg[] regs = new Reg[] {r_eax, r_ax, r_ah, r_al, r_ebx, r_bx, r_bh, r_bl, r_ecx, r_cx, r_ch, r_cl, r_edx, r_dx, r_dh, r_dl, r_esi, r_si, r_edi, r_di, r_esp, r_sp, r_ebp, r_bp};
-    public final Segment[] segs = new Segment[] {gs, es, fs, cs, ss};
+    public final Segment[] segs = new Segment[] {gs, es, fs, cs, ss, ds};
+
+    private void updateSegmentArray()
+    {
+        segs[0]=gs;
+        segs[1]=es;
+        segs[2]=fs;
+        segs[3]=cs;
+        segs[4]=ss;
+        segs[5]=ds;
+    }
 
     public static int getRegIndex(String name)
     {
@@ -199,6 +209,8 @@ public class Processor implements HardwareComponent
             return 3;
         if (seg.equals("ss"))
             return 4;
+        if (seg.equals("ds"))
+            return 5;
         throw new IllegalStateException("Unknown Segment: "+seg);
     }
 
@@ -269,6 +281,35 @@ public class Processor implements HardwareComponent
         {
             dword = ((value & 0xFF) << 8) | (dword & 0xFFFF00FF);
         }
+    }
+
+    public int pop16()
+    {
+        if (ss.getDefaultSizeFlag()) {
+            r_esp.set32(r_esp.get32() + 2);
+            return ss.getWord(r_esp.get32()-2);
+        } else {
+            int val = ss.getWord(r_esp.get16());
+            r_esp.set16(r_esp.get16() + 2);
+            return val;
+        }
+    }
+
+    public int pop32()
+    {
+        if (ss.getDefaultSizeFlag()) {
+            r_esp.set32(r_esp.get32() + 4);
+            return ss.getDoubleWord(r_esp.get32()-4);
+        } else {
+            int val = ss.getDoubleWord(r_esp.get16());
+            r_esp.set16(r_esp.get16() + 4);
+            return val;
+        }
+    }
+
+    public void ds(int selector)
+    {
+        ds.setSelector(selector);
     }
 
     public void lock(int addr){}
@@ -1118,6 +1159,7 @@ public class Processor implements HardwareComponent
         ldtr = SegmentFactory.NULL_SEGMENT;
         gdtr = SegmentFactory.createDescriptorTableSegment(physicalMemory, 0, 0xFFFF);
         tss = SegmentFactory.NULL_SEGMENT;
+        updateSegmentArray();
 
         modelSpecificRegisters.clear();
         //Will need to set any MSRs here

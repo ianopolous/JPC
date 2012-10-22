@@ -8,6 +8,7 @@ import static org.jpc.emulator.execution.Executable.*;
 
 public class BasicBlock implements CodeBlock
 {
+    public static final boolean log_blocks = true;
     public Executable start;
     public BasicBlock link1, link2;
     public final int x86Length, x86Count;
@@ -30,6 +31,8 @@ public class BasicBlock implements CodeBlock
         Executable current = start;
         Executable.Branch ret;
 
+        if (log_blocks)
+            System.out.printf("Entering %08x\n", cpu.cs.getBase()+cpu.eip);
         while ((ret = current.execute(cpu)) == Executable.Branch.None)
         {
             //System.out.println("\t"+current);

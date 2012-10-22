@@ -10,9 +10,9 @@ public class cmp_AL_Ib extends Executable
     final int op1Index;
     final int imm;
 
-    public cmp_AL_Ib(Instruction parent)
+    public cmp_AL_Ib(int blockStart, Instruction parent)
     {
-        super(parent);
+        super(blockStart, parent);
         imm = (byte)parent.operand[1].lval;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
     }

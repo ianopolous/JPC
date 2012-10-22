@@ -3,26 +3,25 @@ package org.jpc.emulator.execution.opcodes;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
+import static org.jpc.emulator.processor.Processor.*;
 
-public class jmp_Jz extends Executable
+public class pop_rBXr11 extends Executable
 {
-    public int target;
 
-    public jmp_Jz(int blockStart, Instruction parent)
+    public pop_rBXr11(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        target = (int)(parent.operand[0].lval + parent.x86Length + parent.eip);
     }
 
     public Branch execute(Processor cpu)
     {
-        cpu.eip = target;
-        return Branch.T1;
+        cpu.r_ebx.set32(cpu.pop32());
+        return Branch.None;
     }
 
     public boolean isBranch()
     {
-        return true;
+        return false;
     }
 
     public String toString()

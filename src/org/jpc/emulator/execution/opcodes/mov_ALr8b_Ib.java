@@ -10,9 +10,9 @@ public class mov_ALr8b_Ib extends Executable
     final int imm;
     final int size;
 
-    public mov_ALr8b_Ib(Instruction parent)
+    public mov_ALr8b_Ib(int blockStart, Instruction parent)
     {
-        super(parent);
+        super(blockStart, parent);
         size = parent.operand[1].size;
         imm = (byte) parent.operand[1].lval;
     }
