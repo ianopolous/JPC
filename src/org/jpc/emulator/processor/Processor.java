@@ -312,6 +312,16 @@ public class Processor implements HardwareComponent
         ds.setSelector(selector);
     }
 
+    public void es(int selector)
+    {
+        es.setSelector(selector);
+    }
+
+    public void ss(int selector)
+    {
+        ss.setSelector(selector);
+    }
+
     public void lock(int addr){}
     public void unlock(int addr){}
 

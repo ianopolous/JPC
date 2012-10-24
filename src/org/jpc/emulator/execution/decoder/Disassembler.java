@@ -127,7 +127,7 @@ public class Disassembler
         int count = 1;
         while (!currentInsn.isBranch())
         {
-            Instruction nextInsn = disassemble32(input);
+            Instruction nextInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
             Executable next = getExecutable(startAddr, nextInsn);
             count++;
             if (count > MAX_INSTRUCTIONS_PER_BLOCK)
