@@ -42,6 +42,16 @@ public class Address
             segment = Processor.getSegmentIndex("ds");
     }
 
+    public int get(Processor cpu)
+    {
+        int addr = offset;
+        if (base != -1)
+            addr += cpu.regs[base].get32();
+        if (scale != 0)
+            addr += scale*cpu.regs[index].get32();
+        return addr;
+    }
+
     public int get32(Processor cpu)
     {
         int addr = offset;

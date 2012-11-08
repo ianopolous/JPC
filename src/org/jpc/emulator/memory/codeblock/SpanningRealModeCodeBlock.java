@@ -61,7 +61,7 @@ class SpanningRealModeCodeBlock extends SpanningCodeBlock implements RealModeCod
 	    try {
 		byteSourceStream.set(memory, address);
 		block = factories[i].getRealModeCodeBlock(byteSourceStream);
-	    } catch (IllegalStateException e) {}
+	    } catch (IllegalStateException e) {e.printStackTrace();}
 	}
 
         byteSourceStream.set(null, 0);

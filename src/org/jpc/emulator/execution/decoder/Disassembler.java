@@ -19,13 +19,19 @@ public class Disassembler
     public static ZygoteInstruction ie_invalid = new ZygoteInstruction("invalid", O_NONE, O_NONE, O_NONE, P_none);
     public static ZygoteInstruction ie_pause = new ZygoteInstruction("pause", O_NONE, O_NONE,    O_NONE, P_none);
     public static ZygoteInstruction ie_nop = new ZygoteInstruction("nop", O_NONE, O_NONE, O_NONE, P_none);
-    private static Map<String, Constructor<? extends Executable>> instructions = new HashMap();
+    private static Map<String, Constructor<? extends Executable>> rm_instructions = new HashMap();
+    private static Map<String, Constructor<? extends Executable>> pm_instructions = new HashMap();
+    private static Map<String, Constructor<? extends Executable>> vm_instructions = new HashMap();
 
-    static
+    static {
+        loadOpcodes(rm_instructions, "rm");
+    }
+
+    private static void loadOpcodes(Map<String, Constructor<? extends Executable>> instructions, String mode)
     {
         // load instruction classes
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        String path = "org/jpc/emulator/execution/opcodes";
+        String path = "org/jpc/emulator/execution/opcodes/"+mode;
         try
         {
             Enumeration<URL> resources = cl.getResources(path);
@@ -60,11 +66,16 @@ public class Disassembler
         {e.printStackTrace();}
     }
 
-    public static Executable getExecutable(int blockStart, Instruction in)
+    public static Executable getExecutable(int operand_size, int blockStart, Instruction in)
     {
         try
         {
             String gen = in.getGeneralClassName();
+            Map<String, Constructor<? extends Executable>> instructions = null;
+            if (operand_size == 16)
+                instructions = rm_instructions;
+            else if (operand_size == 32)
+                instructions = pm_instructions;
             if (instructions.containsKey(gen))
             {
                 //System.out.println("Found general class: " + gen);
@@ -112,14 +123,14 @@ public class Disassembler
     public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size)
     {
         int startAddr = (int)input.getAddress();
-        //System.out.printf("Disassembling block at %x\n", input.getAddress());
+        System.out.printf("Disassembling block at %x\n", input.getAddress());
         boolean debug = false;//input.getAddress() == 0x826d420;
         Instruction insn;
         if (operand_size == 32)
             insn = disassemble32(input);
         else
             insn = disassemble16(input);
-        Executable start = getExecutable(startAddr, insn);
+        Executable start = getExecutable(operand_size, startAddr, insn);
         //System.out.println("Disassemble block starting with "+start);
         Executable current = start;
         Instruction currentInsn = insn;
@@ -128,7 +139,8 @@ public class Disassembler
         while (!currentInsn.isBranch())
         {
             Instruction nextInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
-            Executable next = getExecutable(startAddr, nextInsn);
+            //System.out.println(nextInsn);
+            Executable next = getExecutable(operand_size, startAddr, nextInsn);
             count++;
             if (count > MAX_INSTRUCTIONS_PER_BLOCK)
                 throw new IllegalStateException(String.format("Exceeded maximum number of instructions in a block at %x", startAddr));

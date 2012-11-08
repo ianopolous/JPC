@@ -289,9 +289,20 @@ public class Processor implements HardwareComponent
             r_esp.set32(r_esp.get32() + 2);
             return ss.getWord(r_esp.get32()-2);
         } else {
-            int val = ss.getWord(r_esp.get16());
+            int val = ss.getWord(r_esp.get16() & 0xFFFF);
             r_esp.set16(r_esp.get16() + 2);
             return val;
+        }
+    }
+
+    public void push16(short val)
+    {
+        if (ss.getDefaultSizeFlag()) {
+            r_esp.set32(r_esp.get32() - 2);
+            ss.setWord(r_esp.get32(), val);
+        } else {
+            r_esp.set16(r_esp.get16() - 2);
+            ss.setWord(r_esp.get16() & 0xFFFF, val);
         }
     }
 
@@ -307,14 +318,34 @@ public class Processor implements HardwareComponent
         }
     }
 
+    public int cs()
+    {
+        return cs.getSelector();
+    }
+
+    public int ds()
+    {
+        return ds.getSelector();
+    }
+
     public void ds(int selector)
     {
         ds.setSelector(selector);
     }
 
+    public int es()
+    {
+        return es.getSelector();
+    }
+
     public void es(int selector)
     {
         es.setSelector(selector);
+    }
+
+    public int ss()
+    {
+        return ss.getSelector();
     }
 
     public void ss(int selector)
