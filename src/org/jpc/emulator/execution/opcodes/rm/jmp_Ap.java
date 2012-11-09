@@ -3,22 +3,22 @@ package org.jpc.emulator.execution.opcodes.rm;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
-import org.jpc.emulator.memory.*;
+import static org.jpc.emulator.processor.Processor.*;
 
 public class jmp_Ap extends Executable
 {
-    public int cs, targeteip;
+    final int cs, targetEip;
 
     public jmp_Ap(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        targeteip = parent.operand[0].ptr.off;
+        targetEip = parent.operand[0].ptr.off;
         cs = parent.operand[0].ptr.seg;
     }
 
     public Branch execute(Processor cpu)
     {
-        cpu.jumpFar(cs, targeteip);
+        cpu.jumpFar(cs, targetEip);
         return Branch.Jmp_Unknown;
     }
 

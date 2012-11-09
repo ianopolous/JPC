@@ -21,7 +21,7 @@ public class push_DS extends Executable
 
     public boolean isBranch()
     {
-        return true;
+        return false;
     }
 
     public String toString()

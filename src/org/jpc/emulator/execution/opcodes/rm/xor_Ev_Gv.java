@@ -14,7 +14,7 @@ public class xor_Ev_Gv extends Executable
     public xor_Ev_Gv(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[1].size;
+        size = parent.operand[0].size;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
@@ -25,17 +25,17 @@ public class xor_Ev_Gv extends Executable
         Reg op2 = cpu.regs[op2Index];
         if (size == 16)
         {
-            cpu.of = cpu.af = cpu.cf = false;
-            cpu.flagResult = (short)(op1.get16() ^ op2.get16());
-            op1.set16(cpu.flagResult);
-            cpu.flagStatus = SZP;
+        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = (short)(op1.get16() ^ op2.get16());
+        op1.set16((short)cpu.flagResult);
+        cpu.flagStatus = SZP;
         }
         else if (size == 32)
         {
-            cpu.of = cpu.af = cpu.cf = false;
-            cpu.flagResult = op1.get32() ^ op2.get32();
-            op1.set32(cpu.flagResult);
-            cpu.flagStatus = SZP;
+        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = (op1.get32() ^ op2.get16());
+        op1.set32(cpu.flagResult);
+        cpu.flagStatus = SZP;
         }
         return Branch.None;
     }

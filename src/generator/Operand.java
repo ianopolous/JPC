@@ -72,6 +72,49 @@ public abstract class Operand
         }
     }
 
+    public static class SpecificReg extends Operand
+    {
+        final int size;
+        final String name;
+
+        public SpecificReg(String type, String name, int size)
+        {
+            super(type);
+            this.size = size;
+            this.name = name;
+        }
+
+        public int getSize()
+        {
+            return size;
+        }
+        
+        public String define(int arg)
+        {
+            return "";
+        }
+
+        public String construct(int arg)
+        {
+            return "";
+        }
+
+        public String load(int arg)
+        {
+            return "";
+        }
+
+        public String set(int arg)
+        {
+            return name+".set"+getSize()+"(";
+        }
+
+        public String get(int arg)
+        {
+            return name+".get"+getSize()+"()";
+        }
+    }
+
     public static class Mem extends Operand
     {
         final int size;
@@ -110,6 +153,91 @@ public abstract class Operand
         public String get(int arg)
         {
             return "op"+arg+".get"+getSize()+"(cpu)";
+        }
+    }
+
+    public static class Segment extends Operand
+    {
+        final int size=16;
+
+        public Segment(String name)
+        {
+            super(name);
+        }
+
+        public int getSize()
+        {
+            return size;
+        }
+        
+        public String define(int arg)
+        {
+            return "    final int segIndex;\n";
+        }
+
+        public String construct(int arg)
+        {
+            return "        segIndex = Processor.getSegmentIndex(parent.operand["+(arg-1)+"].toString());";
+        }
+
+        public String load(int arg)
+        {
+            if (arg != 1)
+                return "        Segment seg = cpu.segs[segIndex];";
+            else 
+                return "";
+        }
+
+        public String set(int arg)
+        {
+            return "cpu.setSeg(segIndex, ";
+        }
+
+        public String get(int arg)
+        {
+            return "seg.getSelector()";
+        }
+    }
+
+    public static class SpecificSegment extends Operand
+    {
+        final int size=16;
+        final String name;
+
+        public SpecificSegment(String type, String name)
+        {
+            super(type);
+            this.name = name;
+        }
+
+        public int getSize()
+        {
+            return size;
+        }
+        
+        public String define(int arg)
+        {
+            return "";
+        }
+
+        public String construct(int arg)
+        {
+            return "";
+        }
+
+        public String load(int arg)
+        {
+            return "";
+        }
+
+        public String set(int arg)
+        {
+            return "cpu."+name+"(";
+        }
+
+        public String get(int arg)
+        {
+            return "cpu."+name+"()";
         }
     }
 
@@ -293,12 +421,27 @@ public abstract class Operand
         }
     }
 
-    public static List<String> reg8 = Arrays.asList(new String[]{"AL"});
+    public static Map<String, String> segs = new HashMap();
+    public static Map<String, String> reg8 = new HashMap();
+    public static Map<String, String> reg16 = new HashMap();
+    static {
+        segs.put("DS", "ds");
+        reg8.put("AL", "cpu.r_al");
+        reg8.put("ALr8b", "cpu.r_al");
+        reg16.put("rAXr8", "cpu.r_eax");
+        reg16.put("rBXr11", "cpu.r_ebx");
+        reg16.put("rCXr9", "cpu.r_ecx");
+        reg16.put("rDXr10", "cpu.r_edx");
+        reg16.put("rDIr15", "cpu.r_edi");
+        reg16.put("rBPr13", "cpu.r_ebp");
+    }
 
     public static Operand get(String name, int opSize, boolean isMem)
     {
         if (name.equals("Ib"))
             return new Immediate(name, 8);
+        if (name.equals("Iv"))
+            return new Immediate(name, opSize);
         if (name.equals("Eb"))
         {
             if (isMem)
@@ -323,9 +466,14 @@ public abstract class Operand
             return new FarPointer(name);
         if (name.equals("M"))
             return new Address(name);
-        if (reg8.contains(name))
-            return new Reg(name, 8);
-
+        if (name.equals("S"))
+            return new Segment(name);
+        if (segs.containsKey(name))
+            return new SpecificSegment(name, segs.get(name));
+        if (reg8.containsKey(name))
+            return new SpecificReg(name, reg8.get(name), 8);
+        if (reg16.containsKey(name))
+            return new SpecificReg(name, reg16.get(name), opSize);
         throw new IllegalStateException("Unknown operand "+name);
     }
 }

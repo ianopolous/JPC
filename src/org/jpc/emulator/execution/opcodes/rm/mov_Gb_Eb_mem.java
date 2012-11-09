@@ -20,8 +20,7 @@ public class mov_Gb_Eb_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-
-        op1.set8((short)op2.get8(cpu));
+        op1.set8((byte)op2.get8(cpu));
         return Branch.None;
     }
 

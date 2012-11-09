@@ -15,7 +15,7 @@ public class Opcode
     {
         boolean msize = false;
         for (String s: args)
-            if (s.equals("Ev") || s.equals("Gv"))
+            if (s.equals("Ev") || s.equals("Gv") || s.equals("Iv"))
                 msize = true;
         multiSize = msize;
         operands = new Operand[args.length];
@@ -118,8 +118,9 @@ public class Opcode
         }
         else
             b.append(processSnippet(size));
-        b.append("\n        return "+ret+";\n");
-        b.append("    }\n\n");
+        if (ret.trim().length() > 0)
+            b.append("\n        return "+ret+";");
+        b.append("\n    }\n\n");
         return b.toString();
     }
 
@@ -160,7 +161,7 @@ public class Opcode
     public void writeToFile()
     {
         try {
-            BufferedWriter w = new BufferedWriter(new FileWriter("rm/"+getName()+".java"));
+            BufferedWriter w = new BufferedWriter(new FileWriter("../org/jpc/emulator/execution/opcodes/rm/"+getName()+".java"));
             w.write(getSource());
             w.flush();
             w.close();
@@ -171,7 +172,7 @@ public class Opcode
     private static boolean isMem(String[] args)
     {
         for (String arg: args)
-            if (arg.equals("Eb") || arg.equals("Ev"))
+            if (arg.equals("Eb") || arg.equals("Ev") || args.equals("Iv") || arg.equals("M"))
                 return true;
         return false;
     }

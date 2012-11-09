@@ -8,18 +8,16 @@ import static org.jpc.emulator.processor.Processor.*;
 public class mov_ALr8b_Ib extends Executable
 {
     final int imm;
-    final int size;
 
     public mov_ALr8b_Ib(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[1].size;
-        imm = (byte) parent.operand[1].lval;
+        imm = (byte)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)
     {
-        cpu.r_al.set8(imm);
+        cpu.r_al.set8((byte)imm);
         return Branch.None;
     }
 

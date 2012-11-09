@@ -5,27 +5,27 @@ import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class push_Ev_mem extends Executable
+public class mov_rDXr10_Iv extends Executable
 {
-    final Address op1;
+    final int imm;
     final int size;
 
-    public push_Ev_mem(int blockStart, Instruction parent)
+    public mov_rDXr10_Iv(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
         size = parent.operand[0].size;
-        op1 = new Address(parent.operand[0]);
+        imm = (short)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)
     {
         if (size == 16)
         {
-        cpu.push16((short)op1.get16(cpu));
+        cpu.r_edx.set16((short)imm);
         }
         else if (size == 32)
         {
-        cpu.push32(op1.get32(cpu));
+        cpu.r_edx.set16(imm);
         }
         return Branch.None;
     }

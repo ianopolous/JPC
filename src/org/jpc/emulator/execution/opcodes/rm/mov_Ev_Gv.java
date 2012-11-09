@@ -14,7 +14,7 @@ public class mov_Ev_Gv extends Executable
     public mov_Ev_Gv(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[1].size;
+        size = parent.operand[0].size;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
@@ -23,11 +23,14 @@ public class mov_Ev_Gv extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
         Reg op2 = cpu.regs[op2Index];
-
         if (size == 16)
-            op1.set16((byte)op2.get16());
-        else
-            op1.set32((byte)op2.get32());
+        {
+        op1.set16((short)op2.get16());
+        }
+        else if (size == 32)
+        {
+        op1.set32(op2.get16());
+        }
         return Branch.None;
     }
 

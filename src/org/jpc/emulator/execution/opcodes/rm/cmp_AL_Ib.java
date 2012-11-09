@@ -7,25 +7,20 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class cmp_AL_Ib extends Executable
 {
-    final int op1Index;
     final int imm;
 
     public cmp_AL_Ib(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
         imm = (byte)parent.operand[1].lval;
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
     }
 
     public Branch execute(Processor cpu)
     {
-        Reg op1 = cpu.regs[op1Index];
-
-        cpu.flagOp1 = op1.get8();
-        cpu.flagOp2 = (byte)imm;
-        cpu.flagResult = (byte)(cpu.flagOp1 - (byte)imm);
+        cpu.flagOp1 = cpu.r_al.get8();
+        cpu.flagOp2 = imm;
+        cpu.flagResult = (byte)(cpu.flagOp1 - cpu.flagOp2);
         cpu.flagIns = UCodes.SUB8;
-
         cpu.flagStatus = OSZAPC;
         return Branch.None;
     }

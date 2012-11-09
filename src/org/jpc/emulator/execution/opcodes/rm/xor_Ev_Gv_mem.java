@@ -5,27 +5,36 @@ import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class push_Ev_mem extends Executable
+public class xor_Ev_Gv_mem extends Executable
 {
     final Address op1;
+    final int op2Index;
     final int size;
 
-    public push_Ev_mem(int blockStart, Instruction parent)
+    public xor_Ev_Gv_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
         size = parent.operand[0].size;
         op1 = new Address(parent.operand[0]);
+        op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
 
     public Branch execute(Processor cpu)
     {
+        Reg op2 = cpu.regs[op2Index];
         if (size == 16)
         {
-        cpu.push16((short)op1.get16(cpu));
+        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = (short)(op1.get16(cpu) ^ op2.get16());
+        op1.set16(cpu, (short)cpu.flagResult);
+        cpu.flagStatus = SZP;
         }
         else if (size == 32)
         {
-        cpu.push32(op1.get32(cpu));
+        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = (op1.get32(cpu) ^ op2.get16());
+        op1.set32(cpu, cpu.flagResult);
+        cpu.flagStatus = SZP;
         }
         return Branch.None;
     }

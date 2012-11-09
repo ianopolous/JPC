@@ -21,7 +21,6 @@ public class mov_Eb_Gb extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
         Reg op2 = cpu.regs[op2Index];
-
         op1.set8((byte)op2.get8());
         return Branch.None;
     }

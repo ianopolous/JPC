@@ -9,6 +9,16 @@ public class Generator
     public static void main(String[] cmd)
     {
         Document dom = parseXML();
+        NodeList properties = dom.getElementsByTagName("jcc");
+        String jcc = null;
+        for (int i=0; i < properties.getLength(); i++)
+        {
+            Node n = properties.item(i);
+            String content = n.getTextContent();
+            if (content.trim().length() > 0)
+                jcc = content;
+        }
+
         NodeList list = dom.getElementsByTagName("opcode");
         for (int i=0; i < list.getLength(); i++)
         {
@@ -24,6 +34,8 @@ public class Generator
                     ret = c.getTextContent().trim();
                 if (c.getNodeName().equals("snippet"))
                     snippet = c.getTextContent();
+                if (c.getNodeName().equals("jcc"))
+                    snippet += jcc;
             }
             if (ret == null)
                 throw new IllegalStateException("No return value for "+mnemonic);
@@ -33,7 +45,7 @@ public class Generator
             // get each opcode definition
             for (int j=0; j < children.getLength(); j++)
             {
-                Node c = children.item(j);
+                Node c = children.item(j);                
                 if (!c.getNodeName().equals("args"))
                     continue;
                 String argsText = c.getTextContent();

@@ -5,31 +5,38 @@ import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class mov_Ev_S extends Executable
+public class cmp_Ev_Ib extends Executable
 {
     final int op1Index;
-    final int segIndex;
+    final int imm;
     final int size;
 
-    public mov_Ev_S(int blockStart, Instruction parent)
+    public cmp_Ev_Ib(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
         size = parent.operand[0].size;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        segIndex = Processor.getSegmentIndex(parent.operand[1].toString());
+        imm = (byte)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        Segment seg = cpu.segs[segIndex];
         if (size == 16)
         {
-        op1.set16((short)seg.getSelector());
+        cpu.flagOp1 = op1.get16();
+        cpu.flagOp2 = imm;
+        cpu.flagResult = (short)(cpu.flagOp1 - cpu.flagOp2);
+        cpu.flagIns = UCodes.SUB16;
+        cpu.flagStatus = OSZAPC;
         }
         else if (size == 32)
         {
-        op1.set32(seg.getSelector());
+        cpu.flagOp1 = op1.get32();
+        cpu.flagOp2 = imm;
+        cpu.flagResult = (cpu.flagOp1 - cpu.flagOp2);
+        cpu.flagIns = UCodes.SUB32;
+        cpu.flagStatus = OSZAPC;
         }
         return Branch.None;
     }

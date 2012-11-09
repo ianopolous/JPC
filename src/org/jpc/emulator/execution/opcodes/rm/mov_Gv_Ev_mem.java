@@ -14,7 +14,7 @@ public class mov_Gv_Ev_mem extends Executable
     public mov_Gv_Ev_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[1].size;
+        size = parent.operand[0].size;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
         op2 = new Address(parent.operand[1]);
     }
@@ -22,14 +22,13 @@ public class mov_Gv_Ev_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-
         if (size == 16)
         {
-            op1.set16(op2.get16(cpu));
+        op1.set16((short)op2.get16(cpu));
         }
         else if (size == 32)
         {
-            op1.set32(op2.get32(cpu));
+        op1.set16(op2.get32(cpu));
         }
         return Branch.None;
     }

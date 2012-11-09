@@ -5,34 +5,35 @@ import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class push_Ev_mem extends Executable
+public class loop_Jb extends Executable
 {
-    final Address op1;
-    final int size;
+    final int jmp, blockLength;
 
-    public push_Ev_mem(int blockStart, Instruction parent)
+    public loop_Jb(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[0].size;
-        op1 = new Address(parent.operand[0]);
+        jmp = (byte)parent.operand[0].lval;
+        blockLength = parent.x86Length+(int)parent.eip-blockStart;
     }
 
     public Branch execute(Processor cpu)
     {
-        if (size == 16)
+        cpu.r_cx.set16(cpu.r_cx.get16()-1);
+        if (cpu.r_cx.get16() == 0)
         {
-        cpu.push16((short)op1.get16(cpu));
+            cpu.eip += jmp+blockLength;
+            return Branch.T1;
         }
-        else if (size == 32)
+        else
         {
-        cpu.push32(op1.get32(cpu));
+            cpu.eip += blockLength;
+            return Branch.T2;
         }
-        return Branch.None;
     }
 
     public boolean isBranch()
     {
-        return false;
+        return true;
     }
 
     public String toString()

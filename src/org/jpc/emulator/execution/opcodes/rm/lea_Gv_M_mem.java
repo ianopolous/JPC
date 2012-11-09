@@ -17,21 +17,18 @@ public class lea_Gv_M_mem extends Executable
         size = parent.operand[0].size;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
         op2 = new Address(parent.operand[1]);
-
     }
 
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-
-        //System.out.printf("lea %s = %08x\n", op2.toString(), op2.get(cpu));
         if (size == 16)
         {
-            op1.set16(op2.get(cpu));
+        op1.set16(op2.get(cpu));
         }
         else if (size == 32)
         {
-            op1.set32(op2.get(cpu));
+        op1.set32(op2.get(cpu));
         }
         return Branch.None;
     }

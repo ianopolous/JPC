@@ -318,9 +318,50 @@ public class Processor implements HardwareComponent
         }
     }
 
+    public void push32(int val)
+    {
+        if (ss.getDefaultSizeFlag()) {
+            if ((r_esp.get32() < 4) && (r_esp.get32() > 0))
+                throw ProcessorException.STACK_SEGMENT_0;
+            
+            int offset = r_esp.get32() - 4;
+            ss.setDoubleWord(offset, val);
+            r_esp.set32(offset);
+        } else {
+            if (((r_esp.get32() & 0xffff) < 4) && ((r_esp.get32() & 0xffff) > 0))
+                throw ProcessorException.STACK_SEGMENT_0;
+            
+            int offset = (r_esp.get32() - 4) & 0xffff;
+            ss.setDoubleWord(offset, val);
+            r_esp.set16(offset);
+        }
+    }
+
+    public void setSeg(int index, int value)
+    {
+        if (index == 0)
+            gs(value);
+        else if (index == 1)
+            es(value);
+        else if (index == 2)
+            fs(value);
+        else if (index == 3)
+            cs(value);
+        else if (index == 4)
+            ss(value);
+        else if (index == 5)
+            ds(value);
+        else throw new IllegalStateException("Unknown Segment index: "+index);
+    }
+
     public int cs()
     {
         return cs.getSelector();
+    }
+
+    public void cs(int selector)
+    {
+        cs.setSelector(selector);
     }
 
     public int ds()
@@ -341,6 +382,16 @@ public class Processor implements HardwareComponent
     public void es(int selector)
     {
         es.setSelector(selector);
+    }
+
+    public void fs(int selector)
+    {
+        fs.setSelector(selector);
+    }
+
+    public void gs(int selector)
+    {
+        gs.setSelector(selector);
     }
 
     public int ss()
