@@ -127,13 +127,17 @@
   <opcode mnemonic="mov">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast$op2.get);</snippet>
+    <args size="8">Ob;AL</args>
     <args size="8">Eb;Gb</args>
+    <args size="8">Eb;Ib</args>
     <args size="8">Gb;Eb</args>
     <args size="8">ALr8b;Ib</args>
     <args size="16">Ev;S</args>
     <args size="16">S;Ev</args>
     <args size="16">Ev;Gv</args>
+    <args size="16">Ev;Iz</args>
     <args size="16">Gv;Ev</args>
+    <args size="16">Ov;rAX</args>
     <args size="16">rAXr8;Iv</args>
     <args size="16">rCXr9;Iv</args>
     <args size="16">rDXr10;Iv</args>

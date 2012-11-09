@@ -25,7 +25,7 @@ public class mov_rBXr11_Iv extends Executable
         }
         else if (size == 32)
         {
-        cpu.r_ebx.set16(imm);
+        cpu.r_ebx.set32(imm);
         }
         return Branch.None;
     }

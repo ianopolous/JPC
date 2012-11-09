@@ -429,6 +429,7 @@ public abstract class Operand
         reg8.put("AL", "cpu.r_al");
         reg8.put("ALr8b", "cpu.r_al");
         reg16.put("rAXr8", "cpu.r_eax");
+        reg16.put("rAX", "cpu.r_eax");
         reg16.put("rBXr11", "cpu.r_ebx");
         reg16.put("rCXr9", "cpu.r_ecx");
         reg16.put("rDXr10", "cpu.r_edx");
@@ -440,7 +441,7 @@ public abstract class Operand
     {
         if (name.equals("Ib"))
             return new Immediate(name, 8);
-        if (name.equals("Iv"))
+        if (name.equals("Iv") || name.equals("Iz"))
             return new Immediate(name, opSize);
         if (name.equals("Eb"))
         {
@@ -449,6 +450,10 @@ public abstract class Operand
             else
                 return new Reg(name, 8);
         }
+        if (name.equals("Ov"))
+            return new Mem(name, opSize);
+        if (name.equals("Ob"))
+            return new Mem(name, 8);
         if (name.equals("Ev"))
         {
             if (isMem)

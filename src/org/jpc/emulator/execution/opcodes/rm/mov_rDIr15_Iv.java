@@ -25,7 +25,7 @@ public class mov_rDIr15_Iv extends Executable
         }
         else if (size == 32)
         {
-        cpu.r_edi.set16(imm);
+        cpu.r_edi.set32(imm);
         }
         return Branch.None;
     }

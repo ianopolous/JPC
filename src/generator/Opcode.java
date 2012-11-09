@@ -15,7 +15,7 @@ public class Opcode
     {
         boolean msize = false;
         for (String s: args)
-            if (s.equals("Ev") || s.equals("Gv") || s.equals("Iv"))
+            if (s.equals("Ev") || s.equals("Gv") || s.equals("Iv") || s.equals("Ov"))
                 msize = true;
         multiSize = msize;
         operands = new Operand[args.length];
@@ -105,14 +105,8 @@ public class Opcode
             b.append("        if (size == 16)\n        {\n");
             b.append(processSnippet(16));
             b.append("\n        }\n        else if (size == 32)\n        {\n");
-            if (operands[0].toString().equals("Ev"))
-                operands[0] = Operand.get(operands[0].toString(), 32, isMem);
-            else if (operands[1].toString().equals("Ev"))
-                operands[1] = Operand.get(operands[1].toString(), 32, isMem);
-            else if (operands[0].toString().equals("Gv"))
-                operands[0] = Operand.get(operands[0].toString(), 32, isMem);
-            else if (operands[1].toString().equals("Gv"))
-                operands[1] = Operand.get(operands[1].toString(), 32, isMem);
+            for (int i=0; i < operands.length; i++)
+                operands[i] = Operand.get(operands[i].toString(), 32, isMem);
             b.append(processSnippet(32));
             b.append("\n        }");
         }
@@ -172,7 +166,7 @@ public class Opcode
     private static boolean isMem(String[] args)
     {
         for (String arg: args)
-            if (arg.equals("Eb") || arg.equals("Ev") || args.equals("Iv") || arg.equals("M"))
+            if (arg.equals("Eb") || arg.equals("Ev") || arg.equals("Iv") || arg.equals("Ov") || arg.equals("Ob") || arg.equals("M"))
                 return true;
         return false;
     }

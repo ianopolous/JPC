@@ -25,7 +25,7 @@ public class mov_rAXr8_Iv extends Executable
         }
         else if (size == 32)
         {
-        cpu.r_eax.set16(imm);
+        cpu.r_eax.set32(imm);
         }
         return Branch.None;
     }

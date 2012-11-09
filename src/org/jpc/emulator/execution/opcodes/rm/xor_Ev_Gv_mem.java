@@ -32,7 +32,7 @@ public class xor_Ev_Gv_mem extends Executable
         else if (size == 32)
         {
         cpu.of = cpu.af = cpu.cf = false;
-        cpu.flagResult = (op1.get32(cpu) ^ op2.get16());
+        cpu.flagResult = (op1.get32(cpu) ^ op2.get32());
         op1.set32(cpu, cpu.flagResult);
         cpu.flagStatus = SZP;
         }

@@ -28,7 +28,7 @@ public class mov_Ev_Gv_mem extends Executable
         }
         else if (size == 32)
         {
-        op1.set32(cpu, op2.get16());
+        op1.set32(cpu, op2.get32());
         }
         return Branch.None;
     }
