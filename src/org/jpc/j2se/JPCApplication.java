@@ -765,5 +765,6 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
 
         app.validate();
         app.setVisible(true);
+        app.start();
     }
 }

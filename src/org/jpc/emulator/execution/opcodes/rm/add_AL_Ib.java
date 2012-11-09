@@ -23,7 +23,7 @@ public class add_AL_Ib extends Executable
 
         cpu.flagOp1 = op1.get8();
         cpu.flagOp2 = imm;
-        cpu.flagResult = (short)(cpu.flagOp1 + imm);
+        cpu.flagResult = (byte)(cpu.flagOp1 + imm);
         op1.set8(cpu.flagResult);
         cpu.flagIns = UCodes.ADD8;
         cpu.flagStatus = OSZAPC;
