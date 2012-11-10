@@ -94,6 +94,26 @@ application: build_core
 	    -C build org/jpc/support -C build org/jpc/j2se
 	rm -f application.manifest
 
+.PHONY: compare
+compare: build_core
+	echo "Name: JPC Application" > application.manifest
+	echo "Main-Class: org.jpc.j2se.Comparison" >> application.manifest
+	echo "Build-Date: " `date` >> application.manifest
+	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> application.manifest
+	echo "" >> application.manifest
+
+	jar -cfm Compare.jar application.manifest \
+	    resources/bios/vgabios.bin \
+	    resources/bios/bios.bin resources/images/dosgames.img \
+	    resources/images/floppy.img resources/icon.png \
+	    resources/licence.html resources/jpc.png \
+	    resources/smallpause.png \
+	    resources/smallplay.png \
+	    resources/tick.png \
+	    -C build org/jpc/classfile -C build org/jpc/emulator \
+	    -C build org/jpc/support -C build org/jpc/j2se
+	rm -f application.manifest
+
 .PHONY: linuxapplication
 linuxapplication: core
 	echo "Name: JPC Linux Application" > linuxapplication.manifest

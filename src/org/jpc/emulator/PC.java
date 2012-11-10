@@ -173,6 +173,15 @@ public class PC {
         this(clock, DriveSet.buildFromArgs(args), ramSize);
     }
 
+    public PC(String[] args) throws IOException {
+        this(new VirtualClock(), args);
+    }
+
+    public void hello()
+    {
+        System.out.println("Hello from the new JPC!");
+    }
+
     /**
      * Starts this PC's attached clock instance.
      */
