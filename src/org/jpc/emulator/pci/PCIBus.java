@@ -367,8 +367,8 @@ public class PCIBus extends AbstractHardwareComponent {
         }
 
 
-        ioports.ioPortWriteByte(0x4d0, elcr[0]); // setup io master
-        ioports.ioPortWriteByte(0x4d1, elcr[1]); // setup io slave
+        ioports.ioPortWrite8(0x4d0, elcr[0]); // setup io master
+        ioports.ioPortWrite8(0x4d1, elcr[1]); // setup io slave
 
         for (int devFN = 0; devFN < 256; devFN++) {
             PCIDevice device = devices[devFN];

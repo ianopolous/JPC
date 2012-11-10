@@ -58,34 +58,34 @@ public class IOPortHandler extends AbstractHardwareComponent implements IOPortCa
             ioPortDevice[i] = defaultDevice;
     }
 
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
-        return ioPortDevice[address].ioPortReadByte(address);
+        return ioPortDevice[address].ioPortRead8(address);
     }
 
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
-        return ioPortDevice[address].ioPortReadWord(address);
+        return ioPortDevice[address].ioPortRead16(address);
     }
 
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
-        return ioPortDevice[address].ioPortReadLong(address);
+        return ioPortDevice[address].ioPortRead32(address);
     }
 
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
-        ioPortDevice[address].ioPortWriteByte(address, data);
+        ioPortDevice[address].ioPortWrite8(address, data);
     }
 
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
-        ioPortDevice[address].ioPortWriteWord(address, data);
+        ioPortDevice[address].ioPortWrite16(address, data);
     }
 
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
-        ioPortDevice[address].ioPortWriteLong(address, data);
+        ioPortDevice[address].ioPortWrite32(address, data);
     }
 
     public int[] ioPortsRequested()
@@ -143,30 +143,30 @@ public class IOPortHandler extends AbstractHardwareComponent implements IOPortCa
     private static class UnconnectedIOPort implements IOPortCapable
     {
 
-        public int ioPortReadByte(int address)
+        public int ioPortRead8(int address)
         {
             return 0xff;
         }
 
-        public int ioPortReadWord(int address)
+        public int ioPortRead16(int address)
         {
             return 0xffff;
         }
 
-        public int ioPortReadLong(int address)
+        public int ioPortRead32(int address)
         {
             return 0xffffffff;
         }
 
-        public void ioPortWriteByte(int address, int data)
+        public void ioPortWrite8(int address, int data)
         {
         }
 
-        public void ioPortWriteWord(int address, int data)
+        public void ioPortWrite16(int address, int data)
         {
         }
 
-        public void ioPortWriteLong(int address, int data)
+        public void ioPortWrite32(int address, int data)
         {
         }
 

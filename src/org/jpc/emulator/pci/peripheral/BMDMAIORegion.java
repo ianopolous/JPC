@@ -156,10 +156,10 @@ class BMDMAIORegion implements IOPortIORegion, Hibernatable
 	if (next != null) next.setAddress(address + 8);	  
     }
     
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
 	if ((address - this.baseAddress) > 7)
-	    next.ioPortWriteByte(address, data);
+	    next.ioPortWrite8(address, data);
 	switch(address - this.baseAddress) {
 	case 0:
 	    this.writeCommand(data);
@@ -170,15 +170,15 @@ class BMDMAIORegion implements IOPortIORegion, Hibernatable
 	default:
 	}
     }
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
-	this.ioPortWriteByte(address, 0xff & data);
-	this.ioPortWriteByte(address + 1, 0xff & (data >>> 8));
+	this.ioPortWrite8(address, 0xff & data);
+	this.ioPortWrite8(address + 1, 0xff & (data >>> 8));
     }
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
 	if ((address - this.baseAddress) > 7)
-	    next.ioPortWriteLong(address, data);
+	    next.ioPortWrite32(address, data);
 	switch(address - this.baseAddress) {
 	case 4:
 	case 5:
@@ -187,15 +187,15 @@ class BMDMAIORegion implements IOPortIORegion, Hibernatable
 	    this.writeAddress(data);
 	    return;
 	default:
-	    this.ioPortWriteWord(address, 0xffff & data);
-	    this.ioPortWriteWord(address + 2, data >>> 16);    
+	    this.ioPortWrite16(address, 0xffff & data);
+	    this.ioPortWrite16(address + 2, data >>> 16);
 	}
     }
     
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
 	if ((address - this.baseAddress) > 7)
-	    return next.ioPortReadByte(address);
+	    return next.ioPortRead8(address);
 	switch(address - this.baseAddress) {
 	case 0:
 	    return this.command;
@@ -205,15 +205,15 @@ class BMDMAIORegion implements IOPortIORegion, Hibernatable
 	    return 0xff;
 	}
     }
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
-	return (ioPortReadByte(address) & 0xff)
-	    | (0xff00 & (ioPortReadByte(address + 1) << 8));
+	return (ioPortRead8(address) & 0xff)
+	    | (0xff00 & (ioPortRead8(address + 1) << 8));
     }
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
 	if ((address - this.baseAddress) > 7)
-	    return next.ioPortReadLong(address);
+	    return next.ioPortRead32(address);
 	switch (address - this.baseAddress) {
 	case 4:
 	case 5:
@@ -221,8 +221,8 @@ class BMDMAIORegion implements IOPortIORegion, Hibernatable
 	case 7:
 	    return this.address;
 	default:
-	    return (ioPortReadWord(address) & 0xffff)
-		| (0xffff0000 & (ioPortReadWord(address + 1) << 8));
+	    return (ioPortRead16(address) & 0xffff)
+		| (0xffff0000 & (ioPortRead16(address + 1) << 8));
 	}
     }
     

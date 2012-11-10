@@ -218,7 +218,7 @@ public class Keyboard extends AbstractHardwareComponent implements IOPortCapable
 	return new int[]{0x60, 0x64};
     }
 
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
 	switch (address) {
 	case 0x60:
@@ -229,16 +229,16 @@ public class Keyboard extends AbstractHardwareComponent implements IOPortCapable
 	    return 0xffffffff;
 	}
     }
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
-	return (0xff & ioPortReadByte(address)) | (0xff00 & ioPortReadByte(address + 1));
+	return (0xff & ioPortRead8(address)) | (0xff00 & ioPortRead8(address + 1));
     }
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
 	return 0xffffffff;
     }
 
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
 	switch (address) {
 	case 0x60:
@@ -250,16 +250,16 @@ public class Keyboard extends AbstractHardwareComponent implements IOPortCapable
 	default:
 	}
     }
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
-	ioPortWriteByte(address, data);
-	ioPortWriteByte(address + 1, data >> 8);
+	ioPortWrite8(address, data);
+	ioPortWrite8(address + 1, data >> 8);
     }
 
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
-	ioPortWriteWord(address, data);
-	ioPortWriteWord(address + 2, data >> 16);
+	ioPortWrite16(address, data);
+	ioPortWrite16(address + 2, data >> 16);
     }
 
     public void reset()

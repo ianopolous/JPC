@@ -376,7 +376,7 @@ public class EthernetCard extends AbstractPCIDevice
         }
 
         //IOPortCapable Methods
-        public void ioPortWriteByte(int address, int data)
+        public void ioPortWrite8(int address, int data)
         {
             switch (address - this.getAddress())
             {
@@ -410,7 +410,7 @@ public class EthernetCard extends AbstractPCIDevice
             }
         }
 
-        public void ioPortWriteWord(int address, int data)
+        public void ioPortWrite16(int address, int data)
         {
             switch (address - this.getAddress())
             {
@@ -424,7 +424,7 @@ public class EthernetCard extends AbstractPCIDevice
             }
         }
 
-        public void ioPortWriteLong(int address, int data)
+        public void ioPortWrite32(int address, int data)
         {
             switch (address - this.getAddress())
             {
@@ -439,7 +439,7 @@ public class EthernetCard extends AbstractPCIDevice
             }
         }
 
-        public int ioPortReadByte(int address)
+        public int ioPortRead8(int address)
         {
             switch (address - this.getAddress())
             {
@@ -469,7 +469,7 @@ public class EthernetCard extends AbstractPCIDevice
             }
         }
 
-        public int ioPortReadWord(int address)
+        public int ioPortRead16(int address)
         {
             switch (address - this.getAddress())
             {
@@ -481,7 +481,7 @@ public class EthernetCard extends AbstractPCIDevice
             }
         }
 
-        public int ioPortReadLong(int address)
+        public int ioPortRead32(int address)
         {
             switch (address - this.getAddress())
             {

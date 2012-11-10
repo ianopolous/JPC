@@ -26,7 +26,7 @@ public class push_Ev_mem extends Executable
         else if (size == 32)
         {
         cpu.push32(op1.get32(cpu));
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

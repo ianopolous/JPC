@@ -198,7 +198,7 @@ public class FloppyController implements IOPortCapable, DMATransferCapable, Hard
                 IOPORT_BASE + 4, IOPORT_BASE + 5, IOPORT_BASE + 7};
     }
 
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
         switch (address & 0x07) {
             case 0x01:
@@ -218,17 +218,17 @@ public class FloppyController implements IOPortCapable, DMATransferCapable, Hard
         }
     }
 
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
-        return (ioPortReadByte(address) & 0xff) | ((ioPortReadByte(address + 1) << 8) & 0xff00);
+        return (ioPortRead8(address) & 0xff) | ((ioPortRead8(address + 1) << 8) & 0xff00);
     }
 
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
-        return (ioPortReadWord(address) & 0xffff) | ((ioPortReadWord(address + 2) << 16) & 0xffff0000);
+        return (ioPortRead16(address) & 0xffff) | ((ioPortRead16(address + 2) << 16) & 0xffff0000);
     }
 
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
         switch (address & 0x07) {
             case 0x02:
@@ -248,16 +248,16 @@ public class FloppyController implements IOPortCapable, DMATransferCapable, Hard
         }
     }
 
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
-        ioPortWriteByte(address, data & 0xff);
-        ioPortWriteByte(address + 1, (data >>> 8) & 0xff);
+        ioPortWrite8(address, data & 0xff);
+        ioPortWrite8(address + 1, (data >>> 8) & 0xff);
     }
 
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
-        ioPortWriteWord(address, data & 0xffff);
-        ioPortWriteWord(address + 2, (data >>> 16) & 0xffff);
+        ioPortWrite16(address, data & 0xffff);
+        ioPortWrite16(address + 2, (data >>> 16) & 0xffff);
     }
 
     private void reset(boolean doIRQ)

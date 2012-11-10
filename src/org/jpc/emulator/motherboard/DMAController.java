@@ -441,7 +441,7 @@ public class DMAController extends AbstractHardwareComponent implements IOPortCa
         return dmaChannels[channelNumber].pageHigh;
     }
 
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
         switch ((address - ioBase) >>> dShift) {
             case 0x0:
@@ -492,19 +492,19 @@ public class DMAController extends AbstractHardwareComponent implements IOPortCa
 
     }
 
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
-        this.ioPortWriteByte(address, data);
-        this.ioPortWriteByte(address + 1, data >>> 8);
+        this.ioPortWrite8(address, data);
+        this.ioPortWrite8(address + 1, data >>> 8);
     }
 
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
-        this.ioPortWriteWord(address, data);
-        this.ioPortWriteWord(address + 2, data >>> 16);
+        this.ioPortWrite16(address, data);
+        this.ioPortWrite16(address + 2, data >>> 16);
     }
 
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
         switch ((address - ioBase) >>> dShift) {
             case 0x0:
@@ -552,14 +552,14 @@ public class DMAController extends AbstractHardwareComponent implements IOPortCa
         return 0xff;
     }
 
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
-        return (0xff & this.ioPortReadByte(address)) | ((this.ioPortReadByte(address) << 8) & 0xff);
+        return (0xff & this.ioPortRead8(address)) | ((this.ioPortRead8(address) << 8) & 0xff);
     }
 
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
-        return (0xffff & this.ioPortReadByte(address)) | ((this.ioPortReadByte(address) << 16) & 0xffff);
+        return (0xffff & this.ioPortRead8(address)) | ((this.ioPortRead8(address) << 16) & 0xffff);
     }
 
     public int[] ioPortsRequested()

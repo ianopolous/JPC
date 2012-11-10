@@ -116,29 +116,29 @@ public class IntervalTimer extends AbstractHardwareComponent implements IOPortCa
         return new int[]{ioPortBase, ioPortBase + 1, ioPortBase + 2, ioPortBase + 3};
     }
 
-    public int ioPortReadLong(int address) {
-        return (ioPortReadWord(address) & 0xffff) | ((ioPortReadWord(address + 2) << 16) & 0xffff0000);
+    public int ioPortRead32(int address) {
+        return (ioPortRead16(address) & 0xffff) | ((ioPortRead16(address + 2) << 16) & 0xffff0000);
     }
 
-    public int ioPortReadWord(int address) {
-        return (ioPortReadByte(address) & 0xff) | ((ioPortReadByte(address + 1) << 8) & 0xff00);
+    public int ioPortRead16(int address) {
+        return (ioPortRead8(address) & 0xff) | ((ioPortRead8(address + 1) << 8) & 0xff00);
     }
 
-    public int ioPortReadByte(int address) {
+    public int ioPortRead8(int address) {
         return channels[address & 0x3].read();
     }
 
-    public void ioPortWriteLong(int address, int data) {
-        this.ioPortWriteWord(address, 0xffff & data);
-        this.ioPortWriteWord(address + 2, 0xffff & (data >>> 16));
+    public void ioPortWrite32(int address, int data) {
+        this.ioPortWrite16(address, 0xffff & data);
+        this.ioPortWrite16(address + 2, 0xffff & (data >>> 16));
     }
 
-    public void ioPortWriteWord(int address, int data) {
-        this.ioPortWriteByte(address, 0xff & data);
-        this.ioPortWriteByte(address + 1, 0xff & (data >>> 8));
+    public void ioPortWrite16(int address, int data) {
+        this.ioPortWrite8(address, 0xff & data);
+        this.ioPortWrite8(address + 1, 0xff & (data >>> 8));
     }
 
-    public void ioPortWriteByte(int address, int data) {
+    public void ioPortWrite8(int address, int data) {
         data &= 0xff;
         address &= 0x3;
         if (address == 3) { //writing control word

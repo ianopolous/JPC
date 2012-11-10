@@ -29,7 +29,7 @@ public class mov_Ev_S_mem extends Executable
         else if (size == 32)
         {
         op1.set32(cpu, seg.getSelector());
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

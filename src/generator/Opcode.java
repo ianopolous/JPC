@@ -3,6 +3,7 @@ import java.util.*;
 
 public class Opcode
 {
+    public static final boolean DEBUG_SIZE = true;
     final String name;
     final Operand[] operands;
     final String snippet;
@@ -78,6 +79,7 @@ public class Opcode
         }
         body = body.replaceAll("\\$size", size+"");
         body = body.replaceAll("\\$cast", getCast(size));
+        body = body.replaceAll("\\$mask", getMask(size));
         return body;
     }
 
@@ -87,6 +89,15 @@ public class Opcode
             return "(byte)";
         else if (size == 16)
             return "(short)";
+        return "";
+    }
+
+    private String getMask(int size)
+    {
+        if (size == 8)
+            return "0xFF&";
+        else if (size == 16)
+            return "0xFFFF&";
         return "";
     }
 
@@ -109,6 +120,10 @@ public class Opcode
                 operands[i] = Operand.get(operands[i].toString(), 32, isMem);
             b.append(processSnippet(32));
             b.append("\n        }");
+            if (DEBUG_SIZE)
+            {
+                b.append("        else throw new IllegalStateException(\"Unknown size \"+size);");
+            }
         }
         else
             b.append(processSnippet(size));
@@ -123,7 +138,18 @@ public class Opcode
         StringBuilder b = new StringBuilder();
         b.append("\n    public "+getName()+"(int blockStart, Instruction parent)\n    {\n        super(blockStart, parent);\n");
         if (multiSize)
-            b.append("        size = parent.operand[0].size;\n");
+        {
+            int vIndex = -1;
+            for (int i=operands.length-1; i >= 0; i--)
+            {
+                String arg = operands[i].toString();
+                if ((arg.length() > 1) && arg.charAt(1) == 'v')
+                    vIndex = i;
+            }
+            if (vIndex == -1)
+                throw new IllegalStateException("Couldn't find multisize operand "+toString());
+            b.append("        size = parent.operand["+vIndex+"].size;\n");
+        }
         for (int i=0; i < operands.length; i++)
         {
             String cons = operands[i].construct(i+1);

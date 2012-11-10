@@ -30,7 +30,7 @@ public class mov_Ev_S extends Executable
         else if (size == 32)
         {
         op1.set32(seg.getSelector());
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

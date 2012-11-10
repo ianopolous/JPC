@@ -74,19 +74,19 @@ public class GateA20Handler extends AbstractHardwareComponent implements IOPortC
      * @param address location being written to
      * @param data byte value being written
      */
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
 	setGateA20State((data & 0x02) != 0);
 	if ((data & 0x01) != 0)
 	    cpu.reset();
     }
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
-	ioPortWriteByte(address, data);
+	ioPortWrite8(address, data);
     }
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
-	ioPortWriteByte(address, data);
+	ioPortWrite8(address, data);
     }
 
     /**
@@ -95,17 +95,17 @@ public class GateA20Handler extends AbstractHardwareComponent implements IOPortC
      * @param address location being read
      * @return byte value read
      */
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
 	return physicalAddressSpace.getGateA20State() ? 0x02 : 0x00;
     }
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
-	return ioPortReadByte(address) | 0xff00;
+	return ioPortRead8(address) | 0xff00;
     }
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
-	return ioPortReadByte(address) | 0xffffff00;
+	return ioPortRead8(address) | 0xffffff00;
     }
 
     public int[] ioPortsRequested()

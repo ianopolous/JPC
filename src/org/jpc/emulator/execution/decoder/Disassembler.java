@@ -12,7 +12,7 @@ import static org.jpc.emulator.execution.decoder.Table.*;
 
 public class Disassembler
 {
-
+    public static final boolean PRINT_DISAM = true;
     static ZygoteInstruction[][] itab = new Table().itab_list;
     public static final int MAX_INSTRUCTIONS_PER_BLOCK = 10000;
     public static final int vendor = VENDOR_INTEL;
@@ -123,7 +123,7 @@ public class Disassembler
     public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size)
     {
         int startAddr = (int)input.getAddress();
-        System.out.printf("Disassembling block at %x\n", input.getAddress());
+        //System.out.printf("Disassembling block at %x\n", input.getAddress());
         boolean debug = false;//input.getAddress() == 0x826d420;
         Instruction insn;
         if (operand_size == 32)
@@ -131,7 +131,8 @@ public class Disassembler
         else
             insn = disassemble16(input);
         Executable start = getExecutable(operand_size, startAddr, insn);
-        //System.out.println("Disassemble block starting with "+start);
+        if (PRINT_DISAM)
+            System.out.println("Disassemble block starting with "+insn);
         Executable current = start;
         Instruction currentInsn = insn;
         int x86Length = insn.x86Length;
@@ -139,7 +140,8 @@ public class Disassembler
         while (!currentInsn.isBranch())
         {
             Instruction nextInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
-            //System.out.println(nextInsn);
+            if (PRINT_DISAM)
+                System.out.println(nextInsn);
             Executable next = getExecutable(operand_size, startAddr, nextInsn);
             count++;
             if (count > MAX_INSTRUCTIONS_PER_BLOCK)

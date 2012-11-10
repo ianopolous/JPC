@@ -110,7 +110,7 @@ public class PCIHostBridge extends AbstractPCIDevice implements IOPortCapable
 	return new int[]{0xcf8, 0xcf9, 0xcfa, 0xcfb, 0xcfc, 0xcfd, 0xcfe, 0xcff};
     }
 
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
 	switch (address) {
 	case 0xcfc:
@@ -124,7 +124,7 @@ public class PCIHostBridge extends AbstractPCIDevice implements IOPortCapable
 	}
     }
 
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
 	switch(address) {
 	case 0xcfc:
@@ -138,7 +138,7 @@ public class PCIHostBridge extends AbstractPCIDevice implements IOPortCapable
 	}
     }
 
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
 	switch(address) {
 	case 0xcf8:
@@ -158,7 +158,7 @@ public class PCIHostBridge extends AbstractPCIDevice implements IOPortCapable
 	}
     }
 
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
 	switch(address) {
 	case 0xcfc:
@@ -175,7 +175,7 @@ public class PCIHostBridge extends AbstractPCIDevice implements IOPortCapable
 	}
     }
 
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
 	switch(address) {
 	case 0xcfc:
@@ -191,7 +191,7 @@ public class PCIHostBridge extends AbstractPCIDevice implements IOPortCapable
 	}
     }
 
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
 	switch(address) {
 	case 0xcf8:

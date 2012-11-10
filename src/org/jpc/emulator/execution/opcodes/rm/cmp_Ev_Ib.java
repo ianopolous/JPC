@@ -37,7 +37,7 @@ public class cmp_Ev_Ib extends Executable
         cpu.flagResult = (cpu.flagOp1 - cpu.flagOp2);
         cpu.flagIns = UCodes.SUB32;
         cpu.flagStatus = OSZAPC;
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

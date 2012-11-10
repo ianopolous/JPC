@@ -155,7 +155,7 @@ class IDEChannel extends AbstractHardwareComponent implements IOPortCapable {
         devices[1].setDrive(drives[1]);
     }
 
-    public void ioPortWriteByte(int address, int data) {
+    public void ioPortWrite8(int address, int data) {
         if (address == ioBaseTwo) {
             writeCommand(data);
             return;
@@ -165,20 +165,20 @@ class IDEChannel extends AbstractHardwareComponent implements IOPortCapable {
         }
     }
 
-    public void ioPortWriteWord(int address, int data) {
+    public void ioPortWrite16(int address, int data) {
         switch (address - ioBase) {
             case 0:
             case 1:
                 writeDataWord(data);
                 break;
             default:
-                ioPortWriteByte(address, data);
-                ioPortWriteByte(address + 1, data >>> 8);
+                ioPortWrite8(address, data);
+                ioPortWrite8(address + 1, data >>> 8);
                 break;
         }
     }
 
-    public void ioPortWriteLong(int address, int data) {
+    public void ioPortWrite32(int address, int data) {
         switch (address - ioBase) {
             case 0:
             case 1:
@@ -187,13 +187,13 @@ class IDEChannel extends AbstractHardwareComponent implements IOPortCapable {
                 writeDataLong(data);
                 break;
             default:
-                ioPortWriteWord(address, data);
-                ioPortWriteWord(address + 2, data >>> 16);
+                ioPortWrite16(address, data);
+                ioPortWrite16(address + 2, data >>> 16);
                 break;
         }
     }
 
-    public int ioPortReadByte(int address) {
+    public int ioPortRead8(int address) {
         if (address == ioBaseTwo) {
             return readStatus();
         } else {
@@ -201,18 +201,18 @@ class IDEChannel extends AbstractHardwareComponent implements IOPortCapable {
         }
     }
 
-    public int ioPortReadWord(int address) {
+    public int ioPortRead16(int address) {
         switch (address - ioBase) {
             case 0:
             case 1:
                 return readDataWord();
             default:
-                return (0xff & ioPortReadByte(address)) |
-                        (0xff00 & (ioPortReadByte(address + 1) << 8));
+                return (0xff & ioPortRead8(address)) |
+                        (0xff00 & (ioPortRead8(address + 1) << 8));
         }
     }
 
-    public int ioPortReadLong(int address) {
+    public int ioPortRead32(int address) {
         switch (address - ioBase) {
             case 0:
             case 1:
@@ -220,8 +220,8 @@ class IDEChannel extends AbstractHardwareComponent implements IOPortCapable {
             case 3:
                 return readDataLong();
             default:
-                return (0xffff & ioPortReadWord(address)) |
-                        (0xffff0000 & (ioPortReadWord(address + 2) << 16));
+                return (0xffff & ioPortRead16(address)) |
+                        (0xffff0000 & (ioPortRead16(address + 2) << 16));
         }
     }
 

@@ -30,7 +30,7 @@ public class mov_Gv_Ev extends Executable
         else if (size == 32)
         {
         op1.set32(op2.get32());
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

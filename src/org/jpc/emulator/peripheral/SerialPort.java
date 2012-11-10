@@ -206,22 +206,22 @@ public class SerialPort extends AbstractHardwareComponent implements IOPortCapab
     }
 
 
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
 	this.ioportWrite(address, data);
     }
-    public void ioPortWriteWord(int address, int data){}
-    public void ioPortWriteLong(int address, int data){}
+    public void ioPortWrite16(int address, int data){}
+    public void ioPortWrite32(int address, int data){}
 
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
 	return this.ioportRead(address);
     }
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
 	return 0xffff;
     }
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
 	return 0xffffffff;
     }

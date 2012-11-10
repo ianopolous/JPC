@@ -32,13 +32,16 @@ public class BasicBlock implements CodeBlock
         Executable.Branch ret;
 
         if (log_blocks)
-            System.out.printf("Entering %08x\n", cpu.cs.getBase()+cpu.eip);
+            System.out.printf("*****Entering %08x\n", cpu.cs.getBase()+cpu.eip);
         while ((ret = current.execute(cpu)) == Executable.Branch.None)
         {
-            //System.out.println("\t"+current);
+            System.out.println("\t"+current);
             current = current.next;
+            State.print(cpu);
         }
         //System.out.println("\t"+current);
+        if (log_blocks)
+            State.print(cpu);
         return ret;
     }
 

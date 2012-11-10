@@ -38,7 +38,7 @@ public class add_Ev_Ib_mem extends Executable
         op1.set32(cpu, cpu.flagResult);
         cpu.flagIns = UCodes.ADD32;
         cpu.flagStatus = OSZAPC;
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

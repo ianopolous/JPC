@@ -14,7 +14,7 @@ public class mov_S_Ev_mem extends Executable
     public mov_S_Ev_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[0].size;
+        size = parent.operand[1].size;
         segIndex = Processor.getSegmentIndex(parent.operand[0].toString());
         op2 = new Address(parent.operand[1]);
     }
@@ -28,7 +28,7 @@ public class mov_S_Ev_mem extends Executable
         else if (size == 32)
         {
         cpu.setSeg(segIndex, op2.get32(cpu));
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

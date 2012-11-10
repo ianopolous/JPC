@@ -47,30 +47,30 @@ public interface IOPortCapable
      * @param address ioport to be written to
      * @param data value written.
      */
-    public void ioPortWriteByte(int address, int data);
+    public void ioPortWrite8(int address, int data);
 
     /**
      * Write the least significant 16 bits of <code>data</code>to the ioport at
      * <code>address</code>.
      * <p>
      * The data is written in a little-endian format, so dependent on the
-     * implementation this may result in two calls to <code>ioPortWriteByte</code>.
+     * implementation this may result in two calls to <code>ioPortWrite8</code>.
      * @param address ioport to be written to
      * @param data value written.
      */
-    public void ioPortWriteWord(int address, int data);
+    public void ioPortWrite16(int address, int data);
 
     /**
      * Write the 32 bits of <code>data</code>to the ioport at
      * <code>address</code>.
      * <p>
      * The data is written in a little-endian format, so dependent on the
-     * implementation this may result in two calls to <code>ioPortWriteWord</code>
-     * or four calls to <code>ioPortWriteByte</code>.
+     * implementation this may result in two calls to <code>ioPortWrite16</code>
+     * or four calls to <code>ioPortWrite8</code>.
      * @param address ioport to be written to
      * @param data value written.
      */
-    public void ioPortWriteLong(int address, int data);
+    public void ioPortWrite32(int address, int data);
 
     /**
      * Return the byte read from ioport <code>address</code> as the low 8 bits 
@@ -78,29 +78,29 @@ public interface IOPortCapable
      * @param address ioport to be read from
      * @return 8 bit data read.
      */
-    public int ioPortReadByte(int address);
+    public int ioPortRead8(int address);
 
     /**
      * Return the word read from ioport <code>address</code> as the low 16 bits 
      * of an integer.
      * <p>
      * The data is read in a little-endian format, so dependent on the
-     * implementation this may result in two calls to <code>ioPortReadByte</code>.
+     * implementation this may result in two calls to <code>ioPortRead8</code>.
      * @param address ioport to be read from
      * @return 16 bit data read.
      */
-    public int ioPortReadWord(int address);
+    public int ioPortRead16(int address);
 
     /**
      * Return the word read from ioport <code>address</code> as an integer.
      * <p>
      * The data is read in a little-endian format, so dependent on the
-     * implementation this may result in two calls to <code>ioPortReadWord</code>
-     * or four calls to <code>ioPortReadByte</code>.
+     * implementation this may result in two calls to <code>ioPortRead16</code>
+     * or four calls to <code>ioPortRead8</code>.
      * @param address ioport to be read from
      * @return 32 bit data read.
      */
-    public int ioPortReadLong(int address);
+    public int ioPortRead32(int address);
 
     /**
      * Returns an array of ioport addresses this object would like to map

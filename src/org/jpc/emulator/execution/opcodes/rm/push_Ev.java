@@ -27,7 +27,7 @@ public class push_Ev extends Executable
         else if (size == 32)
         {
         cpu.push32(op1.get32());
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

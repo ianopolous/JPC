@@ -13,7 +13,7 @@ public class mov_rAXr8_Iv extends Executable
     public mov_rAXr8_Iv(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[0].size;
+        size = parent.operand[1].size;
         imm = (short)parent.operand[1].lval;
     }
 
@@ -26,7 +26,7 @@ public class mov_rAXr8_Iv extends Executable
         else if (size == 32)
         {
         cpu.r_eax.set32(imm);
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

@@ -36,7 +36,7 @@ public class xor_Ev_Gv extends Executable
         cpu.flagResult = (op1.get32() ^ op2.get32());
         op1.set32(cpu.flagResult);
         cpu.flagStatus = SZP;
-        }
+        }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }
 

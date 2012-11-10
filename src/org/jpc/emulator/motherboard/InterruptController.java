@@ -515,7 +515,7 @@ public class InterruptController extends AbstractHardwareComponent implements IO
 	return temp;
     }
 
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
 	switch (address) {
 	case 0x20:
@@ -532,18 +532,18 @@ public class InterruptController extends AbstractHardwareComponent implements IO
 	}
 	return 0;
     }
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
-	return (0xff & ioPortReadByte(address)) |
-	    (0xff00 & (ioPortReadByte(address + 1) << 8));
+	return (0xff & ioPortRead8(address)) |
+	    (0xff00 & (ioPortRead8(address + 1) << 8));
     }
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
-	return (0xffff & ioPortReadWord(address)) |
-	    (0xffff0000 & (ioPortReadWord(address + 2) << 16));
+	return (0xffff & ioPortRead16(address)) |
+	    (0xffff0000 & (ioPortRead16(address + 2) << 16));
     }
 
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
 	switch (address) {
 	case 0x20:
@@ -565,15 +565,15 @@ public class InterruptController extends AbstractHardwareComponent implements IO
 	default:
 	}
     }
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
-	this.ioPortWriteByte(address, data);
-	this.ioPortWriteByte(address + 1, data >>> 8);
+	this.ioPortWrite8(address, data);
+	this.ioPortWrite8(address + 1, data >>> 8);
     }
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
-	this.ioPortWriteWord(address, data);
-	this.ioPortWriteWord(address + 2, data >>> 16);
+	this.ioPortWrite16(address, data);
+	this.ioPortWrite16(address + 2, data >>> 16);
     }
 
     /* END IOPortCapable Defined Methods */

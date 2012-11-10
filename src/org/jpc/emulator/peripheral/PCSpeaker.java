@@ -40,7 +40,6 @@ import javax.sound.midi.*;
 
 import java.io.*;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.logging.*;
 
 /**
@@ -204,25 +203,25 @@ public class PCSpeaker extends AbstractHardwareComponent implements IOPortCapabl
 	return new int[]{0x61};
     }
 
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
 	int out = pit.getOut(2);
 	dummyRefreshClock ^= 1;
 	return (speakerOn << 1) | (pit.getGate(2) ? 1 : 0) | (out << 5) |
 	    (dummyRefreshClock << 4);
     }
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
-	return (0xff & ioPortReadByte(address)) |
-	    (0xff00 & (ioPortReadByte(address + 1) << 8));
+	return (0xff & ioPortRead8(address)) |
+	    (0xff00 & (ioPortRead8(address + 1) << 8));
     }
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
-	return (0xffff & ioPortReadWord(address)) |
-	    (0xffff0000 & (ioPortReadWord(address + 2) << 16));
+	return (0xffff & ioPortRead16(address)) |
+	    (0xffff0000 & (ioPortRead16(address + 2) << 16));
     }
 
-    public synchronized void ioPortWriteByte(int address, int data)
+    public synchronized void ioPortWrite8(int address, int data)
     {
         if (!enabled)
             return;
@@ -253,15 +252,15 @@ public class PCSpeaker extends AbstractHardwareComponent implements IOPortCapabl
                 LOGGING.log(Level.INFO, "manual speaker management not implemented");
         }
     }
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
-	this.ioPortWriteByte(address, data);
-	this.ioPortWriteByte(address + 1, data >> 8);
+	this.ioPortWrite8(address, data);
+	this.ioPortWrite8(address + 1, data >> 8);
     }
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
-	this.ioPortWriteWord(address, data);
-	this.ioPortWriteWord(address + 2, data >> 16);
+	this.ioPortWrite16(address, data);
+	this.ioPortWrite16(address + 2, data >> 16);
     }
 
     public boolean initialised()

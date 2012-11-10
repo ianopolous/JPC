@@ -585,13 +585,13 @@ public abstract class VGACard extends AbstractPCIDevice implements IOPortCapable
     }
 
     //IOPortCapable Methods
-    public void ioPortWriteByte(int address, int data)
+    public void ioPortWrite8(int address, int data)
     {
         //all byte accesses are vgaIOPort ones
         vgaIOPortWriteByte(address, data);
     }
 
-    public void ioPortWriteWord(int address, int data)
+    public void ioPortWrite16(int address, int data)
     {
         switch(address) {
             case 0x1ce:
@@ -603,25 +603,25 @@ public abstract class VGACard extends AbstractPCIDevice implements IOPortCapable
                 vbeIOPortWriteData(data);
                 break;
             default:
-                ioPortWriteByte(address, 0xFF & data);
-                ioPortWriteByte(address+1, 0xFF & (data >>> 8));
+                ioPortWrite8(address, 0xFF & data);
+                ioPortWrite8(address + 1, 0xFF & (data >>> 8));
                 break;
         }
     }
 
-    public void ioPortWriteLong(int address, int data)
+    public void ioPortWrite32(int address, int data)
     {
-        ioPortWriteWord(address, 0xFFFF & data);
-        ioPortWriteWord(address+2, data >>> 16);
+        ioPortWrite16(address, 0xFFFF & data);
+        ioPortWrite16(address + 2, data >>> 16);
     }
 
-    public int ioPortReadByte(int address)
+    public int ioPortRead8(int address)
     {
         //all byte accesses are vgaIOPort ones
         return vgaIOPortReadByte(address);
     }
 
-    public int ioPortReadWord(int address)
+    public int ioPortRead16(int address)
     {
         switch(address) {
             case 0x1ce:
@@ -631,16 +631,16 @@ public abstract class VGACard extends AbstractPCIDevice implements IOPortCapable
             case 0xff81:
                 return vbeIOPortReadData();
             default:
-                int b0 = 0xFF & ioPortReadByte(address);
-                int b1 = 0xFF & ioPortReadByte(address+1);
+                int b0 = 0xFF & ioPortRead8(address);
+                int b1 = 0xFF & ioPortRead8(address + 1);
                 return b0 | (b1 << 8);
         }
     }
 
-    public int ioPortReadLong(int address)
+    public int ioPortRead32(int address)
     {
-        int b0 = 0xFFFF & ioPortReadWord(address);
-        int b1 = 0xFFFF & ioPortReadWord(address+2);
+        int b0 = 0xFFFF & ioPortRead16(address);
+        int b1 = 0xFFFF & ioPortRead16(address + 2);
         return b0 | (b1 << 16);
     }
 
