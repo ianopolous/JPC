@@ -700,7 +700,7 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
     }
 
     public String toString() {
-        return "Physical Address Bus";
+        return "Physical Pointer Bus";
     }
 
     private Memory getMemoryBlockAt(int i) {

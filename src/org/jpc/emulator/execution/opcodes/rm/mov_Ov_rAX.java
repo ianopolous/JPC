@@ -7,14 +7,14 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class mov_Ov_rAX extends Executable
 {
-    final Address op1;
+    final Pointer op1;
     final int size;
 
     public mov_Ov_rAX(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
         size = parent.operand[0].size;
-        op1 = new Address(parent.operand[0]);
+        op1 = new Pointer(parent.operand[0]);
     }
 
     public Branch execute(Processor cpu)

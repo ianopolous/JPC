@@ -7,12 +7,12 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class mov_Ob_AL_mem extends Executable
 {
-    final Address op1;
+    final Pointer op1;
 
     public mov_Ob_AL_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        op1 = new Address(parent.operand[0]);
+        op1 = new Pointer(parent.operand[0]);
     }
 
     public Branch execute(Processor cpu)

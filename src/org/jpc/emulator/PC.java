@@ -182,6 +182,23 @@ public class PC {
         System.out.println("Hello from the new JPC!");
     }
 
+    public int[] getState()
+    {
+        return new int[]{
+            processor.r_eax.get32(), processor.r_ebx.get32(), processor.r_ecx.get32(), processor.r_edx.get32(),
+            processor.r_esi.get32(), processor.r_edi.get32(), processor.r_esp.get32(), processor.r_ebp.get32(),
+            processor.eip, processor.getEFlags(),
+            processor.cs.getSelector(), processor.ds.getSelector(),
+            processor.es.getSelector(), processor.fs.getSelector(),
+            processor.gs.getSelector(), processor.ss.getSelector()
+        };
+    }
+
+    public void saveMemory(OutputStream out) throws IOException
+    {
+        physicalAddr.saveState(new DataOutputStream(out));
+    }
+
     /**
      * Starts this PC's attached clock instance.
      */
@@ -418,6 +435,36 @@ public class PC {
      */
     public Processor getProcessor() {
         return processor;
+    }
+
+    public int executeBlock()
+    {
+        if (processor.isProtectedMode()) {
+            if (processor.isVirtual8086Mode()) {
+                throw new IllegalStateException("Switched to VM86 mode");
+                //executeVirtual8086Block();
+            } else {
+                //executeProtectedBlock();
+                throw new IllegalStateException("Switched to Protected mode");
+            }
+        } else {
+            return executeRealBlock();
+        }
+    }
+
+    public int executeRealBlock()
+    {
+        try
+        {
+            return physicalAddr.executeReal(processor, processor.getInstructionPointer());        
+        } catch (ProcessorException p) {
+            processor.handleRealModeException(p);
+        }
+        catch (ModeSwitchException e)
+        {
+            LOGGING.log(Level.FINE, "Mode switch in RM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
+        }
+        return 0;
     }
 
     /**

@@ -1058,7 +1058,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
 
     public String toString()
     {
-        return "Linear Address Space";
+        return "Linear Pointer Space";
     }
 
     public void loadInitialContents(int address, byte[] buf, int off, int len) {

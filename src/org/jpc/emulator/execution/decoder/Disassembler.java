@@ -30,7 +30,7 @@ public class Disassembler
     private static void loadOpcodes(Map<String, Constructor<? extends Executable>> instructions, String mode)
     {
         // load instruction classes
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        ClassLoader cl = Disassembler.class.getClassLoader();
         String path = "org/jpc/emulator/execution/opcodes/"+mode;
         try
         {

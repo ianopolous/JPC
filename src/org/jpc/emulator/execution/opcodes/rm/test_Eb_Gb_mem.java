@@ -7,13 +7,13 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class test_Eb_Gb_mem extends Executable
 {
-    final Address op1;
+    final Pointer op1;
     final int op2Index;
 
     public test_Eb_Gb_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        op1 = new Address(parent.operand[0]);
+        op1 = new Pointer(parent.operand[0]);
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
 

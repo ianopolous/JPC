@@ -7,13 +7,13 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class mov_Eb_Ib_mem extends Executable
 {
-    final Address op1;
+    final Pointer op1;
     final int imm;
 
     public mov_Eb_Ib_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        op1 = new Address(parent.operand[0]);
+        op1 = new Pointer(parent.operand[0]);
         imm = (byte)parent.operand[1].lval;
     }
 

@@ -4,7 +4,7 @@ import org.jpc.emulator.processor.Processor;
 
 import static org.jpc.emulator.processor.Processor.*;
 
-public class Address
+public class Pointer
 {
     final int base, index;
     final int scale;
@@ -12,7 +12,7 @@ public class Address
     final int offset;
     final int segment;
 
-    public Address(Instruction.Operand op)
+    public Pointer(Instruction.Operand op)
     {
         seg = op.seg; // load the actual seg
         if (op.base != null)
@@ -39,7 +39,16 @@ public class Address
         {
             segment = Processor.getSegmentIndex(seg);
         } else
-            segment = Processor.getSegmentIndex("ds");
+            segment = Processor.getSegmentIndex(getImplicitSegment(op));
+    }
+
+    private static String getImplicitSegment(Instruction.Operand operand)
+    {
+        // :-)
+        if (operand.toString().toLowerCase().contains("bp"))
+           return "ss";
+        else
+            return "ds";
     }
 
     public int get(Processor cpu)
@@ -79,6 +88,7 @@ public class Address
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
+        System.out.println("****get16 "+toString() +" segment = "+segment);
         return cpu.segs[segment].getWord(addr);
     }
 

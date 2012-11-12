@@ -132,12 +132,12 @@ public abstract class Operand
         
         public String define(int arg)
         {
-            return "    final Address op"+arg+";\n";
+            return "    final Pointer op"+arg+";\n";
         }
 
         public String construct(int arg)
         {
-            return "        op"+arg+" = new Address(parent.operand["+(arg-1)+"]);";
+            return "        op"+arg+" = new Pointer(parent.operand["+(arg-1)+"]);";
         }
 
         public String load(int arg)
@@ -252,7 +252,7 @@ public abstract class Operand
         {
             return 0;
         }
-        
+
         public String define(int arg)
         {
             return "    final Address op"+arg+";\n";

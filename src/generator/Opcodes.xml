@@ -99,6 +99,7 @@
         $op1.setcpu.flagResult);
         cpu.flagIns = UCodes.ADD$size;
         cpu.flagStatus = NCF;</snippet>
+    <args size="16">eAX</args>
     <args size="16">eBX</args>
     <args size="16">eSP</args>
   </opcode>
@@ -116,6 +117,22 @@
     <snippet>        if (!Processor.getZeroFlag(cpu.flagStatus, cpu.zf, cpu.flagResult))
 </snippet>
 <jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="jb">
+    <return></return>
+    <snippet>        if (Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns))
+    </snippet>
+    <jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="ja">
+    <return></return>
+    <snippet>        if (!Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns) &amp;&amp; !Processor.getZeroFlag(cpu.flagStatus, cpu.zf, cpu.flagResult))
+    </snippet>
+    <jcc/>
     <args size="8">Jb</args>
     <args size="32">Jz</args>
   </opcode>

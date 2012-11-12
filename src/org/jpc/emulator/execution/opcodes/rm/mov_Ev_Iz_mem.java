@@ -7,7 +7,7 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class mov_Ev_Iz_mem extends Executable
 {
-    final Address op1;
+    final Pointer op1;
     final int imm;
     final int size;
 
@@ -15,7 +15,7 @@ public class mov_Ev_Iz_mem extends Executable
     {
         super(blockStart, parent);
         size = parent.operand[0].size;
-        op1 = new Address(parent.operand[0]);
+        op1 = new Pointer(parent.operand[0]);
         imm = (short)parent.operand[1].lval;
     }
 

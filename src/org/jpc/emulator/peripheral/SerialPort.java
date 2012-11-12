@@ -116,7 +116,7 @@ public class SerialPort extends AbstractHardwareComponent implements IOPortCapab
 
     private boolean thrIPending; /* transmitter holding register interrupt */
     private int irq; /* irq channel */
-    private int baseAddress; /* base I/O Port Address */
+    private int baseAddress; /* base I/O Port Pointer */
     private InterruptController irqDevice;
 
     private final StringBuilder serialOutputBuffer = new StringBuilder();

@@ -132,16 +132,16 @@ public class Processor implements HardwareComponent
     public final Reg r_ebp = new Reg("ebp", null);
     public final Reg r_bp = r_ebp;
     public final Reg[] regs = new Reg[] {r_eax, r_ax, r_ah, r_al, r_ebx, r_bx, r_bh, r_bl, r_ecx, r_cx, r_ch, r_cl, r_edx, r_dx, r_dh, r_dl, r_esi, r_si, r_edi, r_di, r_esp, r_sp, r_ebp, r_bp};
-    public final Segment[] segs = new Segment[] {gs, es, fs, cs, ss, ds};
+    public final Segment[] segs = new Segment[] {cs, ds, es, fs, gs, ss};
 
     private void updateSegmentArray()
     {
-        segs[0]=gs;
-        segs[1]=es;
-        segs[2]=fs;
-        segs[3]=cs;
-        segs[4]=ss;
-        segs[5]=ds;
+        segs[0]=cs;
+        segs[1]=ds;
+        segs[2]=es;
+        segs[3]=fs;
+        segs[4]=gs;
+        segs[5]=ss;
     }
 
     public static int getRegIndex(String name)
@@ -199,17 +199,17 @@ public class Processor implements HardwareComponent
 
     public static int getSegmentIndex(String seg)
     {
-        if (seg.equals("gs"))
-            return 0;
-        if (seg.equals("es"))
-            return 1;
-        if (seg.equals("fs"))
-            return 2;
         if (seg.equals("cs"))
-            return 3;
-        if (seg.equals("ss"))
-            return 4;
+            return 0;
         if (seg.equals("ds"))
+            return 1;
+        if (seg.equals("es"))
+            return 2;
+        if (seg.equals("fs"))
+            return 3;
+        if (seg.equals("gs"))
+            return 4;
+        if (seg.equals("ss"))
             return 5;
         throw new IllegalStateException("Unknown Segment: "+seg);
     }
@@ -340,17 +340,17 @@ public class Processor implements HardwareComponent
     public void setSeg(int index, int value)
     {
         if (index == 0)
-            gs(value);
-        else if (index == 1)
-            es(value);
-        else if (index == 2)
-            fs(value);
-        else if (index == 3)
             cs(value);
-        else if (index == 4)
-            ss(value);
-        else if (index == 5)
+        else if (index == 1)
             ds(value);
+        else if (index == 2)
+            es(value);
+        else if (index == 3)
+            fs(value);
+        else if (index == 4)
+            gs(value);
+        else if (index == 5)
+            ss(value);
         else throw new IllegalStateException("Unknown Segment index: "+index);
     }
 
@@ -361,7 +361,7 @@ public class Processor implements HardwareComponent
 
     public void cs(int selector)
     {
-        cs.setSelector(selector);
+        cs.setSelector(selector & 0xffff);
     }
 
     public int ds()
@@ -371,7 +371,7 @@ public class Processor implements HardwareComponent
 
     public void ds(int selector)
     {
-        ds.setSelector(selector);
+        ds.setSelector(selector & 0xffff);
     }
 
     public int es()
@@ -381,17 +381,17 @@ public class Processor implements HardwareComponent
 
     public void es(int selector)
     {
-        es.setSelector(selector);
+        es.setSelector(selector & 0xffff);
     }
 
     public void fs(int selector)
     {
-        fs.setSelector(selector);
+        fs.setSelector(selector & 0xffff);
     }
 
     public void gs(int selector)
     {
-        gs.setSelector(selector);
+        gs.setSelector(selector & 0xffff);
     }
 
     public int ss()
@@ -401,7 +401,7 @@ public class Processor implements HardwareComponent
 
     public void ss(int selector)
     {
-        ss.setSelector(selector);
+        ss.setSelector(selector & 0xffff);
     }
 
     public void lock(int addr){}

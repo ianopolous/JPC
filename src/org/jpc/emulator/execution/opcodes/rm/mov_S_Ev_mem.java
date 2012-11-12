@@ -8,7 +8,7 @@ import static org.jpc.emulator.processor.Processor.*;
 public class mov_S_Ev_mem extends Executable
 {
     final int segIndex;
-    final Address op2;
+    final Pointer op2;
     final int size;
 
     public mov_S_Ev_mem(int blockStart, Instruction parent)
@@ -16,7 +16,7 @@ public class mov_S_Ev_mem extends Executable
         super(blockStart, parent);
         size = parent.operand[1].size;
         segIndex = Processor.getSegmentIndex(parent.operand[0].toString());
-        op2 = new Address(parent.operand[1]);
+        op2 = new Pointer(parent.operand[1]);
     }
 
     public Branch execute(Processor cpu)

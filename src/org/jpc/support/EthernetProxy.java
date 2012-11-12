@@ -140,7 +140,7 @@ public class EthernetProxy extends EthernetOutput {
         int checksum = (packet[24] << 8) | packet[25];
         System.out.println("Header Checksum " + Integer.toHexString(checksum));
         int sourceIPaddr = (packet[26] << 24) | (packet[27] << 16) | (packet[28] << 8) | packet[28];
-        System.out.println("Source IP Address: " + Integer.toHexString(sourceIPaddr));
+        System.out.println("Source IP Pointer: " + Integer.toHexString(sourceIPaddr));
         int targetIPaddr = (packet[29] << 24) | (packet[30] << 16) | (packet[31] << 8) | packet[32];
         System.out.println("Target IP address: " + Integer.toHexString(targetIPaddr));
     }

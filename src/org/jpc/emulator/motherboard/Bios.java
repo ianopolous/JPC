@@ -120,7 +120,7 @@ public abstract class Bios extends AbstractHardwareComponent {
     }
 
     /**
-     * Address where the sub-class of <code>Bios</code> wants to load its image.
+     * Pointer where the sub-class of <code>Bios</code> wants to load its image.
      * @return physical address where the image is loaded.
      */
     protected abstract int loadAddress();
