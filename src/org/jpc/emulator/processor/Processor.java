@@ -342,6 +342,89 @@ public class Processor implements HardwareComponent
         }
     }
 
+    public void pusha()
+    {
+        int offset, offmask;
+        if (ss.getDefaultSizeFlag()) {
+            offset = r_esp.get32();
+            offmask = 0xffffffff;
+        } else {
+            offset = r_esp.get16();
+            offmask = 0xffff;
+        }
+        
+        //it seems that it checks at every push (we will simulate this)
+        if ((offset < 16) && ((offset & 0x1) == 0x1)) {
+            if (offset < 6)
+                System.err.println("Emulated: Should shutdown machine (PUSHA with small ESP).");
+            throw ProcessorException.GENERAL_PROTECTION_0;
+        }
+        
+	int temp = r_esp.get32();
+
+	offset -= 2;
+	ss.setWord(offset, (short) r_eax.get16());
+	offset -= 2;
+	ss.setWord(offset, (short) r_ecx.get16());
+	offset -= 2;
+	ss.setWord(offset, (short) r_edx.get16());
+	offset -= 2;
+	ss.setWord(offset, (short) r_ebx.get16());
+	offset -= 2;
+	ss.setWord(offset, (short) temp);
+	offset -= 2;
+	ss.setWord(offset, (short) r_ebp.get16());
+	offset -= 2;
+	ss.setWord(offset, (short) r_esi.get16());
+	offset -= 2;
+	ss.setWord(offset, (short) r_edi.get16());
+        
+	r_esp.set32((r_esp.get32() & ~offmask) | (offset & offmask));
+    }
+
+    public void popa()
+    {
+        int offset, offmask;
+        if (ss.getDefaultSizeFlag()) {
+            offset = r_esp.get32();
+            offmask = 0xffffffff;
+        } else {
+            offset = r_esp.get16();
+            offmask = 0xffff;
+        }
+
+	//Bochs claims no checking need on POPs
+	//if (offset + 16 >= ss.limit)
+	//    throw exceptionSS;
+	r_edi.set16(ss.getWord(offmask & offset));
+	offset += 2;
+	r_esi.set16(ss.getWord(offmask & offset));
+	offset += 2;
+	r_ebp.set16(ss.getWord(offmask & offset));
+	offset += 4;// yes - skip 2 bytes in order to skip SP	
+	r_ebx.set16(ss.getWord(offmask & offset));
+	offset += 2;
+	r_edx.set16(ss.getWord(offmask & offset));
+	offset += 2;
+	r_ecx.set16(ss.getWord(offmask & offset));
+	offset += 2;
+	r_eax.set16(ss.getWord(offmask & offset));
+	offset += 2;
+		
+	r_esp.set32((r_esp.get32() & ~offmask) | (offset & offmask));
+    }
+
+    public void iret_o16_a16()
+    {
+        eip = ss.getWord(r_esp.get16()) & 0xffff;
+	r_esp.set16((r_esp.get16() + 2) & 0xffff);
+	cs.setSelector(ss.getWord(r_esp.get16() & 0xffff));
+	r_esp.set16((r_esp.get16() + 2) & 0xffff);
+	int flags = ss.getWord(r_esp.get16());
+	r_esp.set16((r_esp.get16() + 2) & 0xffff);
+        setEFlags(flags);
+    }
+
     public void setSeg(int index, int value)
     {
         if (index == 0)

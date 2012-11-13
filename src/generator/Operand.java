@@ -510,7 +510,9 @@ public abstract class Operand
         segs.put("DS", "ds");
         segs.put("ES", "es");
         reg8.put("AL", "cpu.r_al");
+        reg8.put("CL", "cpu.r_cl");
         reg8.put("ALr8b", "cpu.r_al");
+        reg8.put("BLr11b", "cpu.r_bl");
         reg8.put("BHr15b", "cpu.r_bh");
         reg8.put("CLr9b", "cpu.r_cl");
         reg16.put("rAXr8", "cpu.r_eax");
