@@ -703,6 +703,28 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         return "Physical Pointer Bus";
     }
 
+    public Integer getPage(Integer pageNum, byte[] page)
+    {
+        int i=pageNum*4096;
+        try {
+            Memory block = quickIndex[i >>> INDEX_SHIFT];
+            if (block instanceof MapWrapper)
+                return 0;
+            block.copyContentsIntoArray(0, page, 0, 4096);
+            return 4096;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            try {
+                Memory block = index[i >>> TOP_INDEX_SHIFT][(i >>> BOTTOM_INDEX_SHIFT) & BOTTOM_INDEX_MASK];
+                if (block instanceof MapWrapper)
+                    return 0;
+                block.copyContentsIntoArray(0, page, 0, 4096);
+                return 4096;
+            } catch (NullPointerException n) {
+                return 0;
+            }
+        }
+    }
+
     private Memory getMemoryBlockAt(int i) {
         try {
             return quickIndex[i >>> INDEX_SHIFT];

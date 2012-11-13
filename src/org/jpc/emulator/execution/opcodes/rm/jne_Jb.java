@@ -7,13 +7,14 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class jne_Jb extends Executable
 {
-    final int jmp, blockLength;
+    final int jmp;
+    final int blockLength;
 
     public jne_Jb(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        jmp = (byte)parent.operand[0].lval;
         blockLength = parent.x86Length+(int)parent.eip-blockStart;
+        jmp = (byte)parent.operand[0].lval;
     }
 
     public Branch execute(Processor cpu)

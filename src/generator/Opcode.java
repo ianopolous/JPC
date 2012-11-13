@@ -10,7 +10,7 @@ public class Opcode
     final String ret;
     final int size;
     final boolean multiSize;
-    final boolean isMem;
+    final boolean isMem, isBranch;
 
     private Opcode(String mnemonic, String[] args, int size, String snippet, String ret, boolean isMem)
     {
@@ -36,6 +36,7 @@ public class Opcode
         this.snippet = snippet;
         this.ret = ret;
         this.size = size;
+        isBranch = !ret.startsWith("Branch.None");
     }
 
     public String getName()
@@ -49,6 +50,8 @@ public class Opcode
         b.append(getPreamble());
         for (int i=0; i < operands.length; i++)
             b.append(operands[i].define(i+1));
+        if (isBranch)
+            b.append("    final int blockLength;\n");
         if (multiSize)
             b.append("    final int size;\n");
         b.append(getConstructor());
@@ -78,8 +81,16 @@ public class Opcode
             }
         }
         body = body.replaceAll("\\$size", size+"");
-        body = body.replaceAll("\\$cast", getCast(size));
-        body = body.replaceAll("\\$mask", getMask(size));
+        if ((name.startsWith("mul_") || name.startsWith("div_"))&& (size == 32))
+        {
+            body = body.replaceAll("\\$mask", "0xFFFFFFFFL & ");
+            body = body.replaceAll("\\$cast", "(int)");
+        }
+        else
+        {
+            body = body.replaceAll("\\$cast", getCast(size));
+            body = body.replaceAll("\\$mask", getMask(size));
+        }
         return body;
     }
 
@@ -150,6 +161,8 @@ public class Opcode
                 throw new IllegalStateException("Couldn't find multisize operand "+toString());
             b.append("        size = parent.operand["+vIndex+"].size;\n");
         }
+        if (isBranch)
+            b.append("        blockLength = parent.x86Length+(int)parent.eip-blockStart;\n");
         for (int i=0; i < operands.length; i++)
         {
             String cons = operands[i].construct(i+1);
@@ -197,9 +210,22 @@ public class Opcode
         return false;
     }
 
+    private static boolean isMemOnly(String[] args)
+    {
+        for (String arg: args)
+            if (arg.equals("Ep"))
+                return true;
+        return false;
+    }
+
     public static List<Opcode> get(String mnemonic, String[] args, int size, String snippet, String ret)
     {
         List<Opcode> ops = new LinkedList();
+        if (isMemOnly(args))
+        {
+            ops.add(new Opcode(mnemonic, args, size, snippet, ret, true));
+            return ops;
+        }
         ops.add(new Opcode(mnemonic, args, size, snippet, ret, false));
         if (isMem(args))
             ops.add(new Opcode(mnemonic, args, size, snippet, ret, true));

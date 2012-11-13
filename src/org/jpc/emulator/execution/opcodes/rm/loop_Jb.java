@@ -7,19 +7,20 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class loop_Jb extends Executable
 {
-    final int jmp, blockLength;
+    final int jmp;
+    final int blockLength;
 
     public loop_Jb(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        jmp = (byte)parent.operand[0].lval;
         blockLength = parent.x86Length+(int)parent.eip-blockStart;
+        jmp = (byte)parent.operand[0].lval;
     }
 
     public Branch execute(Processor cpu)
     {
         cpu.r_cx.set16(cpu.r_cx.get16()-1);
-        if (cpu.r_cx.get16() == 0)
+        if (cpu.r_cx.get16() != 0)
         {
             cpu.eip += jmp+blockLength;
             return Branch.T1;

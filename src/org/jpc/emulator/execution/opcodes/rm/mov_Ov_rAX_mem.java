@@ -18,7 +18,7 @@ public class mov_Ov_rAX_mem extends Executable
     }
 
     public Branch execute(Processor cpu)
-    {System.out.println("********** size = "+size);
+    {
         if (size == 16)
         {
         op1.set16(cpu, (short)cpu.r_eax.get16());

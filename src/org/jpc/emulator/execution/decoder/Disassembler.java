@@ -12,7 +12,7 @@ import static org.jpc.emulator.execution.decoder.Table.*;
 
 public class Disassembler
 {
-    public static final boolean PRINT_DISAM = true;
+    public static final boolean PRINT_DISAM = false;
     static ZygoteInstruction[][] itab = new Table().itab_list;
     public static final int MAX_INSTRUCTIONS_PER_BLOCK = 10000;
     public static final int vendor = VENDOR_INTEL;

@@ -7,10 +7,12 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class ret extends Executable
 {
+    final int blockLength;
 
     public ret(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
+        blockLength = parent.x86Length+(int)parent.eip-blockStart;
     }
 
     public Branch execute(Processor cpu)

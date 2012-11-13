@@ -7,13 +7,14 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class call_Jz extends Executable
 {
-    final int jmp, blockLength;
+    final int jmp;
+    final int blockLength;
 
     public call_Jz(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        jmp = (int)parent.operand[0].lval;
         blockLength = parent.x86Length+(int)parent.eip-blockStart;
+        jmp = (int)parent.operand[0].lval;
     }
 
     public Branch execute(Processor cpu)

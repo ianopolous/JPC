@@ -194,9 +194,9 @@ public class PC {
         };
     }
 
-    public void saveMemory(OutputStream out) throws IOException
+    public Integer savePage(Integer page, byte[] data) throws IOException
     {
-        physicalAddr.saveState(new DataOutputStream(out));
+        return physicalAddr.getPage(page, data);
     }
 
     /**

@@ -331,6 +331,47 @@ public abstract class Operand
         }
     }
 
+    public static class Constant extends Operand
+    {
+        final int val;
+
+        public Constant(String name, int val)
+        {
+            super(name);
+            this.val = val;
+        }
+
+        public int getSize()
+        {
+            return 0;
+        }
+        
+        public String define(int arg)
+        {
+            return "";
+        }
+
+        public String construct(int arg)
+        {
+            return "";
+        }
+
+        public String load(int arg)
+        {
+            return "";
+        }
+
+        public String set(int arg)
+        {
+            return "";
+        }
+
+        public String get(int arg)
+        {
+            return ""+val;
+        }
+    }
+
     public static class Jump extends Operand
     {
         final int size;
@@ -348,12 +389,12 @@ public abstract class Operand
         
         public String define(int arg)
         {
-            return "    final int jmp, blockLength;\n";
+            return "    final int jmp;\n";
         }
 
         public String construct(int arg)
         {
-            return "        jmp = ("+cast()+")parent.operand["+(arg-1)+"].lval;\n        blockLength = parent.x86Length+(int)parent.eip-blockStart;";
+            return "        jmp = ("+cast()+")parent.operand["+(arg-1)+"].lval;";
         }
 
         private String cast()
@@ -421,18 +462,64 @@ public abstract class Operand
         }
     }
 
+    public static class FarMemPointer extends Operand
+    {
+        final int size;
+
+        public FarMemPointer(String name, int size)
+        {
+            super(name);
+            this.size = size;
+        }
+
+        public int getSize()
+        {
+            return size;
+        }
+        
+        public String define(int arg)
+        {
+            return "        final Pointer seg, offset;";
+        }
+
+        public String construct(int arg)
+        {
+            return "        offset = new Pointer(parent.operand["+(arg-1)+"]);\n        parent.operand["+(arg-1)+"].lval += "+(size/8)+";\n        seg = new Pointer(parent.operand["+(arg-1)+"]);";
+        }
+
+        public String load(int arg)
+        {
+            return "        int cs = seg.get16(cpu);\n        short targetEip = offset.get16(cpu);";
+        }
+
+        public String set(int arg)
+        {
+            return "";
+        }
+
+        public String get(int arg)
+        {
+            return "";
+        }
+    }
+
     public static Map<String, String> segs = new HashMap();
     public static Map<String, String> reg8 = new HashMap();
     public static Map<String, String> reg16 = new HashMap();
     static {
         segs.put("DS", "ds");
+        segs.put("ES", "es");
         reg8.put("AL", "cpu.r_al");
         reg8.put("ALr8b", "cpu.r_al");
+        reg8.put("BHr15b", "cpu.r_bh");
+        reg8.put("CLr9b", "cpu.r_cl");
         reg16.put("rAXr8", "cpu.r_eax");
         reg16.put("rAX", "cpu.r_eax");
         reg16.put("DX", "cpu.r_edx");
         reg16.put("eAX", "cpu.r_eax");
         reg16.put("eBX", "cpu.r_ebx");
+        reg16.put("eCX", "cpu.r_ecx");
+        reg16.put("eDX", "cpu.r_edx");
         reg16.put("eSP", "cpu.r_esp");
         reg16.put("rBXr11", "cpu.r_ebx");
         reg16.put("rCXr9", "cpu.r_ecx");
@@ -447,6 +534,8 @@ public abstract class Operand
             return new Immediate(name, 8);
         if (name.equals("Iv") || name.equals("Iz"))
             return new Immediate(name, opSize);
+        if (name.equals("I1"))
+            return new Constant(name, 1);
         if (name.equals("Eb"))
         {
             if (isMem)
@@ -465,6 +554,8 @@ public abstract class Operand
             else
                 return new Reg(name, opSize);
         }
+        if (name.equals("Ep"))
+            return new FarMemPointer(name, opSize);
         if (name.equals("Gv"))
             return new Reg(name, opSize);
         if (name.equals("Gb"))

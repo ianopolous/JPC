@@ -8,7 +8,7 @@ import static org.jpc.emulator.execution.Executable.*;
 
 public class BasicBlock implements CodeBlock
 {
-    public static final boolean log_blocks = true;
+    public static final boolean log_blocks = false;
     public Executable start;
     public BasicBlock link1, link2;
     public final int x86Length, x86Count;

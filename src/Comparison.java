@@ -36,32 +36,36 @@ public class Comparison
         Method execute1 = c1.getMethod("executeBlock");
         Method state2 = c2.getMethod("getState");
         Method execute2 = c2.getMethod("executeBlock");
-        Method save1 = c1.getMethod("saveMemory", OutputStream.class);
-        Method save2 = c2.getMethod("saveMemory", OutputStream.class);
+        Method save1 = c1.getMethod("savePage", Integer.class, byte[].class);
+        Method save2 = c2.getMethod("savePage", Integer.class, byte[].class);
      
         while (true)
         {
             compareStates((int[])state1.invoke(newpc), (int[])state2.invoke(oldpc), compareFlags);
             execute1.invoke(newpc);
             execute2.invoke(oldpc);
-            ByteArrayOutputStream bout1 = new ByteArrayOutputStream();
-            save1.invoke(newpc, bout1);
-            ByteArrayOutputStream bout2 = new ByteArrayOutputStream();
-            save2.invoke(oldpc, bout2);
-            compareTotalState(bout1.toByteArray(), bout2.toByteArray());
+            byte[] data1 = new byte[4096];
+            byte[] data2 = new byte[4096];
+            for (int i=0; i < 1024*1024; i++)
+            {
+                Integer l1 = (Integer)save1.invoke(newpc, new Integer(i), data1);
+                Integer l2 = (Integer)save2.invoke(oldpc, new Integer(i), data2);
+                if (l2 > 0)
+                    comparePage(i, data1, data2);
+            }
         }
     }
 
     public static String[] names = new String[] {"eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp", "eip", "flags", "cs", "ds", "es", "fs", "gs", "ss"};
 
-    public static void compareTotalState(byte[] fast, byte[] old)
+    public static void comparePage(int index, byte[] fast, byte[] old)
     {
         if (fast.length != old.length)
-            throw new IllegalStateException(String.format("different lengths %d != %d", fast.length, old.length));
+            throw new IllegalStateException(String.format("different page data lengths %d != %d", fast.length, old.length));
         for (int i=0; i < fast.length; i++)
             if (fast[i] != old[i])
             {
-                System.out.printf("Difference in state: %02x - %02x\n", fast[i], old[i]);
+                System.out.printf("Difference in memory state: %08x=> %02x - %02x\n", index*4096+i, fast[i], old[i]);
                 System.exit(0);
             }
     }

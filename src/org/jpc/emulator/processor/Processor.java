@@ -295,6 +295,11 @@ public class Processor implements HardwareComponent
         }
     }
 
+    public void push8(byte val)
+    {
+        push16(val);
+    }
+
     public void push16(short val)
     {
         if (ss.getDefaultSizeFlag()) {
@@ -459,6 +464,49 @@ public class Processor implements HardwareComponent
     {
         cs.setSelector(seg);
         this.eip = eip;
+    }
+
+    public void callFar(int targetSelector, short targetEIP)
+    {
+        System.out.printf("call far o16: %04x:%04x\n", targetSelector, targetEIP);
+	if ((r_esp.get16() < 4) && (r_esp.get16() > 0))
+	    throw ProcessorException.STACK_SEGMENT_0;
+
+	ss.setWord((r_esp.get16() - 2) & 0xffff, (short)cs.getSelector());
+	ss.setWord((r_esp.get16() - 4) & 0xffff, (short)eip);
+	r_esp.set16(r_esp.get16()-4);
+	
+	eip = targetEIP & 0xffff;
+        cs.setSelector(targetSelector & 0xffff);
+    }
+
+    public final void int_o16_a16(int vector)
+    {
+	//System.out.println("Real Mode execption " + Integer.toHexString(vector));
+
+ 	if (vector == 0)
+ 	    throw new IllegalStateException("INT 0 allowed? 0x" + Integer.toHexString(getInstructionPointer()));
+
+        if ((r_esp.get16() < 6) && (r_esp.get16() > 0)) {
+	    throw new IllegalStateException("SS Processor Exception Thrown in \"handleInterrupt("+vector+")\"");
+            //throw exceptionSS; //?
+	    //maybe just change vector value
+	}
+        r_esp.set16(r_esp.get16()-2);
+        int eflags = getEFlags() & 0xffff;
+        ss.setWord(r_esp.get16(), (short)eflags);
+        eflagsInterruptEnable = false;
+	eflagsInterruptEnableSoon = false;
+        eflagsTrap = false;
+        eflagsAlignmentCheck = false;
+        eflagsResume=false;
+        r_esp.set16(r_esp.get16()-2);
+        ss.setWord(r_esp.get16(), (short)cs.getSelector());
+        r_esp.set16(r_esp.get16()-2);
+        ss.setWord(r_esp.get16(), (short)eip);
+        // read interrupt vector
+        eip = 0xffff & idtr.getWord(4*vector);
+        cs.setSelector(0xffff & idtr.getWord(4*vector+2));
     }
 
     public void printState()
