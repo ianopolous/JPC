@@ -35,6 +35,7 @@ package org.jpc.emulator.memory.codeblock;
 
 import org.jpc.emulator.execution.decoder.Disassembler;
 import org.jpc.emulator.execution.decoder.PeekableInputStream;
+import org.jpc.j2se.Option;
 
 /**
  *
@@ -59,7 +60,7 @@ class DefaultCodeBlockFactory implements CodeBlockFactory
 
     public ProtectedModeCodeBlock getProtectedModeCodeBlock(PeekableInputStream source, boolean operandSize)
     {
-        return compiler.getProtectedModeCodeBlock(Disassembler.disassembleBlock(source, operandSize?32:16));
+        return compiler.getProtectedModeCodeBlock(new InterpretedProtectedModeBlock(Disassembler.disassembleBlock(source, operandSize?32:16)));
     }
 
     public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(PeekableInputStream source)

@@ -1,6 +1,7 @@
 package org.jpc.emulator.execution.decoder;
 
 import org.jpc.emulator.execution.Executable;
+import org.jpc.j2se.Option;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -12,7 +13,7 @@ import static org.jpc.emulator.execution.decoder.Table.*;
 
 public class Disassembler
 {
-    public static final boolean PRINT_DISAM = false;
+    public static final boolean PRINT_DISAM = Option.log_disam.value();
     static ZygoteInstruction[][] itab = new Table().itab_list;
     public static final int MAX_INSTRUCTIONS_PER_BLOCK = 10000;
     public static final int vendor = VENDOR_INTEL;
@@ -25,6 +26,7 @@ public class Disassembler
 
     static {
         loadOpcodes(rm_instructions, "rm");
+        loadOpcodes(pm_instructions, "pm");
     }
 
     private static void loadOpcodes(Map<String, Constructor<? extends Executable>> instructions, String mode)
@@ -58,7 +60,7 @@ public class Disassembler
                     Class c = Class.forName(file.replaceAll("/", "."));
                     int slash = file.lastIndexOf("/");
                     instructions.put(file.substring(slash+1), c.getConstructor(int.class, Instruction.class));
-                    //System.out.println("Loaded: "+file.substring(slash+1));
+                    //System.out.println("Loaded: "+mode+"/"+file.substring(slash+1));
                 } catch (Exception e)
                 {e.printStackTrace();}
             }   
@@ -122,9 +124,10 @@ public class Disassembler
 
     public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size)
     {
+        if (operand_size == 32)
+            System.out.println("Disassembling PM block!!!!!");
         int startAddr = (int)input.getAddress();
-        //System.out.printf("Disassembling block at %x\n", input.getAddress());
-        boolean debug = false;//input.getAddress() == 0x826d420;
+        boolean debug = false;
         Instruction insn;
         if (operand_size == 32)
             insn = disassemble32(input);
@@ -132,7 +135,7 @@ public class Disassembler
             insn = disassemble16(input);
         Executable start = getExecutable(operand_size, startAddr, insn);
         if (PRINT_DISAM)
-            System.out.println("Disassemble block starting with "+insn);
+            System.out.println(insn);
         Executable current = start;
         Instruction currentInsn = insn;
         int x86Length = insn.x86Length;

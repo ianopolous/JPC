@@ -72,6 +72,50 @@ public abstract class Operand
         }
     }
 
+    public static class ControlReg extends Operand
+    {
+
+        public ControlReg(String name)
+        {
+            super(name);
+        }
+
+        public String define(int arg)
+        {
+            return "    final int "+getVal(arg)+";\n";
+        }
+
+        public String construct(int arg)
+        {
+            return "        "+getVal(arg) + " = Processor.getCRIndex(parent.operand["+(arg-1)+"].toString());";
+        }
+
+        public String load(int arg)
+        {
+            return "";
+        }
+
+        public String set(int arg)
+        {
+            return "cpu.setCR("+getVal(arg)+", ";
+        }
+
+        public String get(int arg)
+        {
+            return "cpu.getCR("+getVal(arg)+")";
+        }
+
+        private String getVal(int arg)
+        {
+            return "op"+arg+"Index";
+        }
+
+        public int getSize()
+        {
+            return 32;
+        }
+    }
+
     public static class SpecificReg extends Operand
     {
         final int size;
@@ -506,18 +550,20 @@ public abstract class Operand
     public static Map<String, String> segs = new HashMap();
     public static Map<String, String> reg8 = new HashMap();
     public static Map<String, String> reg16 = new HashMap();
+    public static Map<String, String> reg16only = new HashMap();
     static {
         segs.put("DS", "ds");
         segs.put("ES", "es");
         reg8.put("AL", "cpu.r_al");
         reg8.put("CL", "cpu.r_cl");
         reg8.put("ALr8b", "cpu.r_al");
+        reg8.put("AHr12b", "cpu.r_ah");
         reg8.put("BLr11b", "cpu.r_bl");
         reg8.put("BHr15b", "cpu.r_bh");
         reg8.put("CLr9b", "cpu.r_cl");
+        reg16only.put("DX", "cpu.r_edx");
         reg16.put("rAXr8", "cpu.r_eax");
         reg16.put("rAX", "cpu.r_eax");
-        reg16.put("DX", "cpu.r_edx");
         reg16.put("eAX", "cpu.r_eax");
         reg16.put("eBX", "cpu.r_ebx");
         reg16.put("eCX", "cpu.r_ecx");
@@ -526,8 +572,9 @@ public abstract class Operand
         reg16.put("rBXr11", "cpu.r_ebx");
         reg16.put("rCXr9", "cpu.r_ecx");
         reg16.put("rDXr10", "cpu.r_edx");
-        reg16.put("rDIr15", "cpu.r_edi");
         reg16.put("rBPr13", "cpu.r_ebp");
+        reg16.put("rSIr14", "cpu.r_esi");
+        reg16.put("rDIr15", "cpu.r_edi");
     }
 
     public static Operand get(String name, int opSize, boolean isMem)
@@ -560,6 +607,10 @@ public abstract class Operand
             return new FarMemPointer(name, opSize);
         if (name.equals("Gv"))
             return new Reg(name, opSize);
+        if (name.equals("R"))
+            return new Reg(name, opSize);
+        if (name.equals("C"))
+            return new ControlReg(name);
         if (name.equals("Gb"))
             return new Reg(name, 8);
         if (name.equals("Jz") || name.equals("Jb"))
@@ -576,6 +627,8 @@ public abstract class Operand
             return new SpecificReg(name, reg8.get(name), 8);
         if (reg16.containsKey(name))
             return new SpecificReg(name, reg16.get(name), opSize);
+        if (reg16only.containsKey(name))
+            return new SpecificReg(name, reg16only.get(name), 16);
         throw new IllegalStateException("Unknown operand "+name);
     }
 }

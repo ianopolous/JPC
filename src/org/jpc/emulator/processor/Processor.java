@@ -214,6 +214,21 @@ public class Processor implements HardwareComponent
         throw new IllegalStateException("Unknown Segment: "+seg);
     }
 
+    public static int getCRIndex(String name)
+    {
+        if (name.equals("cr0"))
+            return 0;
+        if (name.equals("cr1"))
+            return 1;
+        if (name.equals("cr2"))
+            return 2;
+        if (name.equals("cr3"))
+            return 3;
+        if (name.equals("cr4"))
+            return 4;
+        throw new IllegalStateException("Unknown Control Register: "+name);
+    }
+
     public static final class Reg
     {
         private final Reg parent;
@@ -349,7 +364,7 @@ public class Processor implements HardwareComponent
             offset = r_esp.get32();
             offmask = 0xffffffff;
         } else {
-            offset = r_esp.get16();
+            offset = r_esp.get16() & 0xffff;
             offmask = 0xffff;
         }
         
@@ -415,14 +430,15 @@ public class Processor implements HardwareComponent
     }
 
     public void iret_o16_a16()
-    {
-        eip = ss.getWord(r_esp.get16()) & 0xffff;
-	r_esp.set16((r_esp.get16() + 2) & 0xffff);
-	cs.setSelector(ss.getWord(r_esp.get16() & 0xffff));
-	r_esp.set16((r_esp.get16() + 2) & 0xffff);
-	int flags = ss.getWord(r_esp.get16());
-	r_esp.set16((r_esp.get16() + 2) & 0xffff);
-        setEFlags(flags);
+    {System.out.printf("ESP1 %08x\n", r_esp.get32());
+        eip = ss.getWord(r_esp.get16() & 0xffff) & 0xffff;
+	r_esp.set16((r_esp.get16() + 2) & 0xffff);System.out.printf("ESP2 %08x\n", r_esp.get32());
+	cs.setSelector(0xffff & ss.getWord(r_esp.get16() & 0xffff));
+        System.out.printf("IRET to cs:eip %04x:%04x\n", cs.getSelector(), eip);
+	r_esp.set16((r_esp.get16() + 2) & 0xffff);System.out.printf("ESP3 %08x\n", r_esp.get32());
+	short flags = ss.getWord(r_esp.get16());
+	r_esp.set16((r_esp.get16() + 2) & 0xffff);System.out.printf("ESP4 %08x\n", r_esp.get32());
+        setFlags(flags);
     }
 
     public void setSeg(int index, int value)
@@ -442,6 +458,33 @@ public class Processor implements HardwareComponent
         else throw new IllegalStateException("Unknown Segment index: "+index);
     }
 
+    public void setCR(int index, int value)
+    {
+        if (index == 0)
+            setCR0(value);
+        else if (index == 2)
+            setCR2(value);
+        else if (index == 3)
+            setCR3(value);
+        else if (index == 4)
+            setCR4(value);
+        else throw new IllegalStateException("Unknown Segment index: "+index);
+    }
+
+    public int getCR(int index)
+    {
+        if (index == 0)
+            return getCR0();
+        else if (index == 2)
+            return getCR2();
+        else if (index == 3)
+            return getCR3();
+        else if (index == 4)
+            return getCR4();
+        else throw new IllegalStateException("Unknown Segment index: "+index);
+    }
+
+
     public int cs()
     {
         return cs.getSelector();
@@ -450,6 +493,12 @@ public class Processor implements HardwareComponent
     public void cs(int selector)
     {
         cs.setSelector(selector & 0xffff);
+    }
+
+    public void cs(Segment seg)
+    {
+        cs = seg;
+        segs[0] = seg;
     }
 
     public int ds()
@@ -462,6 +511,12 @@ public class Processor implements HardwareComponent
         ds.setSelector(selector & 0xffff);
     }
 
+    public void ds(Segment seg)
+    {
+        ds = seg;
+        segs[1] = seg;
+    }
+
     public int es()
     {
         return es.getSelector();
@@ -472,14 +527,32 @@ public class Processor implements HardwareComponent
         es.setSelector(selector & 0xffff);
     }
 
+    public void es(Segment seg)
+    {
+        es = seg;
+        segs[2] = seg;
+    }
+
     public void fs(int selector)
     {
         fs.setSelector(selector & 0xffff);
     }
 
+    public void fs(Segment seg)
+    {
+        fs = seg;
+        segs[3] = seg;
+    }
+
     public void gs(int selector)
     {
         gs.setSelector(selector & 0xffff);
+    }
+
+    public void gs(Segment seg)
+    {
+        gs = seg;
+        segs[4] = seg;
     }
 
     public int ss()
@@ -490,6 +563,12 @@ public class Processor implements HardwareComponent
     public void ss(int selector)
     {
         ss.setSelector(selector & 0xffff);
+    }
+
+    public void ss(Segment seg)
+    {
+        ss = seg;
+        segs[5] = seg;
     }
 
     public void lock(int addr){}
@@ -577,16 +656,18 @@ public class Processor implements HardwareComponent
 	}
         r_esp.set16(r_esp.get16()-2);
         int eflags = getEFlags() & 0xffff;
-        ss.setWord(r_esp.get16(), (short)eflags);
+        ss.setWord(r_esp.get16() & 0xffff, (short)eflags);
         eflagsInterruptEnable = false;
 	eflagsInterruptEnableSoon = false;
         eflagsTrap = false;
         eflagsAlignmentCheck = false;
         eflagsResume=false;
         r_esp.set16(r_esp.get16()-2);
-        ss.setWord(r_esp.get16(), (short)cs.getSelector());
+        ss.setWord(r_esp.get16() & 0xffff, (short)cs.getSelector());
+        System.out.printf("INT: saved cs=%04x to %04x\n", cs.getSelector(), r_esp.get16());
         r_esp.set16(r_esp.get16()-2);
-        ss.setWord(r_esp.get16(), (short)eip);
+        ss.setWord(r_esp.get16() & 0xffff, (short)eip);
+        System.out.printf("INT: saved eip=%04x to %04x\n", (short)eip, r_esp.get16());
         // read interrupt vector
         eip = 0xffff & idtr.getWord(4*vector);
         cs.setSelector(0xffff & idtr.getWord(4*vector+2));
@@ -764,12 +845,12 @@ public class Processor implements HardwareComponent
             value = input.readLong();
             modelSpecificRegisters.put(Integer.valueOf(key), Long.valueOf(value));
         }
-        cs = loadSegment(input);
-        ds = loadSegment(input);
-        ss = loadSegment(input);
-        es = loadSegment(input);
-        fs = loadSegment(input);
-        gs = loadSegment(input);
+        cs(loadSegment(input));
+        ds(loadSegment(input));
+        ss(loadSegment(input));
+        es(loadSegment(input));
+        fs(loadSegment(input));
+        gs(loadSegment(input));
         idtr = loadSegment(input);
         gdtr = loadSegment(input);
         ldtr = loadSegment(input);
@@ -895,6 +976,23 @@ public class Processor implements HardwareComponent
             result |= 0x200000;
 
         return result;
+    }
+
+    public void setFlags(short flags)
+    {
+        flagStatus = 0;
+        cf = ((flags & 1 ) != 0);
+        pf = ((flags & (1 << 2)) != 0);
+        af = ((flags & (1 << 4)) != 0);
+        zf = ((flags & (1 << 6)) != 0);
+        sf = ((flags & (1 <<  7)) != 0);
+        eflagsTrap                    = ((flags & (1 <<  8)) != 0);
+        eflagsInterruptEnableSoon
+                = eflagsInterruptEnable   = ((flags & (1 <<  9)) != 0);
+        df                            = ((flags & (1 << 10)) != 0);
+        of = ((flags & (1 << 11)) != 0);
+        eflagsIOPrivilegeLevel        = ((flags >> 12) & 3);
+        eflagsNestedTask              = ((flags & (1 << 14)) != 0);
     }
 
     public void setEFlags(int eflags)
@@ -1182,31 +1280,31 @@ public class Processor implements HardwareComponent
     {
         try
         {
-            cs = SegmentFactory.createRealModeSegment(physicalMemory, cs);
+            cs(SegmentFactory.createRealModeSegment(physicalMemory, cs));
         } catch (ProcessorException e)
         {
-            cs = SegmentFactory.createRealModeSegment(physicalMemory, 0);
+            cs(SegmentFactory.createRealModeSegment(physicalMemory, 0));
         }
 
         try
         {
-            ds = SegmentFactory.createRealModeSegment(physicalMemory, ds);
+            ds(SegmentFactory.createRealModeSegment(physicalMemory, ds));
         } catch (ProcessorException e)
         {
-            ds = SegmentFactory.createRealModeSegment(physicalMemory, 0);
+            ds(SegmentFactory.createRealModeSegment(physicalMemory, 0));
         }
 
         try
         {
-            ss = SegmentFactory.createRealModeSegment(physicalMemory, ss);
+            ss(SegmentFactory.createRealModeSegment(physicalMemory, ss));
         } catch (ProcessorException e)
         {
-            ss = SegmentFactory.createRealModeSegment(physicalMemory, 0);
+            ss(SegmentFactory.createRealModeSegment(physicalMemory, 0));
         }
 
         try
         {
-            es = SegmentFactory.createRealModeSegment(physicalMemory, es);
+            es(SegmentFactory.createRealModeSegment(physicalMemory, es));
         } catch (ProcessorException e)
         {
             es = SegmentFactory.createRealModeSegment(physicalMemory, 0);
@@ -1214,18 +1312,18 @@ public class Processor implements HardwareComponent
 
         try
         {
-            fs = SegmentFactory.createRealModeSegment(physicalMemory, fs);
+            fs(SegmentFactory.createRealModeSegment(physicalMemory, fs));
         } catch (ProcessorException e)
         {
-            fs = SegmentFactory.createRealModeSegment(physicalMemory, 0);
+            fs(SegmentFactory.createRealModeSegment(physicalMemory, 0));
         }
 
         try
         {
-            gs = SegmentFactory.createRealModeSegment(physicalMemory, gs);
+            gs(SegmentFactory.createRealModeSegment(physicalMemory, gs));
         } catch (ProcessorException e)
         {
-            gs = SegmentFactory.createRealModeSegment(physicalMemory, 0);
+            gs(SegmentFactory.createRealModeSegment(physicalMemory, 0));
         }
     }
 
@@ -1494,7 +1592,7 @@ public class Processor implements HardwareComponent
         if (!cs.setSelector(newSelector))
         {
             System.out.println("Setting CS to RM in RM interrupt");
-            cs = SegmentFactory.createRealModeSegment(physicalMemory, newSelector);
+            cs(SegmentFactory.createRealModeSegment(physicalMemory, newSelector));
             setCPL(0);
         }
     }
@@ -1513,8 +1611,8 @@ public class Processor implements HardwareComponent
             //return cpu to original state
             r_esp.set32(savedESP);
             eip = savedEIP;
-            cs = savedCS;
-            ss = savedSS;
+            cs(savedCS);
+            ss(savedSS);
 
             if (pe.getType() == ProcessorException.Type.DOUBLE_FAULT) {
                 LOGGING.log(Level.SEVERE, "Triple-Fault: Unhandleable, machine will halt!", e);
@@ -1539,8 +1637,8 @@ public class Processor implements HardwareComponent
             //return cpu to original state
             r_esp.set32(savedESP);
             eip = savedEIP;
-            cs = savedCS;
-            ss = savedSS;
+            cs(savedCS);
+            ss(savedSS);
 
             //make eip point at INT instruction which threw an exception
             if (e.pointsToSelf())
@@ -1567,8 +1665,8 @@ public class Processor implements HardwareComponent
             //return cpu to original state
             r_esp.set32(savedESP);
             eip = savedEIP;
-            cs = savedCS;
-            ss = savedSS;
+            cs(savedCS);
+            ss(savedSS);
 
             //if (e.getVector() == PROC_EXCEPTION_DF) {
             //System.err.println("Triple-Fault: Unhandleable, machine will halt!");
@@ -1770,11 +1868,11 @@ public class Processor implements HardwareComponent
                             int oldESP = r_esp.get32();
                             int oldCS = cs.getSelector();
                             int oldEIP = eip;
-                            ss = newStackSegment;
+                            ss(newStackSegment);
                             r_esp.set32(newESP);
                             ss.setRPL(targetSegment.getDPL());
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
                             setCPL(cs.getDPL());
                             //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
@@ -1858,7 +1956,7 @@ public class Processor implements HardwareComponent
                                 }
                             }
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
 
                             cs.setRPL(currentPrivilegeLevel);
@@ -1921,7 +2019,7 @@ public class Processor implements HardwareComponent
                             }
                         }
 
-                        cs = targetSegment;
+                        cs(targetSegment);
                         eip = targetOffset;
 
                         cs.setRPL(currentPrivilegeLevel);
@@ -2027,11 +2125,11 @@ public class Processor implements HardwareComponent
                             int oldESP = r_esp.get32();
                             int oldCS = cs.getSelector();
                             int oldEIP = eip;
-                            ss = newStackSegment;
+                            ss(newStackSegment);
                             r_esp.set32(newESP);
                             ss.setRPL(targetSegment.getDPL());
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
                             setCPL(cs.getDPL());
 //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
@@ -2113,7 +2211,7 @@ public class Processor implements HardwareComponent
                                 }
                             }
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
 
                             cs.setRPL(currentPrivilegeLevel);
@@ -2175,7 +2273,7 @@ public class Processor implements HardwareComponent
                             }
                         }
 
-                        cs = targetSegment;
+                        cs(targetSegment);
                         eip = targetOffset;
 
                         cs.setRPL(currentPrivilegeLevel);
@@ -2280,11 +2378,11 @@ public class Processor implements HardwareComponent
                             int oldESP = r_esp.get32();
                             int oldCS = cs.getSelector();
                             int oldEIP = eip;
-                            ss = newStackSegment;
+                            ss(newStackSegment);
                             r_esp.set32(newESP);
                             ss.setRPL(targetSegment.getDPL());
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
                             setCPL(cs.getDPL());
 
@@ -2368,7 +2466,7 @@ public class Processor implements HardwareComponent
                                 }
                             }
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
 
                             cs.setRPL(currentPrivilegeLevel);
@@ -2431,7 +2529,7 @@ public class Processor implements HardwareComponent
                             }
                         }
 
-                        cs = targetSegment;
+                        cs(targetSegment);
                         eip = targetOffset;
 
                         cs.setRPL(currentPrivilegeLevel);
@@ -2538,11 +2636,11 @@ public class Processor implements HardwareComponent
                             int oldCS = cs.getSelector();
                             int oldEIP = eip;
 
-                            ss = newStackSegment;
+                            ss(newStackSegment);
                             r_esp.set32(newESP);
                             ss.setRPL(targetSegment.getDPL());
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
                             setCPL(cs.getDPL());
 
@@ -2623,7 +2721,7 @@ public class Processor implements HardwareComponent
                                 }
                             }
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
 
                             cs.setRPL(currentPrivilegeLevel);
@@ -2685,7 +2783,7 @@ public class Processor implements HardwareComponent
                             }
                         }
 
-                        cs = targetSegment;
+                        cs(targetSegment);
                         eip = targetOffset;
                         cs.setRPL(currentPrivilegeLevel);
 
@@ -2715,8 +2813,8 @@ public class Processor implements HardwareComponent
             //return cpu to original state
             r_esp.set32(savedESP);
             eip = savedEIP;
-            cs = savedCS;
-            ss = savedSS;
+            cs(savedCS);
+            ss(savedSS);
 
             if (pe.getType() == ProcessorException.Type.DOUBLE_FAULT) {
                 LOGGING.log(Level.SEVERE, "Triple-Fault: Unhandleable, machine will halt!", e);
@@ -2746,8 +2844,8 @@ public class Processor implements HardwareComponent
                 //return cpu to original state
                 r_esp.set32(savedESP);
                 eip = savedEIP;
-                cs = savedCS;
-                ss = savedSS;
+                cs(savedCS);
+                ss(savedSS);
 
                 //make eip point at INT instruction which threw an exception
                 if (e.pointsToSelf())
@@ -2775,8 +2873,8 @@ public class Processor implements HardwareComponent
             //return cpu to original state
             r_esp.set32(savedESP);
             eip = savedEIP;
-            cs = savedCS;
-            ss = savedSS;
+            cs(savedCS);
+            ss(savedSS);
 
             //if (e.getVector() == PROC_EXCEPTION_DF) {
             //System.err.println("Triple-Fault: Unhandleable, machine will halt!");
@@ -2941,11 +3039,11 @@ public class Processor implements HardwareComponent
                             int oldESP = r_esp.get32();
                             int oldCS = cs.getSelector() & 0xffff;
                             int oldEIP = eip & 0xffff;
-                            ss = newStackSegment;
+                            ss(newStackSegment);
                             r_esp.set32(newESP);
                             ss.setRPL(targetSegment.getDPL());
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
                             setCPL(cs.getDPL());
                             cs.setRPL(cs.getDPL());
@@ -3134,11 +3232,11 @@ public class Processor implements HardwareComponent
                             int oldCS = cs.getSelector() & 0xffff;
                             int oldEIP = eip & 0xffff;
 
-                            ss = newStackSegment;
+                            ss(newStackSegment);
                             r_esp.set32(newESP);
                             ss.setRPL(targetSegment.getDPL());
 
-                            cs = targetSegment;
+                            cs(targetSegment);
                             eip = targetOffset;
                             setCPL(cs.getDPL());
 

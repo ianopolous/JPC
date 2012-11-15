@@ -513,6 +513,8 @@ public class PC {
         }
         catch (ModeSwitchException e)
         {
+            State.print(processor);
+            e.printStackTrace();
             LOGGING.log(Level.FINE, "Mode switch in RM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return x86Count;

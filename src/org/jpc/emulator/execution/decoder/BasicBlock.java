@@ -3,12 +3,15 @@ package org.jpc.emulator.execution.decoder;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.memory.codeblock.CodeBlock;
 import org.jpc.emulator.processor.*;
+import org.jpc.j2se.Option;
 
 import static org.jpc.emulator.execution.Executable.*;
 
 public class BasicBlock implements CodeBlock
 {
-    public static final boolean log_blocks = false;
+    public static final boolean LOG_BLOCKENTRY = Option.log_blockentry.value();
+    public static final boolean LOG_STATE = Option.log_state.value();
+
     public Executable start;
     public BasicBlock link1, link2;
     public final int x86Length, x86Count;
@@ -31,18 +34,19 @@ public class BasicBlock implements CodeBlock
         Executable current = start;
         Executable.Branch ret;
 
-        if (log_blocks)
-            System.out.printf("*****Entering %08x\n", cpu.cs.getBase()+cpu.eip);
+        if (LOG_BLOCKENTRY)
+            System.out.printf("*****Entering basic block %08x\n", cpu.cs.getBase()+cpu.eip);
         while ((ret = current.execute(cpu)) == Executable.Branch.None)
         {
-            if (log_blocks)
+            if (LOG_STATE)
                 System.out.println("\t"+current);
             current = current.next;
-            if (log_blocks)
+            if (LOG_STATE)
                 State.print(cpu);
         }
-        //System.out.println("\t"+current);
-        if (log_blocks)
+        if (LOG_STATE)
+            System.out.println("\t"+current);
+        if (LOG_STATE)
             State.print(cpu);
         return ret;
     }

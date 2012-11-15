@@ -8,7 +8,12 @@ public class Generator
 {
     public static void main(String[] cmd)
     {
-        Document dom = parseXML();
+        opcodeGen(parseXML("RM"), "rm");
+        opcodeGen(parseXML("PM"), "pm");
+    }
+
+    public static void opcodeGen(Document dom, String mode)
+    {
         NodeList properties = dom.getElementsByTagName("jcc");
         String jcc = null;
         for (int i=0; i < properties.getLength(); i++)
@@ -57,18 +62,18 @@ public class Generator
                 for (Opcode op: ops)
                 {
                     System.out.println(op.getName());
-                    op.writeToFile();
+                    op.writeToFile(mode);
                 }
             }
         }
     }
 
-    public static Document parseXML()
+    public static Document parseXML(String mode)
     {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
-            return db.parse("Opcodes.xml");
+            return db.parse("Opcodes_"+mode+".xml");
         }catch(ParserConfigurationException pce) {
             pce.printStackTrace();
         }catch(SAXException se) {

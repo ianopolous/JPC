@@ -664,6 +664,8 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
             LOGGING.log(Level.INFO, "System Look-and-Feel not loaded", e);
         }
 
+        args = Option.parse(args);
+
         if (args.length == 0)
         {
             ClassLoader cl = JPCApplication.class.getClassLoader();

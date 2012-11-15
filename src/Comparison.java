@@ -14,6 +14,9 @@ public class Comparison
 
     public static void main(String[] args) throws Exception
     {
+        boolean mem = false;
+        if ((args.length >0) && args[0].equals("-mem"))
+            mem = true;
         URL[] urls1 = new URL[]{new File(newJar).toURL()};
         URL[] urls2 = new URL[]{new File(oldJar).toURL()};
         ClassLoader cl1 = new URLClassLoader(urls1, Comparison.class.getClassLoader());
@@ -39,11 +42,17 @@ public class Comparison
         Method save1 = c1.getMethod("savePage", Integer.class, byte[].class);
         Method save2 = c2.getMethod("savePage", Integer.class, byte[].class);
      
+        if (mem)
+            System.out.println("Comparing memory and registers..");
+        else
+            System.out.println("Comparing registers only..");
         while (true)
         {
             compareStates((int[])state1.invoke(newpc), (int[])state2.invoke(oldpc), compareFlags);
             execute1.invoke(newpc);
             execute2.invoke(oldpc);
+            if (!mem)
+                continue;
             byte[] data1 = new byte[4096];
             byte[] data2 = new byte[4096];
             for (int i=0; i < 1024*1024; i++)

@@ -16,10 +16,10 @@ public class inc_eSP extends Executable
     public Branch execute(Processor cpu)
     {
         cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);
-        cpu.flagOp1 = cpu.r_esp.get16();
+        cpu.flagOp1 = (short)cpu.r_esp.get16();
         cpu.flagOp2 = 1;
         cpu.flagResult = (short)(cpu.flagOp1 + 1);
-        cpu.r_esp.set16(cpu.flagResult);
+        cpu.r_esp.set16((short)cpu.flagResult);
         cpu.flagIns = UCodes.ADD16;
         cpu.flagStatus = NCF;
         return Branch.None;

@@ -44,10 +44,10 @@ public class Opcode
         return name;
     }
 
-    public String getSource()
+    public String getSource(String mode)
     {
         StringBuilder b = new StringBuilder();
-        b.append(getPreamble());
+        b.append(getPreamble(mode));
         for (int i=0; i < operands.length; i++)
             b.append(operands[i].define(i+1));
         if (isBranch)
@@ -89,6 +89,8 @@ public class Opcode
         else
         {
             body = body.replaceAll("\\$cast", getCast(size));
+            if (body.contains("$mask2"))
+                body = body.replaceAll("\\$mask2", getMask(operands[1].getSize()));
             body = body.replaceAll("\\$mask", getMask(size));
         }
         return body;
@@ -173,9 +175,9 @@ public class Opcode
         return b.toString();
     }
 
-    private String getPreamble()
+    private String getPreamble(String mode)
     {
-        return "package org.jpc.emulator.execution.opcodes.rm;\n\nimport org.jpc.emulator.execution.*;\nimport org.jpc.emulator.execution.decoder.*;\nimport org.jpc.emulator.processor.*;\nimport static org.jpc.emulator.processor.Processor.*;\n\npublic class "+getName()+" extends Executable\n{\n";
+        return "package org.jpc.emulator.execution.opcodes."+mode+";\n\nimport org.jpc.emulator.execution.*;\nimport org.jpc.emulator.execution.decoder.*;\nimport org.jpc.emulator.processor.*;\nimport static org.jpc.emulator.processor.Processor.*;\n\npublic class "+getName()+" extends Executable\n{\n";
     }
 
     private String getBranch()
@@ -191,11 +193,11 @@ public class Opcode
         return "    public String toString()\n    {\n        return this.getClass().getName();\n    }\n";
     }
 
-    public void writeToFile()
+    public void writeToFile(String mode)
     {
         try {
-            BufferedWriter w = new BufferedWriter(new FileWriter("../org/jpc/emulator/execution/opcodes/rm/"+getName()+".java"));
-            w.write(getSource());
+            BufferedWriter w = new BufferedWriter(new FileWriter("../org/jpc/emulator/execution/opcodes/"+mode+"/"+getName()+".java"));
+            w.write(getSource(mode));
             w.flush();
             w.close();
         } catch (IOException e)

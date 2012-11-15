@@ -90,39 +90,41 @@ public class StaticOpcodes
                 cpu.flagStatus = OSZAPC;
                 cpu.flagIns = UCodes.SUB16;
             }
-    }
+            }*/
 
-    public static void rep_movsb(Processor cpu)
+    public static void rep_movsb_a16(Processor cpu)
     {
-        int count = cpu.r_ecx.get32();
-        int inAddr = cpu.r_edi.get32();
-        int outAddr = cpu.r_esi.get32();
+        int count = cpu.r_ecx.get16() & 0xffff;
+	int inAddr = cpu.r_edi.get16() & 0xffff;
+	int outAddr = cpu.r_esi.get16() & 0xffff;
 
-        try {
-            if (cpu.df) {
-                while (count != 0) {
-                    memory.setByte(inAddr, memory.getByte(outAddr));
-                    count--;
-                    outAddr -= 1;
-                    inAddr -= 1;
-                }
-            } else {
-                while (count != 0) {
-                    memory.setByte(inAddr, memory.getByte(outAddr));
-                    count--;
-                    outAddr += 1;
-                    inAddr += 1;
-                }
-            }
-        }
-        finally {
-            cpu.r_ecx.set32(count);
-            cpu.r_edi.set32(inAddr);
-            cpu.r_esi.set32(outAddr);
-        }
+	try {
+	    if (cpu.df) {
+		while (count != 0) {
+		    //check hardware interrupts
+		    cpu.es.setByte(inAddr & 0xffff, cpu.ds.getByte(outAddr & 0xffff));		
+		    count--;
+		    outAddr -= 1;
+		    inAddr -= 1;
+		}
+	    } else {
+		while (count != 0) {
+		    //check hardware interrupts
+		    cpu.es.setByte(inAddr & 0xffff, cpu.ds.getByte(outAddr & 0xffff));		
+		    count--;
+		    outAddr += 1;
+		    inAddr += 1;
+		}
+	    }
+	}
+	finally {
+	    cpu.r_ecx.set16(count & 0xffff);
+	    cpu.r_edi.set16(inAddr & 0xffff);
+	    cpu.r_esi.set16(outAddr & 0xffff);
+	}
     }
 
-    public static void rep_movsd(Processor cpu)
+    /*public static void rep_movsd(Processor cpu)
     {
         int count = cpu.r_ecx.get32();
         int inAddr = cpu.r_edi.get32();
@@ -292,5 +294,39 @@ public class StaticOpcodes
             cpu.r_ecx.set32(count);
             cpu.r_edi.set32(tAddr);
         }
+    }
+
+    public static final void repne_scasb_a16(Processor cpu)
+    {
+        int data = 0xff & cpu.r_al.get8();
+	int count = cpu.r_ecx.get16() & 0xffff;
+	int addr = cpu.r_edi.get16() & 0xffff;
+        boolean used = count != 0;
+	int input = 0;
+
+	try {
+	    if (cpu.df) {
+		while (count != 0) {
+		    input = 0xff & cpu.es.getByte(addr);
+		    count--;
+		    addr -= 1;
+		    if (data == input) break;
+		}
+	    } else {
+		while (count != 0) {
+		    input = 0xff & cpu.es.getByte(addr);
+		    count--;
+		    addr += 1;
+		    if (data == input) break;
+		}
+	    }
+	} finally {
+	    cpu.r_ecx.set16(count & 0xffff);
+	    cpu.r_edi.set16(addr & 0xffff);
+            cpu.flagOp1 = data;
+            cpu.flagOp2 = input;
+            cpu.flagResult = data-input;
+            cpu.flagIns = UCodes.SUB8;
+	}
     }
 }

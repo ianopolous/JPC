@@ -88,8 +88,7 @@ public class Pointer
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
-        System.out.println("****get16 "+toString() +" segment = "+segment);
-        return cpu.segs[segment].getWord(addr);
+         return cpu.segs[segment].getWord(addr);
     }
 
     public void set16(Processor cpu, short val)

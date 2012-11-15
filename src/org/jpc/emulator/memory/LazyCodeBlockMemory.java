@@ -38,6 +38,7 @@ import java.util.Arrays;
 import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.memory.codeblock.*;
 import org.jpc.emulator.processor.Processor;
+import org.jpc.j2se.Option;
 
 /**
  * <code>Memory</code> object with simple execute capabilities.  Uses a
@@ -48,8 +49,9 @@ import org.jpc.emulator.processor.Processor;
  * @author Rhys Newman
  * @author Ian Preston
  */
-public class LazyCodeBlockMemory extends AbstractMemory {
-
+public class LazyCodeBlockMemory extends AbstractMemory
+{
+    public static final boolean LOG_DISAM = Option.log_disam.value();
     private CodeBlockManager codeBlockManager;
     private static final BlankCodeBlock PLACEHOLDER = new BlankCodeBlock();
     private RealModeCodeBlock[] realCodeBuffer;
@@ -105,6 +107,8 @@ public class LazyCodeBlockMemory extends AbstractMemory {
             }
             catch (NullPointerException e)
             {
+                if (LOG_DISAM)
+                    System.out.printf("Disassembling PM from %08x\n", cpu.getInstructionPointer());
                 block = codeBlockManager.getProtectedModeCodeBlockAt(this, offset, cpu.cs.getDefaultSizeFlag());
                 setProtectedCodeBlockAt(offset, block);
                 x86Count += block.getX86Count();
@@ -137,6 +141,8 @@ public class LazyCodeBlockMemory extends AbstractMemory {
             }
             catch (NullPointerException e)
             {
+                if (LOG_DISAM)
+                    System.out.printf("Disassembling RM from %08x\n", cpu.getInstructionPointer());
                 block = codeBlockManager.getRealModeCodeBlockAt(this, offset);
                 setRealCodeBlockAt(offset, block);
                 x86Count += block.getX86Count();
@@ -169,6 +175,8 @@ public class LazyCodeBlockMemory extends AbstractMemory {
             }
             catch (NullPointerException e)
             {
+                if (LOG_DISAM)
+                    System.out.printf("Disassembling VM86 from %08x\n", cpu.getInstructionPointer());
                 block = codeBlockManager.getVirtual8086ModeCodeBlockAt(this, offset);
                 setVirtual8086CodeBlockAt(offset, block);
                 x86Count += block.getX86Count();
