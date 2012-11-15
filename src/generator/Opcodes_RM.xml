@@ -1,0 +1,582 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="x86optable.xsl" type="text/xsl"?>
+<opcodesnippets>
+  <jcc>        {
+            cpu.eip += jmp+blockLength;
+            return Branch.T1;
+        }
+        else
+        {
+            cpu.eip += blockLength;
+            return Branch.T2;
+        }</jcc>
+
+  <opcode mnemonic="adc">
+    <return>Branch.None</return>
+    <snippet>        cpu.flagResult = $cast(cpu.flagOp1 + cpu.flagOp2 + (Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns)? 1 : 0));
+        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = $op2.get;
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.ADC$size;
+        cpu.flagStatus = OSZAPC;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">Eb;Gb</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Gb;Eb</args>
+    <args size="16">Ev;Ib</args>
+    <args size="16">Ev;Iz</args>
+    <args size="16">Gv;Ev</args>
+    <args size="16">Ev;Gv</args>
+  </opcode>
+
+  <opcode mnemonic="add">
+    <return>Branch.None</return>
+    <snippet>        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = $op2.get;
+        cpu.flagResult = $cast(cpu.flagOp1 + cpu.flagOp2);
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.ADD$size;
+        cpu.flagStatus = OSZAPC;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">Eb;Gb</args>
+    <args size="8">Gb;Eb</args>
+    <args size="16">Ev;Ib</args>
+    <args size="16">Ev;Iz</args>
+    <args size="16">Gv;Ev</args>
+    <args size="16">Ev;Gv</args>
+    <args size="16">rAX;Iz</args>
+  </opcode>
+
+  <opcode mnemonic="and">
+    <return>Branch.None</return>
+    <snippet>        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = $cast($op1.get &amp; $op2.get);
+        $op1.set$castcpu.flagResult);
+        cpu.flagStatus = SZP;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">Eb;Gb</args>
+    <args size="8">Eb;Ib</args>
+    <args size="16">rAX;Iz</args>
+  </opcode>
+
+  <opcode mnemonic="call">
+    <return>Branch.T1</return>
+    <snippet>        cpu.eip += blockLength;
+        if ((cpu.r_sp.get16() &lt; 2) &amp;&amp; (cpu.r_sp.get16() > 0))
+	    throw ProcessorException.STACK_SEGMENT_0;
+        cpu.push16((short)cpu.eip);
+        System.out.printf("Saving return address of %08x at esp %08x\n", cpu.eip, cpu.r_esp.get32());
+        cpu.eip += jmp;
+        cpu.eip &amp;= 0xffff;</snippet>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="call">
+    <return>Branch.Call_Unknown</return>
+    <snippet>        cpu.eip += blockLength;
+        System.out.printf("call far o16: %04x:%04x\n", cs, targetEip);
+        cpu.callFar(cs, targetEip);</snippet>
+    <args size="16">Ep</args>
+  </opcode>
+
+  <opcode mnemonic="cld">
+    <return>Branch.None</return>
+    <snippet>        cpu.df = false;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="cli">
+    <return>Branch.None</return>
+    <snippet>        cpu.eflagsInterruptEnable = cpu.eflagsInterruptEnableSoon = false;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="cmp">
+    <return>Branch.None</return>
+    <snippet>        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = $op2.get;
+        cpu.flagResult = $cast(cpu.flagOp1 - cpu.flagOp2);
+        cpu.flagIns = UCodes.SUB$size;
+        cpu.flagStatus = OSZAPC;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Eb;Gb</args>
+    <args size="8">Gb;Eb</args>
+    <args size="16">Gv;Ev</args>
+    <args size="16">Ev;Ib</args>
+    <args size="16">Ev;Gv</args>
+    <args size="16">Ev;Iz</args>
+    <args size="16">rAX;Iz</args>
+  </opcode>
+
+  <opcode mnemonic="dec">
+    <return>Branch.None</return>
+    <snippet>        cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);
+        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = 1;
+        cpu.flagResult = $cast(cpu.flagOp1 - 1);
+        $op1.setcpu.flagResult);
+        cpu.flagIns = UCodes.SUB$size;
+        cpu.flagStatus = NCF;</snippet>
+    <args size="16">eAX</args>
+    <args size="16">eCX</args>
+    <args size="16">eSP</args>
+  </opcode>
+
+  <opcode mnemonic="div">
+    <return>Branch.None</return>
+    <snippet>            long ldiv = (((long)cpu.r_edx.get$size()) &lt;&lt; $size ) | ($mask cpu.r_eax.get$size());
+            cpu.r_eax.set$size($cast (ldiv/($mask $op1.get)));
+            cpu.r_edx.set$size($cast (ldiv % ($mask $op1.get)));</snippet>
+    <args size="16">Ev</args>
+  </opcode>
+
+  <opcode mnemonic="imul">
+    <return>Branch.None</return>
+    <snippet>            cpu.flagStatus = OSZAPC;
+            cpu.flagOp1 = $cast$op1.get;
+            cpu.flagOp2 = $castcpu.r_eax.get$size();
+            long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
+            cpu.flagResult = (int) res64;
+            cpu.r_eax.set$size($castcpu.flagResult);
+            cpu.r_edx.set$size($cast(int)(res64 >> 32));
+            cpu.flagIns = UCodes.IMUL$size;
+            if (res64 &lt; 0)
+                cpu.sf = true;
+            else
+                cpu.sf = false;
+            cpu.flagStatus &amp;= ~SF;</snippet>
+    <args size="16">Ev</args>
+  </opcode>
+
+  <opcode mnemonic="in">
+    <return>Branch.None</return>
+    <snippet>        $op1.setcpu.ioports.ioPortRead$size($mask2$op2.get));</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">AL;DX</args>
+    <args size="16">eAX;DX</args>
+  </opcode>
+
+  <opcode mnemonic="inc">
+    <return>Branch.None</return>
+    <snippet>        cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);
+        cpu.flagOp1 = $cast$op1.get;
+        cpu.flagOp2 = 1;
+        cpu.flagResult = $cast(cpu.flagOp1 + 1);
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.ADD$size;
+        cpu.flagStatus = NCF;</snippet>
+    <args size="8">Eb</args>
+    <args size="16">Ev</args>
+    <args size="16">eAX</args>
+    <args size="16">eBX</args>
+    <args size="16">eCX</args>
+    <args size="16">eDX</args>
+    <args size="16">eSP</args>
+  </opcode>
+
+  <opcode mnemonic="int">
+    <return>Branch.Jmp_Unknown</return>
+    <snippet>        cpu.eip += blockLength;
+        cpu.int_o16_a16($op1.get);</snippet>
+    <args size="8">Ib</args>
+  </opcode>
+
+  <opcode mnemonic="iretw">
+    <return>Branch.Ret</return>
+    <snippet>        cpu.iret_o16_a16();
+        System.out.printf("Iret to %08x\n", cpu.eip);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="je">
+    <return></return>
+    <snippet>        if (Processor.getZeroFlag(cpu.flagStatus, cpu.zf, cpu.flagResult))
+</snippet>
+<jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="jne">
+    <return></return>
+    <snippet>        if (!Processor.getZeroFlag(cpu.flagStatus, cpu.zf, cpu.flagResult))
+</snippet>
+<jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="jl">
+    <return></return>
+    <snippet>        if (Processor.getSignFlag(cpu.flagStatus, cpu.sf, cpu.flagResult) != Processor.getOverflowFlag(cpu.flagStatus, cpu.of, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns))
+</snippet>
+<jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="jb">
+    <return></return>
+    <snippet>        if (Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns))
+    </snippet>
+    <jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="jbe">
+    <return></return>
+    <snippet>        if (Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns) || Processor.getZeroFlag(cpu.flagStatus, cpu.zf, cpu.flagResult))
+    </snippet>
+    <jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="ja">
+    <return></return>
+    <snippet>        if (!Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns) &amp;&amp; !Processor.getZeroFlag(cpu.flagStatus, cpu.zf, cpu.flagResult))
+    </snippet>
+    <jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="jae">
+    <return></return>
+    <snippet>        if (!Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns))
+    </snippet>
+    <jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+
+  <opcode mnemonic="jmp">
+    <return>Branch.Jmp_Unknown</return>
+    <snippet>        cpu.jumpFar(cs, targetEip);</snippet>
+    <args size="0">Ap</args>
+  </opcode>
+  <opcode mnemonic="jmp">
+    <return>Branch.Jmp_Unknown</return>
+    <snippet>        cpu.eip = $op1.get;</snippet>
+    <args size="16">Ev</args>
+  </opcode>
+  <opcode mnemonic="jmp">
+    <return>Branch.T1</return>
+    <snippet>        cpu.eip += jmp+blockLength;</snippet>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="jmp">
+    <return>Branch.T1</return>
+    <snippet>        cpu.eip += jmp+blockLength;</snippet>
+    <args size="8">Jb</args>
+  </opcode>
+
+  <opcode mnemonic="lea">
+    <return>Branch.None</return>
+    <snippet>        $op1.set$op2.get);</snippet>
+    <args size="16">Gv;M</args>
+  </opcode>
+
+  <opcode mnemonic="loop">
+      <return></return>
+      <snippet>        cpu.r_cx.set16(cpu.r_cx.get16()-1);
+        if (cpu.r_cx.get16() != 0)
+</snippet>
+<jcc/>
+    <args size="8">Jb</args>
+  </opcode>
+
+  <opcode mnemonic="lgdt">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op1.get;
+        int limit = 0xffff &amp; cpu.physicalMemory.getWord(addr);
+        int base = 0x00ffffff &amp; cpu.physicalMemory.getDoubleWord(addr+2);
+        cpu.gdtr = cpu.createDescriptorTableSegment(base, limit);</snippet>
+    <args size="0">M</args>
+  </opcode>
+
+  <opcode mnemonic="lidt">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op1.get;
+        int limit = 0xffff &amp; cpu.physicalMemory.getWord(addr);
+        int base = 0x00ffffff &amp; cpu.physicalMemory.getDoubleWord(addr+2);
+        cpu.idtr = cpu.createDescriptorTableSegment(base, limit);</snippet>
+    <args size="0">M</args>
+  </opcode>
+
+  <opcode mnemonic="mov">
+    <return>Branch.None</return>
+    <snippet>        $op1.set$cast$op2.get);</snippet>
+    <args size="8">Ob;AL</args>
+    <args size="8">AL;Ob</args>
+    <args size="8">Eb;Gb</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Gb;Eb</args>
+    <args size="8">ALr8b;Ib</args>
+    <args size="8">AHr12b;Ib</args>
+    <args size="8">BLr11b;Ib</args>
+    <args size="8">BHr15b;Ib</args>
+    <args size="8">CLr9b;Ib</args>
+    <args size="16">Ev;S</args>
+    <args size="16">S;Ev</args>
+    <args size="16">Ev;Gv</args>
+    <args size="16">Ev;Iz</args>
+    <args size="16">Gv;Ev</args>
+    <args size="16">Ov;rAX</args>
+    <args size="16">rAX;Ov</args>
+    <args size="16">rAXr8;Iv</args>
+    <args size="16">rCXr9;Iv</args>
+    <args size="16">rDXr10;Iv</args>
+    <args size="16">rBXr11;Iv</args>
+    <args size="16">rSIr14;Iv</args>
+    <args size="16">rDIr15;Iv</args>
+    <args size="32">R;C</args>
+    <args size="32">C;R</args>
+  </opcode>
+
+  <opcode mnemonic="mul">
+    <return>Branch.None</return>
+    <snippet>            cpu.af = false;
+        int res16 = ($op1.get &amp; 0xff) * (0xFF &amp; cpu.r_eax.get8());
+        cpu.r_eax.set16(res16);
+        cpu.cf = cpu.of = (cpu.r_eax.getHigh() != 0);
+        cpu.flagResult = (short)res16;
+        cpu.flagStatus = SZP;</snippet>
+    <args size="8">Eb</args>
+  </opcode>
+  <opcode mnemonic="mul">
+    <return>Branch.None</return>
+    <snippet>            cpu.af = false;
+            long res64 = ($mask$op1.get) * ($mask cpu.r_eax.get$size());
+            cpu.r_eax.set$size($castres64);
+            cpu.r_edx.set$size($cast(res64 >> $size));
+            cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);
+            cpu.flagResult = (int)res64;
+            cpu.flagStatus = SZP;</snippet>
+    <args size="16">Ev</args>
+  </opcode>
+
+  <opcode mnemonic="not">
+    <return>Branch.None</return>
+    <snippet>        $op1.set$cast~$op1.get);</snippet>
+    <args size="8">Eb</args>
+    <args size="16">Ev</args>
+  </opcode>
+
+  <opcode mnemonic="or">
+    <return>Branch.None</return>
+    <snippet>        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = $cast($op1.get | $op2.get);
+        $op1.set$castcpu.flagResult);
+        cpu.flagStatus = SZP;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">Eb;Gb</args>
+    <args size="16">Ev;Gv</args>
+    <args size="16">rAX;Iz</args>
+  </opcode>
+
+  <opcode mnemonic="out">
+    <return>Branch.None</return>
+    <snippet>        cpu.ioports.ioPortWrite$size($mask$op1.get, $op2.get);</snippet>
+    <args size="8">Ib;AL</args>
+    <args size="8">DX;AL</args>
+    <args size="16">DX;eAX</args>
+  </opcode>
+
+  <opcode mnemonic="pop">
+    <return>Branch.None</return>
+    <snippet>        $op1.setcpu.pop16());</snippet>
+    <args size="16">rAXr8</args>
+    <args size="16">rBXr11</args>
+    <args size="16">rCXr9</args>
+    <args size="16">rDXr10</args>
+    <args size="16">rBPr13</args>
+    <args size="16">rSIr14</args>
+    <args size="16">rDIr15</args>
+    <args size="16">DS</args>
+    <args size="16">ES</args>
+  </opcode>
+
+  <opcode mnemonic="popa">
+    <return>Branch.None</return>
+    <snippet>        cpu.popa();</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="popfw">
+    <return>Branch.None</return>
+    <snippet>        cpu.setFlags($castcpu.pop16());</snippet>
+    <args size="16"></args>
+  </opcode>
+
+  <opcode mnemonic="push">
+    <return>Branch.None</return>
+    <snippet>        cpu.push$size($cast$op1.get);</snippet>
+    <args size="8">Ib</args>
+    <args size="16">Ev</args>
+    <args size="16">rAXr8</args>
+    <args size="16">rBXr11</args>
+    <args size="16">rCXr9</args>
+    <args size="16">rDXr10</args>
+    <args size="16">rBPr13</args>
+    <args size="16">rSIr14</args>
+    <args size="16">rDIr15</args>
+    <args size="16">DS</args>
+    <args size="16">ES</args>
+  </opcode>
+
+  <opcode mnemonic="pusha">
+    <return>Branch.None</return>
+    <snippet>        cpu.pusha();</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="pushfw">
+    <return>Branch.None</return>
+    <snippet>        cpu.push16((short)cpu.getEFlags());</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="rep_movsb">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.rep_movsb_a16(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="rep_stosd">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.rep_stosd_a16(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="rep_stosw">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.rep_stosw_a16(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="repne_scasb">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.repne_scasb_a16(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+
+  <opcode mnemonic="ret">
+    <return>Branch.Ret</return>
+    <snippet>        System.out.printf("Reading return address from %08x\n", cpu.r_esp.get32());
+        cpu.eip = 0xFFFF&amp;cpu.pop16();
+        System.out.printf("Return to %08x\n", cpu.eip);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="retf">
+    <return>Branch.Ret</return>
+    <snippet>        System.out.printf("Reading far return address from %08x\n", cpu.r_esp.get32());
+        cpu.eip = 0xFFFF&amp;cpu.pop16();
+        System.out.printf("Far return to eip=%08x\n", cpu.eip);
+        cpu.cs(0xffff &amp; cpu.pop16());</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="shl">
+    <return>Branch.None</return>
+    <snippet>        if($op2.get != 0)
+        {
+            cpu.flagOp1 = $op1.get;
+            cpu.flagOp2 = $op2.get;
+            cpu.flagResult = $cast(cpu.flagOp1 &lt;&lt; cpu.flagOp2);
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHL$size;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="8">Eb;Ib</args>
+    <args size="16">Ev;Gb</args>
+    <args size="16">Ev;Ib</args>
+    <args size="16">Ev;I1</args>
+    <args size="16">Ev;CL</args>
+  </opcode>
+
+  <opcode mnemonic="shr">
+    <return>Branch.None</return>
+    <snippet>        if($op2.get != 0)
+        {
+            cpu.flagOp1 = $mask$op1.get;
+            cpu.flagOp2 = $op2.get;
+            cpu.flagResult = $cast(cpu.flagOp1 &gt;&gt;&gt; cpu.flagOp2);
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHR;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="8">Eb;Ib</args>
+    <args size="16">Ev;Gb</args>
+    <args size="16">Ev;Ib</args>
+    <args size="16">Ev;CL</args>
+  </opcode>
+
+  <opcode mnemonic="sti">
+    <return>Branch.None</return>
+    <snippet>        cpu.eflagsInterruptEnableSoon = true;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="sbb">
+    <return>Branch.None</return>
+    <snippet>        int add = (Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns)? 1: 0);
+        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = $op2.get;
+        cpu.flagResult = $cast(cpu.flagOp1 - (cpu.flagOp2 + add));
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.SBB$size;
+        cpu.flagStatus = OSZAPC;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Eb;Gb</args>
+    <args size="8">Gb;Eb</args>
+    <args size="16">Ev;Ib</args>
+    <args size="16">Ev;Iz</args>
+    <args size="16">rAX;Iz</args>
+  </opcode>
+
+  <opcode mnemonic="sub">
+    <return>Branch.None</return>
+    <snippet>        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = $op2.get;
+        cpu.flagResult = $cast(cpu.flagOp1 - cpu.flagOp2);
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.SUB$size;
+        cpu.flagStatus = OSZAPC;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Eb;Gb</args>
+    <args size="8">Gb;Eb</args>
+    <args size="16">Ev;Ib</args>
+    <args size="16">Ev;Iz</args>
+    <args size="16">rAX;Iz</args>
+  </opcode>
+
+  <opcode mnemonic="test">
+    <return>Branch.None</return>
+    <snippet>        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = $cast($op1.get &amp; $op2.get);
+        cpu.flagStatus = SZP;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">Eb;Gb</args>
+    <args size="16">Ev;Gv</args>
+  </opcode>
+
+  <opcode mnemonic="xchg">
+    <return>Branch.None</return>
+    <snippet>            int tmp = $op2.get;
+        $op2.set$op1.get);
+        $op1.set$casttmp);</snippet>
+    <args size="8">Eb;Gb</args>
+    <args size="16">Ev;Gv</args>
+    <args size="16">rBXr11;rAX</args>
+  </opcode>
+
+  <opcode mnemonic="xor">
+    <return>Branch.None</return>
+    <snippet>        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = $cast($op1.get ^ $op2.get);
+        $op1.set$castcpu.flagResult);
+        cpu.flagStatus = SZP;</snippet>
+    <args size="8">Eb;Gb</args>
+    <args size="16">Ev;Gv</args>
+  </opcode>
+</opcodesnippets>
