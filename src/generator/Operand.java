@@ -552,6 +552,7 @@ public abstract class Operand
     public static Map<String, String> reg16 = new HashMap();
     public static Map<String, String> reg16only = new HashMap();
     static {
+        segs.put("CS", "cs");
         segs.put("DS", "ds");
         segs.put("ES", "es");
         reg8.put("AL", "cpu.r_al");
@@ -569,6 +570,7 @@ public abstract class Operand
         reg16.put("eCX", "cpu.r_ecx");
         reg16.put("eDX", "cpu.r_edx");
         reg16.put("eSP", "cpu.r_esp");
+        reg16.put("eSI", "cpu.r_esi");
         reg16.put("rBXr11", "cpu.r_ebx");
         reg16.put("rCXr9", "cpu.r_ecx");
         reg16.put("rDXr10", "cpu.r_edx");
@@ -582,7 +584,7 @@ public abstract class Operand
         if (name.equals("Ib"))
             return new Immediate(name, 8);
         if (name.equals("Iv") || name.equals("Iz"))
-            return new Immediate(name, opSize);
+            return new Immediate(name, 32);
         if (name.equals("I1"))
             return new Constant(name, 1);
         if (name.equals("Eb"))

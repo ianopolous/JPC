@@ -444,8 +444,7 @@ public class PC {
                 throw new IllegalStateException("Switched to VM86 mode");
                 //executeVirtual8086Block();
             } else {
-                //executeProtectedBlock();
-                throw new IllegalStateException("Switched to Protected mode");
+                return executeProtectedBlock();
             }
         } else {
             return executeRealBlock();
@@ -463,6 +462,21 @@ public class PC {
         catch (ModeSwitchException e)
         {
             LOGGING.log(Level.FINE, "Mode switch in RM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
+        }
+        return 0;
+    }
+
+    public int executeProtectedBlock()
+    {
+        try
+        {
+            return linearAddr.executeProtected(processor, processor.getInstructionPointer());
+        } catch (ProcessorException p) {
+            processor.handleProtectedModeException(p);
+        }
+        catch (ModeSwitchException e)
+        {
+            LOGGING.log(Level.FINE, "Mode switch in PM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return 0;
     }

@@ -108,7 +108,7 @@ public class LazyCodeBlockMemory extends AbstractMemory
             catch (NullPointerException e)
             {
                 if (LOG_DISAM)
-                    System.out.printf("Disassembling PM from %08x\n", cpu.getInstructionPointer());
+                    System.out.printf("Disassembling PM from %08x with opsize=%s\n", cpu.getInstructionPointer(), cpu.cs.getDefaultSizeFlag());
                 block = codeBlockManager.getProtectedModeCodeBlockAt(this, offset, cpu.cs.getDefaultSizeFlag());
                 setProtectedCodeBlockAt(offset, block);
                 x86Count += block.getX86Count();

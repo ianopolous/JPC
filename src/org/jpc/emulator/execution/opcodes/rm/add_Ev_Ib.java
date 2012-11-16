@@ -24,8 +24,8 @@ public class add_Ev_Ib extends Executable
         Reg op1 = cpu.regs[op1Index];
         if (size == 16)
         {
-        cpu.flagOp1 = op1.get16();
-        cpu.flagOp2 = imm;
+        cpu.flagOp1 = (short)op1.get16();
+        cpu.flagOp2 = (short)imm;
         cpu.flagResult = (short)(cpu.flagOp1 + cpu.flagOp2);
         op1.set16((short)cpu.flagResult);
         cpu.flagIns = UCodes.ADD16;

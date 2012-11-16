@@ -20,8 +20,8 @@ public class add_Eb_Gb_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op2 = cpu.regs[op2Index];
-        cpu.flagOp1 = op1.get8(cpu);
-        cpu.flagOp2 = op2.get8();
+        cpu.flagOp1 = (byte)op1.get8(cpu);
+        cpu.flagOp2 = (byte)op2.get8();
         cpu.flagResult = (byte)(cpu.flagOp1 + cpu.flagOp2);
         op1.set8(cpu, (byte)cpu.flagResult);
         cpu.flagIns = UCodes.ADD8;

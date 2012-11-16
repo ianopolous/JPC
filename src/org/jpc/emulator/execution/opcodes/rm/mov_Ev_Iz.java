@@ -16,7 +16,7 @@ public class mov_Ev_Iz extends Executable
         super(blockStart, parent);
         size = parent.operand[0].size;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        imm = (short)parent.operand[1].lval;
+        imm = (int)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)

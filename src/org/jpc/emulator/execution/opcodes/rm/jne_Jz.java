@@ -9,11 +9,13 @@ public class jne_Jz extends Executable
 {
     final int jmp;
     final int blockLength;
+    final int instructionLength;
 
     public jne_Jz(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
         blockLength = parent.x86Length+(int)parent.eip-blockStart;
+        instructionLength = parent.x86Length;
         jmp = (int)parent.operand[0].lval;
     }
 

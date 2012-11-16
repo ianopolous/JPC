@@ -68,29 +68,32 @@ public class Disassembler
         {e.printStackTrace();}
     }
 
-    public static Executable getExecutable(int operand_size, int blockStart, Instruction in)
+    public static Executable getExecutable(boolean isPM, int blockStart, Instruction in)
     {
         try
         {
             String gen = in.getGeneralClassName();
             Map<String, Constructor<? extends Executable>> instructions = null;
-            if (operand_size == 16)
+            if (!isPM)
                 instructions = rm_instructions;
-            else if (operand_size == 32)
+            else
                 instructions = pm_instructions;
-            if (instructions.containsKey(gen))
+            if (instructions.containsKey(gen) || instructions.containsKey(in.getSpecificClassName()))
             {
                 //System.out.println("Found general class: " + gen);
-                Executable dis = instructions.get(gen).newInstance(blockStart, in);
+                Constructor<? extends Executable> c = instructions.get(gen);
+                if (c == null)
+                    c = instructions.get(in.getSpecificClassName());
+                Executable dis = c.newInstance(blockStart, in);
                 if (in.pfx.lock != 0)
                     return new Lock(blockStart, dis);
                 return dis;
             }
         } catch (InstantiationException e)
-        {}
+        {e.printStackTrace();}
         catch (IllegalAccessException e)
-        {}
-        catch (InvocationTargetException e) {}
+        {e.printStackTrace();}
+        catch (InvocationTargetException e) {e.printStackTrace();}
         throw new IllegalStateException("Unimplemented opcode: "+in.toString() + ", general pattern: " + in.getGeneralClassName()+".");
     }
 
@@ -122,7 +125,7 @@ public class Disassembler
         return in;
     }
 
-    public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size)
+    public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size, boolean isPM)
     {
         if (operand_size == 32)
             System.out.println("Disassembling PM block!!!!!");
@@ -133,7 +136,7 @@ public class Disassembler
             insn = disassemble32(input);
         else
             insn = disassemble16(input);
-        Executable start = getExecutable(operand_size, startAddr, insn);
+        Executable start = getExecutable(isPM, startAddr, insn);
         if (PRINT_DISAM)
             System.out.println(insn);
         Executable current = start;
@@ -145,7 +148,7 @@ public class Disassembler
             Instruction nextInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
             if (PRINT_DISAM)
                 System.out.println(nextInsn);
-            Executable next = getExecutable(operand_size, startAddr, nextInsn);
+            Executable next = getExecutable(isPM, startAddr, nextInsn);
             count++;
             if (count > MAX_INSTRUCTIONS_PER_BLOCK)
                 throw new IllegalStateException(String.format("Exceeded maximum number of instructions in a block at %x", startAddr));

@@ -17,7 +17,7 @@ public class out_Ib_AL extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.ioports.ioPortWrite8(0xFF&imm, cpu.r_al.get8());
+        cpu.ioports.ioPortWrite8(0xFF&imm, 0xFF&cpu.r_al.get8());
         return Branch.None;
     }
 

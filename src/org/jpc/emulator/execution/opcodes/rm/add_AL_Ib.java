@@ -17,8 +17,8 @@ public class add_AL_Ib extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.flagOp1 = cpu.r_al.get8();
-        cpu.flagOp2 = imm;
+        cpu.flagOp1 = (byte)cpu.r_al.get8();
+        cpu.flagOp2 = (byte)imm;
         cpu.flagResult = (byte)(cpu.flagOp1 + cpu.flagOp2);
         cpu.r_al.set8((byte)cpu.flagResult);
         cpu.flagIns = UCodes.ADD8;

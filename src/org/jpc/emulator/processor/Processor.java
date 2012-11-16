@@ -430,14 +430,14 @@ public class Processor implements HardwareComponent
     }
 
     public void iret_o16_a16()
-    {System.out.printf("ESP1 %08x\n", r_esp.get32());
+    {
         eip = ss.getWord(r_esp.get16() & 0xffff) & 0xffff;
-	r_esp.set16((r_esp.get16() + 2) & 0xffff);System.out.printf("ESP2 %08x\n", r_esp.get32());
-	cs.setSelector(0xffff & ss.getWord(r_esp.get16() & 0xffff));
-        System.out.printf("IRET to cs:eip %04x:%04x\n", cs.getSelector(), eip);
-	r_esp.set16((r_esp.get16() + 2) & 0xffff);System.out.printf("ESP3 %08x\n", r_esp.get32());
-	short flags = ss.getWord(r_esp.get16());
-	r_esp.set16((r_esp.get16() + 2) & 0xffff);System.out.printf("ESP4 %08x\n", r_esp.get32());
+        r_esp.set16((r_esp.get16() + 2) & 0xffff);
+        cs.setSelector(0xffff & ss.getWord(r_esp.get16() & 0xffff));
+        //System.out.printf("IRET to cs:eip %04x:%04x\n", cs.getSelector(), eip);
+        r_esp.set16((r_esp.get16() + 2) & 0xffff);
+        short flags = ss.getWord(r_esp.get16() & 0xffff);
+        r_esp.set16((r_esp.get16() + 2) & 0xffff);
         setFlags(flags);
     }
 
@@ -664,10 +664,10 @@ public class Processor implements HardwareComponent
         eflagsResume=false;
         r_esp.set16(r_esp.get16()-2);
         ss.setWord(r_esp.get16() & 0xffff, (short)cs.getSelector());
-        System.out.printf("INT: saved cs=%04x to %04x\n", cs.getSelector(), r_esp.get16());
+        //System.out.printf("INT: saved cs=%04x to %04x\n", cs.getSelector(), r_esp.get16());
         r_esp.set16(r_esp.get16()-2);
         ss.setWord(r_esp.get16() & 0xffff, (short)eip);
-        System.out.printf("INT: saved eip=%04x to %04x\n", (short)eip, r_esp.get16());
+        //System.out.printf("INT: saved eip=%04x to %04x\n", (short)eip, r_esp.get16());
         // read interrupt vector
         eip = 0xffff & idtr.getWord(4*vector);
         cs.setSelector(0xffff & idtr.getWord(4*vector+2));

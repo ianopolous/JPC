@@ -86,7 +86,23 @@ public class Instruction
 
     public String getSpecificClassName()
     {
-        return null;
+        StringBuffer b = new StringBuffer();
+        if (pfx.rep != 0)
+            b.append("rep_");
+        if (pfx.repne != 0)
+            b.append("repne_");
+        b.append(operator);
+        b.append("_o"+opr_mode);
+        for (int i=0; i < zygote.operand.length; i++)
+            if (!zygote.operand[i].name.equals("NONE"))
+                b.append("_"+zygote.operand[i].name);
+        boolean mem = false;
+        for (Operand o : operand)
+            if (o.type.equals("OP_MEM"))
+                mem = true;
+        if (mem)
+            b.append("_mem");
+        return b.toString();
     }
 
     public void configure(Instruction parent)
@@ -367,7 +383,12 @@ public class Instruction
 
     public boolean isBranch()
     {
-        return jcc.contains(operator) || jmp.contains(operator) || call.contains(operator) || ret.contains(operator) || hlt.contains(operator);
+        return jcc.contains(operator) || jmp.contains(operator) || call.contains(operator) || ret.contains(operator) || hlt.contains(operator) || usesControlReg(0);
+    }
+
+    public boolean usesControlReg(int op)
+    {
+        return (zygote.operand[op].name.equals("C"));
     }
 
     public boolean isJcc()

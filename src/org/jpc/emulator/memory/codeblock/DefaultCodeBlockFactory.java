@@ -54,17 +54,17 @@ class DefaultCodeBlockFactory implements CodeBlockFactory
 
     public RealModeCodeBlock getRealModeCodeBlock(PeekableInputStream source)
     {
-        return compiler.getRealModeCodeBlock(new InterpretedRealModeBlock(Disassembler.disassembleBlock(source, 16)));
+        return compiler.getRealModeCodeBlock(new InterpretedRealModeBlock(Disassembler.disassembleBlock(source, 16, false)));
     }
 
 
     public ProtectedModeCodeBlock getProtectedModeCodeBlock(PeekableInputStream source, boolean operandSize)
     {
-        return compiler.getProtectedModeCodeBlock(new InterpretedProtectedModeBlock(Disassembler.disassembleBlock(source, operandSize?32:16)));
+        return compiler.getProtectedModeCodeBlock(new InterpretedProtectedModeBlock(Disassembler.disassembleBlock(source, operandSize?32:16, true)));
     }
 
     public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(PeekableInputStream source)
     {
-        return compiler.getVirtual8086ModeCodeBlock(Disassembler.disassembleBlock(source, 16));
+        return compiler.getVirtual8086ModeCodeBlock(Disassembler.disassembleBlock(source, 16, false));
     }
 }

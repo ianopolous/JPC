@@ -11,6 +11,18 @@
             return Branch.T2;
         }</jcc>
 
+  <opcode mnemonic="aad">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.aad(cpu, $mask$op1.get);</snippet>
+    <args size="8">Ib</args>
+  </opcode>
+
+  <opcode mnemonic="aam">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.aam(cpu, $mask$op1.get);</snippet>
+    <args size="8">Ib</args>
+  </opcode>
+
   <opcode mnemonic="adc">
     <return>Branch.None</return>
     <snippet>        cpu.flagResult = $cast(cpu.flagOp1 + cpu.flagOp2 + (Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns)? 1 : 0));
@@ -59,15 +71,25 @@
     <args size="16">rAX;Iz</args>
   </opcode>
 
-  <opcode mnemonic="call">
+  <opcode mnemonic="call_o16">
     <return>Branch.T1</return>
     <snippet>        cpu.eip += blockLength;
         if ((cpu.r_sp.get16() &lt; 2) &amp;&amp; (cpu.r_sp.get16() > 0))
 	    throw ProcessorException.STACK_SEGMENT_0;
-        cpu.push32((short)cpu.eip);
+        cpu.push16((short)cpu.eip);
         System.out.printf("Saving return address of %08x at esp %08x\n", cpu.eip, cpu.r_esp.get32());
         cpu.eip += jmp;
         cpu.eip &amp;= 0xffff;</snippet>
+    <args size="16">Jz</args>
+  </opcode>
+  <opcode mnemonic="call_o32">
+    <return>Branch.T1</return>
+    <snippet>        cpu.eip += blockLength;
+        if ((cpu.r_esp.get32() &lt; 4) &amp;&amp; (cpu.r_esp.get32() > 0))
+	    throw ProcessorException.STACK_SEGMENT_0;
+        cpu.push32(cpu.eip);
+        System.out.printf("Saving return address of %08x at esp %08x\n", cpu.eip, cpu.r_esp.get32());
+        cpu.eip += jmp;</snippet>
     <args size="32">Jz</args>
   </opcode>
   <opcode mnemonic="call">
@@ -76,6 +98,13 @@
         System.out.printf("call far o16: %04x:%04x\n", cs, targetEip);
         cpu.callFar(cs, targetEip);</snippet>
     <args size="16">Ep</args>
+  </opcode>
+
+  <opcode mnemonic="clc">
+    <return>Branch.None</return>
+    <snippet>        cpu.cf = false;
+        cpu.flagStatus &amp;= NCF;</snippet>
+    <args size="0"></args>
   </opcode>
 
   <opcode mnemonic="cld">
@@ -172,6 +201,7 @@
     <args size="16">eCX</args>
     <args size="16">eDX</args>
     <args size="16">eSP</args>
+    <args size="16">eSI</args>
   </opcode>
 
   <opcode mnemonic="int">
@@ -179,6 +209,14 @@
     <snippet>        cpu.eip += blockLength;
         cpu.int_o16_a16($op1.get);</snippet>
     <args size="8">Ib</args>
+  </opcode>
+
+  <opcode mnemonic="into">
+    <return>Branch.Jmp_Unknown</return>
+    <snippet>        cpu.eip += blockLength;
+        if (Processor.getOverflowFlag(cpu.flagStatus, cpu.of, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns) == true)
+            cpu.handleSoftProtectedModeInterrupt(4, instructionLength);</snippet>
+    <args size="0"></args>
   </opcode>
 
   <opcode mnemonic="iretw">
@@ -299,6 +337,12 @@
     <args size="0">M</args>
   </opcode>
 
+  <opcode mnemonic="lodsb">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.lodsb(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="mov">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast$op2.get);</snippet>
@@ -351,6 +395,12 @@
     <args size="16">Ev</args>
   </opcode>
 
+  <opcode mnemonic="nop">
+    <return>Branch.None</return>
+    <snippet></snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="not">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast~$op1.get);</snippet>
@@ -366,6 +416,8 @@
         cpu.flagStatus = SZP;</snippet>
     <args size="8">AL;Ib</args>
     <args size="8">Eb;Gb</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Gb;Eb</args>
     <args size="16">Ev;Gv</args>
     <args size="16">rAX;Iz</args>
   </opcode>
@@ -416,6 +468,7 @@
     <args size="16">rBPr13</args>
     <args size="16">rSIr14</args>
     <args size="16">rDIr15</args>
+    <args size="16">CS</args>
     <args size="16">DS</args>
     <args size="16">ES</args>
   </opcode>
@@ -457,21 +510,44 @@
   </opcode>
 
 
-  <opcode mnemonic="ret">
+  <opcode mnemonic="ret_o16">
     <return>Branch.Ret</return>
     <snippet>        System.out.printf("Reading return address from %08x\n", cpu.r_esp.get32());
-        cpu.eip = cpu.pop32();
+        cpu.eip = cpu.pop16();
         System.out.printf("Return to %08x\n", cpu.eip);</snippet>
-    <args size="0"></args>
+    <args size="16"></args>
   </opcode>
 
-  <opcode mnemonic="retf">
+  <opcode mnemonic="retf_o16">
     <return>Branch.Ret</return>
     <snippet>        System.out.printf("Reading far return address from %08x\n", cpu.r_esp.get32());
-        cpu.eip = cpu.pop32();
+        cpu.eip = cpu.pop16();
         System.out.printf("Far return to eip=%08x\n", cpu.eip);
         cpu.cs(0xffff &amp; cpu.pop16());</snippet>
     <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="ror">
+    <return>Branch.None</return>
+    <snippet>            int shift = $op2.get &amp; 0xf;
+            int reg0 = 0xFFFF &amp; $op1.get;
+            int res = (reg0 >>> shift) | (reg0 &lt;&lt; ($size - shift));
+            $op1.set$castres);
+            boolean bit30  = (res &amp; (1 &lt;&lt; ($size-2))) != 0;
+            boolean bit31 = (res &amp; (1 &lt;&lt; ($size-1))) != 0;
+            if ($op2.get > 0)
+            {
+                cpu.cf = bit31;
+                if ($op2.get == 1)
+                {
+                    cpu.of = bit30 ^ bit31;
+                    cpu.flagStatus &amp;= NOFCF;
+                }
+                else
+                    cpu.flagStatus &amp;= NCF;
+            }</snippet>
+    <args size="8">Eb;Ib</args>
+    <args size="16">Ev;Ib</args>
   </opcode>
 
   <opcode mnemonic="shl">
@@ -530,6 +606,7 @@
     <args size="8">Gb;Eb</args>
     <args size="16">Ev;Ib</args>
     <args size="16">Ev;Iz</args>
+    <args size="16">Ev;Gv</args>
     <args size="16">rAX;Iz</args>
   </opcode>
 

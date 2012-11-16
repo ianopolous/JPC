@@ -23,8 +23,8 @@ public class add_Ev_Ib_mem extends Executable
     {
         if (size == 16)
         {
-        cpu.flagOp1 = op1.get16(cpu);
-        cpu.flagOp2 = imm;
+        cpu.flagOp1 = (short)op1.get16(cpu);
+        cpu.flagOp2 = (short)imm;
         cpu.flagResult = (short)(cpu.flagOp1 + cpu.flagOp2);
         op1.set16(cpu, (short)cpu.flagResult);
         cpu.flagIns = UCodes.ADD16;

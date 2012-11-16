@@ -14,7 +14,7 @@ public class mov_rDIr15_Iv extends Executable
     {
         super(blockStart, parent);
         size = parent.operand[1].size;
-        imm = (short)parent.operand[1].lval;
+        imm = (int)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)

@@ -21,8 +21,8 @@ public class cmp_Eb_Gb extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
         Reg op2 = cpu.regs[op2Index];
-        cpu.flagOp1 = op1.get8();
-        cpu.flagOp2 = op2.get8();
+        cpu.flagOp1 = (byte)op1.get8();
+        cpu.flagOp2 = (byte)op2.get8();
         cpu.flagResult = (byte)(cpu.flagOp1 - cpu.flagOp2);
         cpu.flagIns = UCodes.SUB8;
         cpu.flagStatus = OSZAPC;

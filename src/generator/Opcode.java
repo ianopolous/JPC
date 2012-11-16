@@ -51,7 +51,10 @@ public class Opcode
         for (int i=0; i < operands.length; i++)
             b.append(operands[i].define(i+1));
         if (isBranch)
+        {
             b.append("    final int blockLength;\n");
+            b.append("    final int instructionLength;\n");
+        }
         if (multiSize)
             b.append("    final int size;\n");
         b.append(getConstructor());
@@ -91,6 +94,8 @@ public class Opcode
             body = body.replaceAll("\\$cast", getCast(size));
             if (body.contains("$mask2"))
                 body = body.replaceAll("\\$mask2", getMask(operands[1].getSize()));
+            if (body.contains("$mask1"))
+                body = body.replaceAll("\\$mask1", getMask(operands[0].getSize()));
             body = body.replaceAll("\\$mask", getMask(size));
         }
         return body;
@@ -164,7 +169,10 @@ public class Opcode
             b.append("        size = parent.operand["+vIndex+"].size;\n");
         }
         if (isBranch)
+        {
             b.append("        blockLength = parent.x86Length+(int)parent.eip-blockStart;\n");
+            b.append("        instructionLength = parent.x86Length;\n");
+        }
         for (int i=0; i < operands.length; i++)
         {
             String cons = operands[i].construct(i+1);

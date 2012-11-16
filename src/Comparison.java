@@ -10,7 +10,7 @@ public class Comparison
 {
     static String newJar = "JPCApplication.jar";
     static String oldJar = "OldJPCApplication.jar";
-    public static final boolean compareFlags = false;
+    public static final boolean compareFlags = true;
 
     public static void main(String[] args) throws Exception
     {
@@ -21,6 +21,10 @@ public class Comparison
         URL[] urls2 = new URL[]{new File(oldJar).toURL()};
         ClassLoader cl1 = new URLClassLoader(urls1, Comparison.class.getClassLoader());
         ClassLoader cl2 = new URLClassLoader(urls2, Comparison.class.getClassLoader());
+
+        Class opts = cl1.loadClass("org.jpc.j2se.Option");
+        Method parse = opts.getMethod("parse", String[].class);
+        parse.invoke(opts, (Object)args);
 
         Class c1 = cl1.loadClass("org.jpc.emulator.PC");
         Constructor ctor = c1.getConstructor(String[].class);
@@ -86,10 +90,40 @@ public class Comparison
         if (old.length != 16)
             throw new IllegalArgumentException("old state length = "+old.length);
         for (int i=0; i < fast.length; i++)
-            if ((fast[i] != old[i]) && (compareFlags && (i != 9)))
+            if (i != 9)
             {
-                System.out.printf("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]);
-                System.exit(0);
+                if (fast[i] != old[i])
+                {
+                    System.out.printf("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]);
+                    continueExecution();
+                }
+            }
+            else
+            {
+                if (compareFlags && ((fast[i] & FLAG_MASK) != (old[i] & FLAG_MASK)))
+                {
+                    System.out.printf("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]);
+                    continueExecution();
+                }
             }
     }
+
+    public static void continueExecution()
+    {
+        System.out.println("Ignore difference? (y/n)");
+        String line = null;
+        try {
+            line = new BufferedReader(new InputStreamReader(System.in)).readLine();
+        } catch (IOException f)
+        {
+            f.printStackTrace();
+            System.exit(0);
+        }
+        if (line.equals("y"))
+        {}
+        else
+            System.exit(0);
+    }
+
+    public static final int FLAG_MASK = ~0x10;
 }

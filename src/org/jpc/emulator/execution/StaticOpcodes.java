@@ -4,9 +4,50 @@ import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.processor.Processor.*;
+import static org.jpc.emulator.execution.Executable.*;
 
 public class StaticOpcodes
 {
+    public static void aad(Processor cpu, int base)
+    {
+        int tl = (cpu.r_eax.get8() & 0xff);
+        int th = (cpu.r_eax.getHigh() & 0xff);
+	int ax1 = th * base;
+	int ax2 = ax1 + tl;
+        cpu.r_ax.set16(ax2 & 0xff);
+        //flags
+        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = cpu.r_al.get8();
+        cpu.flagStatus = SZP;
+    }
+
+    public static void aam(Processor cpu, int base)
+    {
+        if (base == 0) 
+            throw ProcessorException.DIVIDE_ERROR;
+        int tl = 0xff & cpu.r_al.get8();
+        int ah = 0xff & (tl / base);
+        int al = 0xff & (tl % base);
+        cpu.r_eax.set16(al | (ah << 8));
+
+        //flags
+        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = cpu.r_al.get8();
+        cpu.flagStatus = SZP;
+    }
+
+    public static void lodsb(Processor cpu)
+    {
+	int addr = cpu.r_esi.get32();
+	cpu.r_al.set8(cpu.ds.getByte(addr));
+	if (cpu.df)
+	    addr -= 1;
+	else
+	    addr += 1;
+	cpu.r_esi.set32(addr);
+    }
+
+
     /*    public static void rep_cmpsb(Processor cpu)
     {
         int count = cpu.r_ecx.get32();

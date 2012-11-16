@@ -23,8 +23,8 @@ public class cmp_Ev_Ib_mem extends Executable
     {
         if (size == 16)
         {
-        cpu.flagOp1 = op1.get16(cpu);
-        cpu.flagOp2 = imm;
+        cpu.flagOp1 = (short)op1.get16(cpu);
+        cpu.flagOp2 = (short)imm;
         cpu.flagResult = (short)(cpu.flagOp1 - cpu.flagOp2);
         cpu.flagIns = UCodes.SUB16;
         cpu.flagStatus = OSZAPC;

@@ -9,11 +9,13 @@ public class jmp_Ap extends Executable
 {
     final int cs, targetEip;
     final int blockLength;
+    final int instructionLength;
 
     public jmp_Ap(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
         blockLength = parent.x86Length+(int)parent.eip-blockStart;
+        instructionLength = parent.x86Length;
         targetEip = parent.operand[0].ptr.off;
         cs = parent.operand[0].ptr.seg;
     }

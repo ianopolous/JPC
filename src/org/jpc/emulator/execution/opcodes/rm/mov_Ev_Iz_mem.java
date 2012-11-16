@@ -16,7 +16,7 @@ public class mov_Ev_Iz_mem extends Executable
         super(blockStart, parent);
         size = parent.operand[0].size;
         op1 = new Pointer(parent.operand[0]);
-        imm = (short)parent.operand[1].lval;
+        imm = (int)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)
