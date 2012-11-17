@@ -484,6 +484,17 @@ public class Processor implements HardwareComponent
         else throw new IllegalStateException("Unknown Segment index: "+index);
     }
 
+    private final Segment loadSegment(int selector)
+    {
+        selector &= 0xffff;
+        if (selector < 0x4)
+            return SegmentFactory.NULL_SEGMENT;
+
+        Segment s = getSegment(selector);
+        if (!s.isPresent())
+            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
+        return s;
+    }
 
     public int cs()
     {
@@ -492,7 +503,10 @@ public class Processor implements HardwareComponent
 
     public void cs(int selector)
     {
-        cs.setSelector(selector & 0xffff);
+        if (!isProtectedMode())
+            cs.setSelector(selector & 0xffff);
+        else
+            cs(loadSegment(selector));
     }
 
     public void cs(Segment seg)
@@ -508,7 +522,10 @@ public class Processor implements HardwareComponent
 
     public void ds(int selector)
     {
-        ds.setSelector(selector & 0xffff);
+        if (!isProtectedMode())
+            ds.setSelector(selector & 0xffff);
+        else
+            ds(loadSegment(selector));
     }
 
     public void ds(Segment seg)
@@ -524,7 +541,10 @@ public class Processor implements HardwareComponent
 
     public void es(int selector)
     {
-        es.setSelector(selector & 0xffff);
+        if (!isProtectedMode())
+            es.setSelector(selector & 0xffff);
+        else
+            es(loadSegment(selector));
     }
 
     public void es(Segment seg)
@@ -535,7 +555,10 @@ public class Processor implements HardwareComponent
 
     public void fs(int selector)
     {
-        fs.setSelector(selector & 0xffff);
+        if (!isProtectedMode())
+            fs.setSelector(selector & 0xffff);
+        else
+            fs(loadSegment(selector));
     }
 
     public void fs(Segment seg)
@@ -546,7 +569,10 @@ public class Processor implements HardwareComponent
 
     public void gs(int selector)
     {
-        gs.setSelector(selector & 0xffff);
+        if (!isProtectedMode())
+            gs.setSelector(selector & 0xffff);
+        else
+            gs(loadSegment(selector));
     }
 
     public void gs(Segment seg)
@@ -562,13 +588,46 @@ public class Processor implements HardwareComponent
 
     public void ss(int selector)
     {
-        ss.setSelector(selector & 0xffff);
+        if (!isProtectedMode())
+            ss.setSelector(selector & 0xffff);
+        else
+            ss(loadSegment(selector));
     }
 
     public void ss(Segment seg)
     {
         ss = seg;
         segs[5] = seg;
+    }
+
+    public boolean of()
+    {
+        return getOverflowFlag(flagStatus, of, flagOp1, flagOp2, flagResult, flagIns);
+    }
+
+    public boolean sf()
+    {
+        return getSignFlag(flagStatus, sf, flagResult);
+    }
+
+    public boolean zf()
+    {
+        return getZeroFlag(flagStatus, zf, flagResult);
+    }
+
+    public boolean af()
+    {
+        return getAuxCarryFlag(flagStatus, af, flagOp1, flagOp2, flagResult, flagIns);
+    }
+
+    public boolean pf()
+    {
+        return getParityFlag(flagStatus, pf, flagResult);
+    }
+
+    public boolean cf()
+    {
+        return getCarryFlag(flagStatus, cf, flagOp1, flagOp2, flagResult, flagIns);
     }
 
     public void lock(int addr){}
@@ -620,6 +679,270 @@ public class Processor implements HardwareComponent
         ioports = null;
         alignmentChecking = false;
         modelSpecificRegisters = new HashMap<Integer, Long>();
+    }
+
+    public void jumpFar_pm(int targetSelector, int targetEIP)
+    {
+        Segment newSegment = getSegment(targetSelector);
+        //System.out.println("Far Jump: new CS: " + newSegment.getClass() + " at " + Integer.toHexString(newSegment.getBase()) + " with selector " + Integer.toHexString(newSegment.getSelector()) + " to address " + Integer.toHexString(targetEIP + newSegment.getBase()));
+        if (newSegment == SegmentFactory.NULL_SEGMENT)
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);//ProcessorException.GENERAL_PROTECTION_0;
+	
+	switch (newSegment.getType()) { // segment type	    
+	default: // not a valid segment descriptor for a jump
+            LOGGING.log(Level.WARNING, "Invalid segment type {0,number,integer}", Integer.valueOf(newSegment.getType()));
+	    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSelector, true);
+	case 0x05: // Task Gate
+            LOGGING.log(Level.WARNING, "Task gate not implemented");
+	    throw new IllegalStateException("Execute Failed");
+	case 0x0b: // TSS (Busy) 
+	case 0x09: // TSS (Not Busy)
+	    if ((newSegment.getDPL() < getCPL()) || (newSegment.getDPL() < newSegment.getRPL()) )
+		throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSelector, true);
+	    if (!newSegment.isPresent())
+		throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSelector, true);
+	    if (newSegment.getLimit() < 0x67) // large enough to read ?
+		throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, targetSelector, true);
+	    if ((newSegment.getType() & 0x2) != 0) // busy ? if yes,error
+		throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSelector, true);
+	    
+	    newSegment.getByte(0); // new TSS paged into memory ?
+	    tss.getByte(0);// old TSS paged into memory ?
+
+            if (tss.getLimit() < 0x5f)
+                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, (tss.getSelector() & 0xfffc), true);
+
+            //save current state into current TSS
+            ((ProtectedModeSegment.AbstractTSS) tss).saveCPUState(this);
+
+            //load new task state from new TSS
+            int esSelector = 0xFFFF & newSegment.getWord(0x48); // read new registers
+	    int csSelector = 0xFFFF & newSegment.getWord(0x4c);
+	    int ssSelector = 0xFFFF & newSegment.getWord(0x50);
+	    int dsSelector = 0xFFFF & newSegment.getWord(0x54);
+	    int fsSelector = 0xFFFF & newSegment.getWord(0x58);
+	    int gsSelector = 0xFFFF & newSegment.getWord(0x5c);
+	    int ldtSelector = 0xFFFF & newSegment.getWord(0x60);
+            int trapWord = 0xFFFF & newSegment.getWord(0x64);
+
+            ((ProtectedModeSegment) es).supervisorSetSelector(esSelector);
+            ((ProtectedModeSegment) cs).supervisorSetSelector(csSelector);
+            ((ProtectedModeSegment) ss).supervisorSetSelector(ssSelector);
+            ((ProtectedModeSegment) ds).supervisorSetSelector(dsSelector);
+            if (fs != SegmentFactory.NULL_SEGMENT)
+                ((ProtectedModeSegment) fs).supervisorSetSelector(fsSelector);
+            if (gs != SegmentFactory.NULL_SEGMENT)
+                ((ProtectedModeSegment) gs).supervisorSetSelector(gsSelector);
+
+            //clear busy bit for old task
+            int descriptorHigh = readSupervisorDoubleWord(gdtr, (tss.getSelector() & 0xfff8) + 4);
+            descriptorHigh &= ~0x200;
+            setSupervisorDoubleWord(gdtr, (tss.getSelector() & 0xfff8) + 4, descriptorHigh);
+
+            //set busy bit for new task
+            descriptorHigh = readSupervisorDoubleWord(gdtr,(targetSelector & 0xfff8) + 4);
+            descriptorHigh |= 0x200;
+            setSupervisorDoubleWord(gdtr, (targetSelector & 0xfff8) + 4, descriptorHigh);
+
+            //commit new TSS
+            setCR0(getCR0() | 0x8); // set TS flag in CR0;
+	    tss = getSegment(targetSelector); //includes updated busy flag
+	    ((ProtectedModeSegment.AbstractTSS) tss).restoreCPUState(this);
+	    
+
+            // Task switch clear LE/L3/L2/L1/L0 in dr7
+            dr7 &= ~0x155;
+
+            int tempCPL = getCPL();
+            //set cpl to 3 to force a privilege level change and stack switch if SS isn't properly loaded
+            setCPL(3);
+
+	    if((ldtSelector & 0x4) !=0) // not in gdt
+		throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ldtSelector, true);
+            //load ldt
+            if ((ldtSelector & 0xfffc ) != 0)
+            {
+                gdtr.checkAddress((ldtSelector & ~0x7) + 7 ) ;// check ldtr is valid
+                if((readSupervisorByte(gdtr, ((ldtSelector & ~0x7) + 5 ))& 0xE) != 2) // not a ldt entry
+                {
+                    System.out.println("Tried to load LDT in task switch with invalid segment type: 0x"  + Integer.toHexString(readSupervisorByte(gdtr, ((ldtSelector & ~0x7) + 5 )& 0xF)));
+                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ldtSelector & 0xfffc, true);
+                }
+
+                Segment newLdtr=getSegment(ldtSelector); // get new ldt
+                if (!newLdtr.isSystem())
+                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ldtSelector & 0xfffc, true);
+
+                if (!newLdtr.isPresent())
+                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ldtSelector & 0xfffc, true);
+
+                ldtr = newLdtr;
+            }
+
+            if (isVirtual8086Mode())
+            {
+                System.out.println("VM TSS");
+                //load vm86 segments
+
+                setCPL(3);
+
+                throw new IllegalStateException("Unimplemented task switch to VM86 mode");
+            } else
+            {
+                setCPL(csSelector & 3);
+                //load SS
+                if ((ssSelector & 0xfffc) != 0)
+                {
+                    Segment newSS = getSegment(ssSelector);
+                    if (newSS.isSystem() || ((ProtectedModeSegment) newSS).isCode() || !((ProtectedModeSegment) newSS).isDataWritable())
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ssSelector & 0xfffc, true);
+
+                    if (!newSS.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, ssSelector & 0xfffc, true);
+
+                    if (newSS.getDPL() != cs.getRPL())
+                    {
+                        System.out.println("SS.dpl != cs.rpl : " + newSS.getDPL() + "!=" + cs.getRPL());
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ssSelector & 0xfffc, true);
+                    }
+
+                    if (newSS.getDPL() != newSS.getRPL())
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ssSelector & 0xfffc, true);
+
+                    ss(newSS);
+                }
+                else
+                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ssSelector & 0xfffc, true);
+
+                int newCsRpl = csSelector & 3;
+                //load other data segments
+                if ((dsSelector & 0xfffc) != 0)
+                {
+                    ProtectedModeSegment newDS = (ProtectedModeSegment) getSegment(dsSelector);
+
+                    if (newDS.isSystem() || (newDS.isCode() && ((newDS.getType() & 2) == 0)))
+                    {
+                        System.out.println(newDS.isSystem());
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, dsSelector & 0xfffc, true);
+                    }
+
+                    if (!newDS.isConforming() || newDS.isDataWritable())
+                        if ((newDS.getRPL() > newDS.getDPL()) || (newCsRpl > newDS.getDPL()))
+                            throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, dsSelector & 0xfffc, true);
+
+                    if (!newDS.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, dsSelector & 0xfffc, true);
+
+                    ds(newDS);
+                }
+                if ((esSelector & 0xfffc) != 0)
+                {
+                    ProtectedModeSegment newES = (ProtectedModeSegment) getSegment(esSelector);
+
+                    if (newES.isSystem() || (newES.isCode() && ((newES.getType() & 2) == 0)))
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, esSelector & 0xfffc, true);
+
+                    if (!newES.isConforming() || newES.isDataWritable())
+                        if ((newES.getRPL() > newES.getDPL()) || (newCsRpl > newES.getDPL()))
+                            throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, esSelector & 0xfffc, true);
+
+                    if (!newES.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, esSelector & 0xfffc, true);
+
+                    es(newES);
+                }
+                if ((fsSelector & 0xfffc) != 0)
+                {
+                    ProtectedModeSegment newFS = (ProtectedModeSegment) getSegment(fsSelector);
+
+                    if (newFS.isSystem() || (newFS.isCode() && ((newFS.getType() & 2) == 0)))
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, fsSelector & 0xfffc, true);
+
+                    if (!newFS.isConforming() || newFS.isDataWritable())
+                        if ((newFS.getRPL() > newFS.getDPL()) || (newCsRpl > newFS.getDPL()))
+                            throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, fsSelector & 0xfffc, true);
+
+                    if (!newFS.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, fsSelector & 0xfffc, true);
+
+                    fs(newFS);
+                }
+                if ((gsSelector & 0xfffc) != 0)
+                {
+                    ProtectedModeSegment newGS = (ProtectedModeSegment) getSegment(gsSelector);
+
+                    if (newGS.isSystem() || (newGS.isCode() && ((newGS.getType() & 2) == 0)))
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, gsSelector & 0xfffc, true);
+
+                    if (!newGS.isConforming() || newGS.isDataWritable())
+                        if ((newGS.getRPL() > newGS.getDPL()) || (newCsRpl > newGS.getDPL()))
+                            throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, gsSelector & 0xfffc, true);
+
+                    if (!newGS.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, gsSelector & 0xfffc, true);
+
+                    gs(newGS);
+                }
+
+                //load CS
+                if ((csSelector & 0xfffc) != 0)
+                {
+                    Segment newCS = getSegment(csSelector);
+                    if (newCS.isSystem() || ((ProtectedModeSegment) newCS).isDataWritable())
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, csSelector & 0xfffc, true);
+
+                    if (!((ProtectedModeSegment) newCS).isConforming() && (newCS.getDPL() != newCS.getRPL()))
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, csSelector & 0xfffc, true);
+
+                    if (((ProtectedModeSegment) newCS).isConforming() && (newCS.getDPL() > newCS.getRPL()))
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, csSelector & 0xfffc, true);
+
+                    if (!newCS.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, csSelector & 0xfffc, true);
+
+                    cs(newCS);
+                    cs.checkAddress(eip);
+                }
+                else
+                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, csSelector & 0xfffc, true);
+            }
+
+	    return;
+
+	case 0x0c: // Call Gate
+            LOGGING.log(Level.WARNING, "Call gate not implemented");
+	    throw new IllegalStateException("Execute Failed");
+	case 0x18: // Non-conforming Code Segment
+	case 0x19: // Non-conforming Code Segment
+	case 0x1a: // Non-conforming Code Segment
+	case 0x1b: { // Non-conforming Code Segment
+	    if ((newSegment.getRPL() != getCPL()) || (newSegment.getDPL() > getCPL()))
+		throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSelector, true);
+	    if (!newSegment.isPresent())
+		throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSelector, true);
+	    
+	    newSegment.checkAddress(targetEIP);
+	    newSegment.setRPL(getCPL());
+	    cs(newSegment);
+	    eip = targetEIP;
+	    return;
+	}
+	case 0x1c: // Conforming Code Segment (Not Readable & Not Accessed)
+        case 0x1d: // Conforming Code Segment (Not Readable & Accessed)
+        case 0x1e: // Conforming Code Segment (Readable & Not Accessed)
+        case 0x1f: { // Conforming Code Segment (Readable & Accessed)
+	    if (newSegment.getDPL() > getCPL())
+		throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSelector, true);
+	    if (!newSegment.isPresent())
+		throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSelector, true);
+
+	    newSegment.checkAddress(targetEIP);
+	    newSegment.setRPL(getCPL());
+	    cs(newSegment);
+	    eip = targetEIP;
+	    return;
+	}
+        }
     }
 
     public void jumpFar(int seg, int eip)
@@ -988,7 +1311,7 @@ public class Processor implements HardwareComponent
         sf = ((flags & (1 <<  7)) != 0);
         eflagsTrap                    = ((flags & (1 <<  8)) != 0);
         eflagsInterruptEnableSoon
-                = eflagsInterruptEnable   = ((flags & (1 <<  9)) != 0);
+            = eflagsInterruptEnable   = ((flags & (1 <<  9)) != 0);
         df                            = ((flags & (1 << 10)) != 0);
         of = ((flags & (1 << 11)) != 0);
         eflagsIOPrivilegeLevel        = ((flags >> 12) & 3);
@@ -1006,7 +1329,7 @@ public class Processor implements HardwareComponent
         sf = ((eflags & (1 <<  7)) != 0);
         eflagsTrap                    = ((eflags & (1 <<  8)) != 0);
         eflagsInterruptEnableSoon
-                = eflagsInterruptEnable   = ((eflags & (1 <<  9)) != 0);
+            = eflagsInterruptEnable   = ((eflags & (1 <<  9)) != 0);
         df                            = ((eflags & (1 << 10)) != 0);
         of = ((eflags & (1 << 11)) != 0);
         eflagsIOPrivilegeLevel        = ((eflags >> 12) & 3);
@@ -1741,9 +2064,9 @@ public class Processor implements HardwareComponent
 
     private final void followProtectedModeException(int vector, boolean hasErrorCode, int errorCode, boolean hardware, boolean software)
     {
-//        System.out.println();
-//	System.out.println("protected Mode PF exception " + Integer.toHexString(vector) + (hasErrorCode ? "errorCode = " + errorCode:"") + ", hardware = " + hardware + ", software = " + software);
-//	System.out.println("CS:EIP " + Integer.toHexString(cs.getBase()) +":" +Integer.toHexString(eip));
+        //        System.out.println();
+        //	System.out.println("protected Mode PF exception " + Integer.toHexString(vector) + (hasErrorCode ? "errorCode = " + errorCode:"") + ", hardware = " + hardware + ", software = " + software);
+        //	System.out.println("CS:EIP " + Integer.toHexString(cs.getBase()) +":" +Integer.toHexString(eip));
         if (vector == ProcessorException.Type.PAGE_FAULT.vector())
         {
             setCR2(linearMemory.getLastWalkedAddress());
@@ -1770,14 +2093,14 @@ public class Processor implements HardwareComponent
             linearMemory.setSupervisor(isSup);
         }
 
-//        System.out.println("Gate type = " + Integer.toHexString(gate.getType()));
+        //        System.out.println("Gate type = " + Integer.toHexString(gate.getType()));
         switch (gate.getType()) {
-            default:
-                LOGGING.log(Level.INFO, "Invalid gate type for throwing interrupt: 0x{0}", Integer.toHexString(gate.getType()));
-                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2 + EXT, true);
-            case 0x05: //Interrupt Handler: Task Gate
-                throw new IllegalStateException("Unimplemented Interrupt Handler: Task Gate");
-            case 0x06: //Interrupt Handler: 16-bit Interrupt Gate
+        default:
+            LOGGING.log(Level.INFO, "Invalid gate type for throwing interrupt: 0x{0}", Integer.toHexString(gate.getType()));
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2 + EXT, true);
+        case 0x05: //Interrupt Handler: Task Gate
+            throw new IllegalStateException("Unimplemented Interrupt Handler: Task Gate");
+        case 0x06: //Interrupt Handler: 16-bit Interrupt Gate
             {
                 ProtectedModeSegment.InterruptGate16Bit interruptGate = ((ProtectedModeSegment.InterruptGate16Bit)gate);
 
@@ -1794,19 +2117,19 @@ public class Processor implements HardwareComponent
 
                 if (targetSegment.getDPL() > currentPrivilegeLevel)
                     throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-//		System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
+                //		System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
                 switch(targetSegment.getType()) {
-                    default:
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
+                default:
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
 
-                    case 0x18: //Code, Execute-Only
-                    case 0x19: //Code, Execute-Only, Accessed
-                    case 0x1a: //Code, Execute/Read
-                    case 0x1b: //Code, Execute/Read, Accessed
+                case 0x18: //Code, Execute-Only
+                case 0x19: //Code, Execute-Only, Accessed
+                case 0x1a: //Code, Execute/Read
+                case 0x1b: //Code, Execute/Read, Accessed
                     {
                         if (!targetSegment.isPresent())
                             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector + EXT, true);
-//			System.out.println("Target DPL = " + targetSegment.getDPL() + ", CPL = " + currentPrivilegeLevel);
+                        //			System.out.println("Target DPL = " + targetSegment.getDPL() + ", CPL = " + currentPrivilegeLevel);
                         if (targetSegment.getDPL() < currentPrivilegeLevel) {
                             //INTER-PRIVILEGE-LEVEL
                             int newStackSelector = 0;
@@ -1853,11 +2176,11 @@ public class Processor implements HardwareComponent
 
                             if (hasErrorCode) {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 12))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 12))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             } else {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 10) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 10))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 10))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             }
 
@@ -1920,18 +2243,18 @@ public class Processor implements HardwareComponent
                             //check there is room on stack
                             if (hasErrorCode) {
                                 if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 8) && (r_esp.get32() > 0)) ||
-                                        !ss.getDefaultSizeFlag() && (r_esp.get16() < 8 ))
+                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 8 ))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             } else {
                                 if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 6) && (r_esp.get32() > 0)) ||
-                                        !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
+                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             }
 
                             int targetOffset = interruptGate.getTargetOffset();
                             targetSegment.checkAddress(targetOffset);
 
-//System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
+                            //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
                             if (ss.getDefaultSizeFlag()) {
                                 r_esp.set32(r_esp.get32()-2);
                                 ss.setWord(r_esp.get32(), (short)getEFlags());
@@ -1971,10 +2294,10 @@ public class Processor implements HardwareComponent
                         }
                     }
                     break;
-                    case 0x1c: //Code: Execute-Only, Conforming
-                    case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                    case 0x1e: //Code: Execute/Read, Conforming
-                    case 0x1f: //Code: Execute/Read, Conforming, Accessed
+                case 0x1c: //Code: Execute-Only, Conforming
+                case 0x1d: //Code: Execute-Only, Conforming, Accessed
+                case 0x1e: //Code: Execute/Read, Conforming
+                case 0x1f: //Code: Execute/Read, Conforming, Accessed
                     {
                         if (!targetSegment.isPresent())
                             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
@@ -1983,11 +2306,11 @@ public class Processor implements HardwareComponent
                         //check there is room on stack
                         if (hasErrorCode) {
                             if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 8) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 8))
+                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 8))
                                 throw ProcessorException.STACK_SEGMENT_0;
                         } else {
                             if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 6) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
+                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
                                 throw ProcessorException.STACK_SEGMENT_0;
                         }
 
@@ -2034,7 +2357,7 @@ public class Processor implements HardwareComponent
                 }
             }
             break;
-            case 0x07: //Interrupt Handler: 16-bit Trap Gate
+        case 0x07: //Interrupt Handler: 16-bit Trap Gate
             {
                 ProtectedModeSegment.TrapGate16Bit trapGate = ((ProtectedModeSegment.TrapGate16Bit)gate);
 
@@ -2051,15 +2374,15 @@ public class Processor implements HardwareComponent
 
                 if (targetSegment.getDPL() > currentPrivilegeLevel)
                     throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-//		System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
+                //		System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
                 switch(targetSegment.getType()) {
-                    default:
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
+                default:
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
 
-                    case 0x18: //Code, Execute-Only
-                    case 0x19: //Code, Execute-Only, Accessed
-                    case 0x1a: //Code, Execute/Read
-                    case 0x1b: //Code, Execute/Read, Accessed
+                case 0x18: //Code, Execute-Only
+                case 0x19: //Code, Execute-Only, Accessed
+                case 0x1a: //Code, Execute/Read
+                case 0x1b: //Code, Execute/Read, Accessed
                     {
                         if (!targetSegment.isPresent())
                             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector + EXT, true);
@@ -2110,11 +2433,11 @@ public class Processor implements HardwareComponent
 
                             if (hasErrorCode) {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 12))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 12))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             } else {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 10) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 10))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 10))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             }
 
@@ -2132,7 +2455,7 @@ public class Processor implements HardwareComponent
                             cs(targetSegment);
                             eip = targetOffset;
                             setCPL(cs.getDPL());
-//System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
+                            //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
                             if (ss.getDefaultSizeFlag()) {
                                 r_esp.set32(r_esp.get32()-2);
                                 ss.setWord(r_esp.get32(), (short)oldSS);
@@ -2175,18 +2498,18 @@ public class Processor implements HardwareComponent
                             //check there is room on stack
                             if (hasErrorCode) {
                                 if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 8) && (r_esp.get32() > 0)) ||
-                                        !ss.getDefaultSizeFlag() && (r_esp.get16() < 8))
+                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 8))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             } else {
                                 if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 6) && (r_esp.get32() > 0)) ||
-                                        !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
+                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             }
 
                             int targetOffset = trapGate.getTargetOffset();
                             targetSegment.checkAddress(targetOffset);
 
-//System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
+                            //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
                             if (ss.getDefaultSizeFlag()) {
                                 r_esp.set32(r_esp.get32()-2);
                                 ss.setWord(r_esp.get32(), (short)getEFlags());
@@ -2225,10 +2548,10 @@ public class Processor implements HardwareComponent
                         }
                     }
                     break;
-                    case 0x1c: //Code: Execute-Only, Conforming
-                    case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                    case 0x1e: //Code: Execute/Read, Conforming
-                    case 0x1f: //Code: Execute/Read, Conforming, Accessed
+                case 0x1c: //Code: Execute-Only, Conforming
+                case 0x1d: //Code: Execute-Only, Conforming, Accessed
+                case 0x1e: //Code: Execute/Read, Conforming
+                case 0x1f: //Code: Execute/Read, Conforming, Accessed
                     {
                         if (!targetSegment.isPresent())
                             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
@@ -2237,11 +2560,11 @@ public class Processor implements HardwareComponent
                         //check there is room on stack
                         if (hasErrorCode) {
                             if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 8) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 8))
+                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 8))
                                 throw ProcessorException.STACK_SEGMENT_0;
                         } else {
                             if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 6) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
+                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
                                 throw ProcessorException.STACK_SEGMENT_0;
                         }
 
@@ -2287,7 +2610,7 @@ public class Processor implements HardwareComponent
                 }
             }
             break;
-            case 0x0e: //Interrupt Handler: 32-bit Interrupt Gate
+        case 0x0e: //Interrupt Handler: 32-bit Interrupt Gate
             {
                 ProtectedModeSegment.InterruptGate32Bit interruptGate = ((ProtectedModeSegment.InterruptGate32Bit)gate);
 
@@ -2306,13 +2629,13 @@ public class Processor implements HardwareComponent
                     throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
 
                 switch(targetSegment.getType()) {
-                    default:
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
+                default:
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
 
-                    case 0x18: //Code, Execute-Only
-                    case 0x19: //Code, Execute-Only, Accessed
-                    case 0x1a: //Code, Execute/Read
-                    case 0x1b: //Code, Execute/Read, Accessed
+                case 0x18: //Code, Execute-Only
+                case 0x19: //Code, Execute-Only, Accessed
+                case 0x1a: //Code, Execute/Read
+                case 0x1b: //Code, Execute/Read, Accessed
                     {
                         if (!targetSegment.isPresent())
                             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector + EXT, true);
@@ -2363,11 +2686,11 @@ public class Processor implements HardwareComponent
 
                             if (hasErrorCode) {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 24) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 24))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 24))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             } else {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 20) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 20))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 20))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             }
 
@@ -2430,11 +2753,11 @@ public class Processor implements HardwareComponent
                             //check there is room on stack
                             if (hasErrorCode) {
                                 if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 16) && (r_esp.get32() > 0)) ||
-                                        !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
+                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             } else {
                                 if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                        !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
+                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
                                     throw ProcessorException.STACK_SEGMENT_0;
                             }
 
@@ -2481,10 +2804,10 @@ public class Processor implements HardwareComponent
                         }
                     }
                     break;
-                    case 0x1c: //Code: Execute-Only, Conforming
-                    case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                    case 0x1e: //Code: Execute/Read, Conforming
-                    case 0x1f: //Code: Execute/Read, Conforming, Accessed
+                case 0x1c: //Code: Execute-Only, Conforming
+                case 0x1d: //Code: Execute-Only, Conforming, Accessed
+                case 0x1e: //Code: Execute/Read, Conforming
+                case 0x1f: //Code: Execute/Read, Conforming, Accessed
                     {
                         if (!targetSegment.isPresent())
                             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
@@ -2493,11 +2816,11 @@ public class Processor implements HardwareComponent
                         //check there is room on stack
                         if (hasErrorCode) {
                             if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 16) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
+                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
                             {System.out.println("******** Warning: possible mask missing 1");throw ProcessorException.STACK_SEGMENT_0;}
                         } else {
                             if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
+                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
                             {System.out.println("******** Warning: possible mask missing 2");throw ProcessorException.STACK_SEGMENT_0;}
                         }
 
@@ -2544,7 +2867,7 @@ public class Processor implements HardwareComponent
                 }
             }
             break;
-            case 0x0f: //Interrupt Handler: 32-bit Trap Gate
+        case 0x0f: //Interrupt Handler: 32-bit Trap Gate
             {
                 ProtectedModeSegment.TrapGate32Bit trapGate = ((ProtectedModeSegment.TrapGate32Bit)gate);
 
@@ -2563,13 +2886,13 @@ public class Processor implements HardwareComponent
                     throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
 
                 switch(targetSegment.getType()) {
-                    default:
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
+                default:
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
 
-                    case 0x18: //Code, Execute-Only
-                    case 0x19: //Code, Execute-Only, Accessed
-                    case 0x1a: //Code, Execute/Read
-                    case 0x1b: //Code, Execute/Read, Accessed
+                case 0x18: //Code, Execute-Only
+                case 0x19: //Code, Execute-Only, Accessed
+                case 0x1a: //Code, Execute/Read
+                case 0x1b: //Code, Execute/Read, Accessed
                     {
                         if (!targetSegment.isPresent())
                             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector + EXT, true);
@@ -2620,11 +2943,11 @@ public class Processor implements HardwareComponent
 
                             if (hasErrorCode) {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 24) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 24))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 24))
                                 {System.out.println("******** Warning: possible mask missing 3");throw ProcessorException.STACK_SEGMENT_0;}
                             } else {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 20) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 20))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 20))
                                 {System.out.println("******** Warning: possible mask missing 4");throw ProcessorException.STACK_SEGMENT_0;}
                             }
 
@@ -2685,11 +3008,11 @@ public class Processor implements HardwareComponent
                             //check there is room on stack
                             if (hasErrorCode) {
                                 if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 16) && (r_esp.get32() > 0)) ||
-                                        !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
+                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
                                 {System.out.println("******** Warning: possible mask missing 5");throw ProcessorException.STACK_SEGMENT_0;}
                             } else {
                                 if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                        !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
+                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
                                 {System.out.println("******** Warning: possible mask missing 6");throw ProcessorException.STACK_SEGMENT_0;}
                             }
 
@@ -2735,10 +3058,10 @@ public class Processor implements HardwareComponent
                         }
                     }
                     break;
-                    case 0x1c: //Code: Execute-Only, Conforming
-                    case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                    case 0x1e: //Code: Execute/Read, Conforming
-                    case 0x1f: //Code: Execute/Read, Conforming, Accessed
+                case 0x1c: //Code: Execute-Only, Conforming
+                case 0x1d: //Code: Execute-Only, Conforming, Accessed
+                case 0x1e: //Code: Execute/Read, Conforming
+                case 0x1f: //Code: Execute/Read, Conforming, Accessed
                     {
                         if (!targetSegment.isPresent())
                             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
@@ -2747,11 +3070,11 @@ public class Processor implements HardwareComponent
                         //check there is room on stack
                         if (hasErrorCode) {
                             if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 16) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
+                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
                             {System.out.println("******** Warning: possible mask missing 7");throw ProcessorException.STACK_SEGMENT_0;}
                         } else {
                             if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
+                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
                             {System.out.println("******** Warning: possible mask missing 8");throw ProcessorException.STACK_SEGMENT_0;}
                         }
 
@@ -2914,25 +3237,25 @@ public class Processor implements HardwareComponent
         {
             linearMemory.setSupervisor(isSup);
         }
-//System.out.println("Gate type = " + Integer.toHexString(gate.getType()));
+        //System.out.println("Gate type = " + Integer.toHexString(gate.getType()));
 
         if (!gate.isSystem())
             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2, true);
 
         switch (gate.getType()) {
-            default:
-                System.err.println("Invalid Gate Type For Throwing Interrupt: 0x" + Integer.toHexString(gate.getType()));
-                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2 + EXT, true);
-            case 0x05: //Interrupt Handler: Task Gate
-                System.out.println("Unimplemented Interrupt Handler: Task Gate");
-                throw new IllegalStateException("Unimplemented Interrupt Handler: Task Gate");
-            case 0x06: //Interrupt Handler: 16-bit Interrupt Gate
-                System.out.println("Unimplemented Interrupt Handler: 16-bit Interrupt Gate");
-                throw new IllegalStateException("Unimplemented Interrupt Handler: 16-bit Interrupt Gate");
-            case 0x07: //Interrupt Handler: 16-bit Trap Gate
-                System.out.println("Unimplemented Interrupt Handler: 16-bit Trap Gate");
-                throw new IllegalStateException("Unimplemented Interrupt Handler: 16-bit Trap Gate");
-            case 0x0e: //Interrupt Handler: 32-bit Interrupt Gate
+        default:
+            System.err.println("Invalid Gate Type For Throwing Interrupt: 0x" + Integer.toHexString(gate.getType()));
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2 + EXT, true);
+        case 0x05: //Interrupt Handler: Task Gate
+            System.out.println("Unimplemented Interrupt Handler: Task Gate");
+            throw new IllegalStateException("Unimplemented Interrupt Handler: Task Gate");
+        case 0x06: //Interrupt Handler: 16-bit Interrupt Gate
+            System.out.println("Unimplemented Interrupt Handler: 16-bit Interrupt Gate");
+            throw new IllegalStateException("Unimplemented Interrupt Handler: 16-bit Interrupt Gate");
+        case 0x07: //Interrupt Handler: 16-bit Trap Gate
+            System.out.println("Unimplemented Interrupt Handler: 16-bit Trap Gate");
+            throw new IllegalStateException("Unimplemented Interrupt Handler: 16-bit Trap Gate");
+        case 0x0e: //Interrupt Handler: 32-bit Interrupt Gate
             {
                 ProtectedModeSegment.InterruptGate32Bit interruptGate = ((ProtectedModeSegment.InterruptGate32Bit)gate);
 
@@ -2956,18 +3279,18 @@ public class Processor implements HardwareComponent
                 if (!targetSegment.isPresent())
                     throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, (targetSegmentSelector & 0xfffc), true);
 
-//System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
+                //System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
                 switch(targetSegment.getType()) {
-                    default:
-                        System.err.println(targetSegment);
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, (targetSegmentSelector & 0xfffc), true);
+                default:
+                    System.err.println(targetSegment);
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, (targetSegmentSelector & 0xfffc), true);
 
-                    case 0x18: //Code, Execute-Only
-                    case 0x19: //Code, Execute-Only, Accessed
-                    case 0x1a: //Code, Execute/Read
-                    case 0x1b: //Code, Execute/Read, Accessed
+                case 0x18: //Code, Execute-Only
+                case 0x19: //Code, Execute-Only, Accessed
+                case 0x1a: //Code, Execute/Read
+                case 0x1b: //Code, Execute/Read, Accessed
                     {
-//System.out.println("Target DPL = " + targetSegment.getDPL() + ", CPL = " + currentPrivilegeLevel);
+                        //System.out.println("Target DPL = " + targetSegment.getDPL() + ", CPL = " + currentPrivilegeLevel);
                         if (targetSegment.getDPL() < currentPrivilegeLevel) {
                             if (targetSegment.getDPL() != 0)
                                 throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector & 0xfffc, true);
@@ -3024,11 +3347,11 @@ public class Processor implements HardwareComponent
 
                             if (hasErrorCode) {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 40) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 40) && (r_esp.get32() > 0))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 40) && (r_esp.get32() > 0))
                                     throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, 0, true);
                             } else {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 36) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 36) && (r_esp.get32() > 0))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 36) && (r_esp.get32() > 0))
                                     throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, 0, true);
                             }
 
@@ -3115,15 +3438,15 @@ public class Processor implements HardwareComponent
                             throw new IllegalStateException("Unimplemented same level exception in VM86 32 bit INT gate (non conforming code segment)...");
                         }
                     }
-                    case 0x1c: //Code: Execute-Only, Conforming
-                    case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                    case 0x1e: //Code: Execute/Read, Conforming
-                    case 0x1f: //Code: Execute/Read, Conforming, Accessed
+                case 0x1c: //Code: Execute-Only, Conforming
+                case 0x1d: //Code: Execute-Only, Conforming, Accessed
+                case 0x1e: //Code: Execute/Read, Conforming
+                case 0x1f: //Code: Execute/Read, Conforming, Accessed
 
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector, true);
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector, true);
                 }
             }
-            case 0x0f: //Interrupt Handler: 32-bit Trap Gate
+        case 0x0f: //Interrupt Handler: 32-bit Trap Gate
             {
                 ProtectedModeSegment.TrapGate32Bit trapGate = ((ProtectedModeSegment.TrapGate32Bit)gate);
 
@@ -3147,19 +3470,19 @@ public class Processor implements HardwareComponent
                 if (targetSegment.isSystem())
                     throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, (targetSegmentSelector & 0xfffc) + EXT, true);
 
-//System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
+                //System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
                 switch(targetSegment.getType()) {
-                    default:
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
+                default:
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
 
-                    case 0x18: //Code, Execute-Only
-                    case 0x19: //Code, Execute-Only, Accessed
-                    case 0x1a: //Code, Execute/Read
-                    case 0x1b: //Code, Execute/Read, Accessed
+                case 0x18: //Code, Execute-Only
+                case 0x19: //Code, Execute-Only, Accessed
+                case 0x1a: //Code, Execute/Read
+                case 0x1b: //Code, Execute/Read, Accessed
                     {
                         if (!targetSegment.isPresent())
                             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector + EXT, true);
-//System.out.println("Target DPL = " + targetSegment.getDPL() + ", CPL = " + currentPrivilegeLevel);
+                        //System.out.println("Target DPL = " + targetSegment.getDPL() + ", CPL = " + currentPrivilegeLevel);
                         if (targetSegment.getDPL() < currentPrivilegeLevel) {
                             if (targetSegment.getDPL() != 0)
                                 throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector & 0xfffc, true);
@@ -3216,11 +3539,11 @@ public class Processor implements HardwareComponent
 
                             if (hasErrorCode) {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 40) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 40) && (r_esp.get32() > 0))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 40) && (r_esp.get32() > 0))
                                     throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, 0, true);
                             } else {
                                 if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 36) && (r_esp.get32() > 0)) ||
-                                        !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 36) && (r_esp.get32() > 0))
+                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 36) && (r_esp.get32() > 0))
                                     throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, 0, true);
                             }
 
@@ -3305,14 +3628,14 @@ public class Processor implements HardwareComponent
                             //throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector, true);
                         }
                     }
-                    case 0x1c: //Code: Execute-Only, Conforming
-                    case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                    case 0x1e: //Code: Execute/Read, Conforming
-                    case 0x1f: //Code: Execute/Read, Conforming, Accessed
-                        if (!targetSegment.isPresent())
-                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
+                case 0x1c: //Code: Execute-Only, Conforming
+                case 0x1d: //Code: Execute-Only, Conforming, Accessed
+                case 0x1e: //Code: Execute/Read, Conforming
+                case 0x1f: //Code: Execute/Read, Conforming, Accessed
+                    if (!targetSegment.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
 
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector, true);
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector, true);
                 }
             }
         }
@@ -3360,7 +3683,7 @@ public class Processor implements HardwareComponent
         if (component instanceof IOPortHandler)
             ioports = (IOPortHandler) component;
         if ((component instanceof InterruptController)
-                && component.initialised())
+            && component.initialised())
             interruptController = (InterruptController)component;
     }
 
@@ -3432,80 +3755,80 @@ public class Processor implements HardwareComponent
     {
         switch (instr)
         {
-            case ADC8:
-                if ((result & 0xff) != (op1 & 0xff) + (op2 & 0xff))
-                    return (op1 & 0xff) + (op2 & 0xff) +1 > 0xff;
-                else
-                    return (op1 & 0xff) + (op2 & 0xff) > 0xff;
-            case ADC16:
-                if ((result & 0xffff) != (op1 & 0xffff) + (op2 & 0xffff))
-                    return (op1 & 0xffff) + (op2 & 0xffff) +1 > 0xffff;
-                else
-                    return (op1 & 0xffff) + (op2 & 0xffff) > 0xffff;
-            case ADC32:
-                if (result != op1 + op2)
-                    return (op1 & 0xffffffffL) + (op2 & 0xffffffffL) +1 > 0xffffffffL;
-                else
-                    return (op1 & 0xffffffffL) + (op2 & 0xffffffffL) > 0xffffffffL;
-            case ADD8:
-                return (result & 0xff) < (op1 & 0xff);
-            case ADD16:
-                return (result & 0xffff) < (op1 & 0xffff);
-            case ADD32:
-                return (result & 0xffffffffL) < (op1 & 0xffffffffL);
-            case SUB8:
+        case ADC8:
+            if ((result & 0xff) != (op1 & 0xff) + (op2 & 0xff))
+                return (op1 & 0xff) + (op2 & 0xff) +1 > 0xff;
+            else
+                return (op1 & 0xff) + (op2 & 0xff) > 0xff;
+        case ADC16:
+            if ((result & 0xffff) != (op1 & 0xffff) + (op2 & 0xffff))
+                return (op1 & 0xffff) + (op2 & 0xffff) +1 > 0xffff;
+            else
+                return (op1 & 0xffff) + (op2 & 0xffff) > 0xffff;
+        case ADC32:
+            if (result != op1 + op2)
+                return (op1 & 0xffffffffL) + (op2 & 0xffffffffL) +1 > 0xffffffffL;
+            else
+                return (op1 & 0xffffffffL) + (op2 & 0xffffffffL) > 0xffffffffL;
+        case ADD8:
+            return (result & 0xff) < (op1 & 0xff);
+        case ADD16:
+            return (result & 0xffff) < (op1 & 0xffff);
+        case ADD32:
+            return (result & 0xffffffffL) < (op1 & 0xffffffffL);
+        case SUB8:
+            return (op1 & 0xff) < (op2 & 0xff);
+        case SUB16:
+        case SUB32:
+            return (op1 & 0xffffffffL) < (op2 & 0xffffffffL);
+        case SBB8:
+            if ((byte)result-(byte)op1+(byte)op2 != 0)
+                return ((op1 & 0xFF) < (result & 0xFF)) || ((op2 & 0xFF) == 0xFF);
+            else
                 return (op1 & 0xff) < (op2 & 0xff);
-            case SUB16:
-            case SUB32:
+        case SBB16:
+            if ((short)result-(short)op1+(short)op2 != 0)
+                return ((op1 & 0xFFFF) < (result & 0xFFFF)) || ((op2 & 0xFFFF) == 0xFFFF);
+            else
+                return (op1 & 0xFFFF) < (op2 & 0xFFFF);
+        case SBB32:
+            if (result-op1+op2 != 0)
+                return ((op1 & 0xFFFFFFFFL) < (result & 0xFFFFFFFFL)) || (op2 == 0xFFFFFFFF);
+            else
                 return (op1 & 0xffffffffL) < (op2 & 0xffffffffL);
-            case SBB8:
-                if ((byte)result-(byte)op1+(byte)op2 != 0)
-                    return ((op1 & 0xFF) < (result & 0xFF)) || ((op2 & 0xFF) == 0xFF);
-                else
-                    return (op1 & 0xff) < (op2 & 0xff);
-            case SBB16:
-                if ((short)result-(short)op1+(short)op2 != 0)
-                    return ((op1 & 0xFFFF) < (result & 0xFFFF)) || ((op2 & 0xFFFF) == 0xFFFF);
-                else
-                    return (op1 & 0xFFFF) < (op2 & 0xFFFF);
-            case SBB32:
-                if (result-op1+op2 != 0)
-                    return ((op1 & 0xFFFFFFFFL) < (result & 0xFFFFFFFFL)) || (op2 == 0xFFFFFFFF);
-                else
-                    return (op1 & 0xffffffffL) < (op2 & 0xffffffffL);
-            case NEG8:
-            case NEG16:
-            case NEG32:
-                return result != 0;
-            case SAR8:
-            case SAR16:
-            case SAR32:
-                return ((op1 >> (op2-1)) & 1) != 0;
-            case SHL8:
-                return ((op1 >> (8 - op2)) & 0x1) != 0;
-            case SHL16:
+        case NEG8:
+        case NEG16:
+        case NEG32:
+            return result != 0;
+        case SAR8:
+        case SAR16:
+        case SAR32:
+            return ((op1 >> (op2-1)) & 1) != 0;
+        case SHL8:
+            return ((op1 >> (8 - op2)) & 0x1) != 0;
+        case SHL16:
+            return ((op1 >> (16 - op2)) & 0x1) != 0;
+        case SHL32:
+            return ((op1 >> (32 - op2)) & 0x1) != 0;
+        case SHLD16:
+            if (op2 <= 16)
                 return ((op1 >> (16 - op2)) & 0x1) != 0;
-            case SHL32:
+            else
                 return ((op1 >> (32 - op2)) & 0x1) != 0;
-            case SHLD16:
-                if (op2 <= 16)
-                    return ((op1 >> (16 - op2)) & 0x1) != 0;
-                else
-                    return ((op1 >> (32 - op2)) & 0x1) != 0;
-            case SHLD32:
-                return ((op1 >> (32 - op2)) & 0x1) != 0;
-            case IMUL8:
-                return (((op1 & 0x80) == (op2 & 0x80)) && ((result & 0xff00) != 0));
-            case IMUL16:
-                return (((op1 & 0x8000) == (op2 & 0x8000)) && (((op1 * op2) & 0xffff0000) != 0));
-            case IMUL32:
-                return (((op1 & 0x80000000) == (op2 & 0x80000000)) && (((((long)op1) * op2) & 0xffffffff00000000L) != 0));
-            case SHRD16:
-            case SHRD32:
-            case SHR:
-                return ((op1 >> (op2 - 1)) & 0x1) != 0;
-            default:
-                throw new IllegalStateException("Unknown flag method: " + instr);
+        case SHLD32:
+            return ((op1 >> (32 - op2)) & 0x1) != 0;
+        case IMUL8:
+            return (((op1 & 0x80) == (op2 & 0x80)) && ((result & 0xff00) != 0));
+        case IMUL16:
+            return (((op1 & 0x8000) == (op2 & 0x8000)) && (((op1 * op2) & 0xffff0000) != 0));
+        case IMUL32:
+            return (((op1 & 0x80000000) == (op2 & 0x80000000)) && (((((long)op1) * op2) & 0xffffffff00000000L) != 0));
+        case SHRD16:
+        case SHRD32:
+        case SHR:
+            return ((op1 >> (op2 - 1)) & 0x1) != 0;
+        default:
+            throw new IllegalStateException("Unknown flag method: " + instr);
         }
 
 
@@ -3516,76 +3839,76 @@ public class Processor implements HardwareComponent
     {
         switch (instr)
         {
-            case ADC8:
-            case ADC16:
-            case ADC32:
-            case ADD8:
-            case ADD16:
-            case ADD32:
-            case SUB8:
-            case SUB16:
-            case SUB32:
-            case SBB8:
-            case SBB16:
-            case SBB32:
-                return (((op1 ^ op2) ^ result) & 0x10) != 0;
-            case NEG8:
-            case NEG16:
-            case NEG32:
-                return (result & 0xF) != 0;
-            case INC:
-                return (result & 0xF) == 0;
-            case DEC:
-                return (result & 0xF) == 0xF;
-            case SAR8:
-            case SAR16:
-            case SAR32:
-                //(c, 5) -> t
-                return (result & 1) != 0; //guessed from real CPU
-            case IMUL8:
-            case IMUL16:
-            case IMUL32:
-                //(10, 83, 810) -> t
-                //(2, 4d8, 9b0) -> f
-            case SHL8:
-            case SHL16:
-            case SHL32:
-                return (result & (0x8000000 >> op2)) != 0;
+        case ADC8:
+        case ADC16:
+        case ADC32:
+        case ADD8:
+        case ADD16:
+        case ADD32:
+        case SUB8:
+        case SUB16:
+        case SUB32:
+        case SBB8:
+        case SBB16:
+        case SBB32:
+            return (((op1 ^ op2) ^ result) & 0x10) != 0;
+        case NEG8:
+        case NEG16:
+        case NEG32:
+            return (result & 0xF) != 0;
+        case INC:
+            return (result & 0xF) == 0;
+        case DEC:
+            return (result & 0xF) == 0xF;
+        case SAR8:
+        case SAR16:
+        case SAR32:
+            //(c, 5) -> t
+            return (result & 1) != 0; //guessed from real CPU
+        case IMUL8:
+        case IMUL16:
+        case IMUL32:
+            //(10, 83, 810) -> t
+            //(2, 4d8, 9b0) -> f
+        case SHL8:
+        case SHL16:
+        case SHL32:
+            return (result & (0x8000000 >> op2)) != 0;
             //(1, 4, 10) - > t, (6, 5, c0) -> f
             //(2, 8, 200) -> f, (206, 8, 20600) -> f
             //(1, 4, 10) -> f
             //(8c102c00, 4, c102c000)-> t
             //(1, 1) -> f
-            case SHRD16:
-            case SHRD32:
-            case SHLD16:
-            case SHLD32:
-                return false;// strictly undefined, check this
-            case SHR:
-                //(838, 6) -> t
-                //(6d8, 6) -> t
-                //(9d0, 6) -> f
-                //(60, 3) -> t
-                //(1e158 ,6 ) -> t
-                //(1e158 ,9 ) -> t
-                //(1e158 ,c ) -> t
-                //(9b8 = 1001 1011 1000, 6, 26 = 10 0110 # 1) -> t
-                //(9b8 = 1001 1011 1000, 3, 137 = 1 0011 0111 # 0)-> f
-                //(81, 1, 40) -> t
-                //(50 = 0101 0000, 3, a = 1010 # 0) -> t
-                //(58 = 0101 1000, 3, b = 1011 # 0) -> f
-                //(05 = 0000 0101, 2, 1 # 0) -> f
-                //(0d = 0000 1101, 2, 3 = 11 # 0) -> f
-                //(0e = 0000 1110, 2, 3 = 11 # 1) -> f
-                //(0f = 0000 1111, 2, 3 = 11 # 1) -> f
-                //(94 = 1001 0100, 2, 25 = 10 0101 # 0) -> f
-                //(1a = 0001 1010, 1, d = 1101 # 0) -> f
-                //(2e = 0010 1110, 1, 17 = 1 0111 # 0) -> f
-                //(18 = 0001 1000, 3, 3 = 11 # 0) -> f/t
-                //(17 = 0001 0111, 1, b = 1011 # 1) -> f
-                return false;
-            default:
-                throw new IllegalStateException("Unknown flag method: " + instr);
+        case SHRD16:
+        case SHRD32:
+        case SHLD16:
+        case SHLD32:
+            return false;// strictly undefined, check this
+        case SHR:
+            //(838, 6) -> t
+            //(6d8, 6) -> t
+            //(9d0, 6) -> f
+            //(60, 3) -> t
+            //(1e158 ,6 ) -> t
+            //(1e158 ,9 ) -> t
+            //(1e158 ,c ) -> t
+            //(9b8 = 1001 1011 1000, 6, 26 = 10 0110 # 1) -> t
+            //(9b8 = 1001 1011 1000, 3, 137 = 1 0011 0111 # 0)-> f
+            //(81, 1, 40) -> t
+            //(50 = 0101 0000, 3, a = 1010 # 0) -> t
+            //(58 = 0101 1000, 3, b = 1011 # 0) -> f
+            //(05 = 0000 0101, 2, 1 # 0) -> f
+            //(0d = 0000 1101, 2, 3 = 11 # 0) -> f
+            //(0e = 0000 1110, 2, 3 = 11 # 1) -> f
+            //(0f = 0000 1111, 2, 3 = 11 # 1) -> f
+            //(94 = 1001 0100, 2, 25 = 10 0101 # 0) -> f
+            //(1a = 0001 1010, 1, d = 1101 # 0) -> f
+            //(2e = 0010 1110, 1, 17 = 1 0111 # 0) -> f
+            //(18 = 0001 1000, 3, 3 = 11 # 0) -> f/t
+            //(17 = 0001 0111, 1, b = 1011 # 1) -> f
+            return false;
+        default:
+            throw new IllegalStateException("Unknown flag method: " + instr);
         }
     }
 
@@ -3593,67 +3916,67 @@ public class Processor implements HardwareComponent
     {
         switch (instr)
         {
-            case ADC8:
-            case ADD8:
-                return (((~((op1) ^ (op2)) & ((op2) ^ (result))) & (0x80)) != 0);
-            case ADC16:
-            case ADD16:
-                return (((~((op1) ^ (op2)) & ((op2) ^ (result))) & (0x8000)) != 0);
-            case ADC32:
-            case ADD32:
-                return (((~((op1) ^ (op2)) & ((op2) ^ (result))) & (0x80000000)) != 0);
-            case SUB8:
-            case SBB8:
-                return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x80)) != 0);
-            case SUB16:
-            case SBB16:
-                return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x8000)) != 0);
-            case SUB32:
-            case SBB32:
-                return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x80000000)) != 0);
-            case NEG8:
-                return (result & 0xff) == 0x80;
-            case NEG16:
-                return (result & 0xffff) == 0x8000;
-            case NEG32:
-            case INC:
-                return result == 0x80000000;
-            case DEC:
-                return result == 0x7FFFFFF;
-            case SAR8:
-            case SAR16:
-            case SAR32:
-                return false;
+        case ADC8:
+        case ADD8:
+            return (((~((op1) ^ (op2)) & ((op2) ^ (result))) & (0x80)) != 0);
+        case ADC16:
+        case ADD16:
+            return (((~((op1) ^ (op2)) & ((op2) ^ (result))) & (0x8000)) != 0);
+        case ADC32:
+        case ADD32:
+            return (((~((op1) ^ (op2)) & ((op2) ^ (result))) & (0x80000000)) != 0);
+        case SUB8:
+        case SBB8:
+            return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x80)) != 0);
+        case SUB16:
+        case SBB16:
+            return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x8000)) != 0);
+        case SUB32:
+        case SBB32:
+            return (((((op1) ^ (op2)) & ((op1) ^ (result))) & (0x80000000)) != 0);
+        case NEG8:
+            return (result & 0xff) == 0x80;
+        case NEG16:
+            return (result & 0xffff) == 0x8000;
+        case NEG32:
+        case INC:
+            return result == 0x80000000;
+        case DEC:
+            return result == 0x7FFFFFF;
+        case SAR8:
+        case SAR16:
+        case SAR32:
+            return false;
             //(3, 1f, 0) -> t
-            case SHL8:
-            case SHL16:
-            case SHL32:
-                return ((result >> 31) != 0) ^ (((op1 >> (32 - op2)) & 0x1) != 0);
+        case SHL8:
+        case SHL16:
+        case SHL32:
+            return ((result >> 31) != 0) ^ (((op1 >> (32 - op2)) & 0x1) != 0);
             //(8c102c00, 4, c102c000)->f
             //(1, 1f, 80000000) -> f
             //(1, 1f) -> f
-            case SHLD16:
-            case SHLD32:
-                return getCarryFlag(op1, op2, result, instr) ^ ((result >> 31) != 0);
-            case SHRD16:
-                if (op2 == 1)
-                    return (((result << 1) ^ result) & (1 << 15)) != 0;
-                return false;
-            case SHRD32:
-                if (op2 == 1)
-                    return (((result << 1) ^ result) >> 31) != 0;
-                return false;
-            case SHR:
+        case SHLD16:
+        case SHLD32:
+            return getCarryFlag(op1, op2, result, instr) ^ ((result >> 31) != 0);
+        case SHRD16:
+            if (op2 == 1)
+                return (((result << 1) ^ result) & (1 << 15)) != 0;
+            return false;
+        case SHRD32:
+            if (op2 == 1)
                 return (((result << 1) ^ result) >> 31) != 0;
+            return false;
+        case SHR:
+            return (((result << 1) ^ result) >> 31) != 0;
             // (22, 4, 2) -> t
-            case IMUL8:
-                return (((op1 & 0x80) == (op2 & 0x80)) && ((result & 0xff00) != 0));
-            case IMUL16:
-                return (((op1 & 0x8000) == (op2 & 0x8000)) && (((op1 * op2) & 0xffff0000) != 0));
-            case IMUL32:
-                return (((op1 & 0x80000000) == (op2 & 0x80000000)) && (((((long)op1) * op2) & 0xffffffff00000000L) != 0));
-            default:
-                throw new IllegalStateException("Unknown flag method: " + instr + " = " + (instr));
+        case IMUL8:
+            return (((op1 & 0x80) == (op2 & 0x80)) && ((result & 0xff00) != 0));
+        case IMUL16:
+            return (((op1 & 0x8000) == (op2 & 0x8000)) && (((op1 * op2) & 0xffff0000) != 0));
+        case IMUL32:
+            return (((op1 & 0x80000000) == (op2 & 0x80000000)) && (((((long)op1) * op2) & 0xffffffff00000000L) != 0));
+        default:
+            throw new IllegalStateException("Unknown flag method: " + instr + " = " + (instr));
         }
     }
 

@@ -165,37 +165,37 @@ public class StaticOpcodes
 	}
     }
 
-    /*public static void rep_movsd(Processor cpu)
+    public static void rep_movsd_a32(Processor cpu)
     {
         int count = cpu.r_ecx.get32();
-        int inAddr = cpu.r_edi.get32();
-        int outAddr = cpu.r_esi.get32();
+        int targetAddr = cpu.r_edi.get32();
+        int srcAddr = cpu.r_esi.get32();
 
         try {
             if (cpu.df) {
                 while (count != 0) {
-                    memory.setDoubleWord(inAddr, memory.getDoubleWord(outAddr));
+                    cpu.es.setDoubleWord(targetAddr, cpu.ds.getDoubleWord(srcAddr));
                     count--;
-                    outAddr -= 4;
-                    inAddr -= 4;
+                    srcAddr -= 4;
+                    targetAddr -= 4;
                 }
             } else {
                 while (count != 0) {
-                    memory.setDoubleWord(inAddr, memory.getDoubleWord(outAddr));
+                    cpu.es.setDoubleWord(targetAddr, cpu.ds.getDoubleWord(srcAddr));
                     count--;
-                    outAddr += 4;
-                    inAddr += 4;
+                    srcAddr += 4;
+                    targetAddr += 4;
                 }
             }
         }
         finally {
             cpu.r_ecx.set32(count);
-            cpu.r_edi.set32(inAddr);
-            cpu.r_esi.set32(outAddr);
+            cpu.r_edi.set32(targetAddr);
+            cpu.r_esi.set32(srcAddr);
         }
     }
 
-    public static void repne_scasb(Processor cpu)
+    /*public static void repne_scasb(Processor cpu)
     {
         int count = cpu.r_ecx.get32();
         int tAddr = cpu.r_edi.get32();
@@ -227,9 +227,9 @@ public class StaticOpcodes
             cpu.flagResult = data-input;
             cpu.flagIns = UCodes.SUB8;
         }
-    }
+    }*/
 
-    public static void rep_stosb(Processor cpu)
+    public static void rep_stosb_a32(Processor cpu)
     {
         int count = cpu.r_ecx.get32();
         int tAddr = cpu.r_edi.get32();
@@ -238,13 +238,13 @@ public class StaticOpcodes
         try {
             if (cpu.df) {
                 while (count != 0) {
-                    memory.setByte(tAddr, (byte) data);
+                    cpu.es.setByte(tAddr, (byte) data);
                     count--;
                     tAddr -= 1;
                 }
             } else {
                 while (count != 0) {
-                    memory.setByte(tAddr, (byte) data);
+                    cpu.es.setByte(tAddr, (byte) data);
                     count--;
                     tAddr += 1;
                 }
@@ -254,7 +254,7 @@ public class StaticOpcodes
             cpu.r_ecx.set32(count);
             cpu.r_edi.set32(tAddr);
         }
-        }*/
+    }
 
     public static void rep_stosw_a16(Processor cpu)
     {
