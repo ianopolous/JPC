@@ -51,7 +51,7 @@ import org.jpc.j2se.Option;
  */
 public class LazyCodeBlockMemory extends AbstractMemory
 {
-    public static final boolean LOG_DISAM = Option.log_disam.value();
+    public static final boolean LOG_DISAM_ADDRESSES = Option.log_disam_addresses.value();
     private CodeBlockManager codeBlockManager;
     private static final BlankCodeBlock PLACEHOLDER = new BlankCodeBlock();
     private RealModeCodeBlock[] realCodeBuffer;
@@ -107,7 +107,7 @@ public class LazyCodeBlockMemory extends AbstractMemory
             }
             catch (NullPointerException e)
             {
-                if (LOG_DISAM)
+                if (LOG_DISAM_ADDRESSES)
                     System.out.printf("Disassembling PM from %08x with opsize=%s\n", cpu.getInstructionPointer(), cpu.cs.getDefaultSizeFlag());
                 block = codeBlockManager.getProtectedModeCodeBlockAt(this, offset, cpu.cs.getDefaultSizeFlag());
                 setProtectedCodeBlockAt(offset, block);
@@ -141,7 +141,7 @@ public class LazyCodeBlockMemory extends AbstractMemory
             }
             catch (NullPointerException e)
             {
-                if (LOG_DISAM)
+                if (LOG_DISAM_ADDRESSES)
                     System.out.printf("Disassembling RM from %08x\n", cpu.getInstructionPointer());
                 block = codeBlockManager.getRealModeCodeBlockAt(this, offset);
                 setRealCodeBlockAt(offset, block);
@@ -175,7 +175,7 @@ public class LazyCodeBlockMemory extends AbstractMemory
             }
             catch (NullPointerException e)
             {
-                if (LOG_DISAM)
+                if (LOG_DISAM_ADDRESSES)
                     System.out.printf("Disassembling VM86 from %08x\n", cpu.getInstructionPointer());
                 block = codeBlockManager.getVirtual8086ModeCodeBlockAt(this, offset);
                 setVirtual8086CodeBlockAt(offset, block);

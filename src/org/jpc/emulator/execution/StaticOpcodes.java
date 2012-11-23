@@ -256,6 +256,33 @@ public class StaticOpcodes
         }
     }
 
+    public static void rep_stosb_a16(Processor cpu)
+    {
+        int count = cpu.r_cx.get16();
+        int tAddr = cpu.r_di.get16();
+        byte data = (byte)cpu.r_al.get8();
+
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    cpu.es.setByte(tAddr, data);
+                    count--;
+                    tAddr -= 1;
+                }
+            } else {
+                while (count != 0) {
+                    cpu.es.setByte(tAddr, data);
+                    count--;
+                    tAddr += 1;
+                }
+            }
+        }
+        finally {
+            cpu.r_cx.set16(count);
+            cpu.r_di.set16(tAddr);
+        }
+    }
+
     public static void rep_stosw_a16(Processor cpu)
     {
         int count = cpu.r_cx.get16();

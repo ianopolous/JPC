@@ -630,6 +630,46 @@ public class Processor implements HardwareComponent
         return getCarryFlag(flagStatus, cf, flagOp1, flagOp2, flagResult, flagIns);
     }
 
+    public final void cpuid()
+    {
+	switch (r_eax.get32()) {
+	case 0x00:
+	    r_eax.set32(0x02); 
+	    r_ebx.set32(0x756e6547); /* "Genu", with G in the low nibble of BL */
+	    r_edx.set32(0x49656e69); /* "ineI", with i in the low nibble of DL */
+	    r_ecx.set32(0x6c65746e); /* "ntel", with n in the low nibble of CL */
+	    return;
+	case 0x01:
+	    r_eax.set32(0x00000633); // Pentium II Model 8 Stepping 3
+	    r_ebx.set32(8 << 8); //not implemented (should be brand index)
+	    r_ecx.set32(0);
+
+	    int features = 0;
+	    features |= 0x01; //Have an FPU;
+	    features |= (1<< 8);  // Support CMPXCHG8B instruction
+	    features |= (1<< 4);  // implement TSC
+	    features |= (1<< 5);  // support RDMSR/WRMSR
+	    //features |= (1<<23);  // support MMX
+	    //features |= (1<<24);  // Implement FSAVE/FXRSTOR instructions.
+	    features |= (1<<15);  // Implement CMOV instructions.
+	    //features |= (1<< 9);   // APIC on chip
+	    //features |= (1<<25);  // support SSE
+	    features |= (1<< 3);  // Support Page-Size Extension (4M pages)
+	    features |= (1<<13);  // Support Global pages.
+	    //features |= (1<< 6);  // Support PAE.
+	    features |= (1<<11);  // SYSENTER/SYSEXIT
+	    r_edx.set32(features);
+	    return;
+	default:
+	case 0x02:
+	    r_eax.set32(0x410601);
+            r_ebx.set32(0);
+            r_ecx.set32(0);
+            r_edx.set32(0);
+	    return;
+	}
+    }
+
     public void lock(int addr){}
     public void unlock(int addr){}
 

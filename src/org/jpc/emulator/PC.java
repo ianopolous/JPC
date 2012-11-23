@@ -33,6 +33,8 @@
 
 package org.jpc.emulator;
 
+import org.jpc.emulator.execution.decoder.Disassembler;
+import org.jpc.emulator.execution.decoder.Instruction;
 import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.memory.*;
 import org.jpc.emulator.pci.peripheral.*;
@@ -180,6 +182,53 @@ public class PC {
     public void hello()
     {
         System.out.println("Hello from the new JPC!");
+    }
+
+    public Instruction getInstruction()
+    {
+        if (processor.isProtectedMode())
+        {
+            byte[] code = new byte[15];
+            linearAddr.copyContentsIntoArray(processor.getInstructionPointer(), code, 0, code.length);
+            return Disassembler.disassemble32(new Disassembler.ByteArrayPeekStream(code));
+        }
+        byte[] code = new byte[15];
+        physicalAddr.copyContentsIntoArray(processor.getInstructionPointer(), code, 0, code.length);
+        return Disassembler.disassemble16(new Disassembler.ByteArrayPeekStream(code));
+    }
+
+    public void setState(int[] s)
+    {
+        processor.r_eax.set32(s[0]);
+        processor.r_ebx.set32(s[1]);
+        processor.r_ecx.set32(s[2]);
+        processor.r_edx.set32(s[3]);
+        processor.r_esi.set32(s[4]);
+        processor.r_edi.set32(s[5]);
+        processor.r_esp.set32(s[6]);
+        processor.r_ebp.set32(s[7]);
+        processor.eip = s[8];
+        try {
+            processor.setEFlags(s[9]);
+        } catch (ProcessorException e) {}
+        processor.cs(s[10]);
+        processor.ds(s[11]);
+        processor.es(s[12]);
+        processor.fs(s[13]);
+        processor.gs(s[14]);
+        processor.ss(s[15]);
+    }
+
+    public void setCode(byte[] code)
+    {
+        if (processor.isProtectedMode())
+        {
+            linearAddr.copyArrayIntoContents(processor.getInstructionPointer(), code, 0, code.length);
+        }
+        else
+        {
+            physicalAddr.copyArrayIntoContents(processor.getInstructionPointer(), code, 0, code.length);
+        }
     }
 
     public int[] getState()

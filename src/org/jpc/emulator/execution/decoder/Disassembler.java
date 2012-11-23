@@ -15,7 +15,7 @@ public class Disassembler
 {
     public static final boolean PRINT_DISAM = Option.log_disam.value();
     static ZygoteInstruction[][] itab = new Table().itab_list;
-    public static final int MAX_INSTRUCTIONS_PER_BLOCK = 10000;
+    public static final int MAX_INSTRUCTIONS_PER_BLOCK = Option.max_instructions_per_block.intValue(10000);
     public static final int vendor = VENDOR_INTEL;
     public static ZygoteInstruction ie_invalid = new ZygoteInstruction("invalid", O_NONE, O_NONE, O_NONE, P_none);
     public static ZygoteInstruction ie_pause = new ZygoteInstruction("pause", O_NONE, O_NONE,    O_NONE, P_none);
@@ -97,6 +97,25 @@ public class Disassembler
         throw new IllegalStateException("Unimplemented opcode: "+in.toString() + ", general pattern: " + in.getGeneralClassName()+".");
     }
 
+    public static Executable getEipUpdate(boolean isPM, int blockStart, Instruction prev)
+    {
+        Map<String, Constructor<? extends Executable>> instructions = null;
+            if (!isPM)
+                instructions = rm_instructions;
+            else
+                instructions = pm_instructions;
+        try {
+            return instructions.get("eip_update").newInstance(blockStart, prev);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static Instruction disassemble16(PeekableInputStream input)
     {
         input.resetCounter();
@@ -127,8 +146,6 @@ public class Disassembler
 
     public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size, boolean isPM)
     {
-        if (operand_size == 32)
-            System.out.println("Disassembling PM block!!!!!");
         int startAddr = (int)input.getAddress();
         boolean debug = false;
         Instruction insn;
@@ -138,7 +155,13 @@ public class Disassembler
             insn = disassemble16(input);
         Executable start = getExecutable(isPM, startAddr, insn);
         if (PRINT_DISAM)
-            System.out.println(insn);
+        {
+            System.out.printf("%d;%s;%s;", operand_size, insn.getGeneralClassName(), insn);
+            input.seek(-insn.x86Length);
+            for(int i=0; i < insn.x86Length; i++)
+                System.out.printf("%02x ", input.read(8));
+            System.out.println();
+        }
         Executable current = start;
         Instruction currentInsn = insn;
         int x86Length = insn.x86Length;
@@ -147,11 +170,23 @@ public class Disassembler
         {
             Instruction nextInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
             if (PRINT_DISAM)
-                System.out.println(nextInsn);
+            {
+                System.out.printf("%d;%s;%s;", operand_size, nextInsn.getGeneralClassName(), nextInsn);
+                input.seek(-nextInsn.x86Length);
+                for(int i=0; i < nextInsn.x86Length; i++)
+                    System.out.printf("%02x ", input.read(8));
+                System.out.println();
+            }
             Executable next = getExecutable(isPM, startAddr, nextInsn);
             count++;
             if (count > MAX_INSTRUCTIONS_PER_BLOCK)
-                throw new IllegalStateException(String.format("Exceeded maximum number of instructions in a block at %x", startAddr));
+            {
+                Executable eip = getEipUpdate(isPM, startAddr, currentInsn);
+                current.next = eip;
+                if (MAX_INSTRUCTIONS_PER_BLOCK > 10)
+                    System.out.println((String.format("Exceeded maximum number of instructions in a block at %x", startAddr)));
+                return new BasicBlock(start, x86Length);
+            }
             if (debug)
                 System.out.printf("Disassembled next instruction (%d): %s at %x\n", count, next, input.getAddress());
             currentInsn = nextInsn;
@@ -161,31 +196,6 @@ public class Disassembler
         }
 
         return new BasicBlock(start, x86Length);
-    }
-
-    public static Instruction disassembleBlock32(PeekableInputStream input)
-    {
-        int startAddr = (int)input.getAddress();
-        //System.out.printf("Disassembling block at %x\n", input.getAddress());
-        boolean debug = false;//input.getAddress() == 0x826d420;
-        Instruction start = disassemble32(input);
-        //System.out.println("Disassemble block starting with "+start);
-        Instruction currentInsn = start;
-        int x86Length = start.x86Length;
-        int count = 1;
-        while (!currentInsn.isBranch())
-        {
-            Instruction nextInsn = disassemble32(input);
-            count++;
-            if (count > MAX_INSTRUCTIONS_PER_BLOCK)
-                throw new IllegalStateException(String.format("Exceeded maximum number of instructions in a block at %x", startAddr));
-            if (debug)
-                System.out.printf("Disassembled next instruction (%d): %s at %x\n", count, nextInsn, input.getAddress());
-            currentInsn.next = nextInsn;
-            currentInsn = nextInsn;
-            x86Length += nextInsn.x86Length;
-        }
-        return start;
     }
 
     public static Instruction disassemble(PeekableInputStream input, int mode)
@@ -209,6 +219,11 @@ public class Disassembler
         public ByteArrayPeekStream(byte[] data)
         {
             this.data = data;
+        }
+
+        public void seek(int delta)
+        {
+            index += delta;
         }
 
         public void resetCounter()

@@ -7,8 +7,11 @@ public abstract class Option {
     private static final Hashtable<String, Option> names2options = new Hashtable();
 
     public static final Switch log_disam = createSwitch("log-disam");
+    public static final Switch log_disam_addresses = createSwitch("log-disam-addresses");
     public static final Switch log_state = createSwitch("log-state");
     public static final Switch log_blockentry = createSwitch("log-blockentry");
+    public static final Opt ram = opt("ram");
+    public static final Opt max_instructions_per_block = opt("max-block-size");
 
     public static String[] parse(String[] source) {
         ArrayList<String> tmp = new ArrayList<String>();

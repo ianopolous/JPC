@@ -52,6 +52,11 @@ class PeekableMemoryStream implements PeekableInputStream
         start = offset;
     }
 
+    public void seek(int delta)
+    {
+        position += delta;
+    }
+
     public int peek()
     {
         return 0xFF & memory.getByte((int) (position));

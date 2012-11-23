@@ -35,6 +35,17 @@ build_core:
 	    `find org/jpc/debugger -name \*.java` \
 	    `find org/jpc/j2se -name \*.java`
 
+.PHONY: tools
+tools:
+	mkdir -p build
+	javac $(JAVA_BUILD_OPTS) -d build `find tools -name \*.java`
+	echo "Name: JPC Tools" > application.manifest
+	echo "Main-Class: tools.Tools" >> application.manifest
+
+	jar -cfm Tools.jar application.manifest \
+	    -C build tools
+	rm -f application.manifest
+
 .PHONY: build_nereus
 build_nereus:
 	mkdir -p build

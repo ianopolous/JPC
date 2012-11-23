@@ -1,3 +1,5 @@
+package tools;
+
 import java.util.*;
 
 public abstract class Operand
@@ -562,6 +564,8 @@ public abstract class Operand
         reg8.put("BLr11b", "cpu.r_bl");
         reg8.put("BHr15b", "cpu.r_bh");
         reg8.put("CLr9b", "cpu.r_cl");
+        reg8.put("CHr13b", "cpu.r_ch");
+        reg8.put("DHr14b", "cpu.r_dh");
         reg16only.put("DX", "cpu.r_edx");
         reg16.put("rAXr8", "cpu.r_eax");
         reg16.put("rAX", "cpu.r_eax");
@@ -571,6 +575,7 @@ public abstract class Operand
         reg16.put("eDX", "cpu.r_edx");
         reg16.put("eSP", "cpu.r_esp");
         reg16.put("eSI", "cpu.r_esi");
+        reg16.put("eDI", "cpu.r_edi");
         reg16.put("rBXr11", "cpu.r_ebx");
         reg16.put("rCXr9", "cpu.r_ecx");
         reg16.put("rDXr10", "cpu.r_edx");

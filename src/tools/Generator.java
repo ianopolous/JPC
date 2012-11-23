@@ -1,3 +1,5 @@
+package tools;
+
 import java.io.*;
 import java.util.*;
 import javax.xml.parsers.*;
@@ -8,12 +10,23 @@ public class Generator
 {
     public static void main(String[] cmd)
     {
-        opcodeGen(parseXML("RM"), "rm");
-        opcodeGen(parseXML("PM"), "pm");
+        int rm = opcodeParse(parseXML("RM"), "rm", new OpcodeWriter());
+        int pm = opcodeParse(parseXML("PM"), "pm", new OpcodeWriter());
+        System.out.printf("Generated %d RM opcodes and %d PM opcodes\n", rm, pm);
     }
 
-    public static void opcodeGen(Document dom, String mode)
+    public static class OpcodeWriter implements Callable
     {
+        public void call(Opcode op, String mode)
+        {
+            System.out.println(op.getName());
+            op.writeToFile(mode);
+        }
+    }
+
+    public static int opcodeParse(Document dom, String mode, Callable call)
+    {
+        int count=0;
         NodeList properties = dom.getElementsByTagName("jcc");
         String jcc = null;
         for (int i=0; i < properties.getLength(); i++)
@@ -61,11 +74,12 @@ public class Generator
                 List<Opcode> ops = Opcode.get(mnemonic, args, size, snippet, ret);
                 for (Opcode op: ops)
                 {
-                    System.out.println(op.getName());
-                    op.writeToFile(mode);
+                    call.call(op, mode);
+                    count++;
                 }
             }
         }
+        return count;
     }
 
     public static Document parseXML(String mode)
@@ -73,7 +87,7 @@ public class Generator
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
-            return db.parse("Opcodes_"+mode+".xml");
+            return db.parse("tools/Opcodes_"+mode+".xml");
         }catch(ParserConfigurationException pce) {
             pce.printStackTrace();
         }catch(SAXException se) {
