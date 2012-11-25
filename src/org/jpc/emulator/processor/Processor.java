@@ -3865,7 +3865,9 @@ public class Processor implements HardwareComponent
             return (((op1 & 0x80000000) == (op2 & 0x80000000)) && (((((long)op1) * op2) & 0xffffffff00000000L) != 0));
         case SHRD16:
         case SHRD32:
-        case SHR:
+        case SHR8:
+        case SHR16:
+        case SHR32:
             return ((op1 >> (op2 - 1)) & 0x1) != 0;
         default:
             throw new IllegalStateException("Unknown flag method: " + instr);
@@ -3924,7 +3926,9 @@ public class Processor implements HardwareComponent
         case SHLD16:
         case SHLD32:
             return false;// strictly undefined, check this
-        case SHR:
+        case SHR8:
+        case SHR16:
+        case SHR32:
             //(838, 6) -> t
             //(6d8, 6) -> t
             //(9d0, 6) -> f
@@ -3989,7 +3993,9 @@ public class Processor implements HardwareComponent
             return false;
             //(3, 1f, 0) -> t
         case SHL8:
+            return ((result >> 7) != 0) ^ (((op1 >> (8 - op2)) & 0x1) != 0);
         case SHL16:
+            return ((result >> 15) != 0) ^ (((op1 >> (16 - op2)) & 0x1) != 0);
         case SHL32:
             return ((result >> 31) != 0) ^ (((op1 >> (32 - op2)) & 0x1) != 0);
             //(8c102c00, 4, c102c000)->f
@@ -4006,7 +4012,11 @@ public class Processor implements HardwareComponent
             if (op2 == 1)
                 return (((result << 1) ^ result) >> 31) != 0;
             return false;
-        case SHR:
+        case SHR8:
+            return (((result << 1) ^ result) >> 7) != 0;
+        case SHR16:
+            return (((result << 1) ^ result) >> 15) != 0;
+        case SHR32:
             return (((result << 1) ^ result) >> 31) != 0;
             // (22, 4, 2) -> t
         case IMUL8:

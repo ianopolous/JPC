@@ -3,7 +3,9 @@ package org.jpc.emulator.execution;
 public class UCodes
 {
     //Lazy flag operations
-    public static final int SHR = 127;
+    public static final int SHR8 = 125;
+    public static final int SHR16 = 126;
+    public static final int SHR32 = 127;
     public static final int SHRD16 = 128;
     public static final int SHRD32 = 129;
     public static final int ADD8 = 130;

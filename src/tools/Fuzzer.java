@@ -4,6 +4,10 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 import java.lang.reflect.*;
+import javax.xml.parsers.*;
+import org.w3c.dom.*;
+import org.xml.sax.*;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * User: Ian Preston
@@ -16,27 +20,44 @@ public class Fuzzer
 
     public static void main(String[] args) throws Exception
     {
-        PCHandle pc1 = new PCHandle(newJar, true, args);
-        args = pc1.parseArgs(args); // remove config args
-        PCHandle pc2 = new PCHandle(oldJar, false, args);
+        URL[] urls = new URL[]{new File(newJar).toURL()};
+        ClassLoader cl1 = new URLClassLoader(urls, tools.Fuzzer.class.getClassLoader());
+        Class opts = cl1.loadClass("org.jpc.j2se.Option");
+        Method parse = opts.getMethod("parse", String[].class);
+        args = (String[])parse.invoke(opts, (Object)args);
+        PCHandle pc1 = new PCHandle(cl1, true, args);
+
+        URL[] urls2 = new URL[]{new File(oldJar).toURL()};
+        ClassLoader cl2 = new URLClassLoader(urls2, tools.Fuzzer.class.getClassLoader());
+        PCHandle pc2 = new PCHandle(cl2, false, args);
      
         // will succeed
-        byte[] add_ah_al = new byte[] {(byte)0, (byte)0xc4};
-        int[] input = new int[16];
-        executeCase(add_ah_al, input, pc1, pc2, false, true);
+        //byte[] add_ah_al = new byte[] {(byte)0, (byte)0xc4};
+        //int[] input = new int[16];
+        //executeCase(add_ah_al, input, pc1, pc2, false, true);
 
         // will fail
-        byte[] imul_bx = new byte[] {(byte)0xf7, (byte)0xeb};
-        int[] input2 = new int[16];
-        input2[0] = 0x50;
-        input2[1] = 0x19;
-        input2[9] = 0x46;
-        executeCase(imul_bx, input2, pc1, pc2, false, true);
+        //byte[] imul_bx = new byte[] {(byte)0xf7, (byte)0xeb};
+        //int[] input2 = new int[16];
+        //input2[0] = 0x50;
+        //input2[1] = 0x19;
+        //input2[9] = 0x46;
+        //executeCase(imul_bx, input2, pc1, pc2, false, true);
 
-        
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        SAXParser saxParser = factory.newSAXParser();
+        DefaultHandler rmhandler = new TestParser("rm", pc1, pc2, false, true);
+        //saxParser.parse("tests/rm.tests", rmhandler);
+
+        // set PCs to protected mode
+        pc1.setPM(true);
+        pc2.setPM(true);
+
+        DefaultHandler pmhandler = new TestParser("pm", pc1, pc2, false, true);
+        saxParser.parse("tests/pm.tests", pmhandler);
     }
 
-    public static void executeCase(byte[] code, int[] initialState, PCHandle pc1, PCHandle pc2, boolean mem, boolean flags) throws Exception
+    public static boolean executeCase(String opclass, String disam, byte[] code, int[] initialState, PCHandle pc1, PCHandle pc2, boolean mem, boolean flags) throws Exception
     {
         pc1.setState(initialState);
         pc2.setState(initialState);
@@ -44,20 +65,20 @@ public class Fuzzer
         pc1.setCode(code);
         pc2.setCode(code);
 
-        String instruction = pc1.getInstruction();
         try {
             pc1.executeBlock();
         } catch (InvocationTargetException e) {
             e.printStackTrace(); 
-            return;
+            return false;
         }
         pc2.executeBlock();
-        doCompare(mem, flags, pc1, pc2, initialState, instruction);
+        doCompare(mem, flags, pc1, pc2, initialState, opclass, disam, code);
+        return true;
     }
 
-    public static void doCompare(boolean mem, boolean compareFlags, PCHandle newpc, PCHandle oldpc, int[] input, String instr) throws Exception
+    public static void doCompare(boolean mem, boolean compareFlags, PCHandle newpc, PCHandle oldpc, int[] input, String opclass, String disam, byte[] code) throws Exception
     {
-        compareStates(input, instr, newpc.getState(), oldpc.getState(), compareFlags);
+        compareStates(input, opclass, disam, code, newpc.getState(), oldpc.getState(), compareFlags);
         if (!mem)
             return;
         byte[] data1 = new byte[4096];
@@ -68,7 +89,7 @@ public class Fuzzer
             Integer l2 = oldpc.savePage(new Integer(i), data2);
             if (l2 > 0)
                 if (!comparePage(i, data1, data2))
-                    printAllStates(input, newpc.getState(), oldpc.getState(), instr);
+                    printAllStates(code, input, newpc.getState(), oldpc.getState(), opclass, disam);
         }
     }
 
@@ -97,11 +118,14 @@ public class Fuzzer
         System.out.println(builder);
     }
 
-    public static void printAllStates(int[] input, int[] fast, int[] old, String op)
+    public static void printAllStates(byte[] code, int[] input, int[] fast, int[] old, String opclass, String disam)
     {
+        System.out.print("**" + disam + " == " + opclass + " =: ");
+        for (int i=0; i < code.length; i++)
+            System.out.printf("%02x ", code[i]);
+        System.out.println();
         System.out.println("Input state:");
         printState(input);
-        System.out.println(op);
         System.out.println("New JPC state:");
         printState(fast);
         System.out.println("Old JPC state:");
@@ -121,31 +145,35 @@ public class Fuzzer
         }
     }
 
-    public static void compareStates(int[] input, String op, int[] fast, int[] old, boolean compareFlags) throws Exception
+    public static void compareStates(int[] input, String opclass, String disam, byte[] code, int[] fast, int[] old, boolean compareFlags) throws Exception
     {
         if (fast.length != 16)
             throw new IllegalArgumentException("new state length = "+fast.length);
         if (old.length != fast.length)
             throw new IllegalArgumentException("old state length = "+old.length);
+        StringBuilder b = new StringBuilder();
         for (int i=0; i < fast.length; i++)
             if (i != 9)
             {
                 if (fast[i] != old[i])
                 {
-                    System.out.printf("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]);
-                    printAllStates(input, fast, old, op);
-                    continueExecution();
+                    b.append(String.format("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]));
+                    //continueExecution();
                 }
             }
             else
             {
                 if (compareFlags && ((fast[i] & FLAG_MASK) != (old[i] & FLAG_MASK)))
                 {
-                    System.out.printf("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]);
-                    printAllStates(input, fast, old, op);
-                    continueExecution();
+                    b.append(String.format("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]));
+                    //continueExecution();
                 }
             }
+        if (b.length() > 0)
+        {
+            printAllStates(code, input, fast, old, opclass, disam);
+            System.out.println(b.toString());
+        }
     }
 
     public static void continueExecution()
@@ -171,21 +199,11 @@ public class Fuzzer
     {
         final Object pc;
         final Method state, setState, executeBlock, savePage, setCode;
-        Method decode = null, parse=null;
-        
-        public PCHandle(String pathToJar, boolean isNew, String[] args) throws Exception
+
+        public PCHandle(ClassLoader cl1, boolean isNew, String[] args) throws Exception
         {
-            URL[] urls = new URL[]{new File(pathToJar).toURL()};
-            ClassLoader cl1 = new URLClassLoader(urls, Comparison.class.getClassLoader());
             Class c1 = cl1.loadClass("org.jpc.emulator.PC");
 
-            if (isNew)
-            {
-                Class opts = cl1.loadClass("org.jpc.j2se.Option");
-                parse = opts.getMethod("parse", String[].class);
-                parse.invoke(opts, (Object)args);
-                decode = c1.getMethod("getInstruction");
-            }
 
             Constructor ctor = c1.getConstructor(String[].class);
             pc = ctor.newInstance((Object)args);
@@ -200,11 +218,25 @@ public class Fuzzer
             setCode = c1.getMethod("setCode", byte[].class);
         }
 
-        public String[] parseArgs(String[] args) throws Exception
+        public void setPM(boolean pm) throws Exception
         {
-            if (parse != null)
-                return (String[]) parse.invoke(pc, (Object)args);
-            return null;
+            byte[] setcr0 = new byte[] {(byte)0x0f, (byte)0x22, (byte)0xc0};
+            if (pm)
+            {
+                int[] regs = new int[16];
+                regs[0] = 0x60000011;
+                setState.invoke(pc, regs);
+                setCode(setcr0);
+                executeBlock();
+            }
+            else
+            {
+                int[] regs = new int[16];
+                regs[0] = 0x60000010;
+                setState.invoke(pc, regs);
+                setCode(setcr0);
+                executeBlock();
+            }
         }
 
         public void setCode(byte[] code) throws Exception
@@ -231,12 +263,73 @@ public class Fuzzer
         {
             return (Integer)savePage.invoke(pc, page, (Object) buf);
         }
+    }
 
-        public String getInstruction() throws Exception
+    public static class TestParser extends DefaultHandler
+    {
+        final String mode;
+        final PCHandle pc1, pc2;
+        final boolean mem, flags;
+        final Set<String> unimplemented = new HashSet<String>();
+        byte[] currentCode;
+        String currentClass;
+        String currentDisam;
+        enum Type {None, Class, Code, Disam, Input}
+        Type type;
+
+        public TestParser(String mode, PCHandle pc1, PCHandle pc2, boolean mem, boolean flags)
         {
-            if (decode != null)
-                return decode.invoke(pc).toString();
-            return "";
+            this.mode = mode;
+            this.pc1 = pc1;
+            this.pc2 = pc2;
+            this.mem = mem;
+            this.flags = flags;
+        }
+
+        public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException
+        {
+            if (qName.equals("class"))
+                type = Type.Class;
+            else if (qName.equals("disam"))
+                type = Type.Disam;
+            else if (qName.equals("code"))
+                type = Type.Code;
+            else if (qName.equals("input"))
+                type = Type.Input;
+        }
+
+        public void characters(char ch[], int start, int length) throws SAXException
+        {
+            if (type == Type.Class)
+                currentClass = new String(ch, start, length);
+            else if (type == Type.Disam)
+                currentDisam = new String(ch, start, length);
+            else if (type == Type.Code)
+            {
+                String[] codeArr = new String(ch, start, length).trim().split(" ");
+                currentCode = new byte[codeArr.length];
+                for (int i=0; i < codeArr.length; i++)
+                    currentCode[i] = (byte)Integer.parseInt(codeArr[i], 16);
+            }
+            else if (type == Type.Input)
+            {
+                if (unimplemented.contains(currentClass))
+                    return;
+                String[] inputArr = new String(ch, start, length).trim().split(" ");
+                int[] input = new int[inputArr.length];
+                for (int i=0; i < inputArr.length; i++)
+                    input[i] = Integer.parseInt(inputArr[i], 16);
+                // now do the test case
+                try {
+                    if (!executeCase(currentClass, currentDisam, currentCode, input, pc1, pc2, mem, flags))
+                        unimplemented.add(currentClass);
+                } catch (Exception e) {e.printStackTrace();}
+            }
+        }
+
+        public void endElement(String uri, String localName, String qName) throws SAXException
+        {
+            type = Type.None;
         }
     }
 }

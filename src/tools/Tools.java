@@ -14,12 +14,6 @@ public class Tools
             System.arraycopy(args, 1, rest, 0, rest.length);
             Comparison.main(rest);
         }
-        else if (args[0].equals("-testgen"))
-        {
-            String[] rest = new String[args.length-1];
-            System.arraycopy(args, 1, rest, 0, rest.length);
-            TestGenerator.main(rest);
-        }
         else if (args[0].equals("-fuzz"))
         {
             String[] rest = new String[args.length-1];

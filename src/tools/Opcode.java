@@ -18,7 +18,7 @@ public class Opcode
     {
         boolean msize = false;
         for (String s: args)
-            if (s.equals("Ev") || s.equals("Gv") || s.equals("Iv") || s.equals("Ov"))
+            if (s.equals("Ev") || s.equals("Gv") || s.equals("Iv") || s.equals("Iz") || s.equals("Ov"))
                 msize = true;
         multiSize = msize;
         operands = new Operand[args.length];
@@ -164,6 +164,8 @@ public class Opcode
             {
                 String arg = operands[i].toString();
                 if ((arg.length() > 1) && arg.charAt(1) == 'v')
+                    vIndex = i;
+                if ((arg.length() > 1) && arg.equals("Iz"))
                     vIndex = i;
             }
             if (vIndex == -1)

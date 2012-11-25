@@ -860,10 +860,10 @@ cpu.r_ebp.set32(cpu.pop32());</snippet>
 
   <opcode mnemonic="shl">
     <return>Branch.None</return>
-    <snippet>        if($op2.get != 0)
+    <snippet>        if((0x1f &amp; $op2.get) != 0)
         {
             cpu.flagOp1 = $op1.get;
-            cpu.flagOp2 = $op2.get;
+            cpu.flagOp2 = $op2.get &amp; 0x1f;
             cpu.flagResult = $cast(cpu.flagOp1 &lt;&lt; cpu.flagOp2);
             $op1.set$castcpu.flagResult);
             cpu.flagIns = UCodes.SHL$size;
@@ -884,7 +884,7 @@ cpu.r_ebp.set32(cpu.pop32());</snippet>
             cpu.flagOp2 = $op2.get;
             cpu.flagResult = $cast(cpu.flagOp1 &gt;&gt;&gt; cpu.flagOp2);
             $op1.set$castcpu.flagResult);
-            cpu.flagIns = UCodes.SHR;
+            cpu.flagIns = UCodes.SHR$size;
             cpu.flagStatus = OSZAPC;
         }</snippet>
     <args size="8">Eb;Ib</args>
@@ -897,6 +897,12 @@ cpu.r_ebp.set32(cpu.pop32());</snippet>
   <opcode mnemonic="sti">
     <return>Branch.None</return>
     <snippet>        cpu.eflagsInterruptEnableSoon = true;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="std">
+    <return>Branch.None</return>
+    <snippet>        cpu.df = true;</snippet>
     <args size="0"></args>
   </opcode>
 

@@ -41,9 +41,27 @@ tools:
 	javac $(JAVA_BUILD_OPTS) -d build `find tools -name \*.java`
 	echo "Name: JPC Tools" > application.manifest
 	echo "Main-Class: tools.Tools" >> application.manifest
+	echo "Class-Path: Tools.jar:." >> jpc.manifest
 
 	jar -cfm Tools.jar application.manifest \
 	    -C build tools
+	rm -f application.manifest
+
+.PHONY: tests
+tests:
+	mkdir -p build
+	javac $(JAVA_BUILD_OPTS) -d build `find tools -name \*.java` \
+	`find org/jpc/emulator/execution/decoder -name \*.java` \
+	org/jpc/emulator/execution/Executable.java \
+	org/jpc/j2se/Option.java
+	echo "Name: JPC Tools" > application.manifest
+	echo "Main-Class: tools.TestGenerator" >> application.manifest
+	echo "Class-Path: Tools.jar:." >> jpc.manifest
+
+	jar -cfm TestGen.jar application.manifest \
+	    -C build tools -C build org/jpc/emulator/execution/decoder \
+	    -C build org/jpc/emulator/execution/Executable.class \
+	    -C build org/jpc/j2se
 	rm -f application.manifest
 
 .PHONY: build_nereus
