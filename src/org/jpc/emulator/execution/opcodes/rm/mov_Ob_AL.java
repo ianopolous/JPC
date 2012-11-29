@@ -12,7 +12,7 @@ public class mov_Ob_AL extends Executable
     public mov_Ob_AL(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0]);
+        op1 = new Pointer(parent.operand[0], parent.adr_mode);
     }
 
     public Branch execute(Processor cpu)

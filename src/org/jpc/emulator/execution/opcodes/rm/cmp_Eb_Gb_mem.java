@@ -13,7 +13,7 @@ public class cmp_Eb_Gb_mem extends Executable
     public cmp_Eb_Gb_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0]);
+        op1 = new Pointer(parent.operand[0], parent.adr_mode);
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
 

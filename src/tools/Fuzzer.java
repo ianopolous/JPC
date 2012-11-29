@@ -53,7 +53,7 @@ public class Fuzzer
         pc1.setPM(true);
         pc2.setPM(true);
 
-        DefaultHandler pmhandler = new TestParser("pm", pc1, pc2, false, true);
+        DefaultHandler pmhandler = new TestParser("pm", pc1, pc2, true, true);
         saxParser.parse("tests/pm.tests", pmhandler);
     }
 
@@ -195,6 +195,25 @@ public class Fuzzer
 
     public static final int FLAG_MASK = -1;//~0x10;
 
+    public static final int gdtBase = 0xfb632;
+    public static byte[] gdt = new byte[] {
+                    (byte)0x0, (byte)0x0, (byte)0x0, (byte)0x0,
+                    (byte)0x0, (byte)0x0, (byte)0x0, (byte)0x0,
+                    (byte)0x0, (byte)0x0, (byte)0x0, (byte)0x0,
+                    (byte)0x0, (byte)0x0, (byte)0x0, (byte)0x0,
+                    (byte)0xff, (byte)0xff, (byte)0x0, (byte)0x0,
+                    (byte)0x0, (byte)0x9b, (byte)0xcf, (byte)0x0,
+                    (byte)0xff, (byte)0xff, (byte)0x0, (byte)0x0,
+                    (byte)0x0, (byte)0x93, (byte)0xcf, (byte)0x0,
+                    (byte)0xff, (byte)0xff, (byte)0x0, (byte)0x0,
+                    (byte)0x0f, (byte)0x9b, (byte)0x0, (byte)0x0,
+                    (byte)0xff, (byte)0xff, (byte)0x0, (byte)0x0,
+                    (byte)0x0, (byte)0x93, (byte)0x0, (byte)0x0
+            };
+    public static byte[] lgdt = new byte[]{(byte)0x2e, (byte)0x0f, (byte)0x01, (byte)0x16, (byte)0x2c, (byte)0xb6};
+    public static int testEip = 0;
+    public static int testCS = 0;
+
     public static class PCHandle
     {
         final Object pc;
@@ -223,11 +242,43 @@ public class Fuzzer
             byte[] setcr0 = new byte[] {(byte)0x0f, (byte)0x22, (byte)0xc0};
             if (pm)
             {
-                int[] regs = new int[16];
-                regs[0] = 0x60000011;
+                // setup gdt data
+                /*int[] regs0 = new int[16];
+                regs0[10] = 0xf000;// set cs
+                regs0[8] = 0xb632; // cheat and set eip to where the gdt will be to load gdt
+                setState.invoke(pc, regs0);
+                setCode(gdt); // refers to BIOS - data is already there*/
+
+                // lgdt
+                int[] regs0 = new int[16];
+                regs0[10] = 0xf000;// set cs
+                regs0[8] = 0xb599; // set eip to point to lgdt
+                setState.invoke(pc, regs0);
+                //setCode(lgdt);
+                executeBlock(); // relies on single instruction length block
+                // set cr0
+                executeBlock();
+                executeBlock();
+                executeBlock();
+                // far jump
+                executeBlock();
+                // load other segments
+                executeBlock();// mov eax, Iz
+                executeBlock();//ds
+                executeBlock();//es
+                executeBlock();//ss
+
+                // load test eip
+                int[] newregs = getState();
+                testEip = newregs[8];
+                testCS = newregs[10];
+                // load cr0
+                /*int[] regs = new int[16];
+                regs[0] = 0x60000011; // new cr0 value is in eax
+                regs0[10] = 0xf000;// set cs
                 setState.invoke(pc, regs);
                 setCode(setcr0);
-                executeBlock();
+                executeBlock();*/
             }
             else
             {
@@ -276,6 +327,7 @@ public class Fuzzer
         String currentDisam;
         enum Type {None, Class, Code, Disam, Input}
         Type type;
+        int opcodeCount=0, testCount=0;
 
         public TestParser(String mode, PCHandle pc1, PCHandle pc2, boolean mem, boolean flags)
         {
@@ -319,11 +371,21 @@ public class Fuzzer
                 int[] input = new int[inputArr.length];
                 for (int i=0; i < inputArr.length; i++)
                     input[i] = Integer.parseInt(inputArr[i], 16);
+                // set eip
+                // eip will be 0 which is fine
+                //input[8] = testEip;
+                input[10] = testCS;
+                input[11] = 0x18; // ds
+                input[12] = 0x18; // es
+                input[15] = 0x18; // ss
                 // now do the test case
                 try {
                     if (!executeCase(currentClass, currentDisam, currentCode, input, pc1, pc2, mem, flags))
                         unimplemented.add(currentClass);
                 } catch (Exception e) {e.printStackTrace();}
+                testCount++;
+                if (testCount % 100000 == 0)
+                    System.out.printf("Completed %d test cases from %d opcodes in %s\n", testCount, opcodeCount, mode);
             }
         }
 

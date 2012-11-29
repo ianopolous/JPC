@@ -229,6 +229,35 @@ public class StaticOpcodes
         }
     }*/
 
+    public static void rep_insw_a16(Processor cpu)
+    {
+        int port = cpu.r_dx.get16() & 0xffff;
+        int count = cpu.r_ecx.get16() & 0xffff;
+        int addr = cpu.r_edi.get16() & 0xffff;
+
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    //check hardware interrupts
+                    cpu.es.setWord(addr & 0xffff, (short)cpu.ioports.ioPortRead16(port));
+                    count--;
+                    addr -= 2;
+                }
+            } else {
+                while (count != 0) {
+                    //check hardware interrupts
+                    cpu.es.setWord(addr & 0xffff, (short)cpu.ioports.ioPortRead16(port));
+                    count--;
+                    addr += 2;
+                }
+            }
+        }
+        finally {
+            cpu.r_ecx.set16(count);
+            cpu.r_edi.set16(addr);
+        }
+    }
+
     public static void rep_stosb_a32(Processor cpu)
     {
         int count = cpu.r_ecx.get32();
@@ -367,34 +396,34 @@ public class StaticOpcodes
     public static final void repne_scasb_a16(Processor cpu)
     {
         int data = 0xff & cpu.r_al.get8();
-	int count = cpu.r_ecx.get16() & 0xffff;
-	int addr = cpu.r_edi.get16() & 0xffff;
+        int count = cpu.r_ecx.get16() & 0xffff;
+        int addr = cpu.r_edi.get16() & 0xffff;
         boolean used = count != 0;
-	int input = 0;
+        int input = 0;
 
-	try {
-	    if (cpu.df) {
-		while (count != 0) {
-		    input = 0xff & cpu.es.getByte(addr);
-		    count--;
-		    addr -= 1;
-		    if (data == input) break;
-		}
-	    } else {
-		while (count != 0) {
-		    input = 0xff & cpu.es.getByte(addr);
-		    count--;
-		    addr += 1;
-		    if (data == input) break;
-		}
-	    }
-	} finally {
-	    cpu.r_ecx.set16(count & 0xffff);
-	    cpu.r_edi.set16(addr & 0xffff);
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    input = 0xff & cpu.es.getByte(addr);
+                    count--;
+                    addr -= 1;
+                    if (data == input) break;
+                }
+            } else {
+                while (count != 0) {
+                    input = 0xff & cpu.es.getByte(addr);
+                    count--;
+                    addr += 1;
+                    if (data == input) break;
+                }
+            }
+        } finally {
+            cpu.r_ecx.set16(count & 0xffff);
+            cpu.r_edi.set16(addr & 0xffff);
             cpu.flagOp1 = data;
             cpu.flagOp2 = input;
             cpu.flagResult = data-input;
             cpu.flagIns = UCodes.SUB8;
-	}
+        }
     }
 }

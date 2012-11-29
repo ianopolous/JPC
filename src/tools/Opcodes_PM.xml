@@ -545,6 +545,12 @@ cpu.r_ebp.set32(cpu.pop32());</snippet>
     <args size="16">rSIr14;Iv</args>
     <args size="16">rDIr15;Iv</args>
     <args size="32">R;C</args>
+  </opcode>
+
+  <opcode mnemonic="mov">
+    <return>Branch.T1</return>
+    <snippet>        cpu.eip += blockLength;
+        $op1.set$cast$op2.get);</snippet>
     <args size="32">C;R</args>
   </opcode>
 

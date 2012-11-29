@@ -15,7 +15,7 @@ public class add_Ev_Ib_mem extends Executable
     {
         super(blockStart, parent);
         size = parent.operand[0].size;
-        op1 = new Pointer(parent.operand[0]);
+        op1 = new Pointer(parent.operand[0], parent.adr_mode);
         imm = (byte)parent.operand[1].lval;
     }
 

@@ -58,7 +58,7 @@ public class Instruction
     public String operator = "invalid";
     public Operand[] operand = new Operand[0];
     public Prefix pfx = new Prefix();
-    int opr_mode, adr_mode;
+    public int opr_mode, adr_mode;
     String branch_dist;
     public Instruction next;
     

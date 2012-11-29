@@ -16,6 +16,7 @@ public class Comparison
 
     public static void main(String[] args) throws Exception
     {
+        String[] pcargs = new String[] {"-fda", "floppy.img"};
         boolean mem = false;
         if ((args.length >0) && args[0].equals("-mem"))
             mem = true;
@@ -26,15 +27,15 @@ public class Comparison
 
         Class opts = cl1.loadClass("org.jpc.j2se.Option");
         Method parse = opts.getMethod("parse", String[].class);
-        parse.invoke(opts, (Object)args);
+        args = (String[]) parse.invoke(opts, (Object)args);
 
         Class c1 = cl1.loadClass("org.jpc.emulator.PC");
         Constructor ctor = c1.getConstructor(String[].class);
-        Object newpc = ctor.newInstance((Object)args);
+        Object newpc = ctor.newInstance((Object)pcargs);
 
         Class c2 = cl2.loadClass("org.jpc.emulator.PC");
         Constructor ctor2 = c2.getConstructor(String[].class);
-        Object oldpc = ctor2.newInstance((Object)args);
+        Object oldpc = ctor2.newInstance((Object)pcargs);
 
         Method m1 = c1.getMethod("hello");
         m1.invoke(newpc);
@@ -97,7 +98,12 @@ public class Comparison
                 if (fast[i] != old[i])
                 {
                     System.out.printf("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]);
-                    continueExecution();
+                    System.out.println("New JPC:");
+                    Fuzzer.printState(fast);
+                    System.out.println("Old JPC:");
+                    Fuzzer.printState(old);
+                    if (i == 8)
+                        continueExecution();
                 }
             }
             else
@@ -105,7 +111,11 @@ public class Comparison
                 if (compareFlags && ((fast[i] & FLAG_MASK) != (old[i] & FLAG_MASK)))
                 {
                     System.out.printf("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]);
-                    continueExecution();
+                    System.out.println("New JPC:");
+                    Fuzzer.printState(fast);
+                    System.out.println("Old JPC:");
+                    Fuzzer.printState(old);
+                    //continueExecution();
                 }
             }
     }

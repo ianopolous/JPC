@@ -16,7 +16,7 @@ public class mov_S_Ev_mem extends Executable
         super(blockStart, parent);
         size = parent.operand[1].size;
         segIndex = Processor.getSegmentIndex(parent.operand[0].toString());
-        op2 = new Pointer(parent.operand[1]);
+        op2 = new Pointer(parent.operand[1], parent.adr_mode);
     }
 
     public Branch execute(Processor cpu)

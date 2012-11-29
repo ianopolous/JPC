@@ -14,7 +14,7 @@ public class mov_Gb_Eb_mem extends Executable
     {
         super(blockStart, parent);
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2 = new Pointer(parent.operand[1]);
+        op2 = new Pointer(parent.operand[1], parent.adr_mode);
     }
 
     public Branch execute(Processor cpu)

@@ -2,6 +2,8 @@ package org.jpc.emulator.execution.decoder;
 
 import org.jpc.emulator.processor.Processor;
 
+import java.util.BitSet;
+
 import static org.jpc.emulator.processor.Processor.*;
 
 public class Pointer
@@ -11,8 +13,9 @@ public class Pointer
     final String seg;
     final int offset;
     final int segment;
+    final boolean addrSize;
 
-    public Pointer(Instruction.Operand op)
+    public Pointer(Instruction.Operand op, int adr_mode)
     {
         seg = op.seg; // load the actual seg
         if (op.base != null)
@@ -40,6 +43,7 @@ public class Pointer
             segment = Processor.getSegmentIndex(seg);
         } else
             segment = Processor.getSegmentIndex(getImplicitSegment(op));
+        addrSize = adr_mode == 32;
     }
 
     private static String getImplicitSegment(Instruction.Operand operand)
@@ -58,6 +62,8 @@ public class Pointer
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
+        if (!addrSize)
+            addr &= 0xFFFF;
         return addr;
     }
 
@@ -68,6 +74,8 @@ public class Pointer
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
+        if (!addrSize)
+            addr &= 0xFFFF;
         return cpu.segs[segment].getDoubleWord(addr);
     }
 
@@ -78,6 +86,8 @@ public class Pointer
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
+        if (!addrSize)
+            addr &= 0xFFFF;
         cpu.segs[segment].setDoubleWord(addr, val);
     }
 
@@ -88,7 +98,9 @@ public class Pointer
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
-         return cpu.segs[segment].getWord(addr);
+        if (!addrSize)
+            addr &= 0xFFFF;
+        return cpu.segs[segment].getWord(addr);
     }
 
     public void set16(Processor cpu, short val)
@@ -98,6 +110,8 @@ public class Pointer
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
+        if (!addrSize)
+            addr &= 0xFFFF;
         cpu.segs[segment].setWord(addr, val);
     }
 
@@ -108,6 +122,8 @@ public class Pointer
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
+        if (!addrSize)
+            addr &= 0xFFFF;
         return cpu.segs[segment].getByte(addr);
     }
 
@@ -118,6 +134,8 @@ public class Pointer
             addr += cpu.regs[base].get32();
         if (scale != 0)
             addr += scale*cpu.regs[index].get32();
+        if (!addrSize)
+            addr &= 0xFFFF;
         cpu.segs[segment].setByte(addr, val);
     }
 

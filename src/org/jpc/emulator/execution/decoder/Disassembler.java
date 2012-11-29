@@ -100,10 +100,10 @@ public class Disassembler
     public static Executable getEipUpdate(boolean isPM, int blockStart, Instruction prev)
     {
         Map<String, Constructor<? extends Executable>> instructions = null;
-            if (!isPM)
-                instructions = rm_instructions;
-            else
-                instructions = pm_instructions;
+        if (!isPM)
+            instructions = rm_instructions;
+        else
+            instructions = pm_instructions;
         try {
             return instructions.get("eip_update").newInstance(blockStart, prev);
         } catch (InstantiationException e) {

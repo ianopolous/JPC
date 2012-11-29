@@ -3819,6 +3819,7 @@ public class Processor implements HardwareComponent
         case SUB8:
             return (op1 & 0xff) < (op2 & 0xff);
         case SUB16:
+            return (op1 & 0xffff) < (op2 & 0xffff);
         case SUB32:
             return (op1 & 0xffffffffL) < (op2 & 0xffffffffL);
         case SBB8:
@@ -3986,7 +3987,7 @@ public class Processor implements HardwareComponent
         case INC:
             return result == 0x80000000;
         case DEC:
-            return result == 0x7FFFFFF;
+            return result == 0x7FFFFFFF;
         case SAR8:
         case SAR16:
         case SAR32:

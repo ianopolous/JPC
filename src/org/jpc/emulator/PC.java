@@ -223,7 +223,8 @@ public class PC {
     {
         if (processor.isProtectedMode())
         {
-            linearAddr.copyArrayIntoContents(processor.getInstructionPointer(), code, 0, code.length);
+            // assume paging is off
+            physicalAddr.copyArrayIntoContents(processor.getInstructionPointer(), code, 0, code.length);
         }
         else
         {

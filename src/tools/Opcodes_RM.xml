@@ -161,6 +161,14 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="idiv">
+    <return>Branch.None</return>
+    <snippet>            long ldiv = (($maskcpu.r_edx.get$size()) &lt;&lt; $size ) | ($maskcpu.r_eax.get$size());
+            cpu.r_eax.set$size($cast(int)(ldiv/$cast$op1.get));
+            cpu.r_edx.set$size($cast(int)(ldiv % $cast$op1.get));</snippet>
+    <args size="16">Ev</args>
+  </opcode>
+
   <opcode mnemonic="imul">
     <return>Branch.None</return>
     <snippet>            cpu.flagStatus = OSZAPC;
@@ -279,6 +287,31 @@
   <opcode mnemonic="jae">
     <return></return>
     <snippet>        if (!Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns))
+    </snippet>
+    <jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="jg">
+    <return></return>
+    <snippet>        if (!cpu.zf() &amp;&amp; (cpu.sf() == cpu.of()))
+    </snippet>
+    <jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+  <opcode mnemonic="jge">
+    <return></return>
+    <snippet>        if (cpu.sf() == cpu.of())
+    </snippet>
+    <jcc/>
+    <args size="8">Jb</args>
+    <args size="32">Jz</args>
+  </opcode>
+
+  <opcode mnemonic="jcxz">
+    <return></return>
+    <snippet>        if (cpu.r_cx.get16() == 0)
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
@@ -438,9 +471,9 @@
     <args size="32">DX;eAX</args>
   </opcode>
 
-  <opcode mnemonic="pop">
+  <opcode mnemonic="pop_o16">
     <return>Branch.None</return>
-    <snippet>        $op1.setcpu.pop16());</snippet>
+    <snippet>        $op1.setcpu.pop$size());</snippet>
     <args size="16">rAXr8</args>
     <args size="16">rBXr11</args>
     <args size="16">rCXr9</args>
@@ -450,6 +483,18 @@
     <args size="16">rDIr15</args>
     <args size="16">DS</args>
     <args size="16">ES</args>
+  </opcode>
+
+  <opcode mnemonic="pop_o32">
+    <return>Branch.None</return>
+    <snippet>        $op1.setcpu.pop$size());</snippet>
+    <args size="32">rAXr8</args>
+    <args size="32">rBXr11</args>
+    <args size="32">rCXr9</args>
+    <args size="32">rDXr10</args>
+    <args size="32">rBPr13</args>
+    <args size="32">rSIr14</args>
+    <args size="32">rDIr15</args>
   </opcode>
 
   <opcode mnemonic="popa">
@@ -464,10 +509,10 @@
     <args size="16"></args>
   </opcode>
 
-  <opcode mnemonic="push">
+  <opcode mnemonic="push_o16">
     <return>Branch.None</return>
     <snippet>        cpu.push$size($cast$op1.get);</snippet>
-    <args size="8">Ib</args>
+    <args size="16">Ib</args>
     <args size="16">Ev</args>
     <args size="16">rAXr8</args>
     <args size="16">rBXr11</args>
@@ -478,6 +523,23 @@
     <args size="16">rDIr15</args>
     <args size="16">DS</args>
     <args size="16">ES</args>
+    <args size="16">SS</args>
+    <args size="16">Iz</args>
+  </opcode>
+
+  <opcode mnemonic="push_o32">
+    <return>Branch.None</return>
+    <snippet>        cpu.push$size($cast$op1.get);</snippet>
+    <args size="32">Ib</args>
+    <args size="32">rAXr8</args>
+    <args size="32">rBXr11</args>
+    <args size="32">rCXr9</args>
+    <args size="32">rDXr10</args>
+    <args size="32">rBPr13</args>
+    <args size="32">rSIr14</args>
+    <args size="32">rDIr15</args>
+    <args size="32">CS</args>
+    <args size="32">Iz</args>
   </opcode>
 
   <opcode mnemonic="pusha">
@@ -489,6 +551,12 @@
   <opcode mnemonic="pushfw">
     <return>Branch.None</return>
     <snippet>        cpu.push16((short)cpu.getEFlags());</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="rep_insw">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.rep_insw_a16(cpu);</snippet>
     <args size="0"></args>
   </opcode>
 
@@ -632,6 +700,7 @@
         cpu.flagStatus = SZP;</snippet>
     <args size="8">AL;Ib</args>
     <args size="8">Eb;Gb</args>
+    <args size="8">Eb;Ib</args>
     <args size="16">Ev;Gv</args>
   </opcode>
 

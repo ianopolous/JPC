@@ -183,7 +183,7 @@ public abstract class Operand
 
         public String construct(int arg)
         {
-            return "        op"+arg+" = new Pointer(parent.operand["+(arg-1)+"]);";
+            return "        op"+arg+" = new Pointer(parent.operand["+(arg-1)+"], parent.adr_mode);";
         }
 
         public String load(int arg)
@@ -530,7 +530,7 @@ public abstract class Operand
 
         public String construct(int arg)
         {
-            return "        offset = new Pointer(parent.operand["+(arg-1)+"]);\n        parent.operand["+(arg-1)+"].lval += "+(size/8)+";\n        seg = new Pointer(parent.operand["+(arg-1)+"]);";
+            return "        offset = new Pointer(parent.operand["+(arg-1)+"], parent.adr_mode);\n        parent.operand["+(arg-1)+"].lval += "+(size/8)+";\n        seg = new Pointer(parent.operand["+(arg-1)+"], parent.adr_mode);";
         }
 
         public String load(int arg)
@@ -557,6 +557,7 @@ public abstract class Operand
         segs.put("CS", "cs");
         segs.put("DS", "ds");
         segs.put("ES", "es");
+        segs.put("SS", "ss");
         reg8.put("AL", "cpu.r_al");
         reg8.put("CL", "cpu.r_cl");
         reg8.put("ALr8b", "cpu.r_al");
