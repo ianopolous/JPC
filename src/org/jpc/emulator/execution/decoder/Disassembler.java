@@ -148,26 +148,30 @@ public class Disassembler
     {
         int startAddr = (int)input.getAddress();
         boolean debug = false;
-        Instruction insn;
-        if (operand_size == 32)
-            insn = disassemble32(input);
-        else
-            insn = disassemble16(input);
-        Executable start = getExecutable(isPM, startAddr, insn);
+        Instruction currentInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
+
+        Executable start = getExecutable(isPM, startAddr, currentInsn);
         if (PRINT_DISAM)
         {
-            System.out.printf("%d;%s;%s;", operand_size, insn.getGeneralClassName(), insn);
-            input.seek(-insn.x86Length);
-            for(int i=0; i < insn.x86Length; i++)
+            System.out.printf("%d;%s;%s;", operand_size, currentInsn.getGeneralClassName(), currentInsn);
+            input.seek(-currentInsn.x86Length);
+            for(int i=0; i < currentInsn.x86Length; i++)
                 System.out.printf("%02x ", input.read(8));
             System.out.println();
         }
         Executable current = start;
-        Instruction currentInsn = insn;
-        int x86Length = insn.x86Length;
+        int x86Length = currentInsn.x86Length;
         int count = 1;
         while (!currentInsn.isBranch())
         {
+            if (count >= MAX_INSTRUCTIONS_PER_BLOCK)
+            {
+                Executable eip = getEipUpdate(isPM, startAddr, currentInsn);
+                current.next = eip;
+                if (MAX_INSTRUCTIONS_PER_BLOCK > 10)
+                    System.out.println((String.format("Exceeded maximum number of instructions in a block at %x", startAddr)));
+                return new BasicBlock(start, x86Length, count);
+            }
             Instruction nextInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
             if (PRINT_DISAM)
             {
@@ -179,14 +183,7 @@ public class Disassembler
             }
             Executable next = getExecutable(isPM, startAddr, nextInsn);
             count++;
-            if (count > MAX_INSTRUCTIONS_PER_BLOCK)
-            {
-                Executable eip = getEipUpdate(isPM, startAddr, currentInsn);
-                current.next = eip;
-                if (MAX_INSTRUCTIONS_PER_BLOCK > 10)
-                    System.out.println((String.format("Exceeded maximum number of instructions in a block at %x", startAddr)));
-                return new BasicBlock(start, x86Length);
-            }
+
             if (debug)
                 System.out.printf("Disassembled next instruction (%d): %s at %x\n", count, next, input.getAddress());
             currentInsn = nextInsn;
@@ -195,7 +192,7 @@ public class Disassembler
             x86Length += nextInsn.x86Length;
         }
 
-        return new BasicBlock(start, x86Length);
+        return new BasicBlock(start, x86Length, count);
     }
 
     public static Instruction disassemble(PeekableInputStream input, int mode)

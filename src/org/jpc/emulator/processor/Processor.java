@@ -332,7 +332,7 @@ public class Processor implements HardwareComponent
             r_esp.set32(r_esp.get32() + 4);
             return ss.getDoubleWord(r_esp.get32()-4);
         } else {
-            int val = ss.getDoubleWord(r_esp.get16());
+            int val = ss.getDoubleWord(0xffff & r_esp.get16());
             r_esp.set16(r_esp.get16() + 4);
             return val;
         }

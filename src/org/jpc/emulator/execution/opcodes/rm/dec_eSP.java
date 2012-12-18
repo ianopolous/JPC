@@ -19,7 +19,7 @@ public class dec_eSP extends Executable
         cpu.flagOp1 = cpu.r_esp.get16();
         cpu.flagOp2 = 1;
         cpu.flagResult = (short)(cpu.flagOp1 - 1);
-        cpu.r_esp.set16(cpu.flagResult);
+        cpu.r_esp.set16((short)cpu.flagResult);
         cpu.flagIns = UCodes.SUB16;
         cpu.flagStatus = NCF;
         return Branch.None;

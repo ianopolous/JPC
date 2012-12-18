@@ -29,13 +29,15 @@ public class Comparison
         Method parse = opts.getMethod("parse", String[].class);
         args = (String[]) parse.invoke(opts, (Object)args);
 
+
+        Calendar start = Calendar.getInstance();
         Class c1 = cl1.loadClass("org.jpc.emulator.PC");
-        Constructor ctor = c1.getConstructor(String[].class);
-        Object newpc = ctor.newInstance((Object)pcargs);
+        Constructor ctor = c1.getConstructor(String[].class, Calendar.class);
+        Object newpc = ctor.newInstance((Object)pcargs, start);
 
         Class c2 = cl2.loadClass("org.jpc.emulator.PC");
-        Constructor ctor2 = c2.getConstructor(String[].class);
-        Object oldpc = ctor2.newInstance((Object)pcargs);
+        Constructor ctor2 = c2.getConstructor(String[].class, Calendar.class);
+        Object oldpc = ctor2.newInstance((Object)pcargs, start);
 
         Method m1 = c1.getMethod("hello");
         m1.invoke(newpc);
@@ -48,14 +50,23 @@ public class Comparison
         Method execute2 = c2.getMethod("executeBlock");
         Method save1 = c1.getMethod("savePage", Integer.class, byte[].class);
         Method save2 = c2.getMethod("savePage", Integer.class, byte[].class);
-     
+        Method startClock1 = c1.getMethod("start");
+        Method startClock2 = c2.getMethod("start");
+        startClock1.invoke(newpc);
+        startClock2.invoke(oldpc);
+        Method break1 = c1.getMethod("eipBreak", Integer.class);
+        Method break2 = c2.getMethod("eipBreak", Integer.class);
+
         if (mem)
             System.out.println("Comparing memory and registers..");
         else
             System.out.println("Comparing registers only..");
         while (true)
         {
-            compareStates((int[])state1.invoke(newpc), (int[])state2.invoke(oldpc), compareFlags);
+            int[] fast = (int[])state1.invoke(newpc);
+            int[] old = (int[])state2.invoke(oldpc);
+            compareStates(fast, old, compareFlags);
+            System.out.printf("ticks = %08x : %08x\n", fast[16], old[16]);
             execute1.invoke(newpc);
             execute2.invoke(oldpc);
             if (!mem)
@@ -72,7 +83,7 @@ public class Comparison
         }
     }
 
-    public static String[] names = new String[] {"eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp", "eip", "flags", "cs", "ds", "es", "fs", "gs", "ss"};
+    public static String[] names = new String[] {"eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp", "eip", "flags", "cs", "ds", "es", "fs", "gs", "ss", "ticks"};
 
     public static void comparePage(int index, byte[] fast, byte[] old)
     {
@@ -88,36 +99,41 @@ public class Comparison
 
     public static void compareStates(int[] fast, int[] old, boolean compareFlags)
     {
-        if (fast.length != 16)
+        if (fast.length != 17)
             throw new IllegalArgumentException("new state length = "+fast.length);
-        if (old.length != 16)
+        if (old.length != 17)
             throw new IllegalArgumentException("old state length = "+old.length);
+        boolean same = true;
+        Set<Integer> diff = new HashSet<Integer>();
         for (int i=0; i < fast.length; i++)
             if (i != 9)
             {
                 if (fast[i] != old[i])
                 {
-                    System.out.printf("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]);
-                    System.out.println("New JPC:");
-                    Fuzzer.printState(fast);
-                    System.out.println("Old JPC:");
-                    Fuzzer.printState(old);
-                    if (i == 8)
-                        continueExecution();
+                    diff.add(i);
+                    same = false;
                 }
             }
             else
             {
                 if (compareFlags && ((fast[i] & FLAG_MASK) != (old[i] & FLAG_MASK)))
                 {
-                    System.out.printf("Difference: %d=%s %08x - %08x\n", i, names[i], fast[i], old[i]);
-                    System.out.println("New JPC:");
-                    Fuzzer.printState(fast);
-                    System.out.println("Old JPC:");
-                    Fuzzer.printState(old);
-                    //continueExecution();
+                    if (same)
+                    {
+                        same = false;
+                        diff.add(i);
+                    }
                 }
             }
+        if (!same)
+        {
+            for (int diffIndex: diff)
+                System.out.printf("Difference: %s %08x - %08x\n", names[diffIndex], fast[diffIndex], old[diffIndex]);
+            System.out.println("New JPC:");
+            Fuzzer.printState(fast);
+            System.out.println("Old JPC:");
+            Fuzzer.printState(old);
+        }
     }
 
     public static void continueExecution()

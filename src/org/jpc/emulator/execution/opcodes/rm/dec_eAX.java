@@ -19,7 +19,7 @@ public class dec_eAX extends Executable
         cpu.flagOp1 = cpu.r_eax.get16();
         cpu.flagOp2 = 1;
         cpu.flagResult = (short)(cpu.flagOp1 - 1);
-        cpu.r_eax.set16(cpu.flagResult);
+        cpu.r_eax.set16((short)cpu.flagResult);
         cpu.flagIns = UCodes.SUB16;
         cpu.flagStatus = NCF;
         return Branch.None;

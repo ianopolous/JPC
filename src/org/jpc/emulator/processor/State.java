@@ -10,8 +10,16 @@ public final class State
         Formatter formatter=new Formatter(builder);
         registersImpl(cpu, formatter);
         segmentsImpl(cpu, formatter);
+        //extrasImpl(cpu, formatter);
         System.out.flush();
         System.err.println(builder);
+    }
+
+    private static void extrasImpl(Processor cpu, Formatter formatter) {
+        formatter.format("[%8s] \n"
+                ,"ticks"
+        );
+        extrasOnly(cpu, formatter);
     }
 
     private static void registersImpl(Processor cpu, Formatter formatter) {
@@ -40,6 +48,13 @@ public final class State
                 ,"ss"
         );
         segmentsOnly(cpu, formatter);
+    }
+
+    private static void extrasOnly(Processor cpu, Formatter formatter) {
+
+        formatter.format("[%8X] \n"
+                ,0
+        );
     }
 
     private static void registersOnly(Processor cpu, Formatter formatter) {

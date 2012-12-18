@@ -383,7 +383,7 @@ public class Instruction
 
     public boolean isBranch()
     {
-        return jcc.contains(operator) || jmp.contains(operator) || call.contains(operator) || ret.contains(operator) || hlt.contains(operator) || usesControlReg(0);
+        return jcc.contains(operator) || jmp.contains(operator) || call.contains(operator) || ret.contains(operator) || hlt.contains(operator) || usesControlReg(0) || operator.equals("int");
     }
 
     public boolean usesControlReg(int op)

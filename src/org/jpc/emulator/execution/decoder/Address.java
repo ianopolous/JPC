@@ -10,6 +10,7 @@ public class Address
     final int scale;
     final String seg;
     final int offset;
+    final int segment;
 
     public Address(Instruction.Operand op)
     {
@@ -34,20 +35,38 @@ public class Address
             offset = (byte)op.lval;
         else
             offset = (int)op.lval;
+        if (seg != null)
+        {
+            segment = Processor.getSegmentIndex(seg);
+        } else
+            segment = Processor.getSegmentIndex(getImplicitSegment(op));
     }
 
     private static String getImplicitSegment(Instruction.Operand operand)
     {
-        throw new RuntimeException(operand.toString());
+        if (operand.toString().toLowerCase().contains("bp"))
+           return "ss";
+        else
+            return "ds";
+    }
+
+    public int getBase(Processor cpu)
+    {
+        return cpu.segs[segment].getBase();
     }
 
     public int get(Processor cpu)
     {
         int addr = offset;
         if (!cpu.isProtectedMode())
+        {
+            if (base != -1)
+                addr += cpu.regs[base].get16();
+            if (scale != 0)
+                addr += scale*cpu.regs[index].get16();
             addr &= 0xffff;
-        if (seg != null)
-            addr += cpu.segs[Processor.getSegmentIndex(seg)].getBase();
+            return addr;
+        }
         if (base != -1)
             addr += cpu.regs[base].get32();
         if (scale != 0)

@@ -73,7 +73,7 @@ public class PC {
     private final PhysicalAddressSpace physicalAddr;
     private final LinearAddressSpace linearAddr;
     private final Clock vmClock;
-    private final Set<HardwareComponent> parts;
+    private final List<HardwareComponent> parts;
     private final CodeBlockManager manager;
     private final EthernetCard ethernet;   
 
@@ -84,10 +84,13 @@ public class PC {
      * @param drives drive set for this instance.
      * @throws java.io.IOException propogated from bios resource loading
      */
-    public PC(Clock clock, DriveSet drives) throws IOException {
-        this(clock, drives, DEFAULT_RAM_SIZE);
+    public PC(Clock clock, DriveSet drives, Calendar startTime) throws IOException {
+        this(clock, drives, DEFAULT_RAM_SIZE, startTime);
     }
 
+    public PC(Clock clock, DriveSet drives) throws IOException {
+        this(clock, drives, DEFAULT_RAM_SIZE, Calendar.getInstance());
+    }
 
     /**
      * Constructs a new <code>PC</code> instance with the specified external time-source and
@@ -97,9 +100,9 @@ public class PC {
      * @param ramSize the size of the system ram for the virtual machine in bytes.
      * @throws java.io.IOException propogated from bios resource loading
      */
-    public PC(Clock clock, DriveSet drives, int ramSize) throws IOException {
+    public PC(Clock clock, DriveSet drives, int ramSize, Calendar startTime) throws IOException {
         SYS_RAM_SIZE = ramSize;
-        parts = new HashSet<HardwareComponent>();
+        parts = new LinkedList<HardwareComponent>();
 
         vmClock = clock;
         parts.add(vmClock);
@@ -124,7 +127,7 @@ public class PC {
         parts.add(new DMAController(false, true));
         parts.add(new DMAController(false, false));
 
-        parts.add(new RTC(0x70, 8));
+        parts.add(new RTC(0x70, 8, startTime));
         parts.add(new IntervalTimer(0x40, 0));
         parts.add(new GateA20Handler());
 
@@ -152,6 +155,10 @@ public class PC {
         }
     }
 
+    public PC(Clock clock, DriveSet drives, int ramSize) throws IOException {
+       this(clock, drives, ramSize, Calendar.getInstance());
+    }
+
     /**
      * Constructs a new <code>PC</code> instance with the specified external time-source and
      * a drive set constructed by parsing args.
@@ -159,8 +166,12 @@ public class PC {
      * @param args command-line args specifying the drive set to use.
      * @throws java.io.IOException propogates from <code>DriveSet</code> construction
      */
+    public PC(Clock clock, String[] args, Calendar startTime) throws IOException {
+        this(clock, DriveSet.buildFromArgs(args), startTime);
+    }
+
     public PC(Clock clock, String[] args) throws IOException {
-        this(clock, DriveSet.buildFromArgs(args));
+        this(clock, DriveSet.buildFromArgs(args), Calendar.getInstance());
     }
 
     /**
@@ -175,8 +186,8 @@ public class PC {
         this(clock, DriveSet.buildFromArgs(args), ramSize);
     }
 
-    public PC(String[] args) throws IOException {
-        this(new VirtualClock(), args);
+    public PC(String[] args, Calendar startTime) throws IOException {
+        this(new VirtualClock(), args, startTime);
     }
 
     public void hello()
@@ -240,8 +251,19 @@ public class PC {
             processor.eip, processor.getEFlags(),
             processor.cs.getSelector(), processor.ds.getSelector(),
             processor.es.getSelector(), processor.fs.getSelector(),
-            processor.gs.getSelector(), processor.ss.getSelector()
+            processor.gs.getSelector(), processor.ss.getSelector(),
+            (int)getTicks()
         };
+    }
+
+    private long getTicks()
+    {
+        for (HardwareComponent c: parts)
+            if (c instanceof Clock)
+            {
+                return ((VirtualClock) c).getTicks();
+            }
+        return 0;
     }
 
     public Integer savePage(Integer page, byte[] data) throws IOException
@@ -487,6 +509,16 @@ public class PC {
         return processor;
     }
 
+    private static int staticClockx86Count=0;
+
+    public int eipBreak(Integer breakEip)
+    {
+        int instrs = 0;
+        while (processor.eip != breakEip)
+            instrs += executeBlock();
+        return instrs;
+    }
+
     public int executeBlock()
     {
         if (processor.isProtectedMode()) {
@@ -505,7 +537,14 @@ public class PC {
     {
         try
         {
-            return physicalAddr.executeReal(processor, processor.getInstructionPointer());        
+            int block = physicalAddr.executeReal(processor, processor.getInstructionPointer());
+            staticClockx86Count += block;
+            if (staticClockx86Count > INSTRUCTIONS_BETWEEN_INTERRUPTS)
+            {
+                processor.processRealModeInterrupts(staticClockx86Count);
+                staticClockx86Count = 0;
+            }
+            return block;
         } catch (ProcessorException p) {
             processor.handleRealModeException(p);
         }
@@ -520,7 +559,14 @@ public class PC {
     {
         try
         {
-            return linearAddr.executeProtected(processor, processor.getInstructionPointer());
+            int block = linearAddr.executeProtected(processor, processor.getInstructionPointer());
+            staticClockx86Count += block;
+            if (staticClockx86Count > INSTRUCTIONS_BETWEEN_INTERRUPTS)
+            {
+                processor.processProtectedModeInterrupts(staticClockx86Count);
+                staticClockx86Count = 0;
+            }
+            return block;
         } catch (ProcessorException p) {
             processor.handleProtectedModeException(p);
         }
@@ -691,7 +737,7 @@ public class PC {
             if (ArgProcessor.findVariable(args, "compile", "yes").equalsIgnoreCase("no")) {
                 compile = false;
             }
-            PC pc = new PC(new VirtualClock(), args);
+            PC pc = new PC(new VirtualClock(), args, Calendar.getInstance());
             pc.start();
             try {
                 while (true) {

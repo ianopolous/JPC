@@ -38,29 +38,50 @@ public class StaticOpcodes
 
     public static void lodsb(Processor cpu)
     {
-	int addr = cpu.r_esi.get32();
-	cpu.r_al.set8(cpu.ds.getByte(addr));
-	if (cpu.df)
-	    addr -= 1;
-	else
-	    addr += 1;
-	cpu.r_esi.set32(addr);
+        int addr = cpu.r_esi.get32();
+        cpu.r_al.set8(cpu.ds.getByte(addr));
+        if (cpu.df)
+            addr -= 1;
+        else
+            addr += 1;
+        cpu.r_esi.set32(addr);
     }
 
-
-    /*    public static void rep_cmpsb(Processor cpu)
+    public static void lodsb_a16(Processor cpu)
     {
-        int count = cpu.r_ecx.get32();
-        int addrOne = cpu.r_esi.get32();
-        int addrTwo = cpu.r_edi.get32();
+        int addr = 0xFFFF & cpu.r_esi.get16();
+        cpu.r_al.set8(cpu.ds.getByte(addr));
+        if (cpu.df)
+            addr -= 1;
+        else
+            addr += 1;
+        cpu.r_esi.set16(addr);
+    }
+
+    public static void lodsw_a16(Processor cpu)
+    {
+        int addr = 0xFFFF & cpu.r_esi.get16();
+        cpu.r_ax.set16(cpu.ds.getWord(addr));
+        if (cpu.df)
+            addr -= 2;
+        else
+            addr += 2;
+        cpu.r_esi.set16(addr);
+    }
+
+    public static void rep_cmpsb_a16(Processor cpu)
+    {
+        int count = 0xFFFF & cpu.r_ecx.get16();
+        int addrOne = 0xFFFF & cpu.r_esi.get16();
+        int addrTwo = 0xFFFF & cpu.r_edi.get16();
         int dataOne =0, dataTwo =0;
 
         if (count != 0)
             try {
                 if (cpu.df) {
                     while (count != 0) {
-                        dataOne = memory.getByte(addrOne);
-                        dataTwo = memory.getByte(addrTwo);
+                        dataOne = cpu.ds.getByte(addrOne);
+                        dataTwo = cpu.es.getByte(addrTwo);
                         count--;
                         addrOne -= 1;
                         addrTwo -= 1;
@@ -69,8 +90,8 @@ public class StaticOpcodes
                     }
                 } else {
                     while (count != 0) {
-                        dataOne = memory.getByte(addrOne);
-                        dataTwo = memory.getByte(addrTwo);
+                        dataOne = cpu.ds.getByte(addrOne);
+                        dataTwo = cpu.es.getByte(addrTwo);
                         count--;
                         addrOne += 1;
                         addrTwo += 1;
@@ -80,9 +101,9 @@ public class StaticOpcodes
                 }
             }
             finally {
-                cpu.r_ecx.set32(count);
-                cpu.r_edi.set32(addrTwo);
-                cpu.r_esi.set32(addrOne);
+                cpu.r_ecx.set16(count);
+                cpu.r_edi.set16(addrTwo);
+                cpu.r_esi.set16(addrOne);
                 cpu.flagOp1 = dataOne;
                 cpu.flagOp2 = dataTwo;
                 cpu.flagResult = dataOne-dataTwo;
@@ -91,7 +112,7 @@ public class StaticOpcodes
             }
     }
 
-    public static void rep_cmpsw(Processor cpu)
+    /*public static void rep_cmpsw(Processor cpu)
     {
         int count = cpu.r_ecx.get32();
         int addrOne = cpu.r_esi.get32();
@@ -136,33 +157,89 @@ public class StaticOpcodes
     public static void rep_movsb_a16(Processor cpu)
     {
         int count = cpu.r_ecx.get16() & 0xffff;
-	int inAddr = cpu.r_edi.get16() & 0xffff;
-	int outAddr = cpu.r_esi.get16() & 0xffff;
+        int inAddr = cpu.r_edi.get16() & 0xffff;
+        int outAddr = cpu.r_esi.get16() & 0xffff;
 
-	try {
-	    if (cpu.df) {
-		while (count != 0) {
-		    //check hardware interrupts
-		    cpu.es.setByte(inAddr & 0xffff, cpu.ds.getByte(outAddr & 0xffff));		
-		    count--;
-		    outAddr -= 1;
-		    inAddr -= 1;
-		}
-	    } else {
-		while (count != 0) {
-		    //check hardware interrupts
-		    cpu.es.setByte(inAddr & 0xffff, cpu.ds.getByte(outAddr & 0xffff));		
-		    count--;
-		    outAddr += 1;
-		    inAddr += 1;
-		}
-	    }
-	}
-	finally {
-	    cpu.r_ecx.set16(count & 0xffff);
-	    cpu.r_edi.set16(inAddr & 0xffff);
-	    cpu.r_esi.set16(outAddr & 0xffff);
-	}
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    //check hardware interrupts
+                    cpu.es.setByte(inAddr & 0xffff, cpu.ds.getByte(outAddr & 0xffff));
+                    count--;
+                    outAddr -= 1;
+                    inAddr -= 1;
+                }
+            } else {
+                while (count != 0) {
+                    //check hardware interrupts
+                    cpu.es.setByte(inAddr & 0xffff, cpu.ds.getByte(outAddr & 0xffff));
+                    count--;
+                    outAddr += 1;
+                    inAddr += 1;
+                }
+            }
+        }
+        finally {
+            cpu.r_ecx.set16(count & 0xffff);
+            cpu.r_edi.set16(inAddr & 0xffff);
+            cpu.r_esi.set16(outAddr & 0xffff);
+        }
+    }
+
+    public static void movsw_a16(Processor cpu)
+    {
+        int inAddr = cpu.r_edi.get16() & 0xffff;
+        int outAddr = cpu.r_esi.get16() & 0xffff;
+
+        try {
+            if (cpu.df) {
+                    //check hardware interrupts
+                    cpu.es.setWord(inAddr & 0xffff, cpu.ds.getWord(outAddr & 0xffff));
+                    outAddr -= 2;
+                    inAddr -= 2;
+            } else {
+                    //check hardware interrupts
+                    cpu.es.setWord(inAddr & 0xffff, cpu.ds.getWord(outAddr & 0xffff));
+                    outAddr += 2;
+                    inAddr += 2;
+            }
+        }
+        finally {
+            cpu.r_edi.set16(inAddr & 0xffff);
+            cpu.r_esi.set16(outAddr & 0xffff);
+        }
+    }
+
+    public static void rep_movsw_a16(Processor cpu)
+    {
+        int count = cpu.r_ecx.get16() & 0xffff;
+        int inAddr = cpu.r_edi.get16() & 0xffff;
+        int outAddr = cpu.r_esi.get16() & 0xffff;
+
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    //check hardware interrupts
+                    cpu.es.setWord(inAddr & 0xffff, cpu.ds.getWord(outAddr & 0xffff));
+                    count--;
+                    outAddr -= 2;
+                    inAddr -= 2;
+                }
+            } else {
+                while (count != 0) {
+                    //check hardware interrupts
+                    cpu.es.setWord(inAddr & 0xffff, cpu.ds.getWord(outAddr & 0xffff));
+                    count--;
+                    outAddr += 2;
+                    inAddr += 2;
+                }
+            }
+        }
+        finally {
+            cpu.r_ecx.set16(count & 0xffff);
+            cpu.r_edi.set16(inAddr & 0xffff);
+            cpu.r_esi.set16(outAddr & 0xffff);
+        }
     }
 
     public static void rep_movsd_a32(Processor cpu)
@@ -258,6 +335,35 @@ public class StaticOpcodes
         }
     }
 
+    public static void rep_insd_a16(Processor cpu)
+    {
+        int port = cpu.r_dx.get16() & 0xffff;
+        int count = cpu.r_ecx.get16() & 0xffff;
+        int addr = cpu.r_edi.get16() & 0xffff;
+
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    //check hardware interrupts
+                    cpu.es.setDoubleWord(addr & 0xffff, (short)cpu.ioports.ioPortRead32(port));
+                    count--;
+                    addr -= 4;
+                }
+            } else {
+                while (count != 0) {
+                    //check hardware interrupts
+                    cpu.es.setDoubleWord(addr & 0xffff, (short)cpu.ioports.ioPortRead32(port));
+                    count--;
+                    addr += 4;
+                }
+            }
+        }
+        finally {
+            cpu.r_ecx.set16(count);
+            cpu.r_edi.set16(addr);
+        }
+    }
+
     public static void rep_stosb_a32(Processor cpu)
     {
         int count = cpu.r_ecx.get32();
@@ -308,6 +414,25 @@ public class StaticOpcodes
         }
         finally {
             cpu.r_cx.set16(count);
+            cpu.r_di.set16(tAddr);
+        }
+    }
+
+    public static void stosw_a16(Processor cpu)
+    {
+        int tAddr = 0xFFFF & cpu.r_di.get16();
+        short data = (short)cpu.r_ax.get16();
+
+        try {
+            if (cpu.df) {
+                cpu.es.setWord(tAddr, data);
+                tAddr -= 2;
+            } else {
+                cpu.es.setWord(tAddr, data);
+                tAddr += 2;
+            }
+        }
+        finally {
             cpu.r_di.set16(tAddr);
         }
     }

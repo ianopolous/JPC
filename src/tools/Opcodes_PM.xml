@@ -344,7 +344,7 @@
   <opcode mnemonic="int">
     <return>Branch.Jmp_Unknown</return>
     <snippet>        cpu.eip += blockLength;
-        cpu.int_o16_a16($op1.get);</snippet>
+        cpu.int_o16_a16($mask$op1.get);</snippet>
     <args size="8">Ib</args>
   </opcode>
 
@@ -497,7 +497,7 @@ cpu.r_ebp.set32(cpu.pop32());</snippet>
 
   <opcode mnemonic="lgdt">
       <return>Branch.None</return>
-      <snippet>        int addr = $op1.get;
+      <snippet>        int addr = $op1.get + op1.getBase(cpu);
         int limit = 0xffff &amp; cpu.physicalMemory.getWord(addr);
         int base = 0x00ffffff &amp; cpu.physicalMemory.getDoubleWord(addr+2);
         cpu.gdtr = cpu.createDescriptorTableSegment(base, limit);</snippet>
@@ -506,7 +506,7 @@ cpu.r_ebp.set32(cpu.pop32());</snippet>
 
   <opcode mnemonic="lidt">
       <return>Branch.None</return>
-      <snippet>        int addr = $op1.get;
+      <snippet>        int addr = $op1.get + op1.getBase(cpu);
         int limit = 0xffff &amp; cpu.physicalMemory.getWord(addr);
         int base = 0x00ffffff &amp; cpu.physicalMemory.getDoubleWord(addr+2);
         cpu.idtr = cpu.createDescriptorTableSegment(base, limit);</snippet>

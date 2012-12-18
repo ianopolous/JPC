@@ -107,7 +107,7 @@ public class Fuzzer
         return true;
     }
 
-    public static String[] names = new String[] {"eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp", "eip", "flags", "cs", "ds", "es", "fs", "gs", "ss"};
+    public static String[] names = new String[] {"eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp", "eip", "flags", "cs", "ds", "es", "fs", "gs", "ss", "ticks"};
 
     public static void printState(int[] state)
     {
@@ -134,15 +134,19 @@ public class Fuzzer
 
     public static void arrayImpl(String[] names, int[] vals, Formatter f)
     {
-        for (int j=0; j <2; j++)
-        {
-            for (int i=0+8*j; i < 8+8*j; i++)
-                f.format("[%8s] ", names[i]);
-            f.format("\n");
-            for (int i=0+8*j; i < 8+8*j; i++)
-                f.format("[%8X] ", vals[i]);
-            f.format("\n");
-        }
+        int first = names.length/2;
+        for (int i=0; i <= first; i++)
+            f.format("[%8s] ", names[i]);
+        f.format("\n");
+        for (int i=0; i <= first; i++)
+            f.format("[%8X] ", vals[i]);
+        f.format("\n");
+        for (int i=first+1; i < names.length; i++)
+            f.format("[%8s] ", names[i]);
+        f.format("\n");
+        for (int i=first+1; i < names.length; i++)
+            f.format("[%8X] ", vals[i]);
+        f.format("\n");
     }
 
     public static void compareStates(int[] input, String opclass, String disam, byte[] code, int[] fast, int[] old, boolean compareFlags) throws Exception

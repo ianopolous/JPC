@@ -98,6 +98,7 @@ public class RTC extends AbstractHardwareComponent implements IOPortCapable
     private boolean ioportRegistered;
     private boolean drivesInited;
     private boolean floppiesInited;
+    private final Calendar startTime;
 
     /**
      * Construct a new RTC which will register at ioports <code>ioPort</code>
@@ -106,8 +107,9 @@ public class RTC extends AbstractHardwareComponent implements IOPortCapable
      * @param ioPort ioport base address.
      * @param irq interrupt channel number.
      */
-    public RTC(int ioPort, int irq)
+    public RTC(int ioPort, int irq, Calendar start)
     {
+        this.startTime = start;
         bootType = null;
         ioportRegistered = false;
         drivesInited = false;
@@ -124,6 +126,18 @@ public class RTC extends AbstractHardwareComponent implements IOPortCapable
         periodicCallback = new PeriodicCallback();
         secondCallback = new SecondCallback();
         delayedSecondCallback = new DelayedSecondCallback();
+    }
+
+    /**
+     * Construct a new RTC which will register at ioports <code>ioPort</code>
+     * and <code>ioPort+1</code>.  Interrupt requests will be sent on the
+     * supplied channel number.
+     * @param ioPort ioport base address.
+     * @param irq interrupt channel number.
+     */
+    public RTC(int ioPort, int irq)
+    {
+        this(ioPort, irq, Calendar.getInstance());
     }
 
     public void saveState(DataOutput output) throws IOException
@@ -187,9 +201,9 @@ public class RTC extends AbstractHardwareComponent implements IOPortCapable
 
     private void init()
     {
-        Calendar now = Calendar.getInstance();
-        this.setTime(now);
-        int val = this.toBCD(now.get(Calendar.YEAR) / 100);
+        //Calendar now = Calendar.getInstance();
+        this.setTime(startTime);
+        int val = this.toBCD(startTime.get(Calendar.YEAR) / 100);
         cmosData[RTC_REG_IBM_CENTURY_BYTE] = (byte) val;
         cmosData[RTC_REG_IBM_PS2_CENTURY_BYTE] = (byte) val;
 

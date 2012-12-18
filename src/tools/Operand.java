@@ -575,6 +575,7 @@ public abstract class Operand
         reg16.put("eCX", "cpu.r_ecx");
         reg16.put("eDX", "cpu.r_edx");
         reg16.put("eSP", "cpu.r_esp");
+        reg16.put("eBP", "cpu.r_ebp");
         reg16.put("eSI", "cpu.r_esi");
         reg16.put("eDI", "cpu.r_edi");
         reg16.put("rBXr11", "cpu.r_ebx");

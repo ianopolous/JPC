@@ -102,8 +102,8 @@ public class LazyCodeBlockMemory extends AbstractMemory
         {
             try
             {
-                x86Count += block.getX86Count();
                 block.execute(cpu);
+                x86Count += block.getX86Count();
             }
             catch (NullPointerException e)
             {
@@ -111,16 +111,16 @@ public class LazyCodeBlockMemory extends AbstractMemory
                     System.out.printf("Disassembling PM from %08x with opsize=%s\n", cpu.getInstructionPointer(), cpu.cs.getDefaultSizeFlag());
                 block = codeBlockManager.getProtectedModeCodeBlockAt(this, offset, cpu.cs.getDefaultSizeFlag());
                 setProtectedCodeBlockAt(offset, block);
-                x86Count += block.getX86Count();
                 block.execute(cpu);
+                x86Count += block.getX86Count();
             }
         }
         catch (CodeBlockReplacementException e)
         {
             block = (ProtectedModeCodeBlock) e.getReplacement();
             protectedCodeBuffer[offset] = block;
-            x86Count += block.getX86Count();
             block.execute(cpu);
+            x86Count += block.getX86Count();
         }
 
         return x86Count;
@@ -136,8 +136,8 @@ public class LazyCodeBlockMemory extends AbstractMemory
         {
             try
             {
-                x86Count += block.getX86Count();
                 block.execute(cpu);
+                x86Count += block.getX86Count();
             }
             catch (NullPointerException e)
             {
@@ -145,16 +145,16 @@ public class LazyCodeBlockMemory extends AbstractMemory
                     System.out.printf("Disassembling RM from %08x\n", cpu.getInstructionPointer());
                 block = codeBlockManager.getRealModeCodeBlockAt(this, offset);
                 setRealCodeBlockAt(offset, block);
-                x86Count += block.getX86Count();
                 block.execute(cpu);
+                x86Count += block.getX86Count();
             }
         }
         catch (CodeBlockReplacementException e)
         {
             block = (RealModeCodeBlock) e.getReplacement();
             realCodeBuffer[offset] = block;
-            x86Count += block.getX86Count();
             block.execute(cpu);
+            x86Count += block.getX86Count();
         }
 
         return x86Count;
@@ -170,8 +170,8 @@ public class LazyCodeBlockMemory extends AbstractMemory
         {
             try
             {
-                x86Count += block.getX86Count();
                 block.execute(cpu);
+                x86Count += block.getX86Count();
             }
             catch (NullPointerException e)
             {
@@ -179,16 +179,16 @@ public class LazyCodeBlockMemory extends AbstractMemory
                     System.out.printf("Disassembling VM86 from %08x\n", cpu.getInstructionPointer());
                 block = codeBlockManager.getVirtual8086ModeCodeBlockAt(this, offset);
                 setVirtual8086CodeBlockAt(offset, block);
-                x86Count += block.getX86Count();
                 block.execute(cpu);
+                x86Count += block.getX86Count();
             }
         }
         catch (CodeBlockReplacementException e)
         {
             block = (Virtual8086ModeCodeBlock) e.getReplacement();
             virtual8086CodeBuffer[offset] = block;
-            x86Count += block.getX86Count();
             block.execute(cpu);
+            x86Count += block.getX86Count();
         }
 
         return x86Count;

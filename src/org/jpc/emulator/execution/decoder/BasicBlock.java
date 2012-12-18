@@ -16,17 +16,13 @@ public class BasicBlock implements CodeBlock
     public BasicBlock link1, link2;
     public final int x86Length, x86Count;
     
-    public BasicBlock(Executable start, int x86Length)
+    public BasicBlock(Executable start, int x86Length, int x86Count)
     {
         this.start = start;
         this.x86Length = x86Length;
-        int count=1;
-        while (start.next!= null)
-        {
-            count++;
-            start = start.next;
-        }
-        x86Count = count;
+        this.x86Count = x86Count;
+        if (x86Count == 0)
+            throw new IllegalStateException("Block with zero x86Count!");
     }
 
     public Branch execute(Processor cpu)
