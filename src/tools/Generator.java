@@ -42,6 +42,8 @@ public class Generator
         {
             Node n = list.item(i);
             String mnemonic = n.getAttributes().getNamedItem("mnemonic").getNodeValue();
+            Node seg = n.getAttributes().getNamedItem("segment");
+            boolean segment = (seg != null) && seg.getNodeValue().equals("true");
             NodeList children = n.getChildNodes();
             String ret=null, snippet=null;
             // get return and snippet
@@ -71,7 +73,7 @@ public class Generator
                 String[] args = argsText.split(";");
                 if (argsText.length() == 0)
                     args = new String[0];
-                List<Opcode> ops = Opcode.get(mnemonic, args, size, snippet, ret);
+                List<Opcode> ops = Opcode.get(mnemonic, args, size, snippet, ret, segment);
                 for (Opcode op: ops)
                 {
                     call.call(op, mode);

@@ -14,11 +14,23 @@ public class Tools
             System.arraycopy(args, 1, rest, 0, rest.length);
             Comparison.main(rest);
         }
+        else if (args[0].equals("-compare-single"))
+        {
+            String[] rest = new String[args.length-1];
+            System.arraycopy(args, 1, rest, 0, rest.length);
+            ComparisonToSingleStep.main(rest);
+        }
         else if (args[0].equals("-fuzz"))
         {
             String[] rest = new String[args.length-1];
             System.arraycopy(args, 1, rest, 0, rest.length);
             Fuzzer.main(rest);
+        }
+        else if (args[0].equals("-history"))
+        {
+            String[] rest = new String[args.length-1];
+            System.arraycopy(args, 1, rest, 0, rest.length);
+            History.main(rest);
         }
     }
 }

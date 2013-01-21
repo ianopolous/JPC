@@ -22,10 +22,9 @@ public class call_Jz extends Executable
     public Branch execute(Processor cpu)
     {
         cpu.eip += blockLength;
-        if ((cpu.r_sp.get16() < 2) && (cpu.r_sp.get16() > 0))
+        if (((0xffff & cpu.r_sp.get16()) < 2) && (cpu.r_sp.get16() != 0))
 	    throw ProcessorException.STACK_SEGMENT_0;
         cpu.push16((short)cpu.eip);
-        //System.out.printf("Saving return address of %08x at esp %08x\n", cpu.eip, cpu.r_esp.get32());
         cpu.eip += jmp;
         cpu.eip &= 0xffff;
         return Branch.T1;

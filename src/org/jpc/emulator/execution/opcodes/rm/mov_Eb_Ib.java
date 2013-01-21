@@ -8,19 +8,19 @@ import static org.jpc.emulator.processor.Processor.*;
 public class mov_Eb_Ib extends Executable
 {
     final int op1Index;
-    final int imm;
+    final int immb;
 
     public mov_Eb_Ib(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        imm = (byte)parent.operand[1].lval;
+        immb = (byte)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        op1.set8((byte)imm);
+        op1.set8((byte)immb);
         return Branch.None;
     }
 

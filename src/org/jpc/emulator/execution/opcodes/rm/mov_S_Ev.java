@@ -14,7 +14,7 @@ public class mov_S_Ev extends Executable
     public mov_S_Ev(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[1].size;
+        size = parent.opr_mode;
         segIndex = Processor.getSegmentIndex(parent.operand[0].toString());
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }

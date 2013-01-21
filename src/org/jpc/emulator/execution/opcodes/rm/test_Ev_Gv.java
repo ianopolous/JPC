@@ -14,7 +14,7 @@ public class test_Ev_Gv extends Executable
     public test_Ev_Gv(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[0].size;
+        size = parent.opr_mode;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }

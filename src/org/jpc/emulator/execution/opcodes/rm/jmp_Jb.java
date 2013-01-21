@@ -22,6 +22,7 @@ public class jmp_Jb extends Executable
     public Branch execute(Processor cpu)
     {
         cpu.eip += jmp+blockLength;
+        cpu.eip &= 0xFFFF;
         return Branch.T1;
     }
 

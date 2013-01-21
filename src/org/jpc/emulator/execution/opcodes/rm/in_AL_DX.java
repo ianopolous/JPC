@@ -15,7 +15,7 @@ public class in_AL_DX extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.r_al.set8(cpu.ioports.ioPortRead8(0xFFFF&cpu.r_edx.get16()));
+        cpu.r_al.set8(cpu.ioports.ioPortRead8(0xFFFF&cpu.r_dx.get16()));
         return Branch.None;
     }
 

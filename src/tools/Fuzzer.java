@@ -107,13 +107,17 @@ public class Fuzzer
         return true;
     }
 
-    public static String[] names = new String[] {"eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp", "eip", "flags", "cs", "ds", "es", "fs", "gs", "ss", "ticks"};
+    public static String[] names = Comparison.names;
 
     public static void printState(int[] state)
     {
         StringBuilder builder = new StringBuilder(4096);
         Formatter formatter=new Formatter(builder);
-        arrayImpl(names, state, formatter);
+        arrayImpl(names, state, formatter, 0, 10);
+        arrayImpl(names, state, formatter, 10, 17);
+        arrayImpl(names, state, formatter, 17, 24);
+        arrayImpl(names, state, formatter, 24, 30);
+        arrayImpl(names, state, formatter, 30, names.length);
         System.out.flush();
         System.out.println(builder);
     }
@@ -132,19 +136,12 @@ public class Fuzzer
         printState(old);
     }
 
-    public static void arrayImpl(String[] names, int[] vals, Formatter f)
+    public static void arrayImpl(String[] names, int[] vals, Formatter f, int start, int end)
     {
-        int first = names.length/2;
-        for (int i=0; i <= first; i++)
+        for (int i=start; i < end; i++)
             f.format("[%8s] ", names[i]);
         f.format("\n");
-        for (int i=0; i <= first; i++)
-            f.format("[%8X] ", vals[i]);
-        f.format("\n");
-        for (int i=first+1; i < names.length; i++)
-            f.format("[%8s] ", names[i]);
-        f.format("\n");
-        for (int i=first+1; i < names.length; i++)
+        for (int i=start; i < end; i++)
             f.format("[%8X] ", vals[i]);
         f.format("\n");
     }

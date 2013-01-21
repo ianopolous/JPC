@@ -25,25 +25,33 @@ public class BasicBlock implements CodeBlock
             throw new IllegalStateException("Block with zero x86Count!");
     }
 
+    protected void preBlock(Processor cpu)
+    {
+        if (LOG_BLOCKENTRY)
+            System.out.printf("*****Entering basic block %08x\n", cpu.cs.getBase()+cpu.eip);
+    }
+
+    public void postInstruction(Processor cpu, Executable last)
+    {
+        if (LOG_STATE)
+        {
+            System.out.println("\t"+last);
+            State.print(cpu);
+        }
+    }
+
     public Branch execute(Processor cpu)
     {
         Executable current = start;
         Executable.Branch ret;
 
-        if (LOG_BLOCKENTRY)
-            System.out.printf("*****Entering basic block %08x\n", cpu.cs.getBase()+cpu.eip);
+        preBlock(cpu);
         while ((ret = current.execute(cpu)) == Executable.Branch.None)
         {
-            if (LOG_STATE)
-                System.out.println("\t"+current);
+            postInstruction(cpu, current);
             current = current.next;
-            if (LOG_STATE)
-                State.print(cpu);
         }
-        if (LOG_STATE)
-            System.out.println("\t"+current);
-        if (LOG_STATE)
-            State.print(cpu);
+        postInstruction(cpu, current);
         return ret;
     }
 

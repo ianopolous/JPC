@@ -12,13 +12,14 @@ public class Opcode
     final String ret;
     final int size;
     final boolean multiSize;
-    final boolean isMem, isBranch;
+    final boolean isMem, isBranch, needsSegment;
 
-    private Opcode(String mnemonic, String[] args, int size, String snippet, String ret, boolean isMem)
+    private Opcode(String mnemonic, String[] args, int size, String snippet, String ret, boolean isMem, boolean needsSegment)
     {
+        this.needsSegment = needsSegment;
         boolean msize = false;
         for (String s: args)
-            if (s.equals("Ev") || s.equals("Gv") || s.equals("Iv") || s.equals("Iz") || s.equals("Ov"))
+            if (s.equals("Ev") || s.equals("Gv") || s.equals("Iv") || s.equals("Iz") || s.equals("Ov") || (Operand.reg16.containsKey(s) && !mnemonic.contains("o16") && !mnemonic.contains("o32")))
                 msize = true;
         multiSize = msize;
         operands = new Operand[args.length];
@@ -50,6 +51,8 @@ public class Opcode
     {
         StringBuilder b = new StringBuilder();
         b.append(getPreamble(mode));
+        if (needsSegment)
+            b.append("    final int segIndex;\n");
         for (int i=0; i < operands.length; i++)
             b.append(operands[i].define(i+1));
         if (isBranch)
@@ -94,9 +97,9 @@ public class Opcode
         else
         {
             body = body.replaceAll("\\$cast", getCast(size));
-            if (body.contains("$mask2"))
+            if (body.contains("mask2"))
                 body = body.replaceAll("\\$mask2", getMask(operands[1].getSize()));
-            if (body.contains("$mask1"))
+            if (body.contains("mask1"))
                 body = body.replaceAll("\\$mask1", getMask(operands[0].getSize()));
             body = body.replaceAll("\\$mask", getMask(size));
         }
@@ -131,6 +134,8 @@ public class Opcode
             if (load.length() > 0)
                 b.append(load+"\n");
         }
+        if (needsSegment)
+            b.append("        Segment seg = cpu.segs[segIndex];\n");
         if (multiSize)
         {
             b.append("        if (size == 16)\n        {\n");
@@ -157,9 +162,13 @@ public class Opcode
     {
         StringBuilder b = new StringBuilder();
         b.append("\n    public "+getName()+"(int blockStart, Instruction parent)\n    {\n        super(blockStart, parent);\n");
+        if (needsSegment)
+        {
+            b.append("        segIndex = Processor.getSegmentIndex(parent.getSegment());\n");
+        }
         if (multiSize)
         {
-            int vIndex = -1;
+            /*int vIndex = -1;
             for (int i=operands.length-1; i >= 0; i--)
             {
                 String arg = operands[i].toString();
@@ -167,10 +176,12 @@ public class Opcode
                     vIndex = i;
                 if ((arg.length() > 1) && arg.equals("Iz"))
                     vIndex = i;
+                if (Operand.reg16.containsKey(arg) && (vIndex == -1))
+                    vIndex = i;
             }
             if (vIndex == -1)
-                throw new IllegalStateException("Couldn't find multisize operand "+toString());
-            b.append("        size = parent.operand["+vIndex+"].size;\n");
+            throw new IllegalStateException("Couldn't find multisize operand "+toString());*/
+            b.append("        size = parent.opr_mode;\n");//parent.operand["+vIndex+"].size;\n");
         }
         if (isBranch)
         {
@@ -219,7 +230,7 @@ public class Opcode
     private static boolean isMem(String[] args)
     {
         for (String arg: args)
-            if (arg.equals("Eb") || arg.equals("Ev") || arg.equals("Iv") || arg.equals("Ov") || arg.equals("Ob") || arg.equals("M"))
+            if (arg.equals("Eb") || arg.equals("Ev") || arg.equals("Ew") || arg.equals("Iv") || arg.equals("Ov") || arg.equals("Ob") || arg.equals("M"))
                 return true;
         return false;
     }
@@ -229,20 +240,22 @@ public class Opcode
         for (String arg: args)
             if (arg.equals("Ep"))
                 return true;
+        if ((args.length == 1) && args[0].equals("Mw"))
+            return true;
         return false;
     }
 
-    public static List<Opcode> get(String mnemonic, String[] args, int size, String snippet, String ret)
+    public static List<Opcode> get(String mnemonic, String[] args, int size, String snippet, String ret, boolean segment)
     {
         List<Opcode> ops = new LinkedList();
         if (isMemOnly(args))
         {
-            ops.add(new Opcode(mnemonic, args, size, snippet, ret, true));
+            ops.add(new Opcode(mnemonic, args, size, snippet, ret, true, segment));
             return ops;
         }
-        ops.add(new Opcode(mnemonic, args, size, snippet, ret, false));
+        ops.add(new Opcode(mnemonic, args, size, snippet, ret, false, segment));
         if (isMem(args))
-            ops.add(new Opcode(mnemonic, args, size, snippet, ret, true));
+            ops.add(new Opcode(mnemonic, args, size, snippet, ret, true, segment));
         return ops;
     }
 }

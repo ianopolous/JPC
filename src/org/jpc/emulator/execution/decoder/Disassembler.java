@@ -72,21 +72,28 @@ public class Disassembler
     {
         try
         {
-            String gen = in.getGeneralClassName();
+            String gen = in.getGeneralClassName(false, false);
             Map<String, Constructor<? extends Executable>> instructions = null;
             if (!isPM)
                 instructions = rm_instructions;
             else
                 instructions = pm_instructions;
-            if (instructions.containsKey(gen) || instructions.containsKey(in.getSpecificClassName()))
+            if (instructions.containsKey(gen)
+                    || instructions.containsKey(in.getGeneralClassName(true, false))
+                    || instructions.containsKey(in.getGeneralClassName(false, true))
+                    || instructions.containsKey(in.getGeneralClassName(true, true)))
             {
                 //System.out.println("Found general class: " + gen);
                 Constructor<? extends Executable> c = instructions.get(gen);
                 if (c == null)
-                    c = instructions.get(in.getSpecificClassName());
+                    c = instructions.get(in.getGeneralClassName(true, false));
+                if (c == null)
+                    c = instructions.get(in.getGeneralClassName(false, true));
+                if (c == null)
+                    c = instructions.get(in.getGeneralClassName(true, true));
                 Executable dis = c.newInstance(blockStart, in);
                 if (in.pfx.lock != 0)
-                    return new Lock(blockStart, dis);
+                    return new Lock(blockStart, dis, in);
                 return dis;
             }
         } catch (InstantiationException e)
@@ -94,7 +101,7 @@ public class Disassembler
         catch (IllegalAccessException e)
         {e.printStackTrace();}
         catch (InvocationTargetException e) {e.printStackTrace();}
-        throw new IllegalStateException("Unimplemented opcode: "+in.toString() + ", general pattern: " + in.getGeneralClassName()+".");
+        throw new IllegalStateException("Unimplemented opcode: " + (isPM ? "PM:": "RM:") +in.toString() + ", general pattern: " + in.getGeneralClassName(true, true)+".");
     }
 
     public static Executable getEipUpdate(boolean isPM, int blockStart, Instruction prev)
@@ -121,12 +128,20 @@ public class Disassembler
         input.resetCounter();
         Instruction in = new Instruction();
         in.eip = input.getAddress();
-        get_prefixes(16, input, in);
-        search_table(16, input, in);
-        do_mode(16, input, in);
-        disasm_operands(16, input, in);
-        resolve_operator(16, input, in);
+        try {
+            get_prefixes(16, input, in);
+            search_table(16, input, in);
+            do_mode(16, input, in);
+            disasm_operands(16, input, in);
+            resolve_operator(16, input, in);
+        } catch (IllegalStateException e)
+        {
+            System.out.println("Invalid RM opcode for bytes: "+getRawBytes(in, input));
+            throw e;
+        }
         in.x86Length = input.getCounter();
+        if (in.operator.equals("invalid"))
+            throw new IllegalStateException("Invalid RM opcode for bytes: "+getRawBytes(in, input));
         return in;
     }
 
@@ -135,13 +150,31 @@ public class Disassembler
         input.resetCounter();
         Instruction in = new Instruction();
         in.eip = input.getAddress();
-        get_prefixes(32, input, in);
-        search_table(32, input, in);
-        do_mode(32, input, in);
-        disasm_operands(32, input, in);
-        resolve_operator(32, input, in);
+        try {
+            get_prefixes(32, input, in);
+            search_table(32, input, in);
+            do_mode(32, input, in);
+            disasm_operands(32, input, in);
+            resolve_operator(32, input, in);
+        } catch (IllegalStateException e)
+        {
+            System.out.println("Invalid PM opcode for bytes: "+getRawBytes(in, input));
+            throw e;
+        }
         in.x86Length = input.getCounter();
+        if (in.operator.equals("invalid"))
+            throw new IllegalStateException("Invalid PM opcode for bytes: "+getRawBytes(in, input));
         return in;
+    }
+
+    public static String getRawBytes(Instruction insn, PeekableInputStream input)
+    {
+        int length = input.getCounter();
+        input.seek(-length);
+        StringBuilder b = new StringBuilder();
+        for(int i=0; i <= length; i++)
+            b.append(String.format("%02x ", input.read(8)));
+        return b.toString();
     }
 
     public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size, boolean isPM)
@@ -153,18 +186,15 @@ public class Disassembler
         Executable start = getExecutable(isPM, startAddr, currentInsn);
         if (PRINT_DISAM)
         {
-            System.out.printf("%d;%s;%s;", operand_size, currentInsn.getGeneralClassName(), currentInsn);
-            input.seek(-currentInsn.x86Length);
-            for(int i=0; i < currentInsn.x86Length; i++)
-                System.out.printf("%02x ", input.read(8));
-            System.out.println();
+            System.out.printf("%d;%s;%s;", operand_size, currentInsn.getGeneralClassName(false, false), currentInsn);
+            System.out.println(getRawBytes(currentInsn, input));
         }
         Executable current = start;
         int x86Length = currentInsn.x86Length;
         int count = 1;
         while (!currentInsn.isBranch())
         {
-            if (count >= MAX_INSTRUCTIONS_PER_BLOCK)
+            if ((count >= MAX_INSTRUCTIONS_PER_BLOCK) && !currentInsn.toString().equals("sti"))
             {
                 Executable eip = getEipUpdate(isPM, startAddr, currentInsn);
                 current.next = eip;
@@ -175,11 +205,8 @@ public class Disassembler
             Instruction nextInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
             if (PRINT_DISAM)
             {
-                System.out.printf("%d;%s;%s;", operand_size, nextInsn.getGeneralClassName(), nextInsn);
-                input.seek(-nextInsn.x86Length);
-                for(int i=0; i < nextInsn.x86Length; i++)
-                    System.out.printf("%02x ", input.read(8));
-                System.out.println();
+                System.out.printf("%d;%s;%s;", operand_size, nextInsn.getGeneralClassName(false, false), nextInsn);
+                System.out.println(getRawBytes(nextInsn, input));
             }
             Executable next = getExecutable(isPM, startAddr, nextInsn);
             count++;
@@ -247,7 +274,7 @@ public class Disassembler
             if (bits == 32)
                 return read32();
             if (bits == 64)
-                return read32() | (((long)read32()) << 32);
+                return (0xffffffffL & read32()) | (((long)read32()) << 32);
             throw new IllegalStateException("unimplemented read amount " + bits);
         }
 

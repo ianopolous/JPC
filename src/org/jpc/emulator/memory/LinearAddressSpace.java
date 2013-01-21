@@ -892,7 +892,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         
         private void fill()
         {
-            //pageFault.fillInStackTrace();
+            pageFault.fillInStackTrace();
         }
 
         public boolean isAllocated()

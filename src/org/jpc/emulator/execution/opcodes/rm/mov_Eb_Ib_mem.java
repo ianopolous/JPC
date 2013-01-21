@@ -8,18 +8,18 @@ import static org.jpc.emulator.processor.Processor.*;
 public class mov_Eb_Ib_mem extends Executable
 {
     final Pointer op1;
-    final int imm;
+    final int immb;
 
     public mov_Eb_Ib_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
         op1 = new Pointer(parent.operand[0], parent.adr_mode);
-        imm = (byte)parent.operand[1].lval;
+        immb = (byte)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)
     {
-        op1.set8(cpu, (byte)imm);
+        op1.set8(cpu, (byte)immb);
         return Branch.None;
     }
 

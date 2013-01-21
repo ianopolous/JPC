@@ -6,6 +6,7 @@ import java.util.*;
 public abstract class Option {
     private static final Hashtable<String, Option> names2options = new Hashtable();
 
+    public static final Switch track_writes = createSwitch("track-writes");
     public static final Switch log_disam = createSwitch("log-disam");
     public static final Switch log_disam_addresses = createSwitch("log-disam-addresses");
     public static final Switch log_state = createSwitch("log-state");

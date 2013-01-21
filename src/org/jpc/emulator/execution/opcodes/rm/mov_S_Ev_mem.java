@@ -14,7 +14,7 @@ public class mov_S_Ev_mem extends Executable
     public mov_S_Ev_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[1].size;
+        size = parent.opr_mode;
         segIndex = Processor.getSegmentIndex(parent.operand[0].toString());
         op2 = new Pointer(parent.operand[1], parent.adr_mode);
     }

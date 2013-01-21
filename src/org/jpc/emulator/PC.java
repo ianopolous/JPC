@@ -33,8 +33,10 @@
 
 package org.jpc.emulator;
 
+import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.execution.decoder.Disassembler;
 import org.jpc.emulator.execution.decoder.Instruction;
+import org.jpc.emulator.memory.codeblock.*;
 import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.memory.*;
 import org.jpc.emulator.pci.peripheral.*;
@@ -201,7 +203,10 @@ public class PC {
         {
             byte[] code = new byte[15];
             linearAddr.copyContentsIntoArray(processor.getInstructionPointer(), code, 0, code.length);
-            return Disassembler.disassemble32(new Disassembler.ByteArrayPeekStream(code));
+            if (processor.cs.getDefaultSizeFlag())
+                return Disassembler.disassemble32(new Disassembler.ByteArrayPeekStream(code));
+            else
+                return Disassembler.disassemble16(new Disassembler.ByteArrayPeekStream(code));
         }
         byte[] code = new byte[15];
         physicalAddr.copyContentsIntoArray(processor.getInstructionPointer(), code, 0, code.length);
@@ -222,12 +227,12 @@ public class PC {
         try {
             processor.setEFlags(s[9]);
         } catch (ProcessorException e) {}
-        processor.cs(s[10]);
+        /*processor.cs(s[10]);
         processor.ds(s[11]);
         processor.es(s[12]);
         processor.fs(s[13]);
         processor.gs(s[14]);
-        processor.ss(s[15]);
+        processor.ss(s[15]);*/
     }
 
     public void setCode(byte[] code)
@@ -245,15 +250,41 @@ public class PC {
 
     public int[] getState()
     {
-        return new int[]{
-            processor.r_eax.get32(), processor.r_ebx.get32(), processor.r_ecx.get32(), processor.r_edx.get32(),
-            processor.r_esi.get32(), processor.r_edi.get32(), processor.r_esp.get32(), processor.r_ebp.get32(),
-            processor.eip, processor.getEFlags(),
-            processor.cs.getSelector(), processor.ds.getSelector(),
-            processor.es.getSelector(), processor.fs.getSelector(),
-            processor.gs.getSelector(), processor.ss.getSelector(),
-            (int)getTicks()
-        };
+        return new int[]
+                {
+                        processor.r_eax.get32(), processor.r_ebx.get32(), processor.r_ecx.get32(), processor.r_edx.get32(),
+                        processor.r_esi.get32(), processor.r_edi.get32(), processor.r_esp.get32(), processor.r_ebp.get32(),
+                        processor.eip, processor.getEFlags(),
+                        processor.cs.getSelector(), processor.ds.getSelector(),
+                        processor.es.getSelector(), processor.fs.getSelector(),
+                        processor.gs.getSelector(), processor.ss.getSelector(),
+                        (int)getTicks(),
+                        getLimit(processor.cs), getLimit(processor.ds),
+                        getLimit(processor.es), getLimit(processor.fs),
+                        getLimit(processor.gs), getLimit(processor.ss),
+                        processor.cs.getDefaultSizeFlag()? 1: 0,
+                        getBase(processor.gdtr),getLimit(processor.gdtr),
+                        getBase(processor.idtr),getLimit(processor.idtr),
+                        getBase(processor.ldtr),getLimit(processor.ldtr),
+                        getBase(processor.cs), getBase(processor.ds),
+                        getBase(processor.es), getBase(processor.fs),
+                        getBase(processor.gs), getBase(processor.ss),
+                        processor.getCR0()
+                };
+    }
+
+    private int getBase(Segment s)
+    {
+        if (s == SegmentFactory.NULL_SEGMENT)
+            return 0;
+        return s.getBase();
+    }
+
+    private int getLimit(Segment s)
+    {
+        if (s == SegmentFactory.NULL_SEGMENT)
+            return 0;
+        return s.getLimit();
     }
 
     private long getTicks()
@@ -269,6 +300,11 @@ public class PC {
     public Integer savePage(Integer page, byte[] data) throws IOException
     {
         return physicalAddr.getPage(page, data);
+    }
+
+    public void loadPage(Integer page, byte[] data) throws IOException
+    {
+        physicalAddr.setPage(page, data);
     }
 
     /**
@@ -519,6 +555,53 @@ public class PC {
         return instrs;
     }
 
+    public String getInstructionInfo(Integer instrs)
+    {
+        StringBuilder b = new StringBuilder();
+        int eip = processor.getInstructionPointer();
+        for (int c=0; c < instrs; c++)
+        {
+            PeekableMemoryStream input = new PeekableMemoryStream();
+            Instruction in;
+            Executable e;
+            if (processor.isProtectedMode()) {
+                if (processor.isVirtual8086Mode()) {
+                    throw new IllegalStateException("Switched to VM86 mode");
+                    //executeVirtual8086Block();
+                } else {
+                    input.set(linearAddr, eip);
+                    boolean opSize = processor.cs.getDefaultSizeFlag();
+                    if (opSize)
+                        in = Disassembler.disassemble32(input);
+                    else
+                        in = Disassembler.disassemble16(input);
+                    e = Disassembler.getExecutable(true, 0, in);
+                }
+            } else {
+                input.set(physicalAddr, eip);
+                in = Disassembler.disassemble16(input);
+                e = Disassembler.getExecutable(false, 0, in);
+            }
+            b.append(in.toString());
+            b.append(" == ");
+            b.append(e.getClass());
+            b.append(" == ");
+            input.seek(-in.x86Length);
+            for(int i=0; i < in.x86Length; i++)
+                b.append(String.format("%02x ", input.read(8)));
+            b.append("\n");
+            eip += in.x86Length;
+            if (in.isBranch())
+                break;
+        }
+        return b.toString();
+    }
+
+    public void getDirtyPages(Set<Integer> res)
+    {
+        physicalAddr.getDirtyPages(res);
+    }
+
     public int executeBlock()
     {
         if (processor.isProtectedMode()) {
@@ -586,15 +669,21 @@ public class PC {
      * @return total number of x86 instructions executed.
      */
     public final int execute() {
-        
-        if (processor.isProtectedMode()) {
-            if (processor.isVirtual8086Mode()) {
-                return executeVirtual8086();
+
+        try {
+            if (processor.isProtectedMode()) {
+                if (processor.isVirtual8086Mode()) {
+                    return executeVirtual8086();
+                } else {
+                    return executeProtected();
+                }
             } else {
-                return executeProtected();
+                return executeReal();
             }
-        } else {
-            return executeReal();
+        } catch (RuntimeException e)
+        {
+            System.out.printf("Error at cs:eip = %08x\n", processor.getInstructionPointer());
+            throw e;
         }
     }
 
@@ -623,8 +712,8 @@ public class PC {
         }
         catch (ModeSwitchException e)
         {
-            State.print(processor);
-            e.printStackTrace();
+            //State.print(processor);
+            //e.printStackTrace();
             LOGGING.log(Level.FINE, "Mode switch in RM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return x86Count;

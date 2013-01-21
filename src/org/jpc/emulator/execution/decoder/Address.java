@@ -11,8 +11,9 @@ public class Address
     final String seg;
     final int offset;
     final int segment;
+    final boolean addrSize;
 
-    public Address(Instruction.Operand op)
+    public Address(Instruction.Operand op, int addrSize)
     {
         seg = op.seg; // load the actual seg
         if (op.base != null)
@@ -35,6 +36,7 @@ public class Address
             offset = (byte)op.lval;
         else
             offset = (int)op.lval;
+        this.addrSize = addrSize == 32;
         if (seg != null)
         {
             segment = Processor.getSegmentIndex(seg);
@@ -58,7 +60,7 @@ public class Address
     public int get(Processor cpu)
     {
         int addr = offset;
-        if (!cpu.isProtectedMode())
+        if (!addrSize)
         {
             if (base != -1)
                 addr += cpu.regs[base].get16();

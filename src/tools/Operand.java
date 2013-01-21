@@ -306,7 +306,7 @@ public abstract class Operand
 
         public String construct(int arg)
         {
-            return "        op"+arg+" = new Address(parent.operand["+(arg-1)+"]);";
+            return "        op"+arg+" = new Address(parent.operand["+(arg-1)+"], parent.adr_mode);";
         }
 
         public String load(int arg)
@@ -328,11 +328,13 @@ public abstract class Operand
     public static class Immediate extends Operand
     {
         final int size;
+        final String var;
 
         public Immediate(String name, int size)
         {
             super(name);
             this.size = size;
+            var = "imm"+name.charAt(name.length()-1);
         }
 
         public int getSize()
@@ -342,12 +344,12 @@ public abstract class Operand
         
         public String define(int arg)
         {
-            return "    final int imm;\n";
+            return "    final int "+var+";\n";
         }
 
         public String construct(int arg)
         {
-            return "        imm = ("+cast()+")parent.operand["+(arg-1)+"].lval;";
+            return "        "+var+" = ("+cast()+")parent.operand["+(arg-1)+"].lval;";
         }
 
         private String cast()
@@ -373,7 +375,7 @@ public abstract class Operand
 
         public String get(int arg)
         {
-            return "imm";
+            return var;
         }
     }
 
@@ -535,7 +537,7 @@ public abstract class Operand
 
         public String load(int arg)
         {
-            return "        int cs = seg.get16(cpu);\n        short targetEip = offset.get16(cpu);";
+            return "        int cs = seg.get16(cpu);\n        int targetEip = offset.get"+size+"(cpu);";
         }
 
         public String set(int arg)
@@ -557,6 +559,8 @@ public abstract class Operand
         segs.put("CS", "cs");
         segs.put("DS", "ds");
         segs.put("ES", "es");
+        segs.put("FS", "fs");
+        segs.put("GS", "gs");
         segs.put("SS", "ss");
         reg8.put("AL", "cpu.r_al");
         reg8.put("CL", "cpu.r_cl");
@@ -566,8 +570,10 @@ public abstract class Operand
         reg8.put("BHr15b", "cpu.r_bh");
         reg8.put("CLr9b", "cpu.r_cl");
         reg8.put("CHr13b", "cpu.r_ch");
+        reg8.put("DLr10b", "cpu.r_dl");
         reg8.put("DHr14b", "cpu.r_dh");
-        reg16only.put("DX", "cpu.r_edx");
+        reg16only.put("DX", "cpu.r_dx");
+        reg16only.put("AX", "cpu.r_ax");
         reg16.put("rAXr8", "cpu.r_eax");
         reg16.put("rAX", "cpu.r_eax");
         reg16.put("eAX", "cpu.r_eax");
@@ -591,6 +597,8 @@ public abstract class Operand
     {
         if (name.equals("Ib"))
             return new Immediate(name, 8);
+        if (name.equals("Iw"))
+            return new Immediate(name, 16);
         if (name.equals("Iv") || name.equals("Iz"))
             return new Immediate(name, 32);
         if (name.equals("I1"))
@@ -613,9 +621,16 @@ public abstract class Operand
             else
                 return new Reg(name, opSize);
         }
+        if (name.equals("Ew"))
+        {
+            if (isMem)
+                return new Mem(name, 16);
+            else
+                return new Reg(name, 16);
+        }
         if (name.equals("Ep"))
             return new FarMemPointer(name, opSize);
-        if (name.equals("Gv"))
+        if (name.equals("Gv") | name.equals("Gz"))
             return new Reg(name, opSize);
         if (name.equals("R"))
             return new Reg(name, opSize);
@@ -629,6 +644,10 @@ public abstract class Operand
             return new FarPointer(name);
         if (name.equals("M"))
             return new Address(name);
+        if (name.equals("Mw"))
+            return new Mem(name, 16);
+        if (name.equals("Md"))
+            return new Mem(name, 32);
         if (name.equals("S"))
             return new Segment(name);
         if (segs.containsKey(name))

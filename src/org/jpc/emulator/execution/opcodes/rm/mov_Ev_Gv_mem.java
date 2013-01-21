@@ -14,7 +14,7 @@ public class mov_Ev_Gv_mem extends Executable
     public mov_Ev_Gv_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[0].size;
+        size = parent.opr_mode;
         op1 = new Pointer(parent.operand[0], parent.adr_mode);
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }

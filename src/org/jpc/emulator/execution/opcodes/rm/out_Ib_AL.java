@@ -7,17 +7,17 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class out_Ib_AL extends Executable
 {
-    final int imm;
+    final int immb;
 
     public out_Ib_AL(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        imm = (byte)parent.operand[0].lval;
+        immb = (byte)parent.operand[0].lval;
     }
 
     public Branch execute(Processor cpu)
     {
-        cpu.ioports.ioPortWrite8(0xFF&imm, 0xFF&cpu.r_al.get8());
+        cpu.ioports.ioPortWrite8(0xFF&immb, 0xFF&cpu.r_al.get8());
         return Branch.None;
     }
 

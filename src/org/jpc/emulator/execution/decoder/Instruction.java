@@ -64,7 +64,7 @@ public class Instruction
     
     public Instruction() {}
 
-    public String getGeneralClassName()
+    public String getGeneralClassName(boolean includeOperandSize, boolean includeAddressSize)
     {
         StringBuffer b = new StringBuffer();
         if (pfx.rep != 0)
@@ -72,27 +72,10 @@ public class Instruction
         if (pfx.repne != 0)
             b.append("repne_");
         b.append(operator);
-        for (int i=0; i < zygote.operand.length; i++)
-            if (!zygote.operand[i].name.equals("NONE"))
-                b.append("_"+zygote.operand[i].name);
-        boolean mem = false;
-        for (Operand o : operand)
-            if (o.type.equals("OP_MEM"))
-                mem = true;
-        if (mem)
-            b.append("_mem");
-        return b.toString();
-    }
-
-    public String getSpecificClassName()
-    {
-        StringBuffer b = new StringBuffer();
-        if (pfx.rep != 0)
-            b.append("rep_");
-        if (pfx.repne != 0)
-            b.append("repne_");
-        b.append(operator);
-        b.append("_o"+opr_mode);
+        if (includeOperandSize)
+            b.append("_o"+opr_mode);
+        if (includeAddressSize)
+            b.append("_a"+adr_mode);
         for (int i=0; i < zygote.operand.length; i++)
             if (!zygote.operand[i].name.equals("NONE"))
                 b.append("_"+zygote.operand[i].name);
@@ -145,6 +128,13 @@ public class Instruction
             
             return b.toString();
         }
+    }
+
+    public String getSegment()
+    {
+        if (pfx.seg != null)
+            return pfx.seg;
+        return "ds";
     }
 
     public void cast()
@@ -388,7 +378,7 @@ public class Instruction
 
     public boolean usesControlReg(int op)
     {
-        return (zygote.operand[op].name.equals("C"));
+        return (zygote.operand[op].name.equals("C")) | operator.startsWith("lmsw");
     }
 
     public boolean isJcc()

@@ -7,25 +7,25 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class mov_rAXr8_Iv_mem extends Executable
 {
-    final int imm;
+    final int immv;
     final int size;
 
     public mov_rAXr8_Iv_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[1].size;
-        imm = (int)parent.operand[1].lval;
+        size = parent.opr_mode;
+        immv = (int)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)
     {
         if (size == 16)
         {
-        cpu.r_eax.set16((short)imm);
+        cpu.r_eax.set16((short)immv);
         }
         else if (size == 32)
         {
-        cpu.r_eax.set32(imm);
+        cpu.r_eax.set32(immv);
         }        else throw new IllegalStateException("Unknown size "+size);
         return Branch.None;
     }

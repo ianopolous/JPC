@@ -34,10 +34,13 @@
 package org.jpc.emulator.memory;
 
 import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.jpc.emulator.*;
 import org.jpc.emulator.memory.codeblock.CodeBlockManager;
 import org.jpc.emulator.processor.Processor;
+import org.jpc.j2se.Option;
 
 /**
  * Class that emulates the 32bit physical address space of the machine.  Mappings
@@ -67,6 +70,8 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
     private Memory[][] nonA20MaskedIndex,  a20MaskedIndex,  index;
     private LinearAddressSpace linearAddr;
     private CodeBlockManager manager = null;
+    public static final boolean track_page_writes = Option.track_writes.value();
+    private Set<Integer> dirtyPages = new HashSet();
 
     /**
      * Constructs an address space which is initially empty.  All addresses are 
@@ -309,11 +314,24 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         return gateA20MaskState;
     }
 
+    private void logWrite(int address)
+    {
+        if (track_page_writes)
+            dirtyPages.add(address >>> 12);
+    }
+
+    public void getDirtyPages(Set<Integer> res)
+    {
+        res.addAll(dirtyPages);
+        dirtyPages.clear();
+    }
+
     protected Memory getReadMemoryBlockAt(int offset) {
         return getMemoryBlockAt(offset);
     }
 
     protected Memory getWriteMemoryBlockAt(int offset) {
+        logWrite(offset);
         return getMemoryBlockAt(offset);
     }
 
@@ -718,6 +736,28 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
                 if (block instanceof MapWrapper)
                     return 0;
                 block.copyContentsIntoArray(0, page, 0, 4096);
+                return 4096;
+            } catch (NullPointerException n) {
+                return 0;
+            }
+        }
+    }
+
+    public Integer setPage(Integer pageNum, byte[] page)
+    {
+        int i=pageNum*4096;
+        try {
+            Memory block = quickIndex[i >>> INDEX_SHIFT];
+            if (block instanceof MapWrapper)
+                return 0;
+            block.copyArrayIntoContents(0, page, 0, 4096);
+            return 4096;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            try {
+                Memory block = index[i >>> TOP_INDEX_SHIFT][(i >>> BOTTOM_INDEX_SHIFT) & BOTTOM_INDEX_MASK];
+                if (block instanceof MapWrapper)
+                    return 0;
+                block.copyArrayIntoContents(0, page, 0, 4096);
                 return 4096;
             } catch (NullPointerException n) {
                 return 0;

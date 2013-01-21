@@ -40,7 +40,7 @@ import org.jpc.emulator.memory.Memory;
  * 
  * @author Ian Preston
  */
-class PeekableMemoryStream implements PeekableInputStream
+public class PeekableMemoryStream implements PeekableInputStream
 {
     private Memory memory;
     private int position, start;

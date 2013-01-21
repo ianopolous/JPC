@@ -38,101 +38,100 @@ public static final int ITAB__0F__OP_01__REG__OP_03__MOD__OP_01__RM__OP_05__VEND
 public static final int ITAB__0F__OP_01__REG__OP_03__MOD__OP_01__RM__OP_06__VENDOR = 19;
 public static final int ITAB__0F__OP_01__REG__OP_03__MOD__OP_01__RM__OP_07__VENDOR = 20;
 public static final int ITAB__0F__OP_01__REG__OP_04__MOD = 21;
-public static final int ITAB__0F__OP_01__REG__OP_06__MOD = 22;
-public static final int ITAB__0F__OP_01__REG__OP_07__MOD = 23;
-public static final int ITAB__0F__OP_01__REG__OP_07__MOD__OP_01__RM = 24;
-public static final int ITAB__0F__OP_01__REG__OP_07__MOD__OP_01__RM__OP_01__VENDOR = 25;
-public static final int ITAB__0F__OP_0D__REG = 26;
-public static final int ITAB__0F__OP_18__REG = 27;
-public static final int ITAB__0F__OP_71__REG = 28;
-public static final int ITAB__0F__OP_72__REG = 29;
-public static final int ITAB__0F__OP_73__REG = 30;
-public static final int ITAB__0F__OP_AE__MOD = 31;
-public static final int ITAB__0F__OP_AE__MOD__OP_00__REG = 32;
-public static final int ITAB__0F__OP_AE__REG = 33;
-public static final int ITAB__0F__OP_AE__REG__OP_05__MOD = 34;
-public static final int ITAB__0F__OP_AE__REG__OP_05__MOD__OP_01__RM = 35;
-public static final int ITAB__0F__OP_AE__REG__OP_06__MOD = 36;
-public static final int ITAB__0F__OP_AE__REG__OP_06__MOD__OP_01__RM = 37;
-public static final int ITAB__0F__OP_AE__REG__OP_07__MOD = 38;
-public static final int ITAB__0F__OP_AE__REG__OP_07__MOD__OP_01__RM = 39;
-public static final int ITAB__0F__OP_BA__REG = 40;
-public static final int ITAB__0F__OP_C7__REG = 41;
-public static final int ITAB__0F__OP_C7__REG__OP_00__VENDOR = 42;
-public static final int ITAB__0F__OP_C7__REG__OP_07__VENDOR = 43;
-public static final int ITAB__1BYTE = 44;
-public static final int ITAB__1BYTE__OP_60__OSIZE = 45;
-public static final int ITAB__1BYTE__OP_61__OSIZE = 46;
-public static final int ITAB__1BYTE__OP_63__MODE = 47;
-public static final int ITAB__1BYTE__OP_6D__OSIZE = 48;
-public static final int ITAB__1BYTE__OP_6F__OSIZE = 49;
-public static final int ITAB__1BYTE__OP_80__REG = 50;
-public static final int ITAB__1BYTE__OP_81__REG = 51;
-public static final int ITAB__1BYTE__OP_82__REG = 52;
-public static final int ITAB__1BYTE__OP_83__REG = 53;
-public static final int ITAB__1BYTE__OP_8F__REG = 54;
-public static final int ITAB__1BYTE__OP_98__OSIZE = 55;
-public static final int ITAB__1BYTE__OP_99__OSIZE = 56;
-public static final int ITAB__1BYTE__OP_9C__MODE = 57;
-public static final int ITAB__1BYTE__OP_9C__MODE__OP_00__OSIZE = 58;
-public static final int ITAB__1BYTE__OP_9C__MODE__OP_01__OSIZE = 59;
-public static final int ITAB__1BYTE__OP_9D__MODE = 60;
-public static final int ITAB__1BYTE__OP_9D__MODE__OP_00__OSIZE = 61;
-public static final int ITAB__1BYTE__OP_9D__MODE__OP_01__OSIZE = 62;
-public static final int ITAB__1BYTE__OP_A5__OSIZE = 63;
-public static final int ITAB__1BYTE__OP_A7__OSIZE = 64;
-public static final int ITAB__1BYTE__OP_AB__OSIZE = 65;
-public static final int ITAB__1BYTE__OP_AD__OSIZE = 66;
-public static final int ITAB__1BYTE__OP_AF__OSIZE = 67;
-public static final int ITAB__1BYTE__OP_C0__REG = 68;
-public static final int ITAB__1BYTE__OP_C1__REG = 69;
-public static final int ITAB__1BYTE__OP_C6__REG = 70;
-public static final int ITAB__1BYTE__OP_C7__REG = 71;
-public static final int ITAB__1BYTE__OP_CF__OSIZE = 72;
-public static final int ITAB__1BYTE__OP_D0__REG = 73;
-public static final int ITAB__1BYTE__OP_D1__REG = 74;
-public static final int ITAB__1BYTE__OP_D2__REG = 75;
-public static final int ITAB__1BYTE__OP_D3__REG = 76;
-public static final int ITAB__1BYTE__OP_D8__MOD = 77;
-public static final int ITAB__1BYTE__OP_D8__MOD__OP_00__REG = 78;
-public static final int ITAB__1BYTE__OP_D8__MOD__OP_01__X87 = 79;
-public static final int ITAB__1BYTE__OP_D9__MOD = 80;
-public static final int ITAB__1BYTE__OP_D9__MOD__OP_00__REG = 81;
-public static final int ITAB__1BYTE__OP_D9__MOD__OP_01__X87 = 82;
-public static final int ITAB__1BYTE__OP_DA__MOD = 83;
-public static final int ITAB__1BYTE__OP_DA__MOD__OP_00__REG = 84;
-public static final int ITAB__1BYTE__OP_DA__MOD__OP_01__X87 = 85;
-public static final int ITAB__1BYTE__OP_DB__MOD = 86;
-public static final int ITAB__1BYTE__OP_DB__MOD__OP_00__REG = 87;
-public static final int ITAB__1BYTE__OP_DB__MOD__OP_01__X87 = 88;
-public static final int ITAB__1BYTE__OP_DC__MOD = 89;
-public static final int ITAB__1BYTE__OP_DC__MOD__OP_00__REG = 90;
-public static final int ITAB__1BYTE__OP_DC__MOD__OP_01__X87 = 91;
-public static final int ITAB__1BYTE__OP_DD__MOD = 92;
-public static final int ITAB__1BYTE__OP_DD__MOD__OP_00__REG = 93;
-public static final int ITAB__1BYTE__OP_DD__MOD__OP_01__X87 = 94;
-public static final int ITAB__1BYTE__OP_DE__MOD = 95;
-public static final int ITAB__1BYTE__OP_DE__MOD__OP_00__REG = 96;
-public static final int ITAB__1BYTE__OP_DE__MOD__OP_01__X87 = 97;
-public static final int ITAB__1BYTE__OP_DF__MOD = 98;
-public static final int ITAB__1BYTE__OP_DF__MOD__OP_00__REG = 99;
-public static final int ITAB__1BYTE__OP_DF__MOD__OP_01__X87 = 100;
-public static final int ITAB__1BYTE__OP_E3__ASIZE = 101;
-public static final int ITAB__1BYTE__OP_F6__REG = 102;
-public static final int ITAB__1BYTE__OP_F7__REG = 103;
-public static final int ITAB__1BYTE__OP_FE__REG = 104;
-public static final int ITAB__1BYTE__OP_FF__REG = 105;
-public static final int ITAB__3DNOW = 106;
-public static final int ITAB__PFX_SSE66__0F = 107;
-public static final int ITAB__PFX_SSE66__0F__OP_71__REG = 108;
-public static final int ITAB__PFX_SSE66__0F__OP_72__REG = 109;
-public static final int ITAB__PFX_SSE66__0F__OP_73__REG = 110;
-public static final int ITAB__PFX_SSE66__0F__OP_C7__REG = 111;
-public static final int ITAB__PFX_SSE66__0F__OP_C7__REG__OP_00__VENDOR = 112;
-public static final int ITAB__PFX_SSEF2__0F = 113;
-public static final int ITAB__PFX_SSEF3__0F = 114;
-public static final int ITAB__PFX_SSEF3__0F__OP_C7__REG = 115;
-public static final int ITAB__PFX_SSEF3__0F__OP_C7__REG__OP_07__VENDOR = 116;
+public static final int ITAB__0F__OP_01__REG__OP_07__MOD = 22;
+public static final int ITAB__0F__OP_01__REG__OP_07__MOD__OP_01__RM = 23;
+public static final int ITAB__0F__OP_01__REG__OP_07__MOD__OP_01__RM__OP_01__VENDOR = 24;
+public static final int ITAB__0F__OP_0D__REG = 25;
+public static final int ITAB__0F__OP_18__REG = 26;
+public static final int ITAB__0F__OP_71__REG = 27;
+public static final int ITAB__0F__OP_72__REG = 28;
+public static final int ITAB__0F__OP_73__REG = 29;
+public static final int ITAB__0F__OP_AE__MOD = 30;
+public static final int ITAB__0F__OP_AE__MOD__OP_00__REG = 31;
+public static final int ITAB__0F__OP_AE__REG = 32;
+public static final int ITAB__0F__OP_AE__REG__OP_05__MOD = 33;
+public static final int ITAB__0F__OP_AE__REG__OP_05__MOD__OP_01__RM = 34;
+public static final int ITAB__0F__OP_AE__REG__OP_06__MOD = 35;
+public static final int ITAB__0F__OP_AE__REG__OP_06__MOD__OP_01__RM = 36;
+public static final int ITAB__0F__OP_AE__REG__OP_07__MOD = 37;
+public static final int ITAB__0F__OP_AE__REG__OP_07__MOD__OP_01__RM = 38;
+public static final int ITAB__0F__OP_BA__REG = 39;
+public static final int ITAB__0F__OP_C7__REG = 40;
+public static final int ITAB__0F__OP_C7__REG__OP_00__VENDOR = 41;
+public static final int ITAB__0F__OP_C7__REG__OP_07__VENDOR = 42;
+public static final int ITAB__1BYTE = 43;
+public static final int ITAB__1BYTE__OP_60__OSIZE = 44;
+public static final int ITAB__1BYTE__OP_61__OSIZE = 45;
+public static final int ITAB__1BYTE__OP_63__MODE = 46;
+public static final int ITAB__1BYTE__OP_6D__OSIZE = 47;
+public static final int ITAB__1BYTE__OP_6F__OSIZE = 48;
+public static final int ITAB__1BYTE__OP_80__REG = 49;
+public static final int ITAB__1BYTE__OP_81__REG = 50;
+public static final int ITAB__1BYTE__OP_82__REG = 51;
+public static final int ITAB__1BYTE__OP_83__REG = 52;
+public static final int ITAB__1BYTE__OP_8F__REG = 53;
+public static final int ITAB__1BYTE__OP_98__OSIZE = 54;
+public static final int ITAB__1BYTE__OP_99__OSIZE = 55;
+public static final int ITAB__1BYTE__OP_9C__MODE = 56;
+public static final int ITAB__1BYTE__OP_9C__MODE__OP_00__OSIZE = 57;
+public static final int ITAB__1BYTE__OP_9C__MODE__OP_01__OSIZE = 58;
+public static final int ITAB__1BYTE__OP_9D__MODE = 59;
+public static final int ITAB__1BYTE__OP_9D__MODE__OP_00__OSIZE = 60;
+public static final int ITAB__1BYTE__OP_9D__MODE__OP_01__OSIZE = 61;
+public static final int ITAB__1BYTE__OP_A5__OSIZE = 62;
+public static final int ITAB__1BYTE__OP_A7__OSIZE = 63;
+public static final int ITAB__1BYTE__OP_AB__OSIZE = 64;
+public static final int ITAB__1BYTE__OP_AD__OSIZE = 65;
+public static final int ITAB__1BYTE__OP_AF__OSIZE = 66;
+public static final int ITAB__1BYTE__OP_C0__REG = 67;
+public static final int ITAB__1BYTE__OP_C1__REG = 68;
+public static final int ITAB__1BYTE__OP_C6__REG = 69;
+public static final int ITAB__1BYTE__OP_C7__REG = 70;
+public static final int ITAB__1BYTE__OP_CF__OSIZE = 71;
+public static final int ITAB__1BYTE__OP_D0__REG = 72;
+public static final int ITAB__1BYTE__OP_D1__REG = 73;
+public static final int ITAB__1BYTE__OP_D2__REG = 74;
+public static final int ITAB__1BYTE__OP_D3__REG = 75;
+public static final int ITAB__1BYTE__OP_D8__MOD = 76;
+public static final int ITAB__1BYTE__OP_D8__MOD__OP_00__REG = 77;
+public static final int ITAB__1BYTE__OP_D8__MOD__OP_01__X87 = 78;
+public static final int ITAB__1BYTE__OP_D9__MOD = 79;
+public static final int ITAB__1BYTE__OP_D9__MOD__OP_00__REG = 80;
+public static final int ITAB__1BYTE__OP_D9__MOD__OP_01__X87 = 81;
+public static final int ITAB__1BYTE__OP_DA__MOD = 82;
+public static final int ITAB__1BYTE__OP_DA__MOD__OP_00__REG = 83;
+public static final int ITAB__1BYTE__OP_DA__MOD__OP_01__X87 = 84;
+public static final int ITAB__1BYTE__OP_DB__MOD = 85;
+public static final int ITAB__1BYTE__OP_DB__MOD__OP_00__REG = 86;
+public static final int ITAB__1BYTE__OP_DB__MOD__OP_01__X87 = 87;
+public static final int ITAB__1BYTE__OP_DC__MOD = 88;
+public static final int ITAB__1BYTE__OP_DC__MOD__OP_00__REG = 89;
+public static final int ITAB__1BYTE__OP_DC__MOD__OP_01__X87 = 90;
+public static final int ITAB__1BYTE__OP_DD__MOD = 91;
+public static final int ITAB__1BYTE__OP_DD__MOD__OP_00__REG = 92;
+public static final int ITAB__1BYTE__OP_DD__MOD__OP_01__X87 = 93;
+public static final int ITAB__1BYTE__OP_DE__MOD = 94;
+public static final int ITAB__1BYTE__OP_DE__MOD__OP_00__REG = 95;
+public static final int ITAB__1BYTE__OP_DE__MOD__OP_01__X87 = 96;
+public static final int ITAB__1BYTE__OP_DF__MOD = 97;
+public static final int ITAB__1BYTE__OP_DF__MOD__OP_00__REG = 98;
+public static final int ITAB__1BYTE__OP_DF__MOD__OP_01__X87 = 99;
+public static final int ITAB__1BYTE__OP_E3__ASIZE = 100;
+public static final int ITAB__1BYTE__OP_F6__REG = 101;
+public static final int ITAB__1BYTE__OP_F7__REG = 102;
+public static final int ITAB__1BYTE__OP_FE__REG = 103;
+public static final int ITAB__1BYTE__OP_FF__REG = 104;
+public static final int ITAB__3DNOW = 105;
+public static final int ITAB__PFX_SSE66__0F = 106;
+public static final int ITAB__PFX_SSE66__0F__OP_71__REG = 107;
+public static final int ITAB__PFX_SSE66__0F__OP_72__REG = 108;
+public static final int ITAB__PFX_SSE66__0F__OP_73__REG = 109;
+public static final int ITAB__PFX_SSE66__0F__OP_C7__REG = 110;
+public static final int ITAB__PFX_SSE66__0F__OP_C7__REG__OP_00__VENDOR = 111;
+public static final int ITAB__PFX_SSEF2__0F = 112;
+public static final int ITAB__PFX_SSEF3__0F = 113;
+public static final int ITAB__PFX_SSEF3__0F__OP_C7__REG = 114;
+public static final int ITAB__PFX_SSEF3__0F__OP_C7__REG__OP_07__VENDOR = 115;
 
 public static List<String> operator = Arrays.asList(new String[]{
   "3dnow",
@@ -319,6 +318,8 @@ public static List<String> operator = Arrays.asList(new String[]{
   "fnstcw",
   "fnstenv",
   "fnstsw",
+  "fndisi",
+  "fsetpm",
   "fsub",
   "fsubp",
   "fsubr",
@@ -886,6 +887,8 @@ public static List<String> operators_str = Arrays.asList(new String[]{
   "fnstcw",
   "fnstenv",
   "fnstsw",
+  "fndisi",
+  "fsetpm",
   "fsub",
   "fsubp",
   "fsubr",
@@ -1525,9 +1528,9 @@ private ZygoteInstruction[] itab__0f__op_01__reg = new ZygoteInstruction[]{
   new ZygoteInstruction( "grp_mod",       O_NONE, O_NONE, O_NONE,    ITAB__0F__OP_01__REG__OP_01__MOD ),
   new ZygoteInstruction( "grp_mod",       O_NONE, O_NONE, O_NONE,    ITAB__0F__OP_01__REG__OP_02__MOD ),
   new ZygoteInstruction( "grp_mod",       O_NONE, O_NONE, O_NONE,    ITAB__0F__OP_01__REG__OP_03__MOD ),
-  new ZygoteInstruction( "grp_mod",       O_NONE, O_NONE, O_NONE,    ITAB__0F__OP_01__REG__OP_04__MOD ),
+  new ZygoteInstruction( "smsw",          O_Ev,    O_NONE,  O_NONE,  P_aso|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
-  new ZygoteInstruction( "grp_mod",       O_NONE, O_NONE, O_NONE,    ITAB__0F__OP_01__REG__OP_06__MOD ),
+  new ZygoteInstruction( "lmsw",          O_Ew,    O_NONE,  O_NONE,  P_aso|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "grp_mod",       O_NONE, O_NONE, O_NONE,    ITAB__0F__OP_01__REG__OP_07__MOD ),
 };
 private ZygoteInstruction[] itab__0f__op_01__reg__op_00__mod = new ZygoteInstruction[]{
@@ -1622,10 +1625,6 @@ private ZygoteInstruction[] itab__0f__op_01__reg__op_03__mod__op_01__rm__op_07__
 };
 private ZygoteInstruction[] itab__0f__op_01__reg__op_04__mod = new ZygoteInstruction[]{
   new ZygoteInstruction( "smsw",          O_M,     O_NONE,  O_NONE,  P_aso|P_rexr|P_rexx|P_rexb ),
-  new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
-};
-private ZygoteInstruction[] itab__0f__op_01__reg__op_06__mod = new ZygoteInstruction[]{
-  new ZygoteInstruction( "lmsw",          O_Ew,    O_NONE,  O_NONE,  P_aso|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
 };
 private ZygoteInstruction[] itab__0f__op_01__reg__op_07__mod = new ZygoteInstruction[]{
@@ -2561,10 +2560,10 @@ private ZygoteInstruction[] itab__1byte__op_db__mod__op_01__x87 = new ZygoteInst
   new ZygoteInstruction( "fcmovnu",       O_ST0,   O_ST6,   O_NONE,  P_none ),
   new ZygoteInstruction( "fcmovnu",       O_ST0,   O_ST7,   O_NONE,  P_none ),
   new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
-  new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
+  new ZygoteInstruction( "fndisi",        O_NONE,  O_NONE,  O_NONE,  P_none ),
   new ZygoteInstruction( "fclex",         O_NONE,  O_NONE,  O_NONE,  P_none ),
   new ZygoteInstruction( "fninit",        O_NONE,  O_NONE,  O_NONE,  P_none ),
-  new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
+  new ZygoteInstruction( "fsetpm",        O_NONE,  O_NONE,  O_NONE,  P_none ),
   new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
   new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
   new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
@@ -4073,7 +4072,6 @@ public ZygoteInstruction[][] itab_list = new ZygoteInstruction[][]{
     itab__0f__op_01__reg__op_03__mod__op_01__rm__op_06__vendor,
     itab__0f__op_01__reg__op_03__mod__op_01__rm__op_07__vendor,
     itab__0f__op_01__reg__op_04__mod,
-    itab__0f__op_01__reg__op_06__mod,
     itab__0f__op_01__reg__op_07__mod,
     itab__0f__op_01__reg__op_07__mod__op_01__rm,
     itab__0f__op_01__reg__op_07__mod__op_01__rm__op_01__vendor,

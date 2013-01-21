@@ -14,9 +14,9 @@ public class lea_Gv_M_mem extends Executable
     public lea_Gv_M_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        size = parent.operand[0].size;
+        size = parent.opr_mode;
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2 = new Address(parent.operand[1]);
+        op2 = new Address(parent.operand[1], parent.adr_mode);
     }
 
     public Branch execute(Processor cpu)

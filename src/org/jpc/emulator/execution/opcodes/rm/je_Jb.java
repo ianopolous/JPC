@@ -21,7 +21,7 @@ public class je_Jb extends Executable
 
     public Branch execute(Processor cpu)
     {
-        if (Processor.getZeroFlag(cpu.flagStatus, cpu.zf, cpu.flagResult))
+        if (cpu.zf())
         {
             cpu.eip += jmp+blockLength;
             return Branch.T1;

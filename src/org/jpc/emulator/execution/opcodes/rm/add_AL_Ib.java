@@ -7,18 +7,18 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class add_AL_Ib extends Executable
 {
-    final int imm;
+    final int immb;
 
     public add_AL_Ib(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        imm = (byte)parent.operand[1].lval;
+        immb = (byte)parent.operand[1].lval;
     }
 
     public Branch execute(Processor cpu)
     {
         cpu.flagOp1 = (byte)cpu.r_al.get8();
-        cpu.flagOp2 = (byte)imm;
+        cpu.flagOp2 = (byte)immb;
         cpu.flagResult = (byte)(cpu.flagOp1 + cpu.flagOp2);
         cpu.r_al.set8((byte)cpu.flagResult);
         cpu.flagIns = UCodes.ADD8;
