@@ -172,7 +172,7 @@ public class Disassembler
         int length = input.getCounter();
         input.seek(-length);
         StringBuilder b = new StringBuilder();
-        for(int i=0; i <= length; i++)
+        for(int i=0; i < length; i++)
             b.append(String.format("%02x ", input.read(8)));
         return b.toString();
     }
@@ -189,6 +189,8 @@ public class Disassembler
             System.out.printf("%d;%s;%s;", operand_size, currentInsn.getGeneralClassName(false, false), currentInsn);
             System.out.println(getRawBytes(currentInsn, input));
         }
+        if (debug)
+                System.out.printf("Disassembled instruction (%d): %s at %x\n", 0, start, input.getAddress());
         Executable current = start;
         int x86Length = currentInsn.x86Length;
         int count = 1;
@@ -209,10 +211,10 @@ public class Disassembler
                 System.out.println(getRawBytes(nextInsn, input));
             }
             Executable next = getExecutable(isPM, startAddr, nextInsn);
-            count++;
-
             if (debug)
                 System.out.printf("Disassembled next instruction (%d): %s at %x\n", count, next, input.getAddress());
+            count++;
+
             currentInsn = nextInsn;
             current.next = next;
             current = next;
