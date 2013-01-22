@@ -34,6 +34,7 @@
 package org.jpc.emulator.memory.codeblock;
 
 import org.jpc.emulator.execution.Executable;
+import org.jpc.emulator.execution.decoder.Instruction;
 import org.jpc.emulator.processor.Processor;
 
 /**
@@ -74,5 +75,10 @@ class ReplacementBlockTrigger implements CodeBlock
     public boolean handleMemoryRegionChange(int startAddress, int endAddress)
     {
         return false;
+    }
+
+    public Instruction getInstructions()
+    {
+        return replacement.getInstructions();
     }
 }

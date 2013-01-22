@@ -356,6 +356,17 @@
         cpu.flagStatus = NCF;</snippet>
     <args size="8">Eb</args>
     <args size="16">Ev</args>
+  </opcode>
+
+  <opcode mnemonic="dec_o16">
+    <return>Branch.None</return>
+    <snippet>        cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);
+        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = 1;
+        cpu.flagResult = $cast(cpu.flagOp1 - 1);
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.SUB$size;
+        cpu.flagStatus = NCF;</snippet>
     <args size="16">eAX</args>
     <args size="16">eBX</args>
     <args size="16">eCX</args>
@@ -364,6 +375,25 @@
     <args size="16">eDI</args>
     <args size="16">eSP</args>
     <args size="16">eBP</args>
+  </opcode>
+
+  <opcode mnemonic="dec_o32">
+    <return>Branch.None</return>
+    <snippet>        cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);
+        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = 1;
+        cpu.flagResult = $cast(cpu.flagOp1 - 1);
+        $op1.setcpu.flagResult);
+        cpu.flagIns = UCodes.SUB$size;
+        cpu.flagStatus = NCF;</snippet>
+    <args size="32">eAX</args>
+    <args size="32">eBX</args>
+    <args size="32">eCX</args>
+    <args size="32">eDX</args>
+    <args size="32">eSI</args>
+    <args size="32">eDI</args>
+    <args size="32">eSP</args>
+    <args size="32">eBP</args>
   </opcode>
 
   <opcode mnemonic="div">
@@ -607,14 +637,44 @@
         cpu.flagStatus = NCF;</snippet>
     <args size="8">Eb</args>
     <args size="16">Ev</args>
+  </opcode>
+
+  <opcode mnemonic="inc_o16">
+    <return>Branch.None</return>
+    <snippet>        cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);
+        cpu.flagOp1 = $cast$op1.get;
+        cpu.flagOp2 = 1;
+        cpu.flagResult = $cast(cpu.flagOp1 + 1);
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.ADD$size;
+        cpu.flagStatus = NCF;</snippet>
     <args size="16">eAX</args>
     <args size="16">eBX</args>
     <args size="16">eCX</args>
     <args size="16">eDX</args>
-    <args size="16">eSI</args>
-    <args size="16">eDI</args>
     <args size="16">eSP</args>
     <args size="16">eBP</args>
+    <args size="16">eSI</args>
+    <args size="16">eDI</args>
+  </opcode>
+
+  <opcode mnemonic="inc_o32">
+    <return>Branch.None</return>
+    <snippet>        cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);
+        cpu.flagOp1 = $cast$op1.get;
+        cpu.flagOp2 = 1;
+        cpu.flagResult = $cast(cpu.flagOp1 + 1);
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.ADD$size;
+        cpu.flagStatus = NCF;</snippet>
+    <args size="32">eAX</args>
+    <args size="32">eBX</args>
+    <args size="32">eCX</args>
+    <args size="32">eDX</args>
+    <args size="32">eSP</args>
+    <args size="32">eBP</args>
+    <args size="32">eSI</args>
+    <args size="32">eDI</args>
   </opcode>
 
   <opcode mnemonic="int">

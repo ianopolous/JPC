@@ -675,13 +675,10 @@ public class Processor implements HardwareComponent
 
     public void iret_o16_a16()
     {
-        eip = ss.getWord(r_esp.get16() & 0xffff) & 0xffff;
-        r_esp.set16((r_esp.get16() + 2) & 0xffff);
-        cs.setSelector(0xffff & ss.getWord(r_esp.get16() & 0xffff));
+        eip = pop16() & 0xffff;
+        cs.setSelector(0xffff & pop16());
         //System.out.printf("IRET to cs:eip %04x:%04x\n", cs.getSelector(), eip);
-        r_esp.set16((r_esp.get16() + 2) & 0xffff);
-        short flags = ss.getWord(r_esp.get16() & 0xffff);
-        r_esp.set16((r_esp.get16() + 2) & 0xffff);
+        short flags = (short) pop16();
         setFlags(flags);
     }
 

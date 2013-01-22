@@ -5,32 +5,37 @@ import org.jpc.emulator.execution.*;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.execution.Executable.*;
 
-public class InterpretedRealModeBlock extends BasicBlock implements RealModeCodeBlock
+public class InterpretedRealModeBlock implements RealModeCodeBlock
 {
-    public InterpretedRealModeBlock(Executable start, int x86Length, int x86Count)
-    {
-        super(start, x86Length, x86Count);
-    }
+    private final BasicBlock b;
 
     public InterpretedRealModeBlock(BasicBlock b)
     {
-        this(b.start, b.x86Length, b.x86Count);
+        this.b = b;
+    }
+
+    public int getX86Length() {
+        return b.getX86Length();
+    }
+
+    public int getX86Count() {
+        return b.getX86Count();
     }
 
     public Branch execute(Processor cpu)
     {
-        Executable current = start;
+        Executable current = b.start;
         Executable.Branch ret;
 
-        preBlock(cpu);
+        b.preBlock(cpu);
         try
         {
             while ((ret = current.execute(cpu)) == Executable.Branch.None)
             {
-                postInstruction(cpu, current);
+                b.postInstruction(cpu, current);
                 current = current.next;
             }
-            postInstruction(cpu, current);
+            b.postInstruction(cpu, current);
             return ret;
         } catch (ProcessorException e)
         {
@@ -42,4 +47,18 @@ public class InterpretedRealModeBlock extends BasicBlock implements RealModeCode
             return Branch.Exception;
         }
     }
+
+    public String getDisplayString() {
+        return "Interpreted Real Mode Block:\n"+b.getDisplayString();
+    }
+
+    public Instruction getInstructions() {
+        return b.getInstructions();
+    }
+
+    public boolean handleMemoryRegionChange(int startAddress, int endAddress) {
+        return b.handleMemoryRegionChange(startAddress, endAddress);
+    }
+
+
 }

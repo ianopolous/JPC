@@ -158,7 +158,7 @@ public class SegmentFactory
         }
     }
 
-    static final class NullSegment extends Segment
+    public static final class NullSegment extends Segment
     {
         public NullSegment()
         {

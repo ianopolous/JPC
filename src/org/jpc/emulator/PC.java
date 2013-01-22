@@ -275,14 +275,14 @@ public class PC {
 
     private int getBase(Segment s)
     {
-        if (s == SegmentFactory.NULL_SEGMENT)
+        if (s instanceof SegmentFactory.NullSegment)
             return 0;
         return s.getBase();
     }
 
     private int getLimit(Segment s)
     {
-        if (s == SegmentFactory.NULL_SEGMENT)
+        if (s instanceof SegmentFactory.NullSegment)
             return 0;
         return s.getLimit();
     }

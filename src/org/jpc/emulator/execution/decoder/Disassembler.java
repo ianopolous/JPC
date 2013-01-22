@@ -14,6 +14,7 @@ import static org.jpc.emulator.execution.decoder.Table.*;
 public class Disassembler
 {
     public static final boolean PRINT_DISAM = Option.log_disam.value();
+    public static final boolean DEBUG_BLOCKS = Option.debug_blocks.value();
     static ZygoteInstruction[][] itab = new Table().itab_list;
     public static final int MAX_INSTRUCTIONS_PER_BLOCK = Option.max_instructions_per_block.intValue(10000);
     public static final int vendor = VENDOR_INTEL;
@@ -181,7 +182,8 @@ public class Disassembler
     {
         int startAddr = (int)input.getAddress();
         boolean debug = false;
-        Instruction currentInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
+        Instruction startin = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
+        Instruction currentInsn = startin;
 
         Executable start = getExecutable(isPM, startAddr, currentInsn);
         if (PRINT_DISAM)
@@ -202,7 +204,7 @@ public class Disassembler
                 current.next = eip;
                 if (MAX_INSTRUCTIONS_PER_BLOCK > 10)
                     System.out.println((String.format("Exceeded maximum number of instructions in a block at %x", startAddr)));
-                return new BasicBlock(start, x86Length, count);
+                return constructBlock(startin, start, x86Length, count);
             }
             Instruction nextInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
             if (PRINT_DISAM)
@@ -215,13 +217,21 @@ public class Disassembler
                 System.out.printf("Disassembled next instruction (%d): %s at %x\n", count, next, input.getAddress());
             count++;
 
+            currentInsn.next = nextInsn;
             currentInsn = nextInsn;
             current.next = next;
             current = next;
             x86Length += nextInsn.x86Length;
         }
 
-        return new BasicBlock(start, x86Length, count);
+        return constructBlock(startin, start, x86Length, count);
+    }
+
+    private static BasicBlock constructBlock(Instruction startin, Executable start, int x86Length, int x86Count)
+    {
+        if (DEBUG_BLOCKS)
+            return new DebugBasicBlock(startin, start, x86Length, x86Count);
+        return new BasicBlock(start, x86Length, x86Count);
     }
 
     public static Instruction disassemble(PeekableInputStream input, int mode)

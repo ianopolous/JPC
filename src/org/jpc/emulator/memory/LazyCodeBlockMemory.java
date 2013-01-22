@@ -36,6 +36,7 @@ package org.jpc.emulator.memory;
 import java.util.Arrays;
 
 import org.jpc.emulator.execution.Executable;
+import org.jpc.emulator.execution.decoder.Instruction;
 import org.jpc.emulator.memory.codeblock.*;
 import org.jpc.emulator.processor.Processor;
 import org.jpc.j2se.Option;
@@ -479,6 +480,11 @@ public class LazyCodeBlockMemory extends AbstractMemory
 
         public String toString() {
             return " -- Blank --\n";
+        }
+
+        public Instruction getInstructions()
+        {
+            return null;
         }
     }
 

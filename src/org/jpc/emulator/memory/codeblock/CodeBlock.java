@@ -34,6 +34,7 @@
 package org.jpc.emulator.memory.codeblock;
 
 import org.jpc.emulator.execution.Executable;
+import org.jpc.emulator.execution.decoder.Instruction;
 import org.jpc.emulator.processor.Processor;
 
 /**
@@ -74,6 +75,8 @@ public interface CodeBlock
     public Executable.Branch execute(Processor cpu);
 
     public String getDisplayString();
+
+    public Instruction getInstructions();
 
     /**
      * Returns true if this block has been rendered invalid.

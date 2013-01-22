@@ -34,6 +34,7 @@
 package org.jpc.emulator.memory.codeblock;
 
 import org.jpc.emulator.execution.Executable;
+import org.jpc.emulator.execution.decoder.Instruction;
 import org.jpc.emulator.processor.Processor;
 
 /**
@@ -91,5 +92,12 @@ public abstract class SpanningCodeBlock implements CodeBlock
             return lastBlock.getDisplayString();
         else
             return "Undecoded Spanning Block";
+    }
+
+    public Instruction getInstructions()
+    {
+        if (lastBlock != null)
+            return lastBlock.getInstructions();
+        return null;
     }
 }

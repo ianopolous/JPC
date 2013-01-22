@@ -31,35 +31,61 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.debugger;
 
-import org.jpc.emulator.execution.decoder.BasicBlock;
-import org.jpc.emulator.memory.codeblock.*;
+import org.jpc.emulator.processor.Processor;
 
 /**
  *
  * @author Ian Preston
  */
-public class OptimisedCompiler implements CodeBlockCompiler {
+public abstract class Breakpoint implements Comparable<Breakpoint> {
 
-    public OptimisedCompiler() {
+    private int address;
+    private boolean isPrimary;
+    private String name;
 
+    public Breakpoint(String name, int address, boolean primary)
+    {
+        this.name = name;
+        this.address = address;
+        this.isPrimary = primary;
+    }
+    
+    public abstract boolean satisfied(Processor cpu);
+
+    public boolean equals(Object another) {
+        if (!(another instanceof Breakpoint)) {
+            return false;
+        }
+        return address == ((Breakpoint) another).address;
     }
 
-    public RealModeCodeBlock getRealModeCodeBlock(CodeBlock source)
-    {
-        return (RealModeCodeBlock) source;
+    public int compareTo(Breakpoint bp) {
+        return address - bp.address;
     }
 
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(CodeBlock block)
-    {
-
-        return (ProtectedModeCodeBlock) block;
+    public void setAddress(int address) {
+        this.address = address;
     }
 
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(CodeBlock block)
-    {
+    public void setName(String name) {
+        this.name = name;
+    }
 
-        return (Virtual8086ModeCodeBlock) block;
+    public void setPrimary(boolean primary) {
+        isPrimary = primary;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAddress() {
+        return address;
+    }
+
+    public boolean isPrimary() {
+        return isPrimary;
     }
 }

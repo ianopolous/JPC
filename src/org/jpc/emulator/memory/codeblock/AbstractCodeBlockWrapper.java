@@ -34,6 +34,7 @@
 package org.jpc.emulator.memory.codeblock;
 
 import org.jpc.emulator.execution.Executable;
+import org.jpc.emulator.execution.decoder.Instruction;
 import org.jpc.emulator.processor.Processor;
 
 /**
@@ -71,7 +72,7 @@ public abstract class AbstractCodeBlockWrapper implements CodeBlock
     
     public String getDisplayString()
     {
-        return "WRAP " + actualBlock.getDisplayString();
+        return actualBlock.getDisplayString();
     }
     
     public boolean handleMemoryRegionChange(int startAddress, int endAddress)
@@ -95,5 +96,10 @@ public abstract class AbstractCodeBlockWrapper implements CodeBlock
     public final CodeBlock getTargetBlock()
     {
 	return actualBlock;
+    }
+
+    public Instruction getInstructions()
+    {
+        return actualBlock.getInstructions();
     }
 }

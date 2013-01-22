@@ -112,17 +112,17 @@ class BackgroundCompiler implements CodeBlockCompiler {
         }
     }
 
-    public RealModeCodeBlock getRealModeCodeBlock(BasicBlock block) {
+    public RealModeCodeBlock getRealModeCodeBlock(CodeBlock block) {
         RealModeCodeBlock imm = immediate.getRealModeCodeBlock(block);
         return new RealModeCodeBlockWrapper(imm);
     }
 
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(BasicBlock block) {
+    public ProtectedModeCodeBlock getProtectedModeCodeBlock(CodeBlock block) {
         ProtectedModeCodeBlock imm = immediate.getProtectedModeCodeBlock(block);
         return new ProtectedModeCodeBlockWrapper(imm);
     }
 
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(BasicBlock block) {
+    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(CodeBlock block) {
         Virtual8086ModeCodeBlock imm = immediate.getVirtual8086ModeCodeBlock(block);
         return new Virtual8086ModeCodeBlockWrapper(imm);
     }

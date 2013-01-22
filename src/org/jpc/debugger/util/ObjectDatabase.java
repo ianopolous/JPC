@@ -31,30 +31,58 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
 
-import org.jpc.emulator.execution.decoder.BasicBlock;
+package org.jpc.debugger.util;
 
-public interface CodeBlockCompiler
+import java.util.*;
+import java.util.ArrayList;
+
+public class ObjectDatabase
 {
-    /**
-     * Create a real-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public RealModeCodeBlock getRealModeCodeBlock(CodeBlock block);
+    private Map<Class, Object> table;
 
-    /**
-     * Create a protected-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(CodeBlock block);
+    public ObjectDatabase()
+    {
+        table = new HashMap<Class, Object>();
+    }
+    
+    public synchronized boolean addObject(Object value)
+    {
+        if (value == null)
+            return false;
 
-    /**
-     * Create a virtual8086-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(CodeBlock block);
+        Class cls = (Class) value.getClass();
+
+        if (table.containsKey(cls))
+            return false;
+        
+        table.put(cls, value);
+        return true;
+    }
+
+    public synchronized Object getObject(Class cls)
+    {
+        return table.get(cls);
+    }
+
+    public synchronized Object removeObject(Object obj)
+    {
+        if (obj == null)
+            return null;
+        
+        return removeObject(obj.getClass());
+    }
+
+    public synchronized Object removeObject(Class cls)
+    {
+        if (cls == null)
+            return null;
+
+        return table.remove(cls);
+    }
+
+    public synchronized List<Object> entries()
+    {
+        return new ArrayList<Object>(table.values());
+    }
 }

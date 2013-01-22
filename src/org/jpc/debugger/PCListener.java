@@ -31,30 +31,18 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
 
-import org.jpc.emulator.execution.decoder.BasicBlock;
+package org.jpc.debugger;
 
-public interface CodeBlockCompiler
+public interface PCListener
 {
-    /**
-     * Create a real-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public RealModeCodeBlock getRealModeCodeBlock(CodeBlock block);
+    public void pcCreated();
 
-    /**
-     * Create a protected-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(CodeBlock block);
+    public void pcDisposed();
+    
+    public void executionStarted();
 
-    /**
-     * Create a virtual8086-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(CodeBlock block);
+    public void executionStopped();
+
+    public void refreshDetails();
 }

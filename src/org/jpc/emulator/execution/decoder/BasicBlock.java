@@ -25,7 +25,7 @@ public class BasicBlock implements CodeBlock
             throw new IllegalStateException("Block with zero x86Count!");
     }
 
-    protected void preBlock(Processor cpu)
+    public void preBlock(Processor cpu)
     {
         if (LOG_BLOCKENTRY)
             System.out.printf("*****Entering basic block %08x\n", cpu.cs.getBase()+cpu.eip);
@@ -82,5 +82,10 @@ public class BasicBlock implements CodeBlock
     public String getDisplayString()
     {
         return toString();
+    }
+
+    public Instruction getInstructions()
+    {
+        return null;
     }
 }

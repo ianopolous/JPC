@@ -171,7 +171,7 @@ public class TestGenerator
 
     static List<String> eax = Arrays.asList(new String[]{"rax", "eax", "ax", "ah", "al"});
     static List<String> ebx = Arrays.asList(new String[]{"rbx", "ebx", "bx", "bh", "bl"});
-    static List<String> ecx = Arrays.asList(new String[]{"ecx", "cx", "ch", "cl"});
+    static List<String> ecx = Arrays.asList(new String[]{"rcx", "ecx", "cx", "ch", "cl"});
     static List<String> edx = Arrays.asList(new String[]{"rdx", "edx", "dx", "dh", "dl"});
     static List<String> esi = Arrays.asList(new String[]{"esi", "si"});
     static List<String> edi = Arrays.asList(new String[]{"edi", "di"});

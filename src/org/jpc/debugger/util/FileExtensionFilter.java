@@ -31,30 +31,46 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
 
-import org.jpc.emulator.execution.decoder.BasicBlock;
+package org.jpc.debugger.util;
 
-public interface CodeBlockCompiler
+import java.io.File;
+import javax.swing.filechooser.FileFilter;
+
+public class FileExtensionFilter extends FileFilter
 {
-    /**
-     * Create a real-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public RealModeCodeBlock getRealModeCodeBlock(CodeBlock block);
+    private String extension, description, lowerExtension;
+    private boolean acceptDirectories, caseSensitive;
 
-    /**
-     * Create a protected-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(CodeBlock block);
+    public FileExtensionFilter(String extension, String description)
+    {
+        this(extension, description, true, false);
+    }
 
-    /**
-     * Create a virtual8086-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(CodeBlock block);
+    public FileExtensionFilter(String extension, String description, boolean acceptDirectories, boolean caseSensitive)
+    {
+        this.extension = extension;
+        lowerExtension = extension.toLowerCase();
+
+        this.description = description;
+        this.acceptDirectories = acceptDirectories;
+        this.caseSensitive = caseSensitive;
+    }
+    
+    public boolean accept(File f) 
+    {
+        if (f.isDirectory())
+            return acceptDirectories;
+
+        String name = f.getName();
+        if (!caseSensitive)
+            return name.toLowerCase().endsWith(lowerExtension);
+        else
+            return name.endsWith(extension);
+    }
+
+    public String getDescription() 
+    {
+        return description;
+    }
 }

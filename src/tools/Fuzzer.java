@@ -148,10 +148,8 @@ public class Fuzzer
 
     public static void compareStates(int[] input, String opclass, String disam, byte[] code, int[] fast, int[] old, boolean compareFlags) throws Exception
     {
-        if (fast.length != 16)
-            throw new IllegalArgumentException("new state length = "+fast.length);
         if (old.length != fast.length)
-            throw new IllegalArgumentException("old state length = "+old.length);
+            throw new IllegalArgumentException("old state length = "+old.length+", new state length = "+fast.length);
         StringBuilder b = new StringBuilder();
         for (int i=0; i < fast.length; i++)
             if (i != 9)
@@ -215,6 +213,8 @@ public class Fuzzer
     public static int testEip = 0;
     public static int testCS = 0;
 
+    public static Calendar start = Calendar.getInstance();
+
     public static class PCHandle
     {
         final Object pc;
@@ -225,8 +225,8 @@ public class Fuzzer
             Class c1 = cl1.loadClass("org.jpc.emulator.PC");
 
 
-            Constructor ctor = c1.getConstructor(String[].class);
-            pc = ctor.newInstance((Object)args);
+            Constructor ctor = c1.getConstructor(String[].class, Calendar.class);
+            pc = ctor.newInstance((Object)args, start);
 
             Method m1 = c1.getMethod("hello");
             m1.invoke(pc);
@@ -369,7 +369,7 @@ public class Fuzzer
                 if (unimplemented.contains(currentClass))
                     return;
                 String[] inputArr = new String(ch, start, length).trim().split(" ");
-                int[] input = new int[inputArr.length];
+                int[] input = new int[names.length];
                 for (int i=0; i < inputArr.length; i++)
                     input[i] = Integer.parseInt(inputArr[i], 16);
                 // set eip

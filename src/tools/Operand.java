@@ -658,6 +658,6 @@ public abstract class Operand
             return new SpecificReg(name, reg16.get(name), opSize);
         if (reg16only.containsKey(name))
             return new SpecificReg(name, reg16only.get(name), 16);
-        throw new IllegalStateException("Unknown operand "+name);
+        throw new IllegalStateException("Unknown operand "+name+".");
     }
 }
