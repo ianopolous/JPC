@@ -76,129 +76,64 @@ public class Pointer
         return addr;
     }
 
+    public double getF64(Processor cpu)
+    {
+        return Double.longBitsToDouble(get32(cpu));
+    }
+
+    public void setF64(Processor cpu, double val)
+    {
+        set64(cpu, Double.doubleToRawLongBits(val));
+    }
+
+    public long get64(Processor cpu)
+    {
+        return cpu.segs[segment].getQuadWord(get(cpu));
+    }
+
+    public void set64(Processor cpu, long val)
+    {
+        cpu.segs[segment].setQuadWord(get(cpu), val);
+    }
+
+    public float getF32(Processor cpu)
+    {
+        return Float.intBitsToFloat(get32(cpu));
+    }
+
+    public void setF32(Processor cpu, float val)
+    {
+        set32(cpu, Float.floatToRawIntBits(val));
+    }
+
     public int get32(Processor cpu)
     {
-        int addr = offset;
-        if (addrSize)
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get32();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get32();
-        }
-        else
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get16();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get16();
-            addr &= 0xFFFF;
-        }
-        return cpu.segs[segment].getDoubleWord(addr);
+        return cpu.segs[segment].getDoubleWord(get(cpu));
     }
 
     public void set32(Processor cpu, int val)
     {
-        int addr = offset;
-        if (addrSize)
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get32();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get32();
-        }
-        else
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get16();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get16();
-            addr &= 0xFFFF;
-        }
-        cpu.segs[segment].setDoubleWord(addr, val);
+        cpu.segs[segment].setDoubleWord(get(cpu), val);
     }
 
     public short get16(Processor cpu)
     {
-        int addr = offset;
-        if (addrSize)
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get32();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get32();
-        } else
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get16();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get16();
-            addr &= 0xFFFF;
-        }
-        return cpu.segs[segment].getWord(addr);
+        return cpu.segs[segment].getWord(get(cpu));
     }
 
     public void set16(Processor cpu, short val)
     {
-        int addr = offset;
-        if (addrSize)
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get32();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get32();
-        }
-        else
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get16();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get16();
-            addr &= 0xFFFF;
-        }
-        cpu.segs[segment].setWord(addr, val);
+        cpu.segs[segment].setWord(get(cpu), val);
     }
 
     public byte get8(Processor cpu)
     {
-        int addr = offset;
-        if (addrSize)
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get32();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get32();
-        }
-        else
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get16();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get16();
-            addr &= 0xFFFF;
-        }
-        return cpu.segs[segment].getByte(addr);
+        return cpu.segs[segment].getByte(get(cpu));
     }
 
     public void set8(Processor cpu, byte val)
     {
-        int addr = offset;
-        if (addrSize)
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get32();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get32();
-        }
-        else
-        {
-            if (base != -1)
-                addr += cpu.regs[base].get16();
-            if (scale != 0)
-                addr += scale*cpu.regs[index].get16();
-            addr &= 0xFFFF;
-        }
-        cpu.segs[segment].setByte(addr, val);
+        cpu.segs[segment].setByte(get(cpu), val);
     }
 
     public String toString()

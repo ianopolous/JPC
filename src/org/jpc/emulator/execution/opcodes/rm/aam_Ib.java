@@ -3,6 +3,7 @@ package org.jpc.emulator.execution.opcodes.rm;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
+import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
 public class aam_Ib extends Executable

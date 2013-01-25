@@ -54,10 +54,14 @@
     <args size="8">Eb;Gb</args>
     <args size="8">Eb;Ib</args>
     <args size="8">Gb;Eb</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;Iz</args>
-    <args size="16">Gv;Ev</args>
-    <args size="16">Ev;Gv</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;Iw</args>
+    <args size="32">Ed;Id</args>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
   </opcode>
 
   <opcode mnemonic="adc_o16">
@@ -69,7 +73,7 @@
         $op1.set$castcpu.flagResult);
         cpu.flagIns = UCodes.ADC$size;
         cpu.flagStatus = OSZAPC;</snippet>
-    <args size="16">rAX;Iz</args>
+    <args size="16">rAX;Iw</args>
   </opcode>
 
   <opcode mnemonic="add">
@@ -84,10 +88,13 @@
     <args size="8">Eb;Gb</args>
     <args size="8">Eb;Ib</args>
     <args size="8">Gb;Eb</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;Iz</args>
-    <args size="16">Gv;Ev</args>
-    <args size="16">Ev;Gv</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;Iw</args>
+    <args size="32">Ed;Id</args>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
   </opcode>
 
   <opcode mnemonic="add_o16">
@@ -98,7 +105,7 @@
         $op1.set$castcpu.flagResult);
         cpu.flagIns = UCodes.ADD$size;
         cpu.flagStatus = OSZAPC;</snippet>
-    <args size="16">rAX;Iz</args>
+    <args size="16">rAX;Iw</args>
   </opcode>
 
   <opcode mnemonic="add_o32">
@@ -109,7 +116,7 @@
         $op1.set$castcpu.flagResult);
         cpu.flagIns = UCodes.ADD$size;
         cpu.flagStatus = OSZAPC;</snippet>
-    <args size="32">rAX;Iz</args>
+    <args size="32">rAX;Id</args>
   </opcode>
 
   <opcode mnemonic="and">
@@ -122,10 +129,11 @@
     <args size="8">Eb;Gb</args>
     <args size="8">Gb;Eb</args>
     <args size="8">Eb;Ib</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Gv;Ev</args>
-    <args size="16">Ev;Iz</args>
-    <args size="16">Ev;Gv</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Gw;Ew</args>
+    <args size="16">Ew;Iw</args>
+    <args size="32">Ed;Id</args>
+    <args size="16">Ew;Gw</args>
   </opcode>
 
   <opcode mnemonic="and_o16">
@@ -134,7 +142,7 @@
         cpu.flagResult = $cast($op1.get &amp; $op2.get);
         $op1.set$castcpu.flagResult);
         cpu.flagStatus = SZP;</snippet>
-    <args size="16">rAX;Iz</args>
+    <args size="16">rAX;Iw</args>
   </opcode>
 
   <opcode mnemonic="and_o32">
@@ -143,7 +151,7 @@
         cpu.flagResult = $cast($op1.get &amp; $op2.get);
         $op1.set$castcpu.flagResult);
         cpu.flagStatus = SZP;</snippet>
-    <args size="32">rAX;Iz</args>
+    <args size="32">rAX;Id</args>
   </opcode>
 
   <opcode mnemonic="bound_o16">
@@ -154,7 +162,7 @@
 	short index = (short)$op1.get;
 	if ((index &lt; lower) || (index > (upper + 2)))
 	    throw ProcessorException.BOUND_RANGE;</snippet>
-    <args size="16">Gv;M</args>
+    <args size="16">Gw;M</args>
   </opcode>
 
   <opcode mnemonic="btc_o32">
@@ -163,7 +171,8 @@
         cpu.cf = (0 != ($op1.get &amp; bit));
         cpu.flagStatus &amp;= NCF;
         $op1.set$cast($op1.get^bit));</snippet>
-    <args size="16">Ev;Ib</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
   </opcode>
 
   <opcode mnemonic="btr">
@@ -172,8 +181,8 @@
         cpu.cf = (0 != ($op1.get &amp; bit));
         cpu.flagStatus &amp;= NCF;
         $op1.set$cast($op1.get &amp; ~bit));</snippet>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;Gv</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;Gw</args>
   </opcode>
 
   <opcode mnemonic="bts">
@@ -182,8 +191,8 @@
         cpu.cf = (0 != ($op1.get &amp; bit));
         cpu.flagStatus &amp;= NCF;
         $op1.set$cast($op1.get | bit));</snippet>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;Gv</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;Gw</args>
   </opcode>
 
   <opcode mnemonic="call">
@@ -194,7 +203,8 @@
         cpu.push16((short)cpu.eip);
         cpu.eip += jmp;
         cpu.eip &amp;= 0xffff;</snippet>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="call_o16">
     <return>Branch.Call_Unknown</return>
@@ -204,7 +214,7 @@
         int target = $op1.get;
         cpu.push16((short)cpu.eip);
         cpu.eip = 0xffff &amp; target;</snippet>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
   </opcode>
   <opcode mnemonic="call_o32">
     <return>Branch.Call_Unknown</return>
@@ -214,7 +224,7 @@
         int target = $op1.get;
         cpu.push32(cpu.eip);
         cpu.eip = target;</snippet>
-    <args size="16">Ev</args>
+    <args size="32">Ed</args>
   </opcode>
   <opcode mnemonic="call_o16">
     <return>Branch.Call_Unknown</return>
@@ -260,13 +270,13 @@
     <return>Branch.None</return>
     <snippet>        if (cpu.cf())
             $op1.set$cast$op2.get);</snippet>
-    <args size="16">Gv;Ev</args>
+    <args size="16">Gw;Ew</args>
   </opcode>
   <opcode mnemonic="cmovne">
     <return>Branch.None</return>
     <snippet>        if (!cpu.zf())
             $op1.set$cast$op2.get);</snippet>
-    <args size="16">Gv;Ev</args>
+    <args size="16">Gw;Ew</args>
   </opcode>
 
   <opcode mnemonic="cmp">
@@ -280,10 +290,13 @@
     <args size="8">Eb;Ib</args>
     <args size="8">Eb;Gb</args>
     <args size="8">Gb;Eb</args>
-    <args size="16">Gv;Ev</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;Gv</args>
-    <args size="16">Ev;Iz</args>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;Gw</args>
+    <args size="16">Ew;Iw</args>
+    <args size="32">Ed;Id</args>
   </opcode>
 
   <opcode mnemonic="cmp_o16">
@@ -293,7 +306,7 @@
         cpu.flagResult = $cast(cpu.flagOp1 - cpu.flagOp2);
         cpu.flagIns = UCodes.SUB$size;
         cpu.flagStatus = OSZAPC;</snippet>
-    <args size="16">rAX;Iz</args>
+    <args size="16">rAX;Iw</args>
   </opcode>
 
   <opcode mnemonic="cmp_o32">
@@ -303,12 +316,21 @@
         cpu.flagResult = $cast(cpu.flagOp1 - cpu.flagOp2);
         cpu.flagIns = UCodes.SUB$size;
         cpu.flagStatus = OSZAPC;</snippet>
-    <args size="32">rAX;Iz</args>
+    <args size="32">rAX;Id</args>
   </opcode>
 
   <opcode mnemonic="cbw">
     <return>Branch.None</return>
     <snippet>            cpu.r_ax.set16((byte)cpu.r_al.get8());</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="cdq">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.r_eax.get32() &lt; 0)
+            cpu.r_edx.set32(-1);
+        else
+            cpu.r_edx.set32(0);</snippet>
     <args size="0"></args>
   </opcode>
 
@@ -355,7 +377,7 @@
         cpu.flagIns = UCodes.SUB$size;
         cpu.flagStatus = NCF;</snippet>
     <args size="8">Eb</args>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
   </opcode>
 
   <opcode mnemonic="dec_o16">
@@ -401,7 +423,14 @@
     <snippet>            long ldiv = (((long)($maskcpu.r_edx.get$size())) &lt;&lt; $size ) | ($mask cpu.r_eax.get$size());
             cpu.r_eax.set$size($cast (ldiv/($mask $op1.get)));
             cpu.r_edx.set$size($cast (ldiv % ($mask $op1.get)));</snippet>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
+  </opcode>
+  <opcode mnemonic="div">
+    <return>Branch.None</return>
+    <snippet>            long ldiv = (((long)cpu.r_edx.get$size()) &lt;&lt; $size ) | (0xffffffffL &amp; cpu.r_eax.get$size());
+            cpu.r_eax.set$size($cast (ldiv/(0xffffffffL &amp; $op1.get)));
+            cpu.r_edx.set$size($cast (ldiv % (0xffffffffL &amp; $op1.get)));</snippet>
+    <args size="32">Ed</args>
   </opcode>
 
   <opcode mnemonic="div">
@@ -456,10 +485,53 @@
     <args size="16">Iw;Ib</args>
   </opcode>
 
+  <opcode mnemonic="fchs">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.setST(0, -cpu.fpu.ST(0));</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="fcomp">
+    <return>Branch.None</return>
+    <snippet>                            int newcode = 0xd;
+        double freg0 = cpu.fpu.ST(0);
+        double freg1 = $op1.getF;
+        if (Double.isNaN(freg0) || Double.isNaN(freg1))
+            cpu.fpu.setInvalidOperation();
+        else {
+            if (freg0 > freg1) newcode = 0;
+            else if (freg0 &lt; freg1) newcode = 1;
+            else newcode = 8;
+        }
+        cpu.fpu.conditionCode &amp;= 2;
+        cpu.fpu.conditionCode |= newcode;
+        cpu.fpu.pop();</snippet>
+    <args size="32">Md</args>
+  </opcode>
+
+  <opcode mnemonic="fistp">
+    <return>Branch.None</return>
+    <snippet>        $op1.set(long)cpu.fpu.ST(0));
+        cpu.fpu.pop();</snippet>
+    <args size="64">Mq</args>
+  </opcode>
+
+  <opcode mnemonic="fild">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.push((double)$op1.get);</snippet>
+    <args size="32">Md</args>
+  </opcode>
+
   <opcode mnemonic="fld1">
     <return>Branch.None</return>
     <snippet>        cpu.fpu.setST(0, 1.0);</snippet>
     <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="fld">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.setST(0, $op1.getF);</snippet>
+    <args size="32">Md</args>
   </opcode>
 
   <opcode mnemonic="fldz">
@@ -472,6 +544,16 @@
     <return>Branch.None</return>
     <snippet>        cpu.fpu.setControl($op1.get);</snippet>
     <args size="16">Mw</args>
+  </opcode>
+
+  <opcode mnemonic="fmul">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = cpu.fpu.ST(0);
+        double freg1 = $op1.getF;
+        if ((Double.isInfinite(freg0) &amp;&amp; (freg1 == 0.0)) || (Double.isInfinite(freg1) &amp;&amp; (freg0 == 0.0))) 
+            cpu.fpu.setInvalidOperation();
+        cpu.fpu.setST(0, freg0*freg1);</snippet>
+    <args size="64">Mq</args>
   </opcode>
 
   <opcode mnemonic="fninit">
@@ -489,6 +571,7 @@
   <opcode mnemonic="fnstsw">
     <return>Branch.None</return>
     <snippet>        $op1.set(short)cpu.fpu.getStatus());</snippet>
+    <args size="16">AX</args>
     <args size="16">Mw</args>
   </opcode>
 
@@ -533,6 +616,13 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="fstp">
+    <return>Branch.None</return>
+    <snippet>        $op1.setF(float)cpu.fpu.ST(0));
+        cpu.fpu.pop();</snippet>
+    <args size="32">Md</args>
+  </opcode>
+
   <opcode mnemonic="wait">
     <return>Branch.None</return>
     <snippet>        cpu.fpu.checkExceptions();</snippet>
@@ -548,12 +638,35 @@
 
   <opcode mnemonic="idiv">
     <return>Branch.None</return>
-    <snippet>            long ldiv = (($maskcpu.r_edx.get$size()) &lt;&lt; $size ) | ($maskcpu.r_eax.get$size());
+    <snippet>            long ldiv = (((long)($maskcpu.r_edx.get$size())) &lt;&lt; $size ) | ($maskcpu.r_eax.get$size());
             cpu.r_eax.set$size($cast(int)(ldiv/$cast$op1.get));
             cpu.r_edx.set$size($cast(int)(ldiv % $cast$op1.get));</snippet>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
+  </opcode>
+  <opcode mnemonic="idiv">
+    <return>Branch.None</return>
+    <snippet>            long ldiv = (((0xffffffffL &amp; cpu.r_edx.get$size())) &lt;&lt; $size ) | (0xffffffffL &amp; cpu.r_eax.get$size());
+            cpu.r_eax.set$size($cast(int)(ldiv/$cast$op1.get));
+            cpu.r_edx.set$size($cast(int)(ldiv % $cast$op1.get));</snippet>
+    <args size="32">Ed</args>
   </opcode>
 
+  <opcode mnemonic="imul">
+    <return>Branch.None</return>
+    <snippet>            cpu.flagStatus = OSZAPC;
+            cpu.flagOp1 = $cast$op1.get;
+            cpu.flagOp2 = $castcpu.r_eax.get$size();
+            long res64 = cpu.flagOp1 * cpu.flagOp2;
+            cpu.flagResult = (short) res64;
+            cpu.r_eax.set16(cpu.flagResult);
+            cpu.flagIns = UCodes.IMUL$size;
+            if (res64 &lt; 0)
+                cpu.sf = true;
+            else
+                cpu.sf = false;
+            cpu.flagStatus &amp;= ~SF;</snippet>
+    <args size="8">Eb</args>
+  </opcode>
   <opcode mnemonic="imul">
     <return>Branch.None</return>
     <snippet>            cpu.flagStatus = OSZAPC;
@@ -569,8 +682,8 @@
             else
                 cpu.sf = false;
             cpu.flagStatus &amp;= ~SF;</snippet>
-    <args size="8">Eb</args>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
+    <args size="32">Ed</args>
   </opcode>
 
   <opcode mnemonic="imul">
@@ -587,7 +700,8 @@
             else
                 cpu.sf = false;
             cpu.flagStatus &amp;= ~SF;</snippet>
-    <args size="16">Gv;Ev</args>
+    <args size="16">Gw;Ew</args>
+    <args size="16">Gd;Ed</args>
   </opcode>
 
   <opcode mnemonic="imul">
@@ -604,8 +718,10 @@
             else
                 cpu.sf = false;
             cpu.flagStatus &amp;= ~SF;</snippet>
-    <args size="16">Gv;Ev;Ib</args>
-    <args size="16">Gv;Ev;Iz</args>
+    <args size="16">Gw;Ew;Ib</args>
+    <args size="16">Gw;Ew;Iw</args>
+    <args size="32">Gd;Ed;Ib</args>
+    <args size="32">Gd;Ed;Id</args>
   </opcode>
 
   <opcode mnemonic="in">
@@ -636,7 +752,8 @@
         cpu.flagIns = UCodes.ADD$size;
         cpu.flagStatus = NCF;</snippet>
     <args size="8">Eb</args>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
+    <args size="32">Ed</args>
   </opcode>
 
   <opcode mnemonic="inc_o16">
@@ -703,7 +820,8 @@
 </snippet>
 <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jne">
     <return></return>
@@ -711,7 +829,8 @@
 </snippet>
 <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jl">
     <return></return>
@@ -719,7 +838,8 @@
 </snippet>
 <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jle">
     <return></return>
@@ -727,7 +847,7 @@
 </snippet>
 <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jb">
     <return></return>
@@ -735,7 +855,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jbe">
     <return></return>
@@ -743,7 +864,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="ja">
     <return></return>
@@ -751,7 +873,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jae">
     <return></return>
@@ -759,7 +882,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jg">
     <return></return>
@@ -767,7 +891,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jge">
     <return></return>
@@ -775,7 +900,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jo">
     <return></return>
@@ -783,7 +909,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jno">
     <return></return>
@@ -791,7 +918,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="js">
     <return></return>
@@ -799,7 +927,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jns">
     <return></return>
@@ -807,7 +936,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jp">
     <return></return>
@@ -815,7 +945,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jnp">
     <return></return>
@@ -823,7 +954,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
 
   <opcode mnemonic="jcxz">
@@ -832,7 +964,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jecxz">
     <return></return>
@@ -840,7 +973,8 @@
     </snippet>
     <jcc/>
     <args size="8">Jb</args>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
 
   <opcode mnemonic="jmp">
@@ -856,13 +990,14 @@
   <opcode mnemonic="jmp">
     <return>Branch.Jmp_Unknown</return>
     <snippet>        cpu.eip = $mask$op1.get;</snippet>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
   </opcode>
   <opcode mnemonic="jmp">
     <return>Branch.T1</return>
     <snippet>        cpu.eip += jmp+blockLength;
         cpu.eip &amp;= 0xFFFF;</snippet>
-    <args size="32">Jz</args>
+    <args size="16">Jw</args>
+    <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jmp">
     <return>Branch.T1</return>
@@ -888,8 +1023,7 @@
       <snippet>        int addr = $op2.get + op2.getBase(cpu);
         cpu.ds(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
         $op1.setcpu.physicalMemory.getWord(addr));</snippet>
-    <args size="16">Gv;M</args>
-    <args size="16">Gz;M</args>
+    <args size="16">Gw;M</args>
   </opcode>
 
   <opcode mnemonic="les_o16">
@@ -897,8 +1031,7 @@
       <snippet>        int addr = $op2.get + op2.getBase(cpu);
         cpu.es(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
         $op1.setcpu.physicalMemory.getWord(addr));</snippet>
-    <args size="16">Gv;M</args>
-    <args size="16">Gz;M</args>
+    <args size="16">Gw;M</args>
   </opcode>
 
   <opcode mnemonic="lfs_o16">
@@ -906,8 +1039,7 @@
       <snippet>        int addr = $op2.get + op2.getBase(cpu);
         cpu.fs(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
         $op1.setcpu.physicalMemory.getWord(addr));</snippet>
-    <args size="16">Gv;M</args>
-    <args size="16">Gz;M</args>
+    <args size="16">Gw;M</args>
   </opcode>
 
   <opcode mnemonic="lgs_o16">
@@ -915,8 +1047,7 @@
       <snippet>        int addr = $op2.get + op2.getBase(cpu);
         cpu.gs(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
         $op1.setcpu.physicalMemory.getWord(addr));</snippet>
-    <args size="16">Gv;M</args>
-    <args size="16">Gz;M</args>
+    <args size="16">Gw;M</args>
   </opcode>
 
   <opcode mnemonic="lss_o16">
@@ -924,14 +1055,13 @@
       <snippet>        int addr = $op2.get + op2.getBase(cpu);
         cpu.ss(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
         $op1.setcpu.physicalMemory.getWord(addr));</snippet>
-    <args size="16">Gv;M</args>
-    <args size="16">Gz;M</args>
+    <args size="16">Gw;M</args>
   </opcode>
 
   <opcode mnemonic="lea">
     <return>Branch.None</return>
     <snippet>        $op1.set$op2.get);</snippet>
-    <args size="16">Gv;M</args>
+    <args size="16">Gw;M</args>
   </opcode>
 
   <opcode mnemonic="leave_o16">
@@ -1056,34 +1186,45 @@
     <args size="8">CHr13b;Ib</args>
     <args size="8">DLr10b;Ib</args>
     <args size="8">DHr14b;Ib</args>
-    <args size="16">Ev;S</args>
-    <args size="16">S;Ev</args>
-    <args size="16">Ev;Gv</args>
-    <args size="16">Ev;Iz</args>
-    <args size="16">Gv;Ev</args>
-    <args size="16">rAXr8;Iv</args>
-    <args size="16">rCXr9;Iv</args>
-    <args size="16">rDXr10;Iv</args>
-    <args size="16">rBXr11;Iv</args>
-    <args size="16">rSPr12;Iv</args>
-    <args size="16">rBPr13;Iv</args>
-    <args size="16">rSIr14;Iv</args>
-    <args size="16">rDIr15;Iv</args>
+    <args size="16">Ew;S</args>
+    <args size="16">S;Ew</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+    <args size="16">Ew;Iw</args>
+    <args size="32">Ed;Id</args>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+    <args size="16">rAXr8;Iw</args>
+    <args size="32">rAXr8;Id</args>
+    <args size="16">rCXr9;Iw</args>
+    <args size="32">rCXr9;Id</args>
+    <args size="16">rDXr10;Iw</args>
+    <args size="32">rDXr10;Id</args>
+    <args size="16">rBXr11;Iw</args>
+    <args size="32">rBXr11;Id</args>
+    <args size="16">rSPr12;Iw</args>
+    <args size="32">rSPr12;Id</args>
+    <args size="16">rBPr13;Iw</args>
+    <args size="32">rBPr13;Id</args>
+    <args size="16">rSIr14;Iw</args>
+    <args size="32">rSIr14;Id</args>
+    <args size="16">rDIr15;Iw</args>
+    <args size="32">rDIr15;Id</args>
     <args size="32">R;C</args>
   </opcode>
 
   <opcode mnemonic="mov_o16">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast$op2.get);</snippet>
-    <args size="16">Ov;rAX</args>
-    <args size="16">rAX;Ov</args>
+    <args size="16">Ow;rAX</args>
+    <args size="16">rAX;Ow</args>
   </opcode>
 
   <opcode mnemonic="mov_o32">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast$op2.get);</snippet>
-    <args size="32">Ov;rAX</args>
-    <args size="32">rAX;Ov</args>
+    <args size="32">Od;rAX</args>
+    <args size="32">rAX;Od</args>
   </opcode>
 
   <opcode mnemonic="mov">
@@ -1096,15 +1237,16 @@
   <opcode mnemonic="movsx">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast$op2.get);</snippet>
-    <args size="16">Gv;Eb</args>
-    <args size="16">Gv;Ew</args>
+    <args size="16">Gw;Eb</args>
+    <args size="16">Gd;Ew</args>
   </opcode>
 
   <opcode mnemonic="movzx">
     <return>Branch.None</return>
     <snippet>        $op1.set$mask2$op2.get);</snippet>
-    <args size="16">Gv;Eb</args>
-    <args size="16">Gv;Ew</args>
+    <args size="16">Gw;Eb</args>
+    <args size="32">Gd;Eb</args>
+    <args size="32">Gd;Ew</args>
   </opcode>
 
   <opcode mnemonic="mul">
@@ -1126,7 +1268,18 @@
             cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);
             cpu.flagResult = (int)res64;
             cpu.flagStatus = SZP;</snippet>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
+  </opcode>
+  <opcode mnemonic="mul">
+    <return>Branch.None</return>
+    <snippet>            cpu.af = false;
+            long res64 = (0xffffffffL &amp; $op1.get) * (0xffffffffL &amp; cpu.r_eax.get$size());
+            cpu.r_eax.set$size($castres64);
+            cpu.r_edx.set$size($cast(res64 >> $size));
+            cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);
+            cpu.flagResult = (int)res64;
+            cpu.flagStatus = SZP;</snippet>
+    <args size="32">Ed</args>
   </opcode>
 
   <opcode mnemonic="neg">
@@ -1137,7 +1290,7 @@
             cpu.flagIns = UCodes.NEG$size;
             cpu.flagStatus = OSZAPC;</snippet>
     <args size="8">Eb</args>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
   </opcode>
 
   <opcode mnemonic="nop">
@@ -1150,7 +1303,7 @@
     <return>Branch.None</return>
     <snippet>        $op1.set$cast~$op1.get);</snippet>
     <args size="8">Eb</args>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
   </opcode>
 
   <opcode mnemonic="or">
@@ -1163,10 +1316,12 @@
     <args size="8">Eb;Gb</args>
     <args size="8">Eb;Ib</args>
     <args size="8">Gb;Eb</args>
-    <args size="16">Gv;Ev</args>
-    <args size="16">Ev;Gv</args>
-    <args size="16">Ev;Iz</args>
-    <args size="16">Ev;Ib</args>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+    <args size="16">Ew;Iw</args>
+    <args size="16">Ew;Ib</args>
   </opcode>
 
   <opcode mnemonic="or_o16">
@@ -1175,7 +1330,7 @@
         cpu.flagResult = $cast($op1.get | $op2.get);
         $op1.set$castcpu.flagResult);
         cpu.flagStatus = SZP;</snippet>
-    <args size="16">rAX;Iz</args>
+    <args size="16">rAX;Iw</args>
   </opcode>
 
   <opcode mnemonic="or_o32">
@@ -1184,7 +1339,7 @@
         cpu.flagResult = $cast($op1.get | $op2.get);
         $op1.set$castcpu.flagResult);
         cpu.flagStatus = SZP;</snippet>
-    <args size="32">rAX;Iz</args>
+    <args size="32">rAX;Id</args>
   </opcode>
 
   <opcode mnemonic="out">
@@ -1207,7 +1362,7 @@
   <opcode mnemonic="pop">
     <return>Branch.None</return>
     <snippet>        $op1.set$castcpu.pop$size());</snippet>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
   </opcode>
 
   <opcode mnemonic="pop_o16">
@@ -1274,13 +1429,14 @@
   <opcode mnemonic="popfd">
     <return>Branch.None</return>
     <snippet>        cpu.setEFlags((cpu.getEFlags() &amp; 0x20000) | (cpu.pop32() &amp; ~0x1a0000));</snippet>
-    <args size="32"></args>
+    <args size="0"></args>
   </opcode>
 
   <opcode mnemonic="push">
     <return>Branch.None</return>
     <snippet>        cpu.push$size($cast$op1.get);</snippet>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
+    <args size="32">Ed</args>
   </opcode>
 
   <opcode mnemonic="push_o16">
@@ -1301,7 +1457,7 @@
     <args size="16">FS</args>
     <args size="16">GS</args>
     <args size="16">SS</args>
-    <args size="16">Iz</args>
+    <args size="16">Iw</args>
   </opcode>
 
   <opcode mnemonic="push_o32">
@@ -1317,7 +1473,7 @@
     <args size="32">rSIr14</args>
     <args size="32">rDIr15</args>
     <args size="32">CS</args>
-    <args size="32">Iz</args>
+    <args size="32">Id</args>
   </opcode>
 
   <opcode mnemonic="pusha">
@@ -1623,8 +1779,23 @@
                 cpu.of(bit31 ^ bit32);</snippet>
     <args size="8">Eb;I1</args>
     <args size="8">Eb;Ib</args>
-    <args size="16">Ev;I1</args>
-    <args size="16">Ev;CL</args>
+    <args size="16">Ew;I1</args>
+    <args size="16">Ew;CL</args>
+  </opcode>
+  <opcode mnemonic="rcl">
+    <return>Branch.None</return>
+    <snippet>            int shift = $op2.get &amp; 0x1f;
+            shift %= $size+1;
+            long val = 0xffffffffL &amp; $op1.get;
+            val |= cpu.cf() ? 1L &lt;&lt; $size : 0;
+            val = (val &lt;&lt; shift) | (val &gt;&gt;&gt; ($size+1-shift));
+            $op1.set$cast(int)val);
+            boolean bit31 = (val &amp; (1L &lt;&lt; ($size-1))) != 0;
+            boolean bit32 = (val &amp; (1L &lt;&lt; ($size))) != 0;
+            cpu.cf(bit32);
+            if (shift == 1)
+                cpu.of(bit31 ^ bit32);</snippet>
+    <args size="32">Ed;I1</args>
   </opcode>
 
   <opcode mnemonic="rcr">
@@ -1642,8 +1813,23 @@
                 cpu.of(bit30 ^ bit31);</snippet>
     <args size="8">Eb;I1</args>
     <args size="8">Eb;Ib</args>
-    <args size="16">Ev;I1</args>
-    <args size="16">Ev;CL</args>
+    <args size="16">Ew;I1</args>
+    <args size="16">Ew;CL</args>
+  </opcode>
+  <opcode mnemonic="rcr">
+    <return>Branch.None</return>
+    <snippet>            int shift = $op2.get &amp; 0x1f;
+            shift %= $size+1;
+            long val = 0xffffffffL &amp; $op1.get;
+            val |= cpu.cf() ? 1L &lt;&lt; $size : 0;
+            val = (val &gt;&gt;&gt; shift) | (val &lt;&lt; ($size+1-shift));
+            $op1.set$cast(int)val);
+            boolean bit30  = (val &amp;  (1L &lt;&lt; ($size-2))) != 0;
+            boolean bit31 = (val &amp; (1L &lt;&lt; ($size-1))) != 0;
+            cpu.cf((val &amp; (1L &lt;&lt; $size)) != 0);
+            if (shift == 1)
+                cpu.of(bit30 ^ bit31);</snippet>
+    <args size="32">Ed;I1</args>
   </opcode>
 
   <opcode mnemonic="rol">
@@ -1668,14 +1854,15 @@
     <args size="8">Eb;I1</args>
     <args size="8">Eb;Ib</args>
     <args size="8">Eb;CL</args>
-    <args size="16">Ev;I1</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;CL</args>
+    <args size="16">Ew;I1</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;CL</args>
+    <args size="16">Ed;Ib</args>
   </opcode>
 
   <opcode mnemonic="ror">
     <return>Branch.None</return>
-    <snippet>            int shift = $op2.get &amp; 0xf;
+    <snippet>            int shift = $op2.get &amp; ($size-1);
             int reg0 = $mask1$op1.get;
             int res = (reg0 >>> shift) | (reg0 &lt;&lt; ($size - shift));
             $op1.set$castres);
@@ -1695,9 +1882,9 @@
     <args size="8">Eb;I1</args>
     <args size="8">Eb;Ib</args>
     <args size="8">Eb;CL</args>
-    <args size="16">Ev;I1</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;CL</args>
+    <args size="16">Ew;I1</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;CL</args>
   </opcode>
 
   <opcode mnemonic="sahf">
@@ -1732,9 +1919,9 @@
     <args size="8">Eb;I1</args>
     <args size="8">Eb;Ib</args>
     <args size="8">Eb;CL</args>
-    <args size="16">Ev;I1</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;CL</args>
+    <args size="16">Ew;I1</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;CL</args>
   </opcode>
 
   <opcode mnemonic="seta">
@@ -1809,10 +1996,13 @@
     <args size="8">Eb;I1</args>
     <args size="8">Eb;Ib</args>
     <args size="8">Eb;CL</args>
-    <args size="16">Ev;Gb</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;I1</args>
-    <args size="16">Ev;CL</args>
+    <args size="16">Ew;Gb</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;I1</args>
+    <args size="32">Ed;I1</args>
+    <args size="16">Ew;CL</args>
+    <args size="32">Ed;CL</args>
   </opcode>
 
   <opcode mnemonic="shld">
@@ -1822,13 +2012,28 @@
             int shift = $op3.get &amp; 0x1f;
             cpu.flagOp1 = $op1.get;
             cpu.flagOp2 = shift;
-            long rot = ((long)($mask$op1.get) &lt;&lt; (2*$size)) | (($mask$op2.get) &lt;&lt; $size) | ($mask$op1.get);
-            cpu.flagResult = $cast((int)((rot &lt;&lt; shift) | (rot >>> (32-shift))));
+            long rot = ((long)($mask$op1.get) &lt;&lt; (2*$size)) | ((0xffffffffL &amp; $mask$op2.get) &lt;&lt; $size) | ($mask$op1.get);
+            cpu.flagResult = $cast((int)((rot &lt;&lt; shift) | (rot >>> (2*$size-shift))));
             $op1.set$castcpu.flagResult);
             cpu.flagIns = UCodes.SHLD$size;
             cpu.flagStatus = OSZAPC;
         }</snippet>
-    <args size="16">Ev;Gv;Ib</args>
+    <args size="16">Ew;Gw;Ib</args>
+  </opcode>
+  <opcode mnemonic="shld">
+    <return>Branch.None</return>
+    <snippet>        if($op3.get != 0)
+        {
+            int shift = $op3.get &amp; 0x1f;
+            cpu.flagOp1 = $op1.get;
+            cpu.flagOp2 = shift;
+            long rot = ((0xffffffffL &amp;$op2.get) &lt;&lt; $size) | (0xffffffffL &amp;$op1.get);
+            cpu.flagResult = $cast((int)((rot &lt;&lt; shift) | (rot >>> (2*$size-shift))));
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHLD$size;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="32">Ed;Gd;Ib</args>
   </opcode>
 
   <opcode mnemonic="shr">
@@ -1845,10 +2050,43 @@
     <args size="8">Eb;Ib</args>
     <args size="8">Eb;I1</args>
     <args size="8">Eb;CL</args>
-    <args size="16">Ev;Gb</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;I1</args>
-    <args size="16">Ev;CL</args>
+    <args size="16">Ew;Gb</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;I1</args>
+    <args size="32">Ed;I1</args>
+    <args size="16">Ew;CL</args>
+  </opcode>
+
+  <opcode mnemonic="shrd">
+    <return>Branch.None</return>
+    <snippet>        if($op3.get != 0)
+        {
+            int shift = $op3.get &amp; 0x1f;
+            cpu.flagOp1 = $op1.get;
+            cpu.flagOp2 = shift;
+            long rot = ((long)$op1.get &lt;&lt; (2*$size)) | (($mask$op2.get) &lt;&lt; $size) | ($mask$op1.get);
+            cpu.flagResult = $cast((int)(rot >> shift));
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHRD$size;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="16">Ew;Gw;Ib</args>
+  </opcode>
+  <opcode mnemonic="shrd">
+    <return>Branch.None</return>
+    <snippet>        if($op3.get != 0)
+        {
+            int shift = $op3.get &amp; 0x1f;
+            cpu.flagOp1 = $op1.get;
+            cpu.flagOp2 = shift;
+            long rot = ((0xffffffffL &amp;$op2.get) &lt;&lt; $size) | (0xffffffffL &amp; $op1.get);
+            cpu.flagResult = $cast((int)(rot >> shift));
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHRD$size;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="32">Ed;Gd;Ib</args>
   </opcode>
 
   <opcode mnemonic="sti">
@@ -1884,10 +2122,10 @@
     <args size="8">Eb;Ib</args>
     <args size="8">Eb;Gb</args>
     <args size="8">Gb;Eb</args>
-    <args size="16">Gv;Ev</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;Iz</args>
-    <args size="16">Ev;Gv</args>
+    <args size="16">Gw;Ew</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;Iw</args>
+    <args size="16">Ew;Gw</args>
   </opcode>
 
   <opcode mnemonic="sbb_o16">
@@ -1899,7 +2137,7 @@
         $op1.set$castcpu.flagResult);
         cpu.flagIns = UCodes.SBB$size;
         cpu.flagStatus = OSZAPC;</snippet>
-    <args size="16">rAX;Iz</args>
+    <args size="16">rAX;Iw</args>
   </opcode>
 
   <opcode mnemonic="sgdt_o16">
@@ -1921,13 +2159,13 @@
   <opcode mnemonic="sldt">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast(0xFFFF &amp; cpu.ldtr.getSelector()));</snippet>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
   </opcode>
 
   <opcode mnemonic="smsw">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast(0xFFFF &amp; cpu.getCR0()));</snippet>
-    <args size="16">Ev</args>
+    <args size="16">Ew</args>
   </opcode>
 
   <opcode mnemonic="sub">
@@ -1942,10 +2180,12 @@
     <args size="8">Eb;Ib</args>
     <args size="8">Eb;Gb</args>
     <args size="8">Gb;Eb</args>
-    <args size="16">Gv;Ev</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;Gv</args>
-    <args size="16">Ev;Iz</args>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;Gw</args>
+    <args size="16">Ew;Iw</args>
   </opcode>
 
   <opcode mnemonic="sub_o16">
@@ -1956,7 +2196,7 @@
         $op1.set$castcpu.flagResult);
         cpu.flagIns = UCodes.SUB$size;
         cpu.flagStatus = OSZAPC;</snippet>
-    <args size="16">rAX;Iz</args>
+    <args size="16">rAX;Iw</args>
   </opcode>
 
   <opcode mnemonic="sub_o32">
@@ -1967,7 +2207,7 @@
         $op1.set$castcpu.flagResult);
         cpu.flagIns = UCodes.SUB$size;
         cpu.flagStatus = OSZAPC;</snippet>
-    <args size="32">rAX;Iz</args>
+    <args size="32">rAX;Id</args>
   </opcode>
 
   <opcode mnemonic="test">
@@ -1978,9 +2218,10 @@
     <args size="8">AL;Ib</args>
     <args size="8">Eb;Gb</args>
     <args size="8">Eb;Ib</args>
-    <args size="16">Ev;Gv</args>
-    <args size="16">Ev;Iz</args>
-    <args size="16">rAX;Iz</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+    <args size="16">Ew;Iw</args>
+    <args size="32">Ed;Id</args>
   </opcode>
 
   <opcode mnemonic="test_o16">
@@ -1988,7 +2229,7 @@
     <snippet>        cpu.of = cpu.af = cpu.cf = false;
         cpu.flagResult = $cast($op1.get &amp; $op2.get);
         cpu.flagStatus = SZP;</snippet>
-    <args size="16">rAX;Iz</args>
+    <args size="16">rAX;Iw</args>
   </opcode>
 
   <opcode mnemonic="xchg">
@@ -1997,7 +2238,8 @@
         $op2.set$op1.get);
         $op1.set$casttmp);</snippet>
     <args size="8">Eb;Gb</args>
-    <args size="16">Ev;Gv</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
   </opcode>
 
   <opcode mnemonic="xchg_o16">
@@ -2050,10 +2292,12 @@
     <args size="8">Eb;Gb</args>
     <args size="8">Eb;Ib</args>
     <args size="8">Gb;Eb</args>
-    <args size="16">Ev;Ib</args>
-    <args size="16">Ev;Gv</args>
-    <args size="16">Ev;Iz</args>
-    <args size="16">Gv;Ev</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;Gw</args>
+    <args size="16">Ed;Gd</args>
+    <args size="16">Ew;Iw</args>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
   </opcode>
 
   <opcode mnemonic="xor_o16">
@@ -2062,7 +2306,7 @@
         cpu.flagResult = $cast($op1.get ^ $op2.get);
         $op1.set$castcpu.flagResult);
         cpu.flagStatus = SZP;</snippet>
-    <args size="16">rAX;Iz</args>
+    <args size="16">rAX;Iw</args>
   </opcode>
 
   <opcode mnemonic="xor_o32">
@@ -2071,6 +2315,6 @@
         cpu.flagResult = $cast($op1.get ^ $op2.get);
         $op1.set$castcpu.flagResult);
         cpu.flagStatus = SZP;</snippet>
-    <args size="32">rAX;Iz</args>
+    <args size="32">rAX;Id</args>
   </opcode>
 </opcodesnippets>

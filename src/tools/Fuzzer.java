@@ -47,6 +47,7 @@ public class Fuzzer
         SAXParserFactory factory = SAXParserFactory.newInstance();
         SAXParser saxParser = factory.newSAXParser();
         DefaultHandler rmhandler = new TestParser("rm", pc1, pc2, false, true);
+        System.out.println("Starting Real Mode fuzzing...");
         //saxParser.parse("tests/rm.tests", rmhandler);
 
         // set PCs to protected mode
@@ -54,6 +55,7 @@ public class Fuzzer
         pc2.setPM(true);
 
         DefaultHandler pmhandler = new TestParser("pm", pc1, pc2, true, true);
+        System.out.println("Starting Protected Mode fuzzing...");
         saxParser.parse("tests/pm.tests", pmhandler);
     }
 
@@ -356,7 +358,10 @@ public class Fuzzer
             if (type == Type.Class)
                 currentClass = new String(ch, start, length);
             else if (type == Type.Disam)
+            {
                 currentDisam = new String(ch, start, length);
+                System.out.println("Starting fuzz of "+currentDisam);
+            }
             else if (type == Type.Code)
             {
                 String[] codeArr = new String(ch, start, length).trim().split(" ");
@@ -385,7 +390,7 @@ public class Fuzzer
                         unimplemented.add(currentClass);
                 } catch (Exception e) {e.printStackTrace();}
                 testCount++;
-                if (testCount % 100000 == 0)
+                if (testCount % 10000 == 0)
                     System.out.printf("Completed %d test cases from %d opcodes in %s\n", testCount, opcodeCount, mode);
             }
         }

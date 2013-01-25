@@ -64,7 +64,7 @@ import org.jpc.j2se.VirtualClock;
 public class PC {
 
     public static int SYS_RAM_SIZE;
-    public static final int DEFAULT_RAM_SIZE = 256 * 1024 * 1024;
+    public static final int DEFAULT_RAM_SIZE = 8 * 1024 * 1024;
     public static final int INSTRUCTIONS_BETWEEN_INTERRUPTS = 1; 
 
     public static volatile boolean compile = false;

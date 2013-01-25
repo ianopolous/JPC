@@ -156,7 +156,7 @@ public class PCMonitorFrame extends JFrame implements Runnable
         if (t2 - time < 100)
             return false;
         
-        count = COUNTDOWN - count;
+        //count = COUNTDOWN - count;
         float mhz = count * 1000.0F / (t2 - time) / 1000000;
 
         float clockSpeed = 17.25F / 770 * mhz / 7.5F * 2.790F;

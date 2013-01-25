@@ -3,6 +3,7 @@ package org.jpc.emulator.execution.opcodes.rm;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
+import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
 public class ror_Eb_CL_mem extends Executable
@@ -17,7 +18,7 @@ public class ror_Eb_CL_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-            int shift = cpu.r_cl.get8() & 0xf;
+            int shift = cpu.r_cl.get8() & (8-1);
             int reg0 = 0xFF&op1.get8(cpu);
             int res = (reg0 >>> shift) | (reg0 << (8 - shift));
             op1.set8(cpu, (byte)res);

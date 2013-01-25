@@ -28,6 +28,16 @@ public abstract class Operand
 
     public abstract String get(int arg);
 
+    public String setF(int arg)
+    {
+        throw new IllegalStateException("Unimplemented setF!");
+    }
+
+    public String getF(int arg)
+    {
+        throw new IllegalStateException("Unimplemented getF!");
+    }
+
     public static class Reg extends Operand
     {
         final int size;
@@ -199,6 +209,16 @@ public abstract class Operand
         public String get(int arg)
         {
             return "op"+arg+".get"+getSize()+"(cpu)";
+        }
+
+        public String setF(int arg)
+        {
+            return "op"+arg+".setF"+getSize()+"(cpu, ";
+        }
+
+        public String getF(int arg)
+        {
+            return "op"+arg+".getF"+getSize()+"(cpu)";
         }
     }
 
@@ -599,7 +619,7 @@ public abstract class Operand
             return new Immediate(name, 8);
         if (name.equals("Iw"))
             return new Immediate(name, 16);
-        if (name.equals("Iv") || name.equals("Iz"))
+        if (name.equals("Id"))
             return new Immediate(name, 32);
         if (name.equals("I1"))
             return new Constant(name, 1);
@@ -610,17 +630,6 @@ public abstract class Operand
             else
                 return new Reg(name, 8);
         }
-        if (name.equals("Ov"))
-            return new Mem(name, opSize);
-        if (name.equals("Ob"))
-            return new Mem(name, 8);
-        if (name.equals("Ev"))
-        {
-            if (isMem)
-                return new Mem(name, opSize);
-            else
-                return new Reg(name, opSize);
-        }
         if (name.equals("Ew"))
         {
             if (isMem)
@@ -628,18 +637,37 @@ public abstract class Operand
             else
                 return new Reg(name, 16);
         }
+        if (name.equals("Ed"))
+        {
+            if (isMem)
+                return new Mem(name, 32);
+            else
+                return new Reg(name, 32);
+        }
+        if (name.equals("Ob"))
+            return new Mem(name, 8);
+        if (name.equals("Ow"))
+            return new Mem(name, 16);
+        if (name.equals("Od"))
+            return new Mem(name, 32);
         if (name.equals("Ep"))
             return new FarMemPointer(name, opSize);
-        if (name.equals("Gv") | name.equals("Gz"))
-            return new Reg(name, opSize);
         if (name.equals("R"))
             return new Reg(name, opSize);
         if (name.equals("C"))
             return new ControlReg(name);
         if (name.equals("Gb"))
             return new Reg(name, 8);
-        if (name.equals("Jz") || name.equals("Jb"))
-            return new Jump(name, opSize);
+        if (name.equals("Gw"))
+            return new Reg(name, 16);
+        if (name.equals("Gd"))
+            return new Reg(name, 32);
+        if (name.equals("Jb"))
+            return new Jump(name, 8);
+        if (name.equals("Jw"))
+            return new Jump(name, 16);
+        if (name.equals("Jd"))
+            return new Jump(name, 32);
         if (name.equals("Ap"))
             return new FarPointer(name);
         if (name.equals("M"))
@@ -648,6 +676,8 @@ public abstract class Operand
             return new Mem(name, 16);
         if (name.equals("Md"))
             return new Mem(name, 32);
+        if (name.equals("Mq"))
+            return new Mem(name, 64);
         if (name.equals("S"))
             return new Segment(name);
         if (segs.containsKey(name))

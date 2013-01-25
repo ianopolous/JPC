@@ -1406,7 +1406,7 @@ public class Processor implements HardwareComponent
         }
     }
 
-    public int iret_o32_a16()
+    public int iret_pm_o32_a16()
     {
         if (eflagsNestedTask)
             return iretFromTask();
@@ -1605,7 +1605,7 @@ public class Processor implements HardwareComponent
         }
     }
 
-    public int iret_o32_a32()
+    public int iret_pm_o32_a32()
     {
         if (eflagsNestedTask)
             return iretFromTask();

@@ -19,7 +19,7 @@ public class Opcode
         this.needsSegment = needsSegment;
         boolean msize = false;
         for (String s: args)
-            if (s.equals("Ev") || s.equals("Gv") || s.equals("Iv") || s.equals("Iz") || s.equals("Ov") || (Operand.reg16.containsKey(s) && !mnemonic.contains("o16") && !mnemonic.contains("o32")))
+            if (s.equals("Ev") || s.equals("Gv") || s.equals("Iv") || s.equals("Iz") || s.equals("Ov") && !mnemonic.contains("o16") && !mnemonic.contains("o32"))
                 msize = true;
         multiSize = msize;
         operands = new Operand[args.length];
@@ -75,6 +75,21 @@ public class Opcode
         String body = snippet;
         if (operands.length > 0)
         {
+            if (body.contains("getF") || body.contains("setF"))
+            {
+                body = body.replaceAll("\\$op1.getF", operands[0].getF(1));
+                body = body.replaceAll("\\$op1.setF", operands[0].setF(1));
+                if (operands.length >1)
+                {
+                    body = body.replaceAll("\\$op2.getF", operands[1].getF(2));
+                    body = body.replaceAll("\\$op2.setF", operands[1].setF(2));
+                    if (operands.length > 2)
+                    {
+                        body = body.replaceAll("\\$op3.getF", operands[2].getF(3));
+                        body = body.replaceAll("\\$op3.setF", operands[2].setF(3));
+                    }
+                }
+            }
             body = body.replaceAll("\\$op1.get", operands[0].get(1));
             body = body.replaceAll("\\$op1.set", operands[0].set(1));
             if (operands.length >1)
@@ -200,7 +215,7 @@ public class Opcode
 
     private String getPreamble(String mode)
     {
-        return "package org.jpc.emulator.execution.opcodes."+mode+";\n\nimport org.jpc.emulator.execution.*;\nimport org.jpc.emulator.execution.decoder.*;\nimport org.jpc.emulator.processor.*;\nimport static org.jpc.emulator.processor.Processor.*;\n\npublic class "+getName()+" extends Executable\n{\n";
+        return "package org.jpc.emulator.execution.opcodes."+mode+";\n\nimport org.jpc.emulator.execution.*;\nimport org.jpc.emulator.execution.decoder.*;\nimport org.jpc.emulator.processor.*;\nimport org.jpc.emulator.processor.fpu64.*;\nimport static org.jpc.emulator.processor.Processor.*;\n\npublic class "+getName()+" extends Executable\n{\n";
     }
 
     private String getBranch()
@@ -230,7 +245,7 @@ public class Opcode
     private static boolean isMem(String[] args)
     {
         for (String arg: args)
-            if (arg.equals("Eb") || arg.equals("Ev") || arg.equals("Ew") || arg.equals("Iv") || arg.equals("Ov") || arg.equals("Ob") || arg.equals("M"))
+            if (arg.equals("Eb") || arg.equals("Ew") || arg.equals("Ed") || arg.equals("Ob") || arg.equals("Ow") || arg.equals("Od") || arg.equals("M"))
                 return true;
         return false;
     }
@@ -240,7 +255,7 @@ public class Opcode
         for (String arg: args)
             if (arg.equals("Ep"))
                 return true;
-        if ((args.length == 1) && args[0].equals("Mw"))
+        if ((args.length == 1) && (args[0].equals("Mw") || args[0].equals("Md") || args[0].equals("Mq")))
             return true;
         return false;
     }

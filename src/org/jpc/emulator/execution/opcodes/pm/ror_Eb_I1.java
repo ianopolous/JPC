@@ -3,6 +3,7 @@ package org.jpc.emulator.execution.opcodes.pm;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.processor.*;
+import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
 public class ror_Eb_I1 extends Executable
@@ -18,7 +19,7 @@ public class ror_Eb_I1 extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-            int shift = 1 & 0xf;
+            int shift = 1 & (8-1);
             int reg0 = 0xFF&op1.get8();
             int res = (reg0 >>> shift) | (reg0 << (8 - shift));
             op1.set8((byte)res);

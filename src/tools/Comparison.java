@@ -37,7 +37,7 @@ public class Comparison
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win3 = {"-hda", "win3setup.img", "-boot", "hda"};
 
-    public static final String[] pcargs = win3;
+    public static final String[] pcargs = war1;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -54,6 +54,7 @@ public class Comparison
         flagIgnores.put("mul", ~0xd4);
         flagIgnores.put("imul", ~0x8d5);
         flagIgnores.put("bt", ~0x894);
+        flagIgnores.put("popfw", ~0x895);
 
         // not sure
         flagIgnores.put("bts", ~0x1);
@@ -63,6 +64,7 @@ public class Comparison
         //flagIgnores.put("add", ~0x800)
         flagIgnores.put("btr", ~0x1);
         flagIgnores.put("shr", ~0x810);
+        flagIgnores.put("shrd", ~0x800);
         flagIgnores.put("lss", ~0x200);
         //flagIgnores.put("sti", ~0x10); // for the instruction after the sti
         //flagIgnores.put("iret", ~0x10); // who cares about before the interrupt
@@ -186,10 +188,10 @@ public class Comparison
                     printHistory();
                     for (int diffIndex: diff)
                         System.out.printf("Difference: %s %08x - %08x\n", names[diffIndex], fast[diffIndex], old[diffIndex]);
-                    if (continueExecution("registers"))
+                    //if (continueExecution("registers"))
                         setState1.invoke(newpc, (int[])old);
-                    else
-                        System.exit(0);
+                    //else
+                    //    System.exit(0);
                 }
             }
             if (compareStack)

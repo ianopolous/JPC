@@ -78,7 +78,7 @@ public class Instruction
             b.append("_a"+adr_mode);
         for (int i=0; i < zygote.operand.length; i++)
             if (!zygote.operand[i].name.equals("NONE"))
-                b.append("_"+zygote.operand[i].name);
+                b.append("_"+getOperandType(zygote.operand[i], operand[i]));
         boolean mem = false;
         for (Operand o : operand)
             if (o.type.equals("OP_MEM"))
@@ -86,6 +86,53 @@ public class Instruction
         if (mem)
             b.append("_mem");
         return b.toString();
+    }
+
+    private static String getOperandType(ZygoteOperand op, Operand val)
+    {
+        if (!op.name.endsWith("v") && !op.name.endsWith("z"))
+            return op.name;
+        if (op.name.equals("Ev"))
+        {
+            if (val.size == 16)
+                return "Ew";
+            else if (val.size == 32)
+                return "Ed";
+            else throw new IllegalStateException("Unknown Ev size: "+val.size);
+        }
+        if (op.name.equals("Gv") || op.name.equals("Gz"))
+        {
+            if (val.size == 16)
+                return "Gw";
+            else if (val.size == 32)
+                return "Gd";
+            else throw new IllegalStateException("Unknown Gv/z size: "+val.size);
+        }
+        if (op.name.equals("Iv") || op.name.equals("Iz"))
+        {
+            if (val.size == 16)
+                return "Iw";
+            else if (val.size == 32)
+                return "Id";
+            else throw new IllegalStateException("Unknown Iv/z size: "+val.size);
+        }
+        if (op.name.equals("Jz"))
+        {
+            if (val.size == 16)
+                return "Jw";
+            else if (val.size == 32)
+                return "Jd";
+            else throw new IllegalStateException("Unknown Jv size: "+val.size);
+        }
+        if (op.name.equals("Ov"))
+        {
+            if (val.size == 16)
+                return "Ow";
+            else if (val.size == 32)
+                return "Od";
+            else throw new IllegalStateException("Unknown Ov size: "+val.size);
+        }
+        throw new IllegalStateException("Unknown operand type "+op.name);
     }
 
     public void configure(Instruction parent)
