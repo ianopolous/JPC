@@ -22,7 +22,8 @@ public class jmp_Jb extends Executable
 
     public Branch execute(Processor cpu)
     {
-        int tmpEip = cpu.eip + blockLength + jmp;
+        cpu.eip += blockLength;
+        int tmpEip = cpu.eip + jmp;
         cpu.cs.checkAddress(tmpEip);
         cpu.eip = tmpEip;
         return Branch.T1;

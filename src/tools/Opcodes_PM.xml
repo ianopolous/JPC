@@ -1682,13 +1682,17 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   </opcode>
   <opcode mnemonic="jmp">
     <return>Branch.Jmp_Unknown</return>
-    <snippet>        cpu.eip = $mask$op1.get;</snippet>
+    <snippet>        cpu.eip += blockLength;
+        int tmpEip = $mask$op1.get;
+        cpu.cs.checkAddress(tmpEip);
+        cpu.eip = tmpEip;</snippet>
     <args size="16">Ew</args>
     <args size="32">Ed</args>
   </opcode>
   <opcode mnemonic="jmp">
     <return>Branch.T1</return>
-    <snippet>        int tmpEip = cpu.eip + blockLength + jmp;
+    <snippet>        cpu.eip += blockLength;
+        int tmpEip = cpu.eip + jmp;
         cpu.cs.checkAddress(tmpEip);
         cpu.eip = tmpEip;</snippet>
     <args size="16">Jw</args>
@@ -1696,7 +1700,8 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   </opcode>
   <opcode mnemonic="jmp">
     <return>Branch.T1</return>
-    <snippet>        int tmpEip = cpu.eip + blockLength + jmp;
+    <snippet>        cpu.eip += blockLength;
+        int tmpEip = cpu.eip + jmp;
         cpu.cs.checkAddress(tmpEip);
         cpu.eip = tmpEip;</snippet>
     <args size="8">Jb</args>
