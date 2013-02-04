@@ -16,7 +16,7 @@ public class fld1 extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.fpu.setST(0, 1.0);
+        cpu.fpu.push(1.0);
         return Branch.None;
     }
 

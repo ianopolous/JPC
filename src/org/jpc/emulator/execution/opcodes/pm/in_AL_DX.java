@@ -16,7 +16,10 @@ public class in_AL_DX extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.r_al.set8(cpu.ioports.ioPortRead8(0xFFFF&cpu.r_dx.get16()));
+        if (cpu.checkIOPermissions8(0xFFFF&cpu.r_dx.get16()))
+            cpu.r_al.set8(cpu.ioports.ioPortRead8(0xFFFF&cpu.r_dx.get16()));
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;
         return Branch.None;
     }
 

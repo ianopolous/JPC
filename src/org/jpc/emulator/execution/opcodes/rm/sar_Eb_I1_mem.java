@@ -20,12 +20,17 @@ public class sar_Eb_I1_mem extends Executable
     {
         if(1 != 0)
         {
+            boolean inOF = cpu.of();
             cpu.flagOp1 = op1.get8(cpu);
             cpu.flagOp2 = 1;
             cpu.flagResult = (byte)(cpu.flagOp1 >> cpu.flagOp2);
             op1.set8(cpu, (byte)cpu.flagResult);
             cpu.flagIns = UCodes.SAR8;
             cpu.flagStatus = OSZAPC;
+            if (cpu.flagOp2 == 1)
+                cpu.of(false);
+            else
+                cpu.of(inOF);
         }
         return Branch.None;
     }

@@ -57,7 +57,12 @@ public class Pointer
 
     public int get(Processor cpu)
     {
-        int addr = offset;
+        return get(cpu, 0);
+    }
+
+    public int get(Processor cpu, int off)
+    {
+        int addr = offset+off;
         if (addrSize)
         {
             if (base != -1)
@@ -106,9 +111,19 @@ public class Pointer
         set32(cpu, Float.floatToRawIntBits(val));
     }
 
+    public int get32(Processor cpu, int offset)
+    {
+        return cpu.segs[segment].getDoubleWord(get(cpu, offset));
+    }
+
     public int get32(Processor cpu)
     {
         return cpu.segs[segment].getDoubleWord(get(cpu));
+    }
+
+    public void set32(Processor cpu, int off, int val)
+    {
+        cpu.segs[segment].setDoubleWord(get(cpu, off), val);
     }
 
     public void set32(Processor cpu, int val)
@@ -116,9 +131,19 @@ public class Pointer
         cpu.segs[segment].setDoubleWord(get(cpu), val);
     }
 
+    public short get16(Processor cpu, int off)
+    {
+        return cpu.segs[segment].getWord(get(cpu, off));
+    }
+
     public short get16(Processor cpu)
     {
         return cpu.segs[segment].getWord(get(cpu));
+    }
+
+    public void set16(Processor cpu, int off, short val)
+    {
+        cpu.segs[segment].setWord(get(cpu, off), val);
     }
 
     public void set16(Processor cpu, short val)

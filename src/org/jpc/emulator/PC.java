@@ -43,7 +43,10 @@ import org.jpc.emulator.pci.peripheral.*;
 import org.jpc.emulator.pci.*;
 import org.jpc.emulator.peripheral.*;
 import org.jpc.emulator.processor.*;
+import org.jpc.j2se.KeyMapping;
 import org.jpc.support.*;
+
+import java.awt.event.KeyEvent;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -64,7 +67,7 @@ import org.jpc.j2se.VirtualClock;
 public class PC {
 
     public static int SYS_RAM_SIZE;
-    public static final int DEFAULT_RAM_SIZE = 8 * 1024 * 1024;
+    public static final int DEFAULT_RAM_SIZE = 16 * 1024 * 1024;
     public static final int INSTRUCTIONS_BETWEEN_INTERRUPTS = 1; 
 
     public static volatile boolean compile = false;
@@ -77,7 +80,8 @@ public class PC {
     private final Clock vmClock;
     private final List<HardwareComponent> parts;
     private final CodeBlockManager manager;
-    private final EthernetCard ethernet;   
+    private final EthernetCard ethernet;
+    private final Keyboard keyboard;
 
     /**
      * Constructs a new <code>PC</code> instance with the specified external time-source and
@@ -139,7 +143,8 @@ public class PC {
         parts.add(new DefaultVGACard());
 
         parts.add(new SerialPort(0));
-        parts.add(new Keyboard());
+        keyboard = new Keyboard();
+        parts.add(keyboard);
         parts.add(new FloppyController());
         parts.add(new PCSpeaker());
 
@@ -245,6 +250,18 @@ public class PC {
         else
         {
             physicalAddr.copyArrayIntoContents(processor.getInstructionPointer(), code, 0, code.length);
+        }
+    }
+
+    public void sendKeys(String text)
+    {
+        for (char c: text.toCharArray())
+        {
+            int[] keycodes = KeyMapping.getJavaKeycodes(c);
+            for (int i = 0; i < keycodes.length; i++)
+                keyboard.keyPressed(KeyMapping.getScancode(keycodes[i]));
+            for (int i = keycodes.length-1; i >= 0; i--)
+                keyboard.keyReleased(KeyMapping.getScancode(keycodes[i]));
         }
     }
 
@@ -591,6 +608,8 @@ public class PC {
                 b.append(String.format("%02x ", input.read(8)));
             b.append("\n");
             eip += in.x86Length;
+            if (in.toString().equals("sti"))
+                c--; // do one more instruction
             if (in.isBranch())
                 break;
         }

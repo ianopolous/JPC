@@ -26,10 +26,10 @@ public class imul_Eb_mem extends Executable
             cpu.r_eax.set16(cpu.flagResult);
             cpu.flagIns = UCodes.IMUL8;
             if (res64 < 0)
-                cpu.sf = true;
+                cpu.sf(true);
             else
-                cpu.sf = false;
-            cpu.flagStatus &= ~SF;
+                cpu.sf(false);
+            
         return Branch.None;
     }
 

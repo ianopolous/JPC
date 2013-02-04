@@ -16,7 +16,7 @@ public class fnstsw_AX extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.r_ax.set16(cpu.fpu.getStatus());
+        cpu.r_ax.set16((short)cpu.fpu.getStatus());
         return Branch.None;
     }
 

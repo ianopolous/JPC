@@ -38,6 +38,16 @@ public abstract class Operand
         throw new IllegalStateException("Unimplemented getF!");
     }
 
+    public String setA(int arg)
+    {
+        throw new IllegalStateException("Unimplemented setA!");
+    }
+
+    public String getA(int arg)
+    {
+        throw new IllegalStateException("Unimplemented getA!");
+    }
+
     public static class Reg extends Operand
     {
         final int size;
@@ -125,6 +135,91 @@ public abstract class Operand
         public int getSize()
         {
             return 32;
+        }
+    }
+
+    public static class DebugReg extends Operand
+    {
+
+        public DebugReg(String name)
+        {
+            super(name);
+        }
+
+        public String define(int arg)
+        {
+            return "    final int "+getVal(arg)+";\n";
+        }
+
+        public String construct(int arg)
+        {
+            return "        "+getVal(arg) + " = Processor.getDRIndex(parent.operand["+(arg-1)+"].toString());";
+        }
+
+        public String load(int arg)
+        {
+            return "";
+        }
+
+        public String set(int arg)
+        {
+            return "cpu.setDR("+getVal(arg)+", ";
+        }
+
+        public String get(int arg)
+        {
+            return "cpu.getDR("+getVal(arg)+")";
+        }
+
+        private String getVal(int arg)
+        {
+            return "op"+arg+"Index";
+        }
+
+        public int getSize()
+        {
+            return 32;
+        }
+    }
+
+    public static class STi extends Operand
+    {
+        final int num;
+
+        public STi(String name)
+        {
+            super(name);
+            this.num = Integer.parseInt(name.substring(2));
+        }
+
+        public String define(int arg)
+        {
+            return "";
+        }
+
+        public String construct(int arg)
+        {
+            return "";
+        }
+
+        public String load(int arg)
+        {
+            return "";
+        }
+
+        public String set(int arg)
+        {
+            return "cpu.fpu.setST("+num+", ";
+        }
+
+        public String get(int arg)
+        {
+            return "cpu.fpu.ST("+num+")";
+        }
+
+        public int getSize()
+        {
+            return 64;
         }
     }
 
@@ -219,6 +314,16 @@ public abstract class Operand
         public String getF(int arg)
         {
             return "op"+arg+".getF"+getSize()+"(cpu)";
+        }
+
+        public String setA(int arg)
+        {
+            return "op"+arg+".set"+getSize()+"(cpu, ";
+        }
+
+        public String getA(int arg)
+        {
+            return "op"+arg+".get"+getSize()+"(cpu, ";
         }
     }
 
@@ -656,6 +761,8 @@ public abstract class Operand
             return new Reg(name, opSize);
         if (name.equals("C"))
             return new ControlReg(name);
+        if (name.equals("D"))
+            return new DebugReg(name);
         if (name.equals("Gb"))
             return new Reg(name, 8);
         if (name.equals("Gw"))
@@ -680,6 +787,8 @@ public abstract class Operand
             return new Mem(name, 64);
         if (name.equals("S"))
             return new Segment(name);
+        if (name.startsWith("ST"))
+            return new STi(name);
         if (segs.containsKey(name))
             return new SpecificSegment(name, segs.get(name));
         if (reg8.containsKey(name))

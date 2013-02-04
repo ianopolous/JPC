@@ -22,6 +22,8 @@ public class rcr_Eb_Ib extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
             int shift = immb & 0x1f;
+            if (shift != 0)
+            {
             shift %= 8+1;
             long val = 0xFF&op1.get8();
             val |= cpu.cf() ? 1 << 8 : 0;
@@ -32,6 +34,7 @@ public class rcr_Eb_Ib extends Executable
             cpu.cf((val & (1L << 8)) != 0);
             if (shift == 1)
                 cpu.of(bit30 ^ bit31);
+            }
         return Branch.None;
     }
 

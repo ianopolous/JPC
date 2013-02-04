@@ -18,7 +18,10 @@ public class in_AL_Ib extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.r_al.set8(cpu.ioports.ioPortRead8(0xFF&immb));
+        if (cpu.checkIOPermissions8(0xFF&immb))
+            cpu.r_al.set8(cpu.ioports.ioPortRead8(0xFF&immb));
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;
         return Branch.None;
     }
 

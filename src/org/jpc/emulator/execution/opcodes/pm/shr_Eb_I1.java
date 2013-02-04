@@ -19,10 +19,10 @@ public class shr_Eb_I1 extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        if(1 != 0)
+        if((0x1f & 1) != 0)
         {
             cpu.flagOp1 = 0xFF&op1.get8();
-            cpu.flagOp2 = 1;
+            cpu.flagOp2 = 0x1f & 1;
             cpu.flagResult = (byte)(cpu.flagOp1 >>> cpu.flagOp2);
             op1.set8((byte)cpu.flagResult);
             cpu.flagIns = UCodes.SHR8;

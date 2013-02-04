@@ -18,10 +18,10 @@ public class shr_Eb_CL_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        if(cpu.r_cl.get8() != 0)
+        if((0x1f & cpu.r_cl.get8()) != 0)
         {
             cpu.flagOp1 = 0xFF&op1.get8(cpu);
-            cpu.flagOp2 = cpu.r_cl.get8();
+            cpu.flagOp2 = 0x1f & cpu.r_cl.get8();
             cpu.flagResult = (byte)(cpu.flagOp1 >>> cpu.flagOp2);
             op1.set8(cpu, (byte)cpu.flagResult);
             cpu.flagIns = UCodes.SHR8;

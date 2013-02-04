@@ -19,9 +19,11 @@ public class div_Eb extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-            int ldiv = cpu.r_ax.get16();
-            cpu.r_al.set8((byte) (ldiv/(0xFF& op1.get8())));
-            cpu.r_ah.set8((byte) (ldiv % (0xFF& op1.get8())));
+        if (op1.get8() == 0)
+            throw ProcessorException.DIVIDE_ERROR;
+        int ldiv = cpu.r_ax.get16();
+        cpu.r_al.set8((byte) (ldiv/(0xFF& op1.get8())));
+        cpu.r_ah.set8((byte) (ldiv % (0xFF& op1.get8())));
         return Branch.None;
     }
 

@@ -803,7 +803,10 @@ public class JPC extends ApplicationFrame implements ActionListener {
     }
 
     public static void main(String[] args) throws IOException {
-        args = Option.parse(args);
+        String[] tmp = new String[args.length+1];
+        tmp[0] = "-debug-blocks";
+        System.arraycopy(args, 0, tmp, 1, args.length);
+        args = Option.parse(tmp);
         initialise();
 
         boolean fullScreen = true;

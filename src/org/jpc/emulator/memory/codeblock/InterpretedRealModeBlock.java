@@ -39,7 +39,10 @@ public class InterpretedRealModeBlock implements RealModeCodeBlock
             return ret;
         } catch (ProcessorException e)
         {
-            cpu.eip += current.delta;
+            if (current.next != null) // branches have already updated eip
+                cpu.eip += current.delta;
+            else
+                cpu.eip -= current.x86Length;
             if (!e.pointsToSelf())
                 cpu.eip += current.x86Length;
 

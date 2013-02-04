@@ -16,7 +16,7 @@ public class fldz extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.fpu.setST(0, 0.0);
+        cpu.fpu.push(0.0);
         return Branch.None;
     }
 

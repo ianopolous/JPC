@@ -20,10 +20,10 @@ public class shr_Eb_Ib_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        if(immb != 0)
+        if((0x1f & immb) != 0)
         {
             cpu.flagOp1 = 0xFF&op1.get8(cpu);
-            cpu.flagOp2 = immb;
+            cpu.flagOp2 = 0x1f & immb;
             cpu.flagResult = (byte)(cpu.flagOp1 >>> cpu.flagOp2);
             op1.set8(cpu, (byte)cpu.flagResult);
             cpu.flagIns = UCodes.SHR8;

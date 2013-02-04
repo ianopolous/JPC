@@ -90,6 +90,21 @@ public class Opcode
                     }
                 }
             }
+            if (body.contains("getA") || body.contains("setA"))
+            {
+                body = body.replaceAll("\\$op1.getA", operands[0].getA(1));
+                body = body.replaceAll("\\$op1.setA", operands[0].setA(1));
+                if ((operands.length >1) && (body.contains("2.getA") || body.contains("2.setA")))
+                {
+                    body = body.replaceAll("\\$op2.getA", operands[1].getA(2));
+                    body = body.replaceAll("\\$op2.setA", operands[1].setA(2));
+                    if (operands.length > 2)
+                    {
+                        body = body.replaceAll("\\$op3.getA", operands[2].getA(3));
+                        body = body.replaceAll("\\$op3.setA", operands[2].setA(3));
+                    }
+                }
+            }
             body = body.replaceAll("\\$op1.get", operands[0].get(1));
             body = body.replaceAll("\\$op1.set", operands[0].set(1));
             if (operands.length >1)
@@ -260,7 +275,52 @@ public class Opcode
         return false;
     }
 
-    public static List<Opcode> get(String mnemonic, String[] args, int size, String snippet, String ret, boolean segment)
+    public static List<String> enumerateArg(String arg)
+    {
+        List<String> res = new LinkedList();
+        if (arg.equals("STi"))
+        {
+            res.add("ST0");
+            res.add("ST1");
+            res.add("ST2");
+            res.add("ST3");
+            res.add("ST4");
+            res.add("ST5");
+            res.add("ST6");
+            res.add("ST7");
+        }
+        else
+            res.add(arg);
+        return res;
+    }
+
+    public static List<String[]> enumerateArgs(String[] in)
+    {
+        List<String[]> res = new LinkedList();
+        List<String[]> next = new LinkedList();
+        res.add(in);
+        for (int i=0; i < in.length; i++)
+        {
+            for (String[] args: res)
+            {
+                for (String arg: enumerateArg(args[i]))
+                {
+                    String[] tmp = new String[args.length];
+                    System.arraycopy(args, 0, tmp, 0, tmp.length);
+                    tmp[i] = arg;
+                    next.add(tmp);
+                }
+            }
+            res = next;
+            if (i < in.length-1)
+                next = new LinkedList();
+        }
+        if (in.length == 0)
+            next.add(new String[0]);
+        return next;
+    }
+
+    public static List<Opcode> get(String mnemonic, String[] args, int size, String snippet, String ret, boolean segment, boolean singleType, boolean mem)
     {
         List<Opcode> ops = new LinkedList();
         if (isMemOnly(args))
@@ -268,9 +328,14 @@ public class Opcode
             ops.add(new Opcode(mnemonic, args, size, snippet, ret, true, segment));
             return ops;
         }
-        ops.add(new Opcode(mnemonic, args, size, snippet, ret, false, segment));
-        if (isMem(args))
-            ops.add(new Opcode(mnemonic, args, size, snippet, ret, true, segment));
+        for (String[] eachArgs: enumerateArgs(args))
+        {
+            if (!singleType || (singleType && !mem))
+                ops.add(new Opcode(mnemonic, eachArgs, size, snippet, ret, false, segment));
+            if (!singleType || (singleType && mem))
+                if (isMem(args))
+                    ops.add(new Opcode(mnemonic, eachArgs, size, snippet, ret, true, segment));
+        }
         return ops;
     }
 }

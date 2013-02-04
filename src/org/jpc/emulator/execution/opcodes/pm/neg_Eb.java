@@ -20,7 +20,7 @@ public class neg_Eb extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
             cpu.flagOp1 = op1.get8();
-            cpu.flagResult = -(byte)(cpu.flagOp1);
+            cpu.flagResult = (byte)(-cpu.flagOp1);
             op1.set8((byte)cpu.flagResult);
             cpu.flagIns = UCodes.NEG8;
             cpu.flagStatus = OSZAPC;

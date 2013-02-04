@@ -19,8 +19,8 @@ public class sgdt_o32_M extends Executable
     public Branch execute(Processor cpu)
     {
         int addr = op1.get(cpu) + op1.getBase(cpu);
-        cpu.linearMemory.setDoubleWord(addr, (short)cpu.gdtr.getLimit());
-        cpu.linearMemory.setDoubleWord(addr+4, cpu.gdtr.getBase());
+        cpu.linearMemory.setWord(addr, (short)cpu.gdtr.getLimit());
+        cpu.linearMemory.setDoubleWord(addr+2, cpu.gdtr.getBase());
         return Branch.None;
     }
 

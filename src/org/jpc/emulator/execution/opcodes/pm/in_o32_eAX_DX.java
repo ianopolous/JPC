@@ -16,7 +16,10 @@ public class in_o32_eAX_DX extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.r_eax.set32(cpu.ioports.ioPortRead32(0xFFFF&cpu.r_dx.get16()));
+        if (cpu.checkIOPermissions32(0xFFFF&cpu.r_dx.get16()))
+            cpu.r_eax.set32(cpu.ioports.ioPortRead32(0xFFFF&cpu.r_dx.get16()));
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;
         return Branch.None;
     }
 

@@ -44,6 +44,9 @@ public class Generator
             String mnemonic = n.getAttributes().getNamedItem("mnemonic").getNodeValue();
             Node seg = n.getAttributes().getNamedItem("segment");
             boolean segment = (seg != null) && seg.getNodeValue().equals("true");
+            Node memNode = n.getAttributes().getNamedItem("mem");
+            boolean singleType = (memNode != null);
+            boolean mem = (memNode != null) && memNode.getNodeValue().equals("true");
             NodeList children = n.getChildNodes();
             String ret=null, snippet=null;
             // get return and snippet
@@ -73,7 +76,7 @@ public class Generator
                 String[] args = argsText.split(";");
                 if (argsText.length() == 0)
                     args = new String[0];
-                List<Opcode> ops = Opcode.get(mnemonic, args, size, snippet, ret, segment);
+                List<Opcode> ops = Opcode.get(mnemonic, args, size, snippet, ret, segment, singleType, mem);
                 for (Opcode op: ops)
                 {
                     call.call(op, mode);

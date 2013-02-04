@@ -23,21 +23,22 @@ public class Comparison
     static String oldJar = "OldJPCApplication.jar";
     public static final boolean compareFlags = true;
     public static final boolean compareStack = false;
-    public static final String[] duke = {"-fda", "floppy.img", "-boot", "fda", "-hda", "4duke.img"};
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "doom10m.img"};
     public static final String[] war1 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war1demo.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
     public static final String[] simcity = {"-fda", "floppy.img", "-boot", "fda", "-hda", "simc2000.img"};
-    public static final String[] dos = {"-fda", "dos5.0.img", "-boot", "fda", "-hda", "resources/images/dosgames.img"};
-    public static final String[] linux = {"-hda", "resources/images/linux.img", "-boot", "hda"};
+    public static final String[] linux = {"-hda", "linux.img", "-boot", "hda"};
+    public static final String[] bsd = {"-hda", "netbsd.img", "-boot", "hda"};
+    public static final String[] mosa = {"-hda", "mosa-project.img", "-boot", "hda"};
+    public static final String[] dsl = {"-hda", "dsl-desktop-demo2.img", "-boot", "hda"};
     public static final String[] isolinux = {"-cdrom", "isolinux.iso", "-boot", "cdrom"};
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
-    public static final String[] win3 = {"-hda", "win3setup.img", "-boot", "hda"};
+    public static final String[] win3 = {"-hda", "win311.img", "-boot", "hda"};
 
-    public static final String[] pcargs = war1;
+    public static String[] pcargs = linux;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -45,31 +46,35 @@ public class Comparison
     public final static Map<String, Integer> flagIgnores = new HashMap();
     static
     {
-        flagIgnores.put("test", ~0x10);
-        flagIgnores.put("and", ~0x10);
-        flagIgnores.put("sar", ~0x10);
-        flagIgnores.put("shl", ~0x810);
-        flagIgnores.put("xor", ~0x10);
-        flagIgnores.put("or", ~0x10);
-        flagIgnores.put("mul", ~0xd4);
-        flagIgnores.put("imul", ~0x8d5);
-        flagIgnores.put("bt", ~0x894);
+        flagIgnores.put("test", ~0x10); // not defined in spec
+        flagIgnores.put("and", ~0x10); // not defined in spec
+        flagIgnores.put("sar", ~0x10); // not defined in spec for non zero shifts
+        flagIgnores.put("xor", ~0x10); // not defined in spec
+        flagIgnores.put("or", ~0x10); // not defined in spec
+        flagIgnores.put("mul", ~0xd4); // not defined in spec
+        flagIgnores.put("imul", ~0xd4); // not defined in spec
         flagIgnores.put("popfw", ~0x895);
+        //flagIgnores.put("shl", ~0x810);
+        //flagIgnores.put("bt", ~0x894);
 
         // not sure
-        flagIgnores.put("bts", ~0x1);
+        //flagIgnores.put("bts", ~0x1);
 
         // errors with the old JPC
-        //flagIgnores.put("btr", ~0x1);
         //flagIgnores.put("add", ~0x800)
-        flagIgnores.put("btr", ~0x1);
+        //flagIgnores.put("btr", ~0x1);
         flagIgnores.put("shr", ~0x810);
-        flagIgnores.put("shrd", ~0x800);
+        //flagIgnores.put("shrd", ~0x810);
         flagIgnores.put("lss", ~0x200);
-        //flagIgnores.put("sti", ~0x10); // for the instruction after the sti
         //flagIgnores.put("iret", ~0x10); // who cares about before the interrupt
         //flagIgnores.put("iretw", ~0x810); // who cares about before the interrupt
 
+    }
+
+    private static TreeSet<KeyBoardEvent> input = new TreeSet<KeyBoardEvent>();
+    static
+    {
+        input.add(new KeyBoardEvent(0xBA90000L, "./test-i386\n"));
     }
 
     public static void main(String[] args) throws Exception
@@ -87,14 +92,15 @@ public class Comparison
         args = (String[]) parse.invoke(opts, (Object)args);
 
 
-        Calendar start = Calendar.getInstance();
+        Calendar start1 = Calendar.getInstance();
         Class c1 = cl1.loadClass("org.jpc.emulator.PC");
         Constructor ctor = c1.getConstructor(String[].class, Calendar.class);
-        Object newpc = ctor.newInstance((Object)pcargs, start);
+        Object newpc = ctor.newInstance((Object)pcargs, start1);
 
+        Calendar start2 = (Calendar)start1.clone();
         Class c2 = cl2.loadClass("org.jpc.emulator.PC");
         Constructor ctor2 = c2.getConstructor(String[].class, Calendar.class);
-        Object oldpc = ctor2.newInstance((Object)pcargs, start);
+        Object oldpc = ctor2.newInstance((Object)pcargs, start2);
 
         Method m1 = c1.getMethod("hello");
         m1.invoke(newpc);
@@ -118,6 +124,9 @@ public class Comparison
         Method break2 = c2.getMethod("eipBreak", Integer.class);
         Method instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
 
+        Method input1 = c1.getMethod("sendKeys", String.class);
+        Method input2 = c2.getMethod("sendKeys", String.class);
+
         if (mem)
             System.out.println("Comparing memory and registers..");
         else if (compareStack)
@@ -131,8 +140,15 @@ public class Comparison
         boolean previousLss = false;
         while (true)
         {
+            try {
             execute1.invoke(newpc);
             execute2.invoke(oldpc);
+            } catch (Exception e)
+            {
+                printHistory();
+                e.printStackTrace();
+                throw e;
+            }
             fast = (int[])state1.invoke(newpc);
             old = (int[])state2.invoke(oldpc);
             try {
@@ -143,8 +159,20 @@ public class Comparison
                 System.out.printf("Error getting instruction info.. at cs:eip = %08x\n", fast[8]+(fast[10]<<4));
                 line = "Instruction decode error";
                 printHistory();
-                continueExecution("after Invalid decode at cs:eip");
+                //continueExecution("after Invalid decode at cs:eip");
             }
+            // send input events
+            if (!input.isEmpty())
+            {
+                KeyBoardEvent k = input.first();
+                if (fast[16] > k.time)
+                {
+                    input1.invoke(newpc, k.text);
+                    input2.invoke(oldpc, k.text);
+                    input.remove(k);
+                }
+            }
+
             if (history[historyIndex] == null)
                 history[historyIndex] = new Object[3];
             history[historyIndex][0] = fast;
@@ -157,9 +185,9 @@ public class Comparison
                 if ((diff.size() == 1) && diff.contains(9))
                 {
                     // adopt flags
-                    String instr = ((String)(history[(historyIndex-2)&0x7f][2])).split(" ")[0];
+                    String instr = ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[0];
                     if (instr.startsWith("rep"))
-                        instr += ((String)(history[(historyIndex-2)&0x7f][2])).split(" ")[1];
+                        instr += ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[1];
                     if (previousLss)
                     {
                         previousLss = false;
@@ -253,7 +281,7 @@ public class Comparison
         return (String)prev[2];
     }
 
-    static Object[][] history = new Object[128][];
+    static Object[][] history = new Object[32][];
     static int historyIndex=0;
 
     private static void printHistory()
@@ -397,5 +425,22 @@ public class Comparison
             return true;
         else
             return false;
+    }
+
+    private static class KeyBoardEvent implements Comparable<KeyBoardEvent>
+    {
+        private final long time;
+        private final String text;
+
+        KeyBoardEvent(long time, String text)
+        {
+            this.time = time;
+            this.text = text;
+        }
+
+        public int compareTo(KeyBoardEvent o)
+        {
+            return (int)(time - o.time);
+        }
     }
 }

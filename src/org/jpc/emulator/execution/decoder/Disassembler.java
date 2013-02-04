@@ -196,13 +196,14 @@ public class Disassembler
         Executable current = start;
         int x86Length = currentInsn.x86Length;
         int count = 1;
+        boolean previousSti = false;
         while (!currentInsn.isBranch())
         {
-            if ((count >= MAX_INSTRUCTIONS_PER_BLOCK) && !currentInsn.toString().equals("sti"))
+            if (((previousSti) || (count >= MAX_INSTRUCTIONS_PER_BLOCK)) && !currentInsn.toString().equals("sti"))
             {
                 Executable eip = getEipUpdate(isPM, startAddr, currentInsn);
                 current.next = eip;
-                if (MAX_INSTRUCTIONS_PER_BLOCK > 10)
+                if (!previousSti && (MAX_INSTRUCTIONS_PER_BLOCK > 10))
                     System.out.println((String.format("Exceeded maximum number of instructions in a block at %x", startAddr)));
                 return constructBlock(startin, start, x86Length, count);
             }
@@ -216,6 +217,8 @@ public class Disassembler
             if (debug)
                 System.out.printf("Disassembled next instruction (%d): %s at %x\n", count, next, input.getAddress());
             count++;
+            if (currentInsn.toString().equals("sti")) // to allow for checking interrupts 1 instruction after sti
+                previousSti = true;
 
             currentInsn.next = nextInsn;
             currentInsn = nextInsn;

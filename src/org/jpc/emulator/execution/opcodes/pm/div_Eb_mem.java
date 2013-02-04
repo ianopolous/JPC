@@ -18,9 +18,11 @@ public class div_Eb_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-            int ldiv = cpu.r_ax.get16();
-            cpu.r_al.set8((byte) (ldiv/(0xFF& op1.get8(cpu))));
-            cpu.r_ah.set8((byte) (ldiv % (0xFF& op1.get8(cpu))));
+        if (op1.get8(cpu) == 0)
+            throw ProcessorException.DIVIDE_ERROR;
+        int ldiv = cpu.r_ax.get16();
+        cpu.r_al.set8((byte) (ldiv/(0xFF& op1.get8(cpu))));
+        cpu.r_ah.set8((byte) (ldiv % (0xFF& op1.get8(cpu))));
         return Branch.None;
     }
 

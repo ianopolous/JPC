@@ -17,7 +17,7 @@ public class sti extends Executable
     public Branch execute(Processor cpu)
     {
         cpu.eflagsInterruptEnableSoon = true;
-//        cpu.eflagsInterruptEnable = true;
+        cpu.eflagsInterruptEnable = true;
         return Branch.None;
     }
 

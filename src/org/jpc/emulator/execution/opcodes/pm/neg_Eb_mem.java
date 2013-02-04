@@ -19,7 +19,7 @@ public class neg_Eb_mem extends Executable
     public Branch execute(Processor cpu)
     {
             cpu.flagOp1 = op1.get8(cpu);
-            cpu.flagResult = -(byte)(cpu.flagOp1);
+            cpu.flagResult = (byte)(-cpu.flagOp1);
             op1.set8(cpu, (byte)cpu.flagResult);
             cpu.flagIns = UCodes.NEG8;
             cpu.flagStatus = OSZAPC;

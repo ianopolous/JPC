@@ -16,7 +16,10 @@ public class out_DX_AL extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.ioports.ioPortWrite8(0xFFFF&cpu.r_dx.get16(), 0xFF&cpu.r_al.get8());
+        if (cpu.checkIOPermissions8(0xFF&cpu.r_al.get8()))
+            cpu.ioports.ioPortWrite8(0xFFFF&cpu.r_dx.get16(), 0xFF&cpu.r_al.get8());
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;
         return Branch.None;
     }
 

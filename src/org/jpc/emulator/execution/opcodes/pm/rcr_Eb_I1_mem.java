@@ -20,6 +20,8 @@ public class rcr_Eb_I1_mem extends Executable
     {
             int shift = 1 & 0x1f;
             shift %= 8+1;
+            if (shift != 0)
+            {
             long val = 0xFF&op1.get8(cpu);
             val |= cpu.cf() ? 1L << 8 : 0;
             val = (val >>> shift) | (val << (8+1-shift));
@@ -29,6 +31,7 @@ public class rcr_Eb_I1_mem extends Executable
             cpu.cf((val & (1L << 8)) != 0);
             if (shift == 1)
                 cpu.of(bit30 ^ bit31);
+            }
         return Branch.None;
     }
 
