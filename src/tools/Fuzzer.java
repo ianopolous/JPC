@@ -119,7 +119,9 @@ public class Fuzzer
         arrayImpl(names, state, formatter, 10, 17);
         arrayImpl(names, state, formatter, 17, 24);
         arrayImpl(names, state, formatter, 24, 30);
-        arrayImpl(names, state, formatter, 30, names.length);
+        arrayImpl(names, state, formatter, 30, 37);
+        arrayImpl(names, state, formatter, 37, 45);
+        arrayImpl(names, state, formatter, 45, names.length);
         System.out.flush();
         System.out.println(builder);
     }

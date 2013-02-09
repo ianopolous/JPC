@@ -33,6 +33,7 @@
 
 package org.jpc.emulator;
 
+import org.jpc.debugger.LinearMemoryViewer;
 import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.execution.decoder.Disassembler;
 import org.jpc.emulator.execution.decoder.Instruction;
@@ -265,6 +266,11 @@ public class PC {
         }
     }
 
+    public void sendMouse(Integer dx, Integer dy, Integer dz, Integer buttons)
+    {
+        keyboard.putMouseEvent(dx, dy, dz, buttons);
+    }
+
     public int[] getState()
     {
         return new int[]
@@ -286,7 +292,23 @@ public class PC {
                         getBase(processor.cs), getBase(processor.ds),
                         getBase(processor.es), getBase(processor.fs),
                         getBase(processor.gs), getBase(processor.ss),
-                        processor.getCR0()
+                        processor.getCR0(),
+                        (int)Double.doubleToRawLongBits(processor.fpu.ST(0)),
+                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(0)) >> 32),
+                        (int)Double.doubleToRawLongBits(processor.fpu.ST(1)),
+                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(1)) >> 32),
+                        (int)Double.doubleToRawLongBits(processor.fpu.ST(2)),
+                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(2)) >> 32),
+                        (int)Double.doubleToRawLongBits(processor.fpu.ST(3)),
+                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(3)) >> 32),
+                        (int)Double.doubleToRawLongBits(processor.fpu.ST(4)),
+                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(4)) >> 32),
+                        (int)Double.doubleToRawLongBits(processor.fpu.ST(5)),
+                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(5)) >> 32),
+                        (int)Double.doubleToRawLongBits(processor.fpu.ST(6)),
+                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(6)) >> 32),
+                        (int)Double.doubleToRawLongBits(processor.fpu.ST(7)),
+                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(7)) >> 32)
                 };
     }
 
@@ -314,14 +336,18 @@ public class PC {
         return 0;
     }
 
-    public Integer savePage(Integer page, byte[] data) throws IOException
+    public Integer savePage(Integer page, byte[] data, Boolean linear) throws IOException
     {
-        return physicalAddr.getPage(page, data);
+        if (!linear)
+            return physicalAddr.getPage(page, data);
+        return physicalAddr.getPage(LinearMemoryViewer.translateLinearAddressToInt(physicalAddr, processor, page)>>> 12, data);
     }
 
-    public void loadPage(Integer page, byte[] data) throws IOException
+    public void loadPage(Integer page, byte[] data, Boolean linear) throws IOException
     {
-        physicalAddr.setPage(page, data);
+        if (!linear)
+            physicalAddr.setPage(page, data);
+        physicalAddr.setPage(LinearMemoryViewer.translateLinearAddressToInt(physicalAddr, processor, page)>>> 12, data);
     }
 
     /**

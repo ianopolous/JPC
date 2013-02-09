@@ -162,7 +162,7 @@ public class LinearMemoryViewer extends MemoryViewer implements ActionListener
         }
     }
 
-    public int translateLinearAddressToInt(PhysicalAddressSpace physical, Processor proc, int offset) {
+    public static int translateLinearAddressToInt(PhysicalAddressSpace physical, Processor proc, int offset) {
         if ((proc.getCR0() & 0x80000000) == 0)
             return offset;
 

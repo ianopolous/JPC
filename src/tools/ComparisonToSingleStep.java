@@ -55,9 +55,9 @@ public class ComparisonToSingleStep
         Method dirty1 = c1.getMethod("getDirtyPages", Set.class);
         Method state2 = c2.getMethod("getState");
         Method execute2 = c2.getMethod("executeBlock");
-        Method save1 = c1.getMethod("savePage", Integer.class, byte[].class);
-        Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class);
-        Method save2 = c2.getMethod("savePage", Integer.class, byte[].class);
+        Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
+        Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
+        Method save2 = c2.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
         Method startClock1 = c1.getMethod("start");
         Method startClock2 = c2.getMethod("start");
         startClock1.invoke(newpc);
@@ -65,6 +65,11 @@ public class ComparisonToSingleStep
         Method break1 = c1.getMethod("eipBreak", Integer.class);
         Method break2 = c2.getMethod("eipBreak", Integer.class);
         Method instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
+
+        Method input1 = c1.getMethod("sendKeys", String.class);
+        Method input2 = c2.getMethod("sendKeys", String.class);
+        Method minput1 = c1.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
+        Method minput2 = c2.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
 
         if (mem)
             System.out.println("Comparing memory and registers..");
@@ -124,6 +129,27 @@ public class ComparisonToSingleStep
                 printHistory();
                 continueExecution("after Invalid decode at cs:eip");
             }
+            // send input events
+            if (!Comparison.keyboardInput.isEmpty())
+            {
+                Comparison.KeyBoardEvent k = Comparison.keyboardInput.first();
+                if (fast[16] > k.time)
+                {
+                    input1.invoke(newpc, k.text);
+                    input2.invoke(oldpc, k.text);
+                    Comparison.keyboardInput.remove(k);
+                }
+            }
+            if (!Comparison.mouseInput.isEmpty())
+            {
+                Comparison.MouseEvent k = Comparison.mouseInput.first();
+                if (fast[16] > k.time)
+                {
+                    minput1.invoke(newpc, k.dx, k.dy, k.dz, k.buttons);
+                    minput2.invoke(oldpc, k.dx, k.dy, k.dz, k.buttons);
+                    Comparison.mouseInput.remove(k);
+                }
+            }
             if (history[historyIndex] == null)
                 history[historyIndex] = new Object[3];
             history[historyIndex][0] = fast;
@@ -153,20 +179,25 @@ public class ComparisonToSingleStep
             }
             if (compareStack)
             {
-                int ssBase = fast[15] << 4; // real mode only
+                boolean pm = (fast[36] & 1) != 0;
+                int ssBase = fast[35];
                 int esp = fast[6] + ssBase;
-                int espPageIndex = esp >> 12;
+                int espPageIndex;
+                if (pm)
+                    espPageIndex = esp;
+                else
+                    espPageIndex = esp >>> 12;
 
-                Integer sl1 = (Integer)save1.invoke(newpc, new Integer(espPageIndex), sdata1);
-                Integer sl2 = (Integer)save2.invoke(oldpc, new Integer(espPageIndex), sdata2);
+                Integer sl1 = (Integer)save1.invoke(newpc, new Integer(espPageIndex), sdata1, pm);
+                Integer sl2 = (Integer)save2.invoke(oldpc, new Integer(espPageIndex), sdata2, pm);
                 if (sl2 > 0)
                     if (!samePage(espPageIndex, sdata1, sdata2))
                     {
                         printHistory();
-                        System.out.println("Error here... look above");
+                        System.out.println("Error (memory difference) here... look above");
                         printPage(sdata1, sdata2, esp);
                         if (continueExecution("stack"))
-                            load1.invoke(newpc, new Integer(espPageIndex), sdata2);
+                            load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
                         else
                             System.exit(0);
                     }

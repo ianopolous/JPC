@@ -66,6 +66,10 @@ public abstract class FpuState implements Hibernatable
     // note exception bits are "sticky" - cleared only explicitly
     // accessors to flag an exception - these will set the bit,
     // check the mask, and throw a ProcessorException if unmasked
+    public abstract void setC0(boolean val);
+    public abstract void setC1(boolean val);
+    public abstract void setC2(boolean val);
+    public abstract void setC3(boolean val);
     public abstract void setInvalidOperation();
     public abstract void setDenormalizedOperand();
     public abstract void setZeroDivide();

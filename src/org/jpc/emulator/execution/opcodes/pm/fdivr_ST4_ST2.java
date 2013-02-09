@@ -22,7 +22,7 @@ public class fdivr_ST4_ST2 extends Executable
             cpu.fpu.setInvalidOperation();
 	if ((freg0 == 0.0) && !Double.isNaN(freg1) && !Double.isInfinite(freg1))
             cpu.fpu.setZeroDivide();
-        cpu.fpu.setST(4, freg1/freg0);
+        cpu.fpu.setST(4,  freg1/freg0);
         return Branch.None;
     }
 

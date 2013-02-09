@@ -20,7 +20,7 @@ public class fmul_ST6_ST3 extends Executable
         double freg1 = cpu.fpu.ST(3);
         if ((Double.isInfinite(freg0) && (freg1 == 0.0)) || (Double.isInfinite(freg1) && (freg0 == 0.0))) 
             cpu.fpu.setInvalidOperation();
-        cpu.fpu.setST(6, freg0*freg1);
+        cpu.fpu.setST(6,  freg0*freg1);
         return Branch.None;
     }
 

@@ -12,12 +12,14 @@ public class Comparison
 {
     public static String[] names = new String[]
             {
-                    "eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp",
-                    "eip", "flags", "cs", "ds", "es", "fs", "gs", "ss", "ticks",
-                    "cs-lim", "ds-lim", "es-lim", "fs-lim", "gs-lim", "ss-lim", "cs-prop",
-                    "gdtrbase", "gdtr-lim", "idtrbase", "idtr-lim", "ldtrbase", "ldtr-lim",
-                    "cs-base", "ds-base", "es-base", "fs-base", "gs-base", "ss-base",
-                    "cr0"
+                    "eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp","eip", "flags",
+                    /*10*/"cs", "ds", "es", "fs", "gs", "ss", "ticks",
+                    /*17*/"cs-lim", "ds-lim", "es-lim", "fs-lim", "gs-lim", "ss-lim", "cs-prop",
+                    /*24*/"gdtrbase", "gdtr-lim", "idtrbase", "idtr-lim", "ldtrbase", "ldtr-lim",
+                    /*30*/"cs-base", "ds-base", "es-base", "fs-base", "gs-base", "ss-base",
+                    /*36*/"cr0",
+                    /*37*/"ST0H", "ST0L","ST1H", "ST1L","ST2H", "ST2L","ST3H", "ST3L",
+                    /*45*/"ST4H", "ST4L","ST5H", "ST5L","ST6H", "ST6L","ST7H", "ST7L",
             };
     static String newJar = "JPCApplication.jar";
     static String oldJar = "OldJPCApplication.jar";
@@ -38,7 +40,7 @@ public class Comparison
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win3 = {"-hda", "win311.img", "-boot", "hda"};
 
-    public static String[] pcargs = linux;
+    public static String[] pcargs = bsd;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -71,10 +73,17 @@ public class Comparison
 
     }
 
-    private static TreeSet<KeyBoardEvent> input = new TreeSet<KeyBoardEvent>();
+    public static TreeSet<KeyBoardEvent> keyboardInput = new TreeSet<KeyBoardEvent>();
     static
     {
-        input.add(new KeyBoardEvent(0xBA90000L, "./test-i386\n"));
+        keyboardInput.add(new KeyBoardEvent(0xBA90000L, "./test-i386\n"));
+    }
+
+    public static TreeSet<MouseEvent> mouseInput = new TreeSet<MouseEvent>();
+    static
+    {
+        //mouseInput.add(new MouseEvent(0x42bb000L, 0, 0, 0, true, false, false));
+        //mouseInput.add(new MouseEvent(0x42bb010L, 0, 0, 0, false, false, false));
     }
 
     public static void main(String[] args) throws Exception
@@ -113,9 +122,9 @@ public class Comparison
         Method dirty1 = c1.getMethod("getDirtyPages", Set.class);
         Method state2 = c2.getMethod("getState");
         Method execute2 = c2.getMethod("executeBlock");
-        Method save1 = c1.getMethod("savePage", Integer.class, byte[].class);
-        Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class);
-        Method save2 = c2.getMethod("savePage", Integer.class, byte[].class);
+        Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
+        Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
+        Method save2 = c2.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
         Method startClock1 = c1.getMethod("start");
         Method startClock2 = c2.getMethod("start");
         startClock1.invoke(newpc);
@@ -126,9 +135,11 @@ public class Comparison
 
         Method input1 = c1.getMethod("sendKeys", String.class);
         Method input2 = c2.getMethod("sendKeys", String.class);
+        Method minput1 = c1.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
+        Method minput2 = c2.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
 
         if (mem)
-            System.out.println("Comparing memory and registers..");
+            System.out.println("Comparing memory"+(compareStack?", stack":"")+" and registers..");
         else if (compareStack)
             System.out.println("Comparing registers and stack..");
         else
@@ -162,17 +173,28 @@ public class Comparison
                 //continueExecution("after Invalid decode at cs:eip");
             }
             // send input events
-            if (!input.isEmpty())
+            if (!keyboardInput.isEmpty())
             {
-                KeyBoardEvent k = input.first();
+                KeyBoardEvent k = keyboardInput.first();
                 if (fast[16] > k.time)
                 {
                     input1.invoke(newpc, k.text);
                     input2.invoke(oldpc, k.text);
-                    input.remove(k);
+                    keyboardInput.remove(k);
                 }
             }
-
+            if (!mouseInput.isEmpty())
+            {
+                MouseEvent k = mouseInput.first();
+                if (fast[16] > k.time)
+                {
+                    minput1.invoke(newpc, k.dx, k.dy, k.dz, k.buttons);
+                    minput2.invoke(oldpc, k.dx, k.dy, k.dz, k.buttons);
+                    mouseInput.remove(k);
+                }
+            }
+            if (fast[16] == 0xF816CFC)
+                System.out.println("Reached here!");
             if (history[historyIndex] == null)
                 history[historyIndex] = new Object[3];
             history[historyIndex][0] = fast;
@@ -224,22 +246,24 @@ public class Comparison
             }
             if (compareStack)
             {
-                int ssBase = fast[15] << 4; // real mode only
+                boolean pm = (fast[36] & 1) != 0;
+                int ssBase = fast[35];
                 int esp = fast[6] + ssBase;
-                int espPageIndex = esp >> 12;
+                int espPageIndex;
+                if (pm)
+                    espPageIndex = esp;
+                else
+                    espPageIndex = esp >>> 12;
 
-                Integer sl1 = (Integer)save1.invoke(newpc, new Integer(espPageIndex), sdata1);
-                Integer sl2 = (Integer)save2.invoke(oldpc, new Integer(espPageIndex), sdata2);
+                Integer sl1 = (Integer)save1.invoke(newpc, new Integer(espPageIndex), sdata1, pm);
+                Integer sl2 = (Integer)save2.invoke(oldpc, new Integer(espPageIndex), sdata2, pm);
                 if (sl2 > 0)
                     if (!samePage(espPageIndex, sdata1, sdata2))
                     {
                         printHistory();
                         System.out.println("Error here... look above");
                         printPage(sdata1, sdata2, esp);
-                        if (continueExecution("stack"))
-                            load1.invoke(newpc, new Integer(espPageIndex), sdata2);
-                        else
-                            System.exit(0);
+                        load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
                     }
             }
 
@@ -256,8 +280,8 @@ public class Comparison
             }*/
             for (int i : dirtyPages)
             {
-                Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1);
-                Integer l2 = (Integer)save2.invoke(oldpc, new Integer(i<<12), sdata2);
+                Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1, false);
+                Integer l2 = (Integer)save2.invoke(oldpc, new Integer(i<<12), sdata2, false);
                 if (l2 > 0)
                     if (!samePage(i, sdata1, sdata2))
                     {
@@ -427,10 +451,38 @@ public class Comparison
             return false;
     }
 
-    private static class KeyBoardEvent implements Comparable<KeyBoardEvent>
+    public static class MouseEvent implements Comparable<MouseEvent>
     {
-        private final long time;
-        private final String text;
+        public final long time;
+        public final int dx, dy, dz;
+        public final int buttons;
+
+        MouseEvent(long time, int dx, int dy, int dz, boolean leftDown, boolean middleDown, boolean rightDown)
+        {
+            this.time = time;
+            this.dx = dx;
+            this.dy = dy;
+            this.dz = dz;
+            int buttons = 0;
+            if (leftDown)
+                buttons |= 1;
+            if (middleDown)
+                buttons |= 2;
+            if (rightDown)
+                buttons |= 4;
+            this.buttons = buttons;
+        }
+
+        public int compareTo(MouseEvent o)
+        {
+            return (int)(time - o.time);
+        }
+    }
+
+    public static class KeyBoardEvent implements Comparable<KeyBoardEvent>
+    {
+        public final long time;
+        public final String text;
 
         KeyBoardEvent(long time, String text)
         {

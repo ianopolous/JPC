@@ -13,6 +13,7 @@ public abstract class Option {
     public static final Switch log_state = createSwitch("log-state");
     public static final Switch log_blockentry = createSwitch("log-blockentry");
     public static final Opt ram = opt("ram");
+    public static final Opt ips = opt("ips");
     public static final Opt max_instructions_per_block = opt("max-block-size");
 
     public static String[] parse(String[] source) {

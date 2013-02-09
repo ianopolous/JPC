@@ -1734,6 +1734,40 @@ public class StaticOpcodes
         }
     }
 
+    public static final void repne_scasw_a32(Processor cpu)
+    {
+        int data = 0xffff & cpu.r_ax.get16();
+        int count = cpu.r_ecx.get32();
+        int addr = cpu.r_edi.get32();
+        int input = 0;
+        if (count != 0)
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    input = 0xffff & cpu.es.getWord(addr);
+                    count--;
+                    addr -= 2;
+                    if (data == input) break;
+                }
+            } else {
+                while (count != 0) {
+                    input = 0xffff & cpu.es.getWord(addr);
+                    count--;
+                    addr += 2;
+                    if (data == input) break;
+                }
+            }
+        } finally {
+            cpu.r_ecx.set32(count);
+            cpu.r_edi.set32(addr);
+            cpu.flagOp1 = (short)data;
+            cpu.flagOp2 = (short)input;
+            cpu.flagResult = (short)(data-input);
+            cpu.flagIns = UCodes.SUB16;
+            cpu.flagStatus = OSZAPC;
+        }
+    }
+
     public static final void rep_scasd_a16(Processor cpu)
     {
         int data = cpu.r_eax.get32();

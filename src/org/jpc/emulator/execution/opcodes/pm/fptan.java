@@ -25,6 +25,7 @@ public class fptan extends Executable
         {
             cpu.fpu.conditionCode &= ~4;
             cpu.fpu.setST(0, Math.tan(freg0));
+            cpu.fpu.push(1.0);
         }
         return Branch.None;
     }

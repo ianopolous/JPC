@@ -22,7 +22,7 @@ public class fsub_Mq_mem extends Executable
         double freg1 = op1.getF64(cpu);
         if ((freg0 == Double.NEGATIVE_INFINITY && freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY && freg1 == Double.POSITIVE_INFINITY)) 
 		    cpu.fpu.setInvalidOperation();
-        op1.setF64(cpu, freg0-freg1);
+        cpu.fpu.setST(0, freg0-freg1);
         return Branch.None;
     }
 

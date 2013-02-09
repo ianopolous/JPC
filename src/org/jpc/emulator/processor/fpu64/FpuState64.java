@@ -141,6 +141,38 @@ public class FpuState64 extends FpuState
     public void setPrecision() { statusWord |= 0x20;}
     public void setStackFault() { statusWord |= 0x40;}
 
+    public void setC0(boolean val)
+    {
+        if (val)
+            statusWord |= 0x100;
+        else
+            statusWord &= ~0x100;
+    }
+
+    public void setC1(boolean val)
+    {
+        if (val)
+            statusWord |= 0x200;
+        else
+            statusWord &= ~0x200;
+    }
+
+    public void setC2(boolean val)
+    {
+        if (val)
+            statusWord |= 0x400;
+        else
+            statusWord &= ~0x400;
+    }
+
+    public void setC3(boolean val)
+    {
+        if (val)
+            statusWord |= 0x4000;
+        else
+            statusWord &= ~0x4000;
+    }
+
     public boolean getBusy() { return getErrorSummaryStatus(); }
 
     public boolean getErrorSummaryStatus()

@@ -83,7 +83,7 @@ public class Pointer
 
     public double getF64(Processor cpu)
     {
-        return Double.longBitsToDouble(get32(cpu));
+        return Double.longBitsToDouble(get64(cpu));
     }
 
     public void setF64(Processor cpu, double val)

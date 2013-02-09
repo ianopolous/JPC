@@ -629,9 +629,9 @@ public class Keyboard extends AbstractHardwareComponent implements IOPortCapable
 
     private void updateIRQ()
     {
-	int irq1Level = 0;    
-	int irq12Level = 0;
-	status = (byte)(status & ~(KBD_STAT_OBF | KBD_STAT_MOUSE_OBF));
+        int irq1Level = 0;
+        int irq12Level = 0;
+        status = (byte)(status & ~(KBD_STAT_OBF | KBD_STAT_MOUSE_OBF));
         synchronized (queue) {
             if (queue.length != 0) {
                 status = (byte) (status | KBD_STAT_OBF);
@@ -640,13 +640,13 @@ public class Keyboard extends AbstractHardwareComponent implements IOPortCapable
                     if (0 != (mode & KBD_MODE_MOUSE_INT))
                         irq12Level = 1;
                 } else
-                    if ((0 != (mode & KBD_MODE_KBD_INT)) &&
-                            (0 == (mode & KBD_MODE_DISABLE_KBD)))
-                        irq1Level = 1;
+                if ((0 != (mode & KBD_MODE_KBD_INT)) &&
+                        (0 == (mode & KBD_MODE_DISABLE_KBD)))
+                    irq1Level = 1;
             }
         }
-       	irqDevice.setIRQ(1, irq1Level);
-	irqDevice.setIRQ(12, irq12Level);
+        irqDevice.setIRQ(1, irq1Level);
+        irqDevice.setIRQ(12, irq12Level);
     }
 
     private class KeyboardQueue implements Hibernatable

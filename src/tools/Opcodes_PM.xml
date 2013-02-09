@@ -718,6 +718,12 @@
     <args size="16">Iw;Ib</args>
   </opcode>
 
+  <opcode mnemonic="f2xm1">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.setST(0, Math.pow(2.0, cpu.fpu.ST(0))- 1.0);</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="fabs">
     <return>Branch.None</return>
     <snippet>        cpu.fpu.setST(0, Math.abs(cpu.fpu.ST(0)));</snippet>
@@ -863,7 +869,7 @@
             cpu.fpu.setInvalidOperation();
 	if ((freg0 == 0.0) &amp;&amp; !Double.isNaN(freg1) &amp;&amp; !Double.isInfinite(freg1))
             cpu.fpu.setZeroDivide();
-        $op1.setfreg1/freg0);</snippet>
+        $op1.set freg1/freg0);</snippet>
     <args size="64">STi;STi</args>
   </opcode>
 
@@ -932,9 +938,21 @@
     <args size="16">Mw</args>
   </opcode>
 
+  <opcode mnemonic="fldl2e">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.push(1.0/Math.log(2));</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="fldln2">
     <return>Branch.None</return>
     <snippet>        cpu.fpu.push(Math.log(2));</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="fldpi">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.push(Math.PI);</snippet>
     <args size="0"></args>
   </opcode>
 
@@ -960,7 +978,7 @@
         double freg1 = $op2.get;
         if ((Double.isInfinite(freg0) &amp;&amp; (freg1 == 0.0)) || (Double.isInfinite(freg1) &amp;&amp; (freg0 == 0.0))) 
             cpu.fpu.setInvalidOperation();
-        $op1.setfreg0*freg1);</snippet>
+        $op1.set freg0*freg1);</snippet>
     <args size="64">STi;STi</args>
   </opcode>
   <opcode mnemonic="fmulp">
@@ -1025,6 +1043,57 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="fprem1">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = cpu.fpu.ST(0);
+        double freg1 = cpu.fpu.ST(1);
+        int d = Math.getExponent(freg0) - Math.getExponent(freg1);
+        if (d &lt; 64)
+        {
+            // full remainder
+            cpu.fpu.conditionCode &amp;= ~4; // clear C2
+            double z = Math.IEEEremainder(freg0, freg1);
+            // compute least significant bits -> C0 C3 C1
+            long i = (long)Math.rint(freg0 / freg1);
+            cpu.fpu.conditionCode &amp;= 4;
+            if ((i &amp; 1) != 0) cpu.fpu.conditionCode |= 2;
+            if ((i &amp; 2) != 0) cpu.fpu.conditionCode |= 8;
+            if ((i &amp; 4) != 0) cpu.fpu.conditionCode |= 1;
+            cpu.fpu.setST(0, z);
+        }
+        else
+        {
+            // partial remainder
+            cpu.fpu.conditionCode |= 4; // set C2
+            int n = 63; // implementation dependent in manual
+            double f = Math.pow(2.0, (double)(d - n));
+            double z = (freg0 / freg1) / f;
+            double qq = (z &lt; 0) ? Math.ceil(z) : Math.floor(z);
+            cpu.fpu.setST(0, freg0 - (freg1 * qq * f));
+        }</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="fpatan">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = cpu.fpu.ST(0);
+        double freg1 = cpu.fpu.ST(1);
+        double res = Math.atan(freg1/freg0);
+        boolean st0P = freg0 > 0;
+        boolean st1P = freg1 > 0;
+        if (!st0P)
+        {
+            if (st1P)
+                res += Math.PI;
+            else
+                res -= Math.PI;
+        }
+        cpu.fpu.setST(1, res);
+        cpu.fpu.pop();
+        cpu.fpu.setC1(false);</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="fptan">
     <return>Branch.None</return>
     <snippet>        double freg0 = cpu.fpu.ST(0);
@@ -1036,6 +1105,7 @@
         {
             cpu.fpu.conditionCode &amp;= ~4;
             cpu.fpu.setST(0, Math.tan(freg0));
+            cpu.fpu.push(1.0);
         }</snippet>
     <args size="0"></args>
   </opcode>
@@ -1064,6 +1134,12 @@
             }
         }
 </snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="fscale">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.setST(0, Math.scalb(cpu.fpu.ST(0), (int)cpu.fpu.ST(1)));</snippet>
     <args size="0"></args>
   </opcode>
 
@@ -1129,8 +1205,17 @@
         double freg1 = $op1.getF;
         if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY)) 
 		    cpu.fpu.setInvalidOperation();
-        $op1.setFfreg0-freg1);</snippet>
+        cpu.fpu.setST(0, freg0-freg1);</snippet>
     <args size="64">Mq</args>
+  </opcode>
+  <opcode mnemonic="fsub">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = $op1.get;
+        double freg1 = $op1.get;
+        if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY)) 
+		    cpu.fpu.setInvalidOperation();
+        $op1.set freg0-freg1);</snippet>
+    <args size="64">STi;STi</args>
   </opcode>
 
   <opcode mnemonic="fsubr">
@@ -1222,12 +1307,104 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="fxam">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = cpu.fpu.ST(0);
+        cpu.fpu.setC1(freg0 &lt; 0.0);
+        if (Double.isInfinite(freg0))
+        {
+            cpu.fpu.setC0(true);
+            cpu.fpu.setC2(true);
+            cpu.fpu.setC3(false);
+        } else if(Double.isNaN(freg0))
+        {
+            cpu.fpu.setC0(true);
+            cpu.fpu.setC2(false);
+            cpu.fpu.setC3(false);
+        } else if(freg0 == 0.0)
+        {
+            cpu.fpu.setC0(false);
+            cpu.fpu.setC2(false);
+            cpu.fpu.setC3(true);
+        } else
+        {
+            cpu.fpu.setC0(false);
+            cpu.fpu.setC2(true);
+            cpu.fpu.setC3(false);
+        } //ignore unsupported, empty and denormal</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="fxch">
     <return>Branch.None</return>
     <snippet>        double tmp = $op1.get;
         $op1.set$op2.get);
         $op2.settmp);</snippet>
     <args size="64">STi;STi</args>
+  </opcode>
+
+  <opcode mnemonic="fyl2x">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = cpu.fpu.ST(0);
+        double freg1 = cpu.fpu.ST(1);
+        if (freg0 &lt; 0)
+        {
+            cpu.fpu.setInvalidOperation();
+        }
+        else if (Double.isInfinite(freg0))
+        {
+            if (freg1 == 0)
+                cpu.fpu.setInvalidOperation();
+            else if (freg1 > 0)
+                cpu.fpu.setST(1, freg0);
+            else
+                cpu.fpu.setST(1, -freg0);
+        }
+        else if ((freg0 == 1) &amp;&amp; (Double.isInfinite(freg1)))
+            cpu.fpu.setInvalidOperation();
+        else if (freg0 == 0)
+        {
+            if (freg1 == 0)
+                cpu.fpu.setInvalidOperation();
+            else if (!Double.isInfinite(freg1))
+                cpu.fpu.setZeroDivide();
+            else
+                cpu.fpu.setST(1, -freg1);
+        }
+        else if (Double.isInfinite(freg1))
+        {
+            if (freg0 &lt; 1)
+                cpu.fpu.setST(1, -freg1);
+        }
+        else
+        {
+            cpu.fpu.setST(1, freg1 * Math.log(freg0)/Math.log(2.0));
+        }
+        cpu.fpu.pop();</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="fyl2xp1">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = cpu.fpu.ST(0);
+        double freg1 = cpu.fpu.ST(1);
+        if (freg0 == 0)
+        {
+            if (Double.isInfinite(freg1))
+                cpu.fpu.setInvalidOperation();
+            else cpu.fpu.setST(1, 0.0);
+        }
+        else if (Double.isInfinite(freg1))
+        {
+            if (freg0 &lt; 0)
+                cpu.fpu.setST(1, -freg1);
+        }
+        else
+        {
+            cpu.fpu.setST(1, freg1 * Math.log(freg0 + 1.0)/Math.log(2.0));
+        }
+        cpu.fpu.pop();</snippet>
+    <args size="0"></args>
   </opcode>
 
   <opcode mnemonic="hlt">
@@ -2632,6 +2809,12 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   <opcode mnemonic="repne_scasb_a32">
     <return>Branch.None</return>
     <snippet>        StaticOpcodes.repne_scasb_a32(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="repne_scasw_a32">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.repne_scasw_a32(cpu);</snippet>
     <args size="0"></args>
   </opcode>
 
