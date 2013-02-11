@@ -44,6 +44,7 @@ import javax.swing.*;
 
 import org.jpc.debugger.util.*;
 import org.jpc.emulator.PC;
+import org.jpc.emulator.processor.fpu64.FpuState64;
 import org.jpc.j2se.Option;
 import org.jpc.support.*;
 import org.jpc.emulator.memory.*;
@@ -61,7 +62,7 @@ public class JPC extends ApplicationFrame implements ActionListener {
     private JDesktopPane desktop;
     private DiskSelector floppyDisk,  hardDisk, cdrom;
     private JMenuItem createPC,  scanForImages,  loadSnapshot,  saveSnapshot;
-    private JMenuItem processorFrame, physicalMemoryViewer, linearMemoryViewer, watchpoints, breakpoints, traceFrame,  monitor;
+    private JMenuItem fpuFrame, processorFrame, physicalMemoryViewer, linearMemoryViewer, watchpoints, breakpoints, traceFrame,  monitor;
     public static Process p = null;
     public static BufferedReader input = null;
     public static BufferedWriter output = null;
@@ -109,6 +110,8 @@ public class JPC extends ApplicationFrame implements ActionListener {
         monitor.addActionListener(this);
         processorFrame = windows.add("Processor Frame");
         processorFrame.addActionListener(this);
+        fpuFrame = windows.add("FPU Frame");
+        fpuFrame.addActionListener(this);
         physicalMemoryViewer = windows.add("Physical Memory Viewer");
         physicalMemoryViewer.addActionListener(this);
         linearMemoryViewer = windows.add("Linear Memory Viewer");
@@ -510,6 +513,14 @@ public class JPC extends ApplicationFrame implements ActionListener {
                 pf = new ProcessorFrame();
                 addInternalFrame(desktop, 10, 10, pf);
             }
+        } else if (src == fpuFrame) {
+            FPUFrame pf = (FPUFrame) objects.getObject(FPUFrame.class);
+            if (pf != null) {
+                bringToFront(pf);
+            } else {
+                pf = new FPUFrame();
+                addInternalFrame(desktop, 10, 10, pf);
+            }
         } else if (src == physicalMemoryViewer) {
             MemoryViewer mv = (MemoryViewer) objects.getObject(MemoryViewer.class);
 
@@ -677,9 +688,11 @@ public class JPC extends ApplicationFrame implements ActionListener {
         objects.addObject(pc.getComponent(Keyboard.class));
 
         ProcessorAccess pca = new ProcessorAccess(pc.getProcessor());
+        FPUAccess fpua = new FPUAccess((FpuState64)pc.getProcessor().fpu);
         codeBlocks = new CodeBlockRecord(pc);
 
         objects.addObject(pca);
+        objects.addObject(fpua);
         objects.addObject(codeBlocks);
 
         runMenu.refresh();

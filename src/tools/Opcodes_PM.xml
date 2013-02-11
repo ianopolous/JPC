@@ -894,6 +894,22 @@
     <args size="64">Mq</args>
   </opcode>
 
+  <opcode mnemonic="fist">
+    <return>Branch.None</return>
+    <snippet>        $op1.set(short)cpu.fpu.ST(0));</snippet>
+    <args size="16">Mw</args>
+  </opcode>
+  <opcode mnemonic="fist">
+    <return>Branch.None</return>
+    <snippet>        $op1.set(int)cpu.fpu.ST(0));</snippet>
+    <args size="32">Md</args>
+  </opcode>
+  <opcode mnemonic="fist">
+    <return>Branch.None</return>
+    <snippet>        $op1.set(long)cpu.fpu.ST(0));</snippet>
+    <args size="64">Mq</args>
+  </opcode>
+
   <opcode mnemonic="fistp">
     <return>Branch.None</return>
     <snippet>        $op1.set(long)cpu.fpu.ST(0));
@@ -941,6 +957,18 @@
   <opcode mnemonic="fldl2e">
     <return>Branch.None</return>
     <snippet>        cpu.fpu.push(1.0/Math.log(2));</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="fldl2t">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.push(Math.log(10.0)/Math.log(2));</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="fldlg2">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.push(Math.log(2.0)/Math.log(10.0));</snippet>
     <args size="0"></args>
   </opcode>
 
@@ -1183,6 +1211,7 @@
     <snippet>        $op1.setFcpu.fpu.ST(0));
         cpu.fpu.pop();</snippet>
     <args size="64">Mq</args>
+    <args size="80">Mt</args>
   </opcode>
   <opcode mnemonic="fstp">
     <return>Branch.None</return>
@@ -1211,7 +1240,7 @@
   <opcode mnemonic="fsub">
     <return>Branch.None</return>
     <snippet>        double freg0 = $op1.get;
-        double freg1 = $op1.get;
+        double freg1 = $op2.get;
         if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY)) 
 		    cpu.fpu.setInvalidOperation();
         $op1.set freg0-freg1);</snippet>
@@ -1230,7 +1259,7 @@
   <opcode mnemonic="fsubrp">
     <return>Branch.None</return>
     <snippet>        double freg0 = $op1.get;
-        double freg1 = $op1.get;
+        double freg1 = $op2.get;
         if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY)) 
 		    cpu.fpu.setInvalidOperation();
         $op1.set freg1-freg0);

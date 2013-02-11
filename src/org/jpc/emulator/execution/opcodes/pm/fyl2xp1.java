@@ -6,10 +6,10 @@ import org.jpc.emulator.processor.*;
 import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class fsubrp_ST0_ST1 extends Executable
+public class fyl2xp1 extends Executable
 {
 
-    public fsubrp_ST0_ST1(int blockStart, Instruction parent)
+    public fyl2xp1(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
     }
@@ -18,9 +18,21 @@ public class fsubrp_ST0_ST1 extends Executable
     {
         double freg0 = cpu.fpu.ST(0);
         double freg1 = cpu.fpu.ST(1);
-        if ((freg0 == Double.NEGATIVE_INFINITY && freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY && freg1 == Double.POSITIVE_INFINITY)) 
-		    cpu.fpu.setInvalidOperation();
-        cpu.fpu.setST(0,  freg1-freg0);
+        if (freg0 == 0)
+        {
+            if (Double.isInfinite(freg1))
+                cpu.fpu.setInvalidOperation();
+            else cpu.fpu.setST(1, 0.0);
+        }
+        else if (Double.isInfinite(freg1))
+        {
+            if (freg0 < 0)
+                cpu.fpu.setST(1, -freg1);
+        }
+        else
+        {
+            cpu.fpu.setST(1, freg1 * Math.log(freg0 + 1.0)/Math.log(2.0));
+        }
         cpu.fpu.pop();
         return Branch.None;
     }

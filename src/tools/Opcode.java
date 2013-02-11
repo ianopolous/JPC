@@ -270,7 +270,7 @@ public class Opcode
         for (String arg: args)
             if (arg.equals("Ep"))
                 return true;
-        if ((args.length == 1) && (args[0].equals("Mw") || args[0].equals("Md") || args[0].equals("Mq")))
+        if ((args.length == 1) && (args[0].equals("Mw") || args[0].equals("Md") || args[0].equals("Mq") || args[0].equals("Mt")))
             return true;
         return false;
     }

@@ -17,7 +17,7 @@ public class fsubrp_ST7_ST2 extends Executable
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(7);
-        double freg1 = cpu.fpu.ST(7);
+        double freg1 = cpu.fpu.ST(2);
         if ((freg0 == Double.NEGATIVE_INFINITY && freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY && freg1 == Double.POSITIVE_INFINITY)) 
 		    cpu.fpu.setInvalidOperation();
         cpu.fpu.setST(7,  freg1-freg0);

@@ -86,6 +86,12 @@ public class Pointer
         return Double.longBitsToDouble(get64(cpu));
     }
 
+    public void setF80(Processor cpu, double val)
+    {
+        set16(cpu, 8, (short)0);
+        set64(cpu, Double.doubleToRawLongBits(val));
+    }
+
     public void setF64(Processor cpu, double val)
     {
         set64(cpu, Double.doubleToRawLongBits(val));

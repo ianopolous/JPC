@@ -17,7 +17,7 @@ public class fsubrp_ST4_ST6 extends Executable
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(4);
-        double freg1 = cpu.fpu.ST(4);
+        double freg1 = cpu.fpu.ST(6);
         if ((freg0 == Double.NEGATIVE_INFINITY && freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY && freg1 == Double.POSITIVE_INFINITY)) 
 		    cpu.fpu.setInvalidOperation();
         cpu.fpu.setST(4,  freg1-freg0);

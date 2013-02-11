@@ -24,13 +24,12 @@ public class Comparison
     static String newJar = "JPCApplication.jar";
     static String oldJar = "OldJPCApplication.jar";
     public static final boolean compareFlags = true;
-    public static final boolean compareStack = false;
+    public static final boolean compareStack = true;
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "doom10m.img"};
-    public static final String[] war1 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war1demo.img"};
+    public static final String[] worms = {"-fda", "floppy.img", "-boot", "fda", "-hda", "worms.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
-    public static final String[] simcity = {"-fda", "floppy.img", "-boot", "fda", "-hda", "simc2000.img"};
     public static final String[] linux = {"-hda", "linux.img", "-boot", "hda"};
     public static final String[] bsd = {"-hda", "netbsd.img", "-boot", "hda"};
     public static final String[] mosa = {"-hda", "mosa-project.img", "-boot", "hda"};
@@ -40,7 +39,7 @@ public class Comparison
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win3 = {"-hda", "win311.img", "-boot", "hda"};
 
-    public static String[] pcargs = bsd;
+    public static String[] pcargs = linux;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -84,6 +83,8 @@ public class Comparison
     {
         //mouseInput.add(new MouseEvent(0x42bb000L, 0, 0, 0, true, false, false));
         //mouseInput.add(new MouseEvent(0x42bb010L, 0, 0, 0, false, false, false));
+        mouseInput.add(new MouseEvent(0x6000000L, 0, 0, 0, false, false, true));
+        mouseInput.add(new MouseEvent(0x6000100L, 0, 0, 0, false, false, false));
     }
 
     public static void main(String[] args) throws Exception
@@ -193,8 +194,8 @@ public class Comparison
                     mouseInput.remove(k);
                 }
             }
-            if (fast[16] == 0xF816CFC)
-                System.out.println("Reached here!");
+            if (fast[16] % 0x1000000 == 0)//F816CFC)
+                System.out.printf("Reached %x ticks!", fast[16]);
             if (history[historyIndex] == null)
                 history[historyIndex] = new Object[3];
             history[historyIndex][0] = fast;
@@ -237,7 +238,7 @@ public class Comparison
                 {
                     printHistory();
                     for (int diffIndex: diff)
-                        System.out.printf("Difference: %s %08x - %08x\n", names[diffIndex], fast[diffIndex], old[diffIndex]);
+                        System.out.printf("Difference: %s %08x - %08x : %08x\n", names[diffIndex], fast[diffIndex], old[diffIndex], fast[diffIndex]^old[diffIndex]);
                     //if (continueExecution("registers"))
                         setState1.invoke(newpc, (int[])old);
                     //else
@@ -289,7 +290,7 @@ public class Comparison
                         System.out.println("Error here... look above");
                         printPage(sdata1, sdata2, i << 12);
                         if (continueExecution("memory"))
-                            load1.invoke(newpc, new Integer(i), sdata2);
+                            load1.invoke(newpc, new Integer(i), sdata2, false);
                         else
                             System.exit(0);
                     }

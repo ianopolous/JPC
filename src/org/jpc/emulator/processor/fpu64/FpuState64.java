@@ -144,33 +144,33 @@ public class FpuState64 extends FpuState
     public void setC0(boolean val)
     {
         if (val)
-            statusWord |= 0x100;
+            conditionCode |= 1;
         else
-            statusWord &= ~0x100;
+            conditionCode &= ~0x1;
     }
 
     public void setC1(boolean val)
     {
         if (val)
-            statusWord |= 0x200;
+            conditionCode |= 2;
         else
-            statusWord &= ~0x200;
+            conditionCode &= ~2;
     }
 
     public void setC2(boolean val)
     {
         if (val)
-            statusWord |= 0x400;
+            conditionCode |= 4;
         else
-            statusWord &= ~0x400;
+            conditionCode &= ~4;
     }
 
     public void setC3(boolean val)
     {
         if (val)
-            statusWord |= 0x4000;
+            conditionCode |= 8;
         else
-            statusWord &= ~0x4000;
+            conditionCode &= ~8;
     }
 
     public boolean getBusy() { return getErrorSummaryStatus(); }

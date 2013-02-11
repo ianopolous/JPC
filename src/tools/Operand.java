@@ -785,6 +785,8 @@ public abstract class Operand
             return new Mem(name, 32);
         if (name.equals("Mq"))
             return new Mem(name, 64);
+        if (name.equals("Mt"))
+            return new Mem(name, 80);
         if (name.equals("S"))
             return new Segment(name);
         if (name.startsWith("ST"))

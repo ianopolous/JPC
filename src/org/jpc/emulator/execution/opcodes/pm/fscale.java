@@ -6,22 +6,17 @@ import org.jpc.emulator.processor.*;
 import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class fsubrp_ST7_ST5 extends Executable
+public class fscale extends Executable
 {
 
-    public fsubrp_ST7_ST5(int blockStart, Instruction parent)
+    public fscale(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
     }
 
     public Branch execute(Processor cpu)
     {
-        double freg0 = cpu.fpu.ST(7);
-        double freg1 = cpu.fpu.ST(5);
-        if ((freg0 == Double.NEGATIVE_INFINITY && freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY && freg1 == Double.POSITIVE_INFINITY)) 
-		    cpu.fpu.setInvalidOperation();
-        cpu.fpu.setST(7,  freg1-freg0);
-        cpu.fpu.pop();
+        cpu.fpu.setST(0, Math.scalb(cpu.fpu.ST(0), (int)cpu.fpu.ST(1)));
         return Branch.None;
     }
 
