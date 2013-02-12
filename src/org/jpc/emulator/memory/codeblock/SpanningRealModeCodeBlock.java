@@ -64,7 +64,7 @@ class SpanningRealModeCodeBlock extends SpanningCodeBlock implements RealModeCod
 	    } catch (IllegalStateException e) {e.printStackTrace();}
 	}
 
-        byteSourceStream.set(null, 0);
+    byteSourceStream.set(null, 0);
 	return block;
     }
 

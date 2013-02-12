@@ -86,6 +86,20 @@ public class Pointer
         return Double.longBitsToDouble(get64(cpu));
     }
 
+    public byte[] getF80(Processor cpu)
+    {
+        byte[] data = new byte[10];
+        for (int i=0; i < 10; i++)
+            data[i] = get8(cpu, i);
+        return data;
+    }
+
+    public void setF80(Processor cpu, byte[] val)
+    {
+        for (int i=0; i < 10; i++)
+            set8(cpu, i, val[i]);
+    }
+
     public void setF80(Processor cpu, double val)
     {
         set16(cpu, 8, (short)0);
@@ -157,9 +171,19 @@ public class Pointer
         cpu.segs[segment].setWord(get(cpu), val);
     }
 
+    public byte get8(Processor cpu, int off)
+    {
+        return cpu.segs[segment].getByte(get(cpu, off));
+    }
+
     public byte get8(Processor cpu)
     {
         return cpu.segs[segment].getByte(get(cpu));
+    }
+
+    public void set8(Processor cpu, int off, byte val)
+    {
+        cpu.segs[segment].setByte(get(cpu, off), val);
     }
 
     public void set8(Processor cpu, byte val)

@@ -741,6 +741,19 @@
         cpu.physicalMemory.setWord(addr + 12, (short) 0 /* operand pntr selector &amp; 0xFFFF*/);</snippet>
     <args size="16">M</args>
   </opcode>
+  <opcode mnemonic="fnstenv_o16">
+    <return>Branch.None</return>
+    <snippet>        System.out.println("Warning: Using incomplete microcode: FNSTENV_14");
+        int addr = $op1.get;
+        cpu.physicalMemory.setWord(addr, (short) cpu.fpu.getControl());
+        cpu.physicalMemory.setWord(addr + 2, (short) cpu.fpu.getStatus());
+        cpu.physicalMemory.setWord(addr + 4, (short) cpu.fpu.getTagWord());
+        cpu.physicalMemory.setWord(addr + 6, (short) 0 /* cpu.fpu.getIP()  offset*/);
+        cpu.physicalMemory.setWord(addr + 8, (short) 0 /* (selector &amp; 0xFFFF)*/);
+        cpu.physicalMemory.setWord(addr + 10, (short) 0 /* operand pntr offset*/);
+        cpu.physicalMemory.setWord(addr + 12, (short) 0 /* operand pntr selector &amp; 0xFFFF*/);</snippet>
+    <args size="16">M</args>
+  </opcode>
 
   <opcode mnemonic="fsubr">
     <return>Branch.None</return>
@@ -749,6 +762,7 @@
         if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY)) 
 		    cpu.fpu.setInvalidOperation();
         cpu.fpu.setST(0, freg1-freg0);</snippet>
+    <args size="32">Md</args>
     <args size="64">Mq</args>
   </opcode>
 

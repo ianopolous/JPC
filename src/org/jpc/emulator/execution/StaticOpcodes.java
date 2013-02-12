@@ -237,6 +237,35 @@ public class StaticOpcodes
         cpu.r_esi.set16(addr);
     }
 
+    public static void rep_lodsb_a32(Processor cpu, Segment seg)
+    {
+        int count = cpu.r_ecx.get32();
+        int addr = cpu.r_esi.get32();
+        int data = 0xff & cpu.r_al.get8();
+        try {
+            if (cpu.df)
+            {
+                while (count != 0)
+                {
+                    data = 0xff & seg.getByte(addr);
+                    addr -= 1;
+                    count--;
+                }
+            }
+            else
+            {
+                data = 0xff & seg.getByte(addr);
+                addr += 1;
+                count--;
+            }
+        } finally
+        {
+            cpu.r_ecx.set32(count);
+            cpu.r_esi.set32(addr);
+            cpu.r_al.set8(data);
+        }
+    }
+
     public static void lodsw_a16(Processor cpu, Segment seg)
     {
         int addr = 0xFFFF & cpu.r_esi.get16();
@@ -259,6 +288,35 @@ public class StaticOpcodes
         cpu.r_esi.set32(addr);
     }
 
+    public static void rep_lodsw_a32(Processor cpu, Segment seg)
+    {
+        int count = cpu.r_ecx.get32();
+        int addr = cpu.r_esi.get32();
+        int data = 0xffff & cpu.r_ax.get16();
+        try {
+            if (cpu.df)
+            {
+                while (count != 0)
+                {
+                    data = 0xffff & seg.getWord(addr);
+                    addr -= 2;
+                    count--;
+                }
+            }
+            else
+            {
+                data = 0xffff & seg.getWord(addr);
+                addr += 2;
+                count--;
+            }
+        } finally
+        {
+            cpu.r_ecx.set32(count);
+            cpu.r_esi.set32(addr);
+            cpu.r_ax.set16(data);
+        }
+    }
+
     public static void lodsd_a16(Processor cpu, Segment seg)
     {
         int addr = 0xFFFF & cpu.r_esi.get16();
@@ -279,6 +337,35 @@ public class StaticOpcodes
         else
             addr += 4;
         cpu.r_esi.set32(addr);
+    }
+
+    public static void rep_lodsd_a32(Processor cpu, Segment seg)
+    {
+        int count = cpu.r_ecx.get32();
+        int addr = cpu.r_esi.get32();
+        int data = cpu.r_eax.get32();
+        try {
+            if (cpu.df)
+            {
+                while (count != 0)
+                {
+                    data = seg.getDoubleWord(addr);
+                    addr -= 4;
+                    count--;
+                }
+            }
+            else
+            {
+                data = seg.getDoubleWord(addr);
+                addr += 4;
+                count--;
+            }
+        } finally
+        {
+            cpu.r_ecx.set32(count);
+            cpu.r_esi.set32(addr);
+            cpu.r_eax.set32(data);
+        }
     }
 
     public static void cmpsb_a16(Processor cpu, Segment seg)
@@ -413,6 +500,49 @@ public class StaticOpcodes
             }
     }
 
+    public static void repne_cmpsb_a32(Processor cpu, Segment seg)
+    {
+        int count = cpu.r_ecx.get32();
+        int addrOne = cpu.r_esi.get32();
+        int addrTwo = cpu.r_edi.get32();
+        int dataOne =0, dataTwo =0;
+
+        if (count != 0)
+            try {
+                if (cpu.df) {
+                    while (count != 0) {
+                        dataOne = seg.getByte(addrOne);
+                        dataTwo = cpu.es.getByte(addrTwo);
+                        count--;
+                        addrOne -= 1;
+                        addrTwo -= 1;
+                        if (dataOne == dataTwo)
+                            break;
+                    }
+                } else {
+                    while (count != 0) {
+                        dataOne = seg.getByte(addrOne);
+                        dataTwo = cpu.es.getByte(addrTwo);
+                        count--;
+                        addrOne += 1;
+                        addrTwo += 1;
+                        if (dataOne == dataTwo)
+                            break;
+                    }
+                }
+            }
+            finally {
+                cpu.r_ecx.set32(count);
+                cpu.r_edi.set32(addrTwo);
+                cpu.r_esi.set32(addrOne);
+                cpu.flagOp1 = (byte)dataOne;
+                cpu.flagOp2 = (byte)dataTwo;
+                cpu.flagResult = (byte)(dataOne-dataTwo);
+                cpu.flagIns = UCodes.SUB8;
+                cpu.flagStatus = OSZAPC;
+            }
+    }
+
     public static void cmpsw_a16(Processor cpu, Segment seg)
     {
         int addrOne = 0xFFFF & cpu.r_si.get16();
@@ -429,6 +559,29 @@ public class StaticOpcodes
         }
         cpu.r_di.set16(addrTwo);
         cpu.r_si.set16(addrOne);
+        cpu.flagOp1 = (short)dataOne;
+        cpu.flagOp2 = (short)dataTwo;
+        cpu.flagResult = (short)(dataOne-dataTwo);
+        cpu.flagIns = UCodes.SUB16;
+        cpu.flagStatus = OSZAPC;
+    }
+
+    public static void cmpsw_a32(Processor cpu, Segment seg)
+    {
+        int addrOne = cpu.r_esi.get32();
+        int addrTwo = cpu.r_edi.get32();
+        int dataOne = seg.getWord(addrOne);
+        int dataTwo = cpu.es.getWord(addrTwo);
+
+        if (cpu.df) {
+            addrOne -= 2;
+            addrTwo -= 2;
+        } else {
+            addrOne += 2;
+            addrTwo += 2;
+        }
+        cpu.r_di.set32(addrTwo);
+        cpu.r_si.set32(addrOne);
         cpu.flagOp1 = (short)dataOne;
         cpu.flagOp2 = (short)dataTwo;
         cpu.flagResult = (short)(dataOne-dataTwo);
@@ -479,6 +632,92 @@ public class StaticOpcodes
             }
     }
 
+    public static void rep_cmpsw_a32(Processor cpu, Segment seg)
+    {
+        int count = cpu.r_cx.get32();
+        int addrOne = cpu.r_si.get32();
+        int addrTwo = cpu.r_di.get32();
+        int dataOne =0, dataTwo =0;
+
+        if (count != 0)
+            try {
+                if (cpu.df) {
+                    while (count != 0) {
+                        dataOne = seg.getWord(addrOne);
+                        dataTwo = cpu.es.getWord(addrTwo);
+                        count--;
+                        addrOne -= 2;
+                        addrTwo -= 2;
+                        if (dataOne != dataTwo)
+                            break;
+                    }
+                } else {
+                    while (count != 0) {
+                        dataOne = seg.getWord(addrOne);
+                        dataTwo = cpu.es.getWord(addrTwo);
+                        count--;
+                        addrOne += 2;
+                        addrTwo += 2;
+                        if (dataOne != dataTwo)
+                            break;
+                    }
+                }
+            }
+            finally {
+                cpu.r_ecx.set32(count);
+                cpu.r_edi.set32(addrTwo);
+                cpu.r_esi.set32(addrOne);
+                cpu.flagOp1 = (short)dataOne;
+                cpu.flagOp2 = (short)dataTwo;
+                cpu.flagResult = (short)(dataOne-dataTwo);
+                cpu.flagIns = UCodes.SUB16;
+                cpu.flagStatus = OSZAPC;
+            }
+    }
+
+    public static void repne_cmpsw_a32(Processor cpu, Segment seg)
+    {
+        int count = cpu.r_cx.get32();
+        int addrOne = cpu.r_si.get32();
+        int addrTwo = cpu.r_di.get32();
+        int dataOne =0, dataTwo =0;
+
+        if (count != 0)
+            try {
+                if (cpu.df) {
+                    while (count != 0) {
+                        dataOne = seg.getWord(addrOne);
+                        dataTwo = cpu.es.getWord(addrTwo);
+                        count--;
+                        addrOne -= 2;
+                        addrTwo -= 2;
+                        if (dataOne == dataTwo)
+                            break;
+                    }
+                } else {
+                    while (count != 0) {
+                        dataOne = seg.getWord(addrOne);
+                        dataTwo = cpu.es.getWord(addrTwo);
+                        count--;
+                        addrOne += 2;
+                        addrTwo += 2;
+                        if (dataOne == dataTwo)
+                            break;
+                    }
+                }
+            }
+            finally {
+                cpu.r_ecx.set32(count);
+                cpu.r_edi.set32(addrTwo);
+                cpu.r_esi.set32(addrOne);
+                cpu.flagOp1 = (short)dataOne;
+                cpu.flagOp2 = (short)dataTwo;
+                cpu.flagResult = (short)(dataOne-dataTwo);
+                cpu.flagIns = UCodes.SUB16;
+                cpu.flagStatus = OSZAPC;
+            }
+    }
+
     public static void cmpsd_a16(Processor cpu, Segment seg)
     {
         int addrOne = 0xFFFF & cpu.r_si.get16();
@@ -495,6 +734,29 @@ public class StaticOpcodes
         }
         cpu.r_di.set16(addrTwo);
         cpu.r_si.set16(addrOne);
+        cpu.flagOp1 = dataOne;
+        cpu.flagOp2 = dataTwo;
+        cpu.flagResult = dataOne-dataTwo;
+        cpu.flagIns = UCodes.SUB32;
+        cpu.flagStatus = OSZAPC;
+    }
+
+    public static void cmpsd_a32(Processor cpu, Segment seg)
+    {
+        int addrOne = cpu.r_esi.get32();
+        int addrTwo = cpu.r_edi.get32();
+        int dataOne = seg.getDoubleWord(addrOne);
+        int dataTwo = cpu.es.getDoubleWord(addrTwo);
+
+        if (cpu.df) {
+            addrOne -= 4;
+            addrTwo -= 4;
+        } else {
+            addrOne += 4;
+            addrTwo += 4;
+        }
+        cpu.r_di.set32(addrTwo);
+        cpu.r_si.set32(addrOne);
         cpu.flagOp1 = dataOne;
         cpu.flagOp2 = dataTwo;
         cpu.flagResult = dataOne-dataTwo;
@@ -580,6 +842,49 @@ public class StaticOpcodes
                 cpu.r_cx.set32(count);
                 cpu.r_di.set32(addrTwo);
                 cpu.r_si.set32(addrOne);
+                cpu.flagOp1 = dataOne;
+                cpu.flagOp2 = dataTwo;
+                cpu.flagResult = (dataOne-dataTwo);
+                cpu.flagIns = UCodes.SUB32;
+                cpu.flagStatus = OSZAPC;
+            }
+    }
+
+    public static void repne_cmpsd_a32(Processor cpu, Segment seg)
+    {
+        int count = cpu.r_cx.get32();
+        int addrOne = cpu.r_si.get32();
+        int addrTwo = cpu.r_di.get32();
+        int dataOne =0, dataTwo =0;
+
+        if (count != 0)
+            try {
+                if (cpu.df) {
+                    while (count != 0) {
+                        dataOne = seg.getDoubleWord(addrOne);
+                        dataTwo = cpu.es.getDoubleWord(addrTwo);
+                        count--;
+                        addrOne -= 4;
+                        addrTwo -= 4;
+                        if (dataOne == dataTwo)
+                            break;
+                    }
+                } else {
+                    while (count != 0) {
+                        dataOne = seg.getDoubleWord(addrOne);
+                        dataTwo = cpu.es.getDoubleWord(addrTwo);
+                        count--;
+                        addrOne += 4;
+                        addrTwo += 4;
+                        if (dataOne == dataTwo)
+                            break;
+                    }
+                }
+            }
+            finally {
+                cpu.r_ecx.set32(count);
+                cpu.r_edi.set32(addrTwo);
+                cpu.r_esi.set32(addrOne);
                 cpu.flagOp1 = dataOne;
                 cpu.flagOp2 = dataTwo;
                 cpu.flagResult = (dataOne-dataTwo);
@@ -1700,6 +2005,40 @@ public class StaticOpcodes
         }
     }
 
+    public static final void repe_scasw_a32(Processor cpu)
+    {
+        int data = 0xffff & cpu.r_ax.get16();
+        int count = cpu.r_ecx.get32();
+        int addr = cpu.r_edi.get32();
+        int input = 0;
+        if (count != 0)
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    input = 0xffff & cpu.es.getWord(addr);
+                    count--;
+                    addr -= 2;
+                    if (data != input) break;
+                }
+            } else {
+                while (count != 0) {
+                    input = 0xffff & cpu.es.getWord(addr);
+                    count--;
+                    addr += 2;
+                    if (data != input) break;
+                }
+            }
+        } finally {
+            cpu.r_ecx.set32(count);
+            cpu.r_edi.set32(addr);
+            cpu.flagOp1 = (short)data;
+            cpu.flagOp2 = (short)input;
+            cpu.flagResult = (short)(data-input);
+            cpu.flagIns = UCodes.SUB16;
+            cpu.flagStatus = OSZAPC;
+        }
+    }
+
     public static final void repne_scasw_a16(Processor cpu)
     {
         int data = 0xffff & cpu.r_ax.get16();
@@ -1924,6 +2263,54 @@ public class StaticOpcodes
             cpu.flagOp2 = (short)input;
             cpu.flagResult = (short)data-input;
             cpu.flagIns = UCodes.SUB16;
+            cpu.flagStatus = OSZAPC;
+        }
+    }
+
+    public static final void scasw_a32(Processor cpu)
+    {
+        int data = 0xffff & cpu.r_ax.get16();
+        int addr = cpu.r_edi.get32();
+        int input = 0;
+
+        try {
+            if (cpu.df) {
+                input = 0xffff & cpu.es.getWord(addr);
+                addr -= 2;
+            } else {
+                input = 0xffff & cpu.es.getWord(addr);
+                addr += 2;
+            }
+        } finally {
+            cpu.r_edi.set32(addr);
+            cpu.flagOp1 = (short)data;
+            cpu.flagOp2 = (short)input;
+            cpu.flagResult = (short)data-input;
+            cpu.flagIns = UCodes.SUB16;
+            cpu.flagStatus = OSZAPC;
+        }
+    }
+
+    public static final void scasd_a32(Processor cpu)
+    {
+        int data = cpu.r_eax.get32();
+        int addr = cpu.r_edi.get32();
+        int input = 0;
+
+        try {
+            if (cpu.df) {
+                input = cpu.es.getDoubleWord(addr);
+                addr -= 4;
+            } else {
+                input = cpu.es.getDoubleWord(addr);
+                addr += 4;
+            }
+        } finally {
+            cpu.r_edi.set32(addr);
+            cpu.flagOp1 = data;
+            cpu.flagOp2 = input;
+            cpu.flagResult = data-input;
+            cpu.flagIns = UCodes.SUB32;
             cpu.flagStatus = OSZAPC;
         }
     }

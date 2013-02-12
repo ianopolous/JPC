@@ -29,8 +29,8 @@ public class xadd_Ed_Gd_mem extends Executable
         op1.set32(cpu, cpu.flagResult);
         cpu.flagIns = UCodes.ADD32;
         cpu.flagStatus = OSZAPC;
-        op2.set32(tmp1);
-        op1.set32(cpu, tmp1+tmp2);
+        op2.set32( tmp1);
+        op1.set32(cpu,  (tmp1+tmp2));
         return Branch.None;
     }
 

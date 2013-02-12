@@ -67,7 +67,7 @@ class SpanningProtectedModeCodeBlock extends SpanningCodeBlock implements Protec
 	    try {
 		byteSourceStream.set(memory, address);
 		block = factories[i].getProtectedModeCodeBlock(byteSourceStream, opSize);
-	    } catch (IllegalStateException e) {}
+	    } catch (IllegalStateException e) {e.printStackTrace();}
 	}
 	length = block.getX86Length();
         byteSourceStream.set(null, 0);

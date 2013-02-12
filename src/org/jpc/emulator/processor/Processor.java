@@ -1,35 +1,4 @@
-/*
-    JPC: An x86 PC Hardware Emulator for a pure Java Virtual Machine
-    Release Version 2.4
 
-    A project from the Physics Dept, The University of Oxford
-
-    Copyright (C) 2007-2010 The University of Oxford
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2 as published by
-    the Free Software Foundation.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- 
-    Details (including contact information) can be found at: 
-
-    jpc.sourceforge.net
-    or the developer website
-    sourceforge.net/projects/jpc/
-
-    Conceived and Developed by:
-    Rhys Newman, Ian Preston, Chris Dennis
-
-    End of licence header
-*/
 
 package org.jpc.emulator.processor;
 
@@ -2233,6 +2202,126 @@ public class Processor implements HardwareComponent
 	
         eip = targetEIP & 0xffff;
         cs.setSelector(targetSelector & 0xffff);
+    }
+
+    public final void call_far_pm_o16_a32(int targetSelector, int targetEIP)
+    {
+        Segment newSegment = getSegment(targetSelector);
+        if (newSegment == SegmentFactory.NULL_SEGMENT)
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);//ProcessorException.GENERAL_PROTECTION_0;
+
+        switch (newSegment.getType())
+        { // segment type
+            default: // not a valid segment descriptor for a jump
+                LOGGING.log(Level.WARNING, "Invalid segment type {0,number,integer}", Integer.valueOf(newSegment.getType()));
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSelector, true);
+            case 0x01: // TSS 16-bit (Not Busy)
+            case 0x03: // TSS 16-bit (Busy)
+                LOGGING.log(Level.WARNING, "16-bit TSS not implemented");
+                throw new IllegalStateException("Execute Failed");
+            case 0x04: // Call Gate 16-bit
+            {
+                if ((newSegment.getRPL() > getCPL()) || (newSegment.getDPL() < getCPL()))
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSelector, true);
+                if (!newSegment.isPresent())
+                    throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSelector, true);
+
+                ProtectedModeSegment.GateSegment gate = (ProtectedModeSegment.GateSegment) newSegment;
+
+                int targetSegmentSelector = gate.getTargetSegment();
+
+                Segment targetSegment;
+                try {
+                    targetSegment = getSegment(targetSegmentSelector);
+                } catch (ProcessorException e) {
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector, true);
+                }
+                if (targetSegment == SegmentFactory.NULL_SEGMENT)
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);//ProcessorException.GENERAL_PROTECTION_0;
+
+                if (targetSegment.getDPL() > getCPL())
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSelector, true);
+
+                switch (targetSegment.getType()) {
+                    default:
+                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector, true);
+
+                    case 0x18: //Code, Execute-Only
+                    case 0x19: //Code, Execute-Only, Accessed
+                    case 0x1a: //Code, Execute/Read
+                    case 0x1b: //Code, Execute/Read, Accessed
+                    {
+                        if (!targetSegment.isPresent())
+                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector, true);
+
+                        if (targetSegment.getDPL() < getCPL()) {
+                            LOGGING.log(Level.WARNING, "16-bit call gate: jump to more privileged segment not implemented");
+                            throw new IllegalStateException("Execute Failed");
+                            //MORE-PRIVILEGE
+                        } else if (targetSegment.getDPL() == getCPL()) {
+                            LOGGING.log(Level.WARNING, "16-bit call gate: jump to same privilege segment not implemented");
+                            throw new IllegalStateException("Execute Failed");
+                            //SAME-PRIVILEGE
+                        } else
+                            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector, true);
+                    }
+//                            break;
+                    case 0x1c: //Code: Execute-Only, Conforming
+                    case 0x1d: //Code: Execute-Only, Conforming, Accessed
+                    case 0x1e: //Code: Execute/Read, Conforming
+                    case 0x1f: //Code: Execute/Read, Conforming, Accessed
+                    {
+                        if (!targetSegment.isPresent())
+                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector, true);
+
+                        LOGGING.log(Level.WARNING, "16-bit call gate: jump to same privilege conforming segment not implemented");
+                        throw new IllegalStateException("Execute Failed");
+                        //SAME-PRIVILEGE
+                    }
+//                            break;
+                }
+            }
+//                break;
+            case 0x05: // Task Gate
+                LOGGING.log(Level.WARNING, "Task gate not implemented");
+                throw new IllegalStateException("Execute Failed");
+            case 0x09: // TSS (Not Busy)
+            case 0x0b: // TSS (Busy)
+                LOGGING.log(Level.WARNING, "TSS not implemented");
+                throw new IllegalStateException("Execute Failed");
+            case 0x0c: // Call Gate
+                LOGGING.log(Level.WARNING, "Call gate not implemented");
+                throw new IllegalStateException("Execute Failed");
+            case 0x18: // Non-conforming Code Segment
+            case 0x19: // Non-conforming Code Segment
+            case 0x1a: // Non-conforming Code Segment
+            case 0x1b: // Non-conforming Code Segment
+            {
+                if ((newSegment.getRPL() > getCPL()) || (newSegment.getDPL() != getCPL()))
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSelector, true);
+                if (!newSegment.isPresent())
+                    throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSelector, true);
+
+                if ((r_esp.get32() < 4) && (r_esp.get32() > 0))
+                    throw ProcessorException.STACK_SEGMENT_0;
+
+                newSegment.checkAddress(targetEIP&0xFFFF);
+
+                push16((short)cs.getSelector());
+                push16((short)eip);
+
+                cs(newSegment);
+                cs.setRPL(getCPL());
+                eip = targetEIP & 0xFFFF;
+                return;
+            }
+            case 0x1c: // Conforming Code Segment (Not Readable & Not Accessed)
+            case 0x1d: // Conforming Code Segment (Not Readable & Accessed)
+            case 0x1e: // Conforming Code Segment (Readable & Not Accessed)
+            case 0x1f: // Conforming Code Segment (Readable & Accessed)
+                LOGGING.log(Level.WARNING, "Conforming code segment not implemented");
+                throw new IllegalStateException("Execute Failed");
+        }
     }
 
     public final void call_far_pm_o16_a16(int targetSelector, int targetEIP)

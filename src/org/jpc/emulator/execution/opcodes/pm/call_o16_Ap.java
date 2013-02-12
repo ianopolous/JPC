@@ -25,7 +25,7 @@ public class call_o16_Ap extends Executable
     {
                 cpu.eip += blockLength;
         if (cpu.ss.getDefaultSizeFlag())
-            throw new IllegalStateException("pm call far o16 a32 not implemented");
+            cpu.call_far_pm_o16_a32(0xffff & cs, 0xffff & targetEip);
         else
             cpu.call_far_pm_o16_a16(0xffff & cs, 0xffff & targetEip);
         return Branch.Call_Unknown;
