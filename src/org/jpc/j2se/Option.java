@@ -1,10 +1,13 @@
 package org.jpc.j2se;
 
+import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 
 public abstract class Option {
     private static final Hashtable<String, Option> names2options = new Hashtable();
+
+    public static final Opt config = opt("config"); // This one is special...
 
     public static final Switch track_writes = createSwitch("track-writes");
     public static final Switch debug_blocks = createSwitch("debug-blocks");
@@ -12,9 +15,21 @@ public abstract class Option {
     public static final Switch log_disam_addresses = createSwitch("log-disam-addresses");
     public static final Switch log_state = createSwitch("log-state");
     public static final Switch log_blockentry = createSwitch("log-blockentry");
+    public static final Switch compile = createSwitch("compile");
+    public static final Switch fullscreen = createSwitch("fullscreen");
+
+    public static final Opt ss = opt("ss");
     public static final Opt ram = opt("ram");
     public static final Opt ips = opt("ips");
     public static final Opt max_instructions_per_block = opt("max-block-size");
+    public static final Opt boot = opt("boot");
+    public static final Opt fda = opt("fda");
+    public static final Opt fdb = opt("fdb");
+    public static final Opt hda = opt("hda");
+    public static final Opt hdb = opt("hdb");
+    public static final Opt hdc = opt("hdc");
+    public static final Opt hdd = opt("hdd");
+    public static final Opt cdrom = opt("cdrom");
 
     public static String[] parse(String[] source) {
         ArrayList<String> tmp = new ArrayList<String>();
@@ -31,16 +46,85 @@ public abstract class Option {
             Option opt = names2options.get(arg);
             if (opt == null) {
                 tmp.add(source[index]);
-            } else {
+            } else if ((opt == config) && (config.value() != null))
+            {
+                // exit recursion
+                opt.set = false;
+                index = opt.update(source, index);
+            }
+            else {
                 opt.set = true;
                 index = opt.update(source, index);
             }
         }
+        if (config.isSet())
+            return loadConfig(config.value());
+        if (config.value() != null)
+            ((Option) config).set = true;
         if (tmp.size() == source.length) {
             return source;
         } else {
             return tmp.toArray(new String[tmp.size()]);
         }
+    }
+
+    public static void saveConfig(File f) throws IOException
+    {
+        String conf = saveConfig();
+        BufferedWriter w = new BufferedWriter(new FileWriter(f));
+        w.write(conf);
+        w.flush();
+        w.close();
+    }
+
+    public static String[] loadConfig(String file)
+    {
+        try {
+            return loadConfig(new File(file));
+        } catch (IOException e)
+        {
+            System.out.println("Error loading config from file "+file);
+        }
+        return null;
+    }
+
+    public static String[] loadConfig(File f) throws IOException
+    {
+        StringBuilder b = new StringBuilder();
+        BufferedReader r = new BufferedReader(new FileReader(f));
+        String line;
+        while ((line = r.readLine()) != null)
+        {
+            b.append(line+" ");
+        }
+        String[] current = saveConfig().split("\n");
+        for (String s: current)
+            b.append(s + " ");
+        return parse(b.toString().split(" "));
+    }
+
+    public static String saveConfig()
+    {
+        StringBuilder b = new StringBuilder();
+        for (Option opt : names2options.values())
+        {
+            if (opt instanceof Switch)
+            {
+                if (opt.isSet())
+                    b.append("-"+opt.getName()+"\n");
+            }
+            else if (opt instanceof Opt)
+            {
+                if (opt.isSet())
+                    b.append("-"+opt.getName()+" "+((Opt) opt).value()+"\n");
+            }
+        }
+        return b.toString();
+    }
+
+    public static Option getParameter(String name)
+    {
+        return names2options.get(name);
     }
 
     public static Switch createSwitch(String name) {
@@ -140,7 +224,6 @@ public abstract class Option {
         public String[] values() {
             return (String[]) getValue();
         }
-
 
         @Override
         protected int update(String[] args, int index) {

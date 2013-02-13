@@ -707,10 +707,8 @@ public class JPC extends ApplicationFrame implements ActionListener {
         return pc;
     }
 
-    public PC createPC(String[] args) throws IOException {
-        if (ArgProcessor.findVariable(args, "compile", "yes").equalsIgnoreCase("no")) {
-            PC.compile = false;
-        }
+    public PC createPC(String[] args) throws IOException
+    {
         PC pc = new PC(new VirtualClock(), args);
         loadNewPC(pc);
 
@@ -816,24 +814,19 @@ public class JPC extends ApplicationFrame implements ActionListener {
     }
 
     public static void main(String[] args) throws IOException {
-        String[] tmp = new String[args.length+1];
-        tmp[0] = "-debug-blocks";
-        System.arraycopy(args, 0, tmp, 1, args.length);
-        args = Option.parse(tmp);
+        List<String> tmp = new ArrayList<String>();
+        tmp.add("-debug-blocks");
+        tmp.add("-fullscreen");
+        tmp.addAll(Arrays.asList(args));
+        args = Option.parse(tmp.toArray(new String[tmp.size()]));
         initialise();
 
-        boolean fullScreen = true;
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].startsWith("full")) {
-                fullScreen = true;
-                break;
-            }
-        }
+        boolean fullScreen = Option.fullscreen.isSet();
         instance = new JPC(fullScreen);
         instance.validate();
         instance.setVisible(true);
 
-        if (args.length > 0) {
+        if ((args.length > 0) || Option.config.isSet()) {
             instance.createPC(args);
         }
     }

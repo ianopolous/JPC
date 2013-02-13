@@ -64,13 +64,16 @@ public class PCMonitorFrame extends JFrame implements Runnable
     private JScrollPane monitorPane;
     private final JProgressBar speedDisplay;
     private final int nativeClockSpeed;
-    
+    private JFileChooser configFileChooser;
+
     private volatile boolean running;
     private Thread runner;
 
     public PCMonitorFrame(String title, PC pc, String[] args)
     {
         super(title);
+        configFileChooser = new JFileChooser(System.getProperty("user.dir"));
+
         running = false;
         monitor = new PCMonitor(pc);
         monitorPane = new JScrollPane(monitor);
@@ -114,6 +117,19 @@ public class PCMonitorFrame extends JFrame implements Runnable
                 public void actionPerformed(ActionEvent e)
                 {
                     reset();
+                }
+            });
+        file.addSeparator();
+        file.add("Save Configuration").addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e)
+                {
+                    saveConfig();
+                }
+            });
+        file.add("Load Configuration").addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e)
+                {
+                    loadConfig();
                 }
             });
         file.addSeparator();
@@ -210,6 +226,36 @@ public class PCMonitorFrame extends JFrame implements Runnable
         return running;
     }
 
+    protected void saveConfig()
+    {
+        if (configFileChooser.showDialog(PCMonitorFrame.this, "Save JPC Configuration") == JFileChooser.APPROVE_OPTION)
+        {
+            try
+            {
+                Option.saveConfig(configFileChooser.getSelectedFile());
+            }
+            catch (IOException e)
+            {
+                LOGGING.log(Level.WARNING, "Exception saving configuration.", e);
+            }
+        }
+    }
+
+    protected void loadConfig()
+    {
+        if (configFileChooser.showDialog(PCMonitorFrame.this, "Load JPC Configuration") == JFileChooser.APPROVE_OPTION)
+        {
+            try
+            {
+                Option.loadConfig(configFileChooser.getSelectedFile());
+            }
+            catch (IOException e)
+            {
+                LOGGING.log(Level.WARNING, "Exception saving configuration.", e);
+            }
+        }
+    }
+
     protected void reset()
     {
         stop();
@@ -253,6 +299,7 @@ public class PCMonitorFrame extends JFrame implements Runnable
 
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
+        args = Option.parse(args);
         if (args.length == 0) {
             ClassLoader cl = JPCApplication.class.getClassLoader();
             if (cl instanceof URLClassLoader) {
@@ -293,10 +340,6 @@ public class PCMonitorFrame extends JFrame implements Runnable
             LOGGING.log(Level.INFO, "Using configuration specified on command line");
         }
 
-        if (ArgProcessor.findVariable(args, "compile", "yes").equalsIgnoreCase("no"))
-        {
-            PC.compile = false;
-        }
         PC pc = new PC(new VirtualClock(), args);
         
         PCMonitorFrame result = new PCMonitorFrame("JPC Monitor", pc, args);

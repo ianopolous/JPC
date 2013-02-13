@@ -75,7 +75,7 @@ public class PC {
     public static final int DEFAULT_RAM_SIZE = Option.ram.intValue(64) * 1024 * 1024;
     public static final int INSTRUCTIONS_BETWEEN_INTERRUPTS = 1; 
 
-    public static volatile boolean compile = false;
+    public static volatile boolean compile = Option.compile.isSet();
 
     private static final Logger LOGGING = Logger.getLogger(PC.class.getName());
 

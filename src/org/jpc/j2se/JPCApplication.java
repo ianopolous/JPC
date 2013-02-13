@@ -719,27 +719,7 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
             LOGGING.log(Level.INFO, "Using configuration specified on command line");
         }
 
-        if (ArgProcessor.findVariable(args, "compile", "yes").equalsIgnoreCase("no"))
-            PC.compile = false;
-
-        String memarg = ArgProcessor.findVariable(args, "m", null);
-
-        PC pc;
-        if (memarg == null)
-            pc = new PC(new VirtualClock(), args);
-        else
-        {
-            int mem;
-            if (memarg.endsWith("G") || memarg.endsWith("g"))
-                mem = Integer.parseInt(memarg.substring(0, memarg.length()-1))*1024*1024*1024;
-            else if (memarg.endsWith("M") || memarg.endsWith("m"))
-                mem = Integer.parseInt(memarg.substring(0, memarg.length()-1))*1024*1024;
-            else if (memarg.endsWith("K") || memarg.endsWith("k"))
-                mem = Integer.parseInt(memarg.substring(0, memarg.length()-1))*1024;
-            else
-                mem = Integer.parseInt(memarg.substring(0, memarg.length()));
-            pc = new PC(new VirtualClock(), args, mem);
-        }
+        PC pc = new PC(new VirtualClock(), args);
 
         String net = ArgProcessor.findVariable(args, "net", "no");
         if (net.startsWith("hub:"))

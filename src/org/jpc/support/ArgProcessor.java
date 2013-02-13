@@ -33,6 +33,8 @@
 
 package org.jpc.support;
 
+import org.jpc.j2se.Option;
+
 /**
  * Provides simple command line parsing for the various frontends to the
  * emulator.
@@ -49,7 +51,10 @@ public class ArgProcessor
      * @return result, or <code>defaultValue</code> on failure
      */
     public static String findVariable(String[] args, String key, String defaultValue)
-    {           
+    {
+        Option opt = Option.getParameter(key.substring(1));
+        if ((opt != null) && opt.isSet())
+            return opt.getValue().toString();
         int keyIndex = findKey(args, key);
         if (keyIndex < 0)
             return defaultValue;
