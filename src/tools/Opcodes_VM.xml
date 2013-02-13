@@ -1,6 +1,23 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="x86optable.xsl" type="text/xsl"?>
 <opcodesnippets>
+  <opcode mnemonic="cli">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.eflagsIOPrivilegeLevel == 3)
+        {
+	    cpu.eflagsInterruptEnableSoon = false;
+            cpu.eflagsInterruptEnable = false;
+        }
+	else
+        {
+	    if ((cpu.getCR4() &amp; Processor.CR4_VIRTUAL8086_MODE_EXTENSIONS) != 0)
+	        cpu.eflagsVirtualInterrupt = false;
+	    else
+	        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION,0,true);//ProcessorException.GENERAL_PROTECTION_0;
+        }</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="in">
     <return>Branch.None</return>
     <snippet>        if (cpu.checkIOPermissions8($mask2$op2.get))
@@ -16,6 +33,7 @@
             $op1.setcpu.ioports.ioPortRead16($mask2$op2.get));
         else
             throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="16">eAX;Ib</args>
     <args size="16">eAX;DX</args>
   </opcode>
   <opcode mnemonic="in_o32">
@@ -46,6 +64,22 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="lds_o16">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op2.get + op2.getBase(cpu);
+        cpu.ds(0xFFFF &amp; cpu.linearMemory.getWord(addr+2));
+        $op1.setcpu.linearMemory.getWord(addr));</snippet>
+    <args size="16">Gw;M</args>
+  </opcode>
+
+  <opcode mnemonic="les_o16">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op2.get + op2.getBase(cpu);
+        cpu.es(0xFFFF &amp; cpu.linearMemory.getWord(addr+2));
+        $op1.setcpu.linearMemory.getWord(addr));</snippet>
+    <args size="16">Gw;M</args>
+  </opcode>
+
   <opcode mnemonic="out">
     <return>Branch.None</return>
     <snippet>        if (cpu.checkIOPermissions8($mask2$op2.get))
@@ -70,6 +104,24 @@
         else
             throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
     <args size="32">DX;eAX</args>
+  </opcode>
+
+  <opcode mnemonic="popfw">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.eflagsIOPrivilegeLevel &lt; 3)
+            throw ProcessorException.GENERAL_PROTECTION_0;
+        int flags = cpu.getEFlags() &amp; ~0xcfff;
+        flags |= (cpu.pop16() &amp; 0xcfff);
+        cpu.setFlags($cast flags);</snippet>
+    <args size="16"></args>
+  </opcode>
+
+  <opcode mnemonic="pushfw">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.eflagsIOPrivilegeLevel &lt; 3)
+            throw ProcessorException.GENERAL_PROTECTION_0;
+        cpu.push16((short)cpu.getEFlags());</snippet>
+    <args size="0"></args>
   </opcode>
 
   <opcode mnemonic="sti">

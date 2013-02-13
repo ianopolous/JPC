@@ -1,5 +1,6 @@
 package tools;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.*;
 import java.net.*;
@@ -77,7 +78,7 @@ public class Comparison
     {
         //keyboardInput.add(new KeyBoardEvent(0x2000000L, "cd windows\n"));
         //keyboardInput.add(new KeyBoardEvent(0x2000100L, "win\n"));
-        keyboardInput.add(new KeyBoardEvent(0xBA90000L, "./test-i386\n"));
+        keyboardInput.add(new KeyBoardEvent(0x7000000L, "./test-i386\n"));
     }
 
     public static TreeSet<MouseEvent> mouseInput = new TreeSet<MouseEvent>();
@@ -139,6 +140,14 @@ public class Comparison
         Method input2 = c2.getMethod("sendKeys", String.class);
         Method minput1 = c1.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
         Method minput2 = c2.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
+
+        // setup screen from new JPC
+        JPanel screen = (JPanel)c1.getMethod("getNewMonitor").invoke(newpc);
+        JFrame frame = new JFrame();
+        frame.getContentPane().add("Center", new JScrollPane(screen));
+        frame.validate();
+        frame.setVisible(true);
+        frame.setBounds(100, 100, 760, 500);
 
         if (mem)
             System.out.println("Comparing memory"+(compareStack?", stack":"")+" and registers..");

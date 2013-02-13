@@ -16,7 +16,7 @@ public class rep_insd_a16 extends Executable
 
     public Branch execute(Processor cpu)
     {
-        StaticOpcodes.rep_insd_a16(cpu);
+        StaticOpcodes.rep_insd_a16(cpu, cpu.es);
         return Branch.None;
     }
 

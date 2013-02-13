@@ -151,6 +151,7 @@ public class Disassembler
         input.resetCounter();
         Instruction in = new Instruction();
         in.eip = input.getAddress();
+        int start = input.getCounter();
         try {
             get_prefixes(16, input, in);
             search_table(16, input, in);
@@ -159,12 +160,12 @@ public class Disassembler
             resolve_operator(16, input, in);
         } catch (IllegalStateException e)
         {
-            System.out.println("Invalid RM opcode for bytes: "+getRawBytes(in, input));
+            System.out.println("Invalid RM opcode for bytes: "+getRawBytes(input, start));
             throw e;
         }
         in.x86Length = input.getCounter();
         if (in.operator.equals("invalid"))
-            throw new IllegalStateException("Invalid RM opcode for bytes: "+getRawBytes(in, input));
+            throw new IllegalStateException("Invalid RM opcode for bytes: "+getRawBytes(input, start));
         return in;
     }
 
@@ -173,6 +174,7 @@ public class Disassembler
         input.resetCounter();
         Instruction in = new Instruction();
         in.eip = input.getAddress();
+        int start=  input.getCounter();
         try {
             get_prefixes(32, input, in);
             search_table(32, input, in);
@@ -181,18 +183,18 @@ public class Disassembler
             resolve_operator(32, input, in);
         } catch (IllegalStateException e)
         {
-            System.out.println("Invalid PM opcode for bytes: "+getRawBytes(in, input));
+            System.out.println("Invalid PM opcode for bytes: "+getRawBytes(input, start));
             throw e;
         }
         in.x86Length = input.getCounter();
         if (in.operator.equals("invalid"))
-            throw new IllegalStateException("Invalid PM opcode for bytes: "+getRawBytes(in, input));
+            throw new IllegalStateException("Invalid PM opcode for bytes: "+getRawBytes(input, start));
         return in;
     }
 
-    public static String getRawBytes(Instruction insn, PeekableInputStream input)
+    public static String getRawBytes(PeekableInputStream input, int start)
     {
-        int length = input.getCounter();
+        int length = input.getCounter()-start;
         input.seek(-length);
         StringBuilder b = new StringBuilder();
         for(int i=0; i < length; i++)
@@ -204,6 +206,7 @@ public class Disassembler
     {
         int startAddr = (int)input.getAddress();
         boolean debug = false;
+        int beginCount = input.getCounter();
         Instruction startin = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
         Instruction currentInsn = startin;
 
@@ -211,7 +214,7 @@ public class Disassembler
         if (PRINT_DISAM)
         {
             System.out.printf("%d;%s;%s;", operand_size, currentInsn.getGeneralClassName(false, false), currentInsn);
-            System.out.println(getRawBytes(currentInsn, input));
+            System.out.println(getRawBytes(input, beginCount));
         }
         if (debug)
                 System.out.printf("Disassembled instruction (%d): %s at %x\n", 0, start, input.getAddress());
@@ -229,11 +232,12 @@ public class Disassembler
                     System.out.println((String.format("Exceeded maximum number of instructions in a block at %x", startAddr)));
                 return constructBlock(startin, start, x86Length, count);
             }
+            beginCount = input.getCounter();
             Instruction nextInsn = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
             if (PRINT_DISAM)
             {
                 System.out.printf("%d;%s;%s;", operand_size, nextInsn.getGeneralClassName(false, false), nextInsn);
-                System.out.println(getRawBytes(nextInsn, input));
+                System.out.println(getRawBytes(input, beginCount));
             }
             Executable next = getExecutable(mode, startAddr, nextInsn);
             if (debug)
@@ -1263,6 +1267,7 @@ public class Disassembler
         }
 
         // resolve register encoded in reg field
+        try {
         if (opreg != null)
         {
             opreg.type = "OP_REG";
@@ -1271,6 +1276,10 @@ public class Disassembler
                 opreg.base = decode_gpr(mode, inst, opreg.size, reg);
             else
                 opreg.base = resolve_reg(reg_type, reg);
+        }
+        } catch (RuntimeException r)
+        {
+            throw new IllegalStateException(r);
         }
     }
 

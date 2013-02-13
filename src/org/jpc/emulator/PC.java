@@ -45,6 +45,8 @@ import org.jpc.emulator.pci.*;
 import org.jpc.emulator.peripheral.*;
 import org.jpc.emulator.processor.*;
 import org.jpc.j2se.KeyMapping;
+import org.jpc.j2se.Option;
+import org.jpc.j2se.PCMonitor;
 import org.jpc.support.*;
 
 import java.awt.event.KeyEvent;
@@ -59,6 +61,8 @@ import java.util.zip.*;
 import org.jpc.emulator.memory.codeblock.CodeBlockManager;
 import org.jpc.j2se.VirtualClock;
 
+import javax.swing.*;
+
 /**
  * This class represents the emulated PC as a whole, and holds references
  * to its main hardware components.
@@ -68,7 +72,7 @@ import org.jpc.j2se.VirtualClock;
 public class PC {
 
     public static int SYS_RAM_SIZE;
-    public static final int DEFAULT_RAM_SIZE = 64 * 1024 * 1024;
+    public static final int DEFAULT_RAM_SIZE = Option.ram.intValue(64) * 1024 * 1024;
     public static final int INSTRUCTIONS_BETWEEN_INTERRUPTS = 1; 
 
     public static volatile boolean compile = false;
@@ -334,6 +338,13 @@ public class PC {
                 return ((VirtualClock) c).getTicks();
             }
         return 0;
+    }
+
+    public JPanel getNewMonitor()
+    {
+        PCMonitor mon =  new PCMonitor(this);
+        mon.startUpdateThread();
+        return mon;
     }
 
     public Integer savePage(Integer page, byte[] data, Boolean linear) throws IOException

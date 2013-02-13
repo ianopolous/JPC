@@ -16,8 +16,7 @@ public class stc extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.cf = true;
-        cpu.flagStatus &= NCF;
+        cpu.cf(true);
         return Branch.None;
     }
 

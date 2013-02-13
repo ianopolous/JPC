@@ -1,6 +1,21 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="x86optable.xsl" type="text/xsl"?>
 <opcodesnippets>
+  <opcode mnemonic="arpl">
+    <return>Branch.None</return>
+    <snippet>        int sel1 = $op1.get;
+        int sel2 = $op2.get;
+        if ((sel1 &amp; 3) &lt; (sel2 &amp; 3))
+        {
+            cpu.zf(true);
+            $op1.set $cast(sel1 | (sel2 &amp; 3)));
+        } else
+        {
+            cpu.zf(false);
+        }</snippet>
+    <args size="16">Ew;Gw</args>
+  </opcode>
+
   <opcode mnemonic="f2xm1">
     <return>Branch.None</return>
     <snippet>        cpu.fpu.setST(0, Math.pow(2.0, cpu.fpu.ST(0))- 1.0);</snippet>
@@ -232,6 +247,12 @@
         $op1.setfreg1/freg0);
         cpu.fpu.pop();</snippet>
     <args size="64">STi;STi</args>
+  </opcode>
+
+  <opcode mnemonic="fiadd">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.setST(0, cpu.fpu.ST(0)+$op1.get);</snippet>
+    <args size="16">Mw</args>
   </opcode>
 
   <opcode mnemonic="fild">
@@ -738,6 +759,16 @@
         if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY)) 
 		    cpu.fpu.setInvalidOperation();
         $op1.set freg0-freg1);</snippet>
+    <args size="64">STi;STi</args>
+  </opcode>
+  <opcode mnemonic="fsubp">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = $op1.get;
+        double freg1 = $op2.get;
+        if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY)) 
+		    cpu.fpu.setInvalidOperation();
+        $op1.set freg0-freg1);
+        cpu.fpu.pop();</snippet>
     <args size="64">STi;STi</args>
   </opcode>
 

@@ -16,8 +16,7 @@ public class clc extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.cf = false;
-        cpu.flagStatus &= NCF;
+        cpu.cf(false);
         return Branch.None;
     }
 

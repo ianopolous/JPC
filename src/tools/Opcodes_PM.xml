@@ -150,19 +150,15 @@
     <args size="32">rAX;Id</args>
   </opcode>
 
-  <opcode mnemonic="arpl">
+  <opcode mnemonic="bound">
     <return>Branch.None</return>
-    <snippet>        int sel1 = $op1.get;
-        int sel2 = $op2.get;
-        if ((sel1 &amp; 3) &lt; (sel2 &amp; 3))
-        {
-            cpu.zf(true);
-            $op1.set $cast(sel1 | (sel2 &amp; 3)));
-        } else
-        {
-            cpu.zf(false);
-        }</snippet>
-    <args size="16">Ew;Gw</args>
+    <snippet>        int addr = $op2.get;
+        short lower = (short)cpu.linearMemory.getWord(addr);
+	short upper = (short)cpu.linearMemory.getWord(addr+2);
+	short index = (short)$op1.get;
+	if ((index &lt; lower) || (index > (upper + 2)))
+	    throw ProcessorException.BOUND_RANGE;</snippet>
+    <args size="16">Gw;M</args>
   </opcode>
 
   <opcode mnemonic="bswap_o32">
@@ -1715,6 +1711,24 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="32">DX;eAX</args>
   </opcode>
 
+  <opcode mnemonic="outsb_a16" segment="true">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions8(cpu.r_dx.get16() &amp; 0xffff))
+            StaticOpcodes.outsb_a16(cpu, seg);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="outsw_a16" segment="true">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions16(cpu.r_dx.get16() &amp; 0xffff))
+            StaticOpcodes.outsw_a16(cpu, seg);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="rep_outsw_a32" segment="true">
     <return>Branch.None</return>
     <snippet>        if (cpu.checkIOPermissions16(cpu.r_dx.get16() &amp; 0xffff))
@@ -1911,10 +1925,37 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="insb_a16">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions8(cpu.r_dx.get16() &amp; 0xffff))
+            StaticOpcodes.insb_a16(cpu, cpu.es);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="insb_a32">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions8(cpu.r_dx.get16() &amp; 0xffff))
+            StaticOpcodes.insb_a32(cpu, cpu.es);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="insw_a32">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions16(cpu.r_dx.get16() &amp; 0xffff))
+            StaticOpcodes.insw_a32(cpu, cpu.es);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="rep_insw_a32">
     <return>Branch.None</return>
     <snippet>        if (cpu.checkIOPermissions16(cpu.r_dx.get16() &amp; 0xffff))
-            StaticOpcodes.rep_insw_a32(cpu);
+            StaticOpcodes.rep_insw_a32(cpu, cpu.es);
         else
             throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
     <args size="0"></args>
@@ -2396,6 +2437,12 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="32">Ed;Gd;CL</args>
   </opcode>
 
+  <opcode mnemonic="sldt">
+      <return>Branch.None</return>
+      <snippet>        $op1.set0xffff &amp; cpu.ldtr.getSelector());</snippet>
+    <args size="32">Ed</args>
+  </opcode>
+
   <opcode mnemonic="smsw">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast(0xFFFF &amp; cpu.getCR0()));</snippet>
@@ -2427,6 +2474,12 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <return>Branch.None</return>
     <snippet>        cpu.df = true;</snippet>
     <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="str">
+      <return>Branch.None</return>
+      <snippet>        $op1.set 0xffff &amp; cpu.tss.getSelector());</snippet>
+    <args size="32">Ed</args>
   </opcode>
 
   <opcode mnemonic="sbb">

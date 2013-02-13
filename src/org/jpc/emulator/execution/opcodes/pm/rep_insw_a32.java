@@ -17,7 +17,7 @@ public class rep_insw_a32 extends Executable
     public Branch execute(Processor cpu)
     {
         if (cpu.checkIOPermissions16(cpu.r_dx.get16() & 0xffff))
-            StaticOpcodes.rep_insw_a32(cpu);
+            StaticOpcodes.rep_insw_a32(cpu, cpu.es);
         else
             throw ProcessorException.GENERAL_PROTECTION_0;
         return Branch.None;
