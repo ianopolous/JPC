@@ -23,7 +23,7 @@ public class jl_Jw extends Executable
     public Branch execute(Processor cpu)
     {
         if (cpu.sf() != cpu.of())
-        {
+            {
             cpu.eip += jmp+blockLength;
             return Branch.T1;
         }

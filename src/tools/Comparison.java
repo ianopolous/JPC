@@ -75,6 +75,8 @@ public class Comparison
     public static TreeSet<KeyBoardEvent> keyboardInput = new TreeSet<KeyBoardEvent>();
     static
     {
+        //keyboardInput.add(new KeyBoardEvent(0x2000000L, "cd windows\n"));
+        //keyboardInput.add(new KeyBoardEvent(0x2000100L, "win\n"));
         keyboardInput.add(new KeyBoardEvent(0xBA90000L, "./test-i386\n"));
     }
 
@@ -100,7 +102,6 @@ public class Comparison
         Class opts = cl1.loadClass("org.jpc.j2se.Option");
         Method parse = opts.getMethod("parse", String[].class);
         args = (String[]) parse.invoke(opts, (Object)args);
-
 
         Calendar start1 = Calendar.getInstance();
         Class c1 = cl1.loadClass("org.jpc.emulator.PC");

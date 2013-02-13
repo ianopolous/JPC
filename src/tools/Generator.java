@@ -10,9 +10,15 @@ public class Generator
 {
     public static void main(String[] cmd)
     {
-        int rm = opcodeParse(parseXML("RM"), "rm", new OpcodeWriter());
-        int pm = opcodeParse(parseXML("PM"), "pm", new OpcodeWriter());
-        System.out.printf("Generated %d RM opcodes and %d PM opcodes\n", rm, pm);
+        int rm = opcodeParse(parseXML("RMPMVM"), "rm", new OpcodeWriter());
+        rm += opcodeParse(parseXML("RMVM"), "rm", new OpcodeWriter());
+        rm += opcodeParse(parseXML("RM"), "rm", new OpcodeWriter());
+        int vm = opcodeParse(parseXML("RMPMVM"), "vm", new OpcodeWriter());
+        vm += opcodeParse(parseXML("RMVM"), "vm", new OpcodeWriter());
+        vm += opcodeParse(parseXML("VM"), "vm", new OpcodeWriter());
+        int pm = opcodeParse(parseXML("RMPMVM"), "pm", new OpcodeWriter());
+        pm += opcodeParse(parseXML("PM"), "pm", new OpcodeWriter());
+        System.out.printf("Generated %d RM opcodes, %d VM opcodes and %d PM opcodes\n", rm, vm, pm);
     }
 
     public static class OpcodeWriter implements Callable

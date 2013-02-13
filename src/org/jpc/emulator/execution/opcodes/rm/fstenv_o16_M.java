@@ -18,16 +18,16 @@ public class fstenv_o16_M extends Executable
 
     public Branch execute(Processor cpu)
     {
-        System.out.println("Warning: Using incomplete microcode: FSTENV_14");
+        System.out.println("Warning: Using incomplete opcode: FSTENV_14");
         // check for floating point exceptions
         int addr = op1.get(cpu);
-        cpu.physicalMemory.setWord(addr, (short) cpu.fpu.getControl());
-        cpu.physicalMemory.setWord(addr + 2, (short) cpu.fpu.getStatus());
-        cpu.physicalMemory.setWord(addr + 4, (short) cpu.fpu.getTagWord());
-        cpu.physicalMemory.setWord(addr + 6, (short) 0 /* cpu.fpu.getIP()  offset*/);
-        cpu.physicalMemory.setWord(addr + 8, (short) 0 /* (selector & 0xFFFF)*/);
-        cpu.physicalMemory.setWord(addr + 10, (short) 0 /* operand pntr offset*/);
-        cpu.physicalMemory.setWord(addr + 12, (short) 0 /* operand pntr selector & 0xFFFF*/);
+        cpu.linearMemory.setWord(addr, (short) cpu.fpu.getControl());
+        cpu.linearMemory.setWord(addr + 2, (short) cpu.fpu.getStatus());
+        cpu.linearMemory.setWord(addr + 4, (short) cpu.fpu.getTagWord());
+        cpu.linearMemory.setWord(addr + 6, (short) 0 /* cpu.fpu.getIP()  offset*/);
+        cpu.linearMemory.setWord(addr + 8, (short) 0 /* (selector & 0xFFFF)*/);
+        cpu.linearMemory.setWord(addr + 10, (short) 0 /* operand pntr offset*/);
+        cpu.linearMemory.setWord(addr + 12, (short) 0 /* operand pntr selector & 0xFFFF*/);
         return Branch.None;
     }
 

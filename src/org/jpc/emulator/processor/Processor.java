@@ -673,6 +673,33 @@ public class Processor implements HardwareComponent
         setFlags(flags);
     }
 
+
+    public void iret_vm_o16_a16()
+    {
+        if (eflagsIOPrivilegeLevel == 3) {
+       	    try {
+                ss.checkAddress((r_esp.get32() + 5) & 0xffff);
+            } catch (ProcessorException e) {
+                throw ProcessorException.STACK_SEGMENT_0;
+            }
+            int newEIP = 0xffff & pop16();
+            if (newEIP > 0xffff)
+                throw ProcessorException.GENERAL_PROTECTION_0;
+
+            int newCS = 0xffff & pop16();
+            eip = newEIP;
+            cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true));
+            int newEFlags = 0xffff & pop16();
+
+            //don't modify the IOPL
+            int iopl = (getEFlags() >> 12) & 3;
+            newEFlags = newEFlags & ~Processor.IFLAGS_IOPL_MASK;
+            newEFlags |= (iopl << 12);
+            setEFlags(newEFlags);
+        } else
+            throw ProcessorException.GENERAL_PROTECTION_0;
+    }
+
     public void setSeg(int index, int value)
     {
         if (index == 0)
@@ -777,7 +804,7 @@ public class Processor implements HardwareComponent
 
     public void cs(int selector)
     {
-        if (!isProtectedMode())
+        if (!isProtectedMode() || isVirtual8086Mode())
             cs.setSelector(selector & 0xffff);
         else
             cs(loadSegment(selector));
@@ -796,7 +823,7 @@ public class Processor implements HardwareComponent
 
     public void ds(int selector)
     {
-        if (!isProtectedMode())
+        if (!isProtectedMode() || isVirtual8086Mode())
             ds.setSelector(selector & 0xffff);
         else
             ds(loadSegment(selector));
@@ -815,7 +842,7 @@ public class Processor implements HardwareComponent
 
     public void es(int selector)
     {
-        if (!isProtectedMode())
+        if (!isProtectedMode() || isVirtual8086Mode())
             es.setSelector(selector & 0xffff);
         else
             es(loadSegment(selector));
@@ -834,7 +861,7 @@ public class Processor implements HardwareComponent
 
     public void fs(int selector)
     {
-        if (!isProtectedMode())
+        if (!isProtectedMode() || isVirtual8086Mode())
             fs.setSelector(selector & 0xffff);
         else
             fs(loadSegment(selector));
@@ -853,7 +880,7 @@ public class Processor implements HardwareComponent
 
     public void gs(int selector)
     {
-        if (!isProtectedMode())
+        if (!isProtectedMode() || isVirtual8086Mode())
             gs.setSelector(selector & 0xffff);
         else
             gs(loadSegment(selector));
@@ -872,7 +899,7 @@ public class Processor implements HardwareComponent
 
     public void ss(int selector)
     {
-        if (!isProtectedMode())
+        if (!isProtectedMode() || isVirtual8086Mode())
             ss.setSelector(selector & 0xffff);
         else
             ss(loadSegment(selector));

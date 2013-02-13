@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="x86optable.xsl" type="text/xsl"?>
+<opcodesnippets>
+  <opcode mnemonic="in">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions8($mask2$op2.get))
+            $op1.setcpu.ioports.ioPortRead8($mask2$op2.get));
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">AL;DX</args>
+  </opcode>
+  <opcode mnemonic="in_o16">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions16($mask2$op2.get))
+            $op1.setcpu.ioports.ioPortRead16($mask2$op2.get));
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="16">eAX;DX</args>
+  </opcode>
+  <opcode mnemonic="in_o32">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions32($mask2$op2.get))
+            $op1.setcpu.ioports.ioPortRead32($mask2$op2.get));
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="32">eAX;DX</args>
+  </opcode>
+
+  <opcode mnemonic="int">
+    <return>Branch.Jmp_Unknown</return>
+    <snippet>        cpu.eip += blockLength;
+        if ((cpu.getCR4() &amp; Processor.CR4_VIRTUAL8086_MODE_EXTENSIONS) != 0)
+	    throw new IllegalStateException();
+	if (cpu.eflagsIOPrivilegeLevel &lt; 3)
+        {
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
+        }
+	cpu.handleSoftVirtual8086ModeInterrupt($mask$op1.get, x86Length);</snippet>
+    <args size="8">Ib</args>
+  </opcode>
+
+  <opcode mnemonic="iretw">
+    <return>Branch.Ret</return>
+    <snippet>        cpu.iret_vm_o16_a16();</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="out">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions8($mask2$op2.get))
+            cpu.ioports.ioPortWrite8($mask1$op1.get, $mask2$op2.get);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="8">Ib;AL</args>
+    <args size="8">DX;AL</args>
+  </opcode>
+  <opcode mnemonic="out_o16">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions16($mask2$op2.get))
+            cpu.ioports.ioPortWrite16($mask1$op1.get, $mask2$op2.get);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="16">DX;eAX</args>
+  </opcode>
+  <opcode mnemonic="out_o32">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions32($mask2$op2.get))
+            cpu.ioports.ioPortWrite32($mask1$op1.get, $op2.get);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="32">DX;eAX</args>
+  </opcode>
+
+  <opcode mnemonic="sti">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.eflagsIOPrivilegeLevel == 3)
+        {
+	    cpu.eflagsInterruptEnableSoon = true;
+            cpu.eflagsInterruptEnable = true;
+        }
+	else
+        {
+	    if (!cpu.eflagsVirtualInterruptPending &amp;&amp; ((cpu.getCR4() &amp; Processor.CR4_VIRTUAL8086_MODE_EXTENSIONS) != 0))
+	        cpu.eflagsVirtualInterrupt = true;
+	    else
+	        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION,0,true);//ProcessorException.GENERAL_PROTECTION_0;
+        }</snippet>
+    <args size="0"></args>
+  </opcode>
+</opcodesnippets>

@@ -68,7 +68,7 @@ import org.jpc.j2se.VirtualClock;
 public class PC {
 
     public static int SYS_RAM_SIZE;
-    public static final int DEFAULT_RAM_SIZE = 16 * 1024 * 1024;
+    public static final int DEFAULT_RAM_SIZE = 64 * 1024 * 1024;
     public static final int INSTRUCTIONS_BETWEEN_INTERRUPTS = 1; 
 
     public static volatile boolean compile = false;
@@ -618,12 +618,12 @@ public class PC {
                         in = Disassembler.disassemble32(input);
                     else
                         in = Disassembler.disassemble16(input);
-                    e = Disassembler.getExecutable(true, 0, in);
+                    e = Disassembler.getExecutable(2, 0, in);
                 }
             } else {
                 input.set(physicalAddr, eip);
                 in = Disassembler.disassemble16(input);
-                e = Disassembler.getExecutable(false, 0, in);
+                e = Disassembler.getExecutable(1, 0, in);
             }
             b.append(in.toString());
             b.append(" == ");
@@ -651,8 +651,7 @@ public class PC {
     {
         if (processor.isProtectedMode()) {
             if (processor.isVirtual8086Mode()) {
-                throw new IllegalStateException("Switched to VM86 mode");
-                //executeVirtual8086Block();
+                return executeVirtual8086Block();
             } else {
                 return executeProtectedBlock();
             }
@@ -679,6 +678,28 @@ public class PC {
         catch (ModeSwitchException e)
         {
             LOGGING.log(Level.FINE, "Mode switch in RM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
+        }
+        return 0;
+    }
+
+    public int executeVirtual8086Block()
+    {
+        try
+        {
+            int block = linearAddr.executeVirtual8086(processor, processor.getInstructionPointer());
+            staticClockx86Count += block;
+            if (staticClockx86Count > INSTRUCTIONS_BETWEEN_INTERRUPTS)
+            {
+                processor.processVirtual8086ModeInterrupts(staticClockx86Count);
+                staticClockx86Count = 0;
+            }
+            return block;
+        } catch (ProcessorException p) {
+            processor.handleVirtual8086ModeException(p);
+        }
+        catch (ModeSwitchException e)
+        {
+            LOGGING.log(Level.FINE, "Mode switch in VM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return 0;
     }

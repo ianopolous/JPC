@@ -23,7 +23,7 @@ public class jle_Jb extends Executable
     public Branch execute(Processor cpu)
     {
         if (cpu.zf() || (cpu.sf() != cpu.of()))
-        {
+            {
             cpu.eip += jmp+blockLength;
             return Branch.T1;
         }

@@ -26,6 +26,7 @@ public class Disassembler
     private static Map<String, Constructor<? extends Executable>> vm_instructions = new HashMap();
 
     static {
+        loadOpcodes(vm_instructions, "vm");
         loadOpcodes(rm_instructions, "rm");
         loadOpcodes(pm_instructions, "pm");
     }
@@ -69,16 +70,27 @@ public class Disassembler
         {e.printStackTrace();}
     }
 
-    public static Executable getExecutable(boolean isPM, int blockStart, Instruction in)
+    public static Executable getExecutable(int mode, int blockStart, Instruction in)
     {
         try
         {
             String gen = in.getGeneralClassName(false, false);
             Map<String, Constructor<? extends Executable>> instructions = null;
-            if (!isPM)
-                instructions = rm_instructions;
-            else
-                instructions = pm_instructions;
+            switch (mode)
+            {
+                case 1:
+                    instructions = rm_instructions;
+                    break;
+                case 2:
+                    instructions = pm_instructions;
+                    break;
+                case 3:
+                    instructions = vm_instructions;
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown mode: " + mode);
+            }
+
             if (instructions.containsKey(gen)
                     || instructions.containsKey(in.getGeneralClassName(true, false))
                     || instructions.containsKey(in.getGeneralClassName(false, true))
@@ -102,16 +114,26 @@ public class Disassembler
         catch (IllegalAccessException e)
         {e.printStackTrace();}
         catch (InvocationTargetException e) {e.printStackTrace();}
-        throw new IllegalStateException("Unimplemented opcode: " + (isPM ? "PM:": "RM:") +in.toString() + ", general pattern: " + in.getGeneralClassName(true, true)+".");
+        throw new IllegalStateException("Unimplemented opcode: " + ((mode == 2) ? "PM:": (mode == 1) ? "RM:": "VM:") +in.toString() + ", general pattern: " + in.getGeneralClassName(true, true)+".");
     }
 
-    public static Executable getEipUpdate(boolean isPM, int blockStart, Instruction prev)
+    public static Executable getEipUpdate(int mode, int blockStart, Instruction prev)
     {
         Map<String, Constructor<? extends Executable>> instructions = null;
-        if (!isPM)
-            instructions = rm_instructions;
-        else
-            instructions = pm_instructions;
+        switch (mode)
+        {
+            case 1:
+                instructions = rm_instructions;
+                break;
+            case 2:
+                instructions = pm_instructions;
+                break;
+            case 3:
+                instructions = vm_instructions;
+                break;
+            default:
+                throw new IllegalStateException("Unknown mode: " + mode);
+        }
         try {
             return instructions.get("eip_update").newInstance(blockStart, prev);
         } catch (InstantiationException e) {
@@ -178,14 +200,14 @@ public class Disassembler
         return b.toString();
     }
 
-    public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size, boolean isPM)
+    public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size, int mode)
     {
         int startAddr = (int)input.getAddress();
         boolean debug = false;
         Instruction startin = (operand_size == 32) ? disassemble32(input) : disassemble16(input);
         Instruction currentInsn = startin;
 
-        Executable start = getExecutable(isPM, startAddr, currentInsn);
+        Executable start = getExecutable(mode, startAddr, currentInsn);
         if (PRINT_DISAM)
         {
             System.out.printf("%d;%s;%s;", operand_size, currentInsn.getGeneralClassName(false, false), currentInsn);
@@ -201,7 +223,7 @@ public class Disassembler
         {
             if (((previousSti) || (count >= MAX_INSTRUCTIONS_PER_BLOCK)) && !currentInsn.toString().equals("sti"))
             {
-                Executable eip = getEipUpdate(isPM, startAddr, currentInsn);
+                Executable eip = getEipUpdate(mode, startAddr, currentInsn);
                 current.next = eip;
                 if (!previousSti && (MAX_INSTRUCTIONS_PER_BLOCK > 10))
                     System.out.println((String.format("Exceeded maximum number of instructions in a block at %x", startAddr)));
@@ -213,7 +235,7 @@ public class Disassembler
                 System.out.printf("%d;%s;%s;", operand_size, nextInsn.getGeneralClassName(false, false), nextInsn);
                 System.out.println(getRawBytes(nextInsn, input));
             }
-            Executable next = getExecutable(isPM, startAddr, nextInsn);
+            Executable next = getExecutable(mode, startAddr, nextInsn);
             if (debug)
                 System.out.printf("Disassembled next instruction (%d): %s at %x\n", count, next, input.getAddress());
             count++;

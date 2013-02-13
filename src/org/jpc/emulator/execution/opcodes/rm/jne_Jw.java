@@ -23,7 +23,7 @@ public class jne_Jw extends Executable
     public Branch execute(Processor cpu)
     {
         if (!cpu.zf())
-        {
+            {
             cpu.eip += jmp+blockLength;
             return Branch.T1;
         }
