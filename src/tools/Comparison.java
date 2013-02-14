@@ -24,8 +24,8 @@ public class Comparison
             };
     static String newJar = "JPCApplication.jar";
     static String oldJar = "OldJPCApplication.jar";
-    public static final boolean compareFlags = true;
-    public static final boolean compareStack = true;
+    public static final boolean compareFlags = false;
+    public static final boolean compareStack = false;
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "doom10m.img"};
@@ -163,8 +163,8 @@ public class Comparison
         while (true)
         {
             try {
-            execute1.invoke(newpc);
-            execute2.invoke(oldpc);
+                execute1.invoke(newpc);
+                execute2.invoke(oldpc);
             } catch (Exception e)
             {
                 printHistory();

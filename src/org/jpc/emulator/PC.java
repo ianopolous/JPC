@@ -66,8 +66,8 @@ import javax.swing.*;
 /**
  * This class represents the emulated PC as a whole, and holds references
  * to its main hardware components.
- * @author Chris Dennis
  * @author Ian Preston
+ * @author Chris Dennis
  */
 public class PC {
 
@@ -109,7 +109,7 @@ public class PC {
      * @param clock <code>Clock</code> object used as a time source
      * @param drives drive set for this instance.
      * @param ramSize the size of the system ram for the virtual machine in bytes.
-     * @throws java.io.IOException propogated from bios resource loading
+     * @throws java.io.IOException propagated from bios resource loading
      */
     public PC(Clock clock, DriveSet drives, int ramSize, Calendar startTime) throws IOException {
         SYS_RAM_SIZE = ramSize;
@@ -192,7 +192,7 @@ public class PC {
      * @param clock <code>Clock</code> object used as a time source
      * @param args command-line args specifying the drive set to use.
      * @param ramSize the size of the system ram for the virtual machine in bytes.
-     * @throws java.io.IOException propogates from <code>DriveSet</code> construction
+     * @throws java.io.IOException propagates from <code>DriveSet</code> construction
      */
     public PC(Clock clock, String[] args, int ramSize) throws IOException {
         this(clock, DriveSet.buildFromArgs(args), ramSize);
@@ -234,9 +234,9 @@ public class PC {
         processor.r_esp.set32(s[6]);
         processor.r_ebp.set32(s[7]);
         processor.eip = s[8];
-        try {
-            processor.setEFlags(s[9]);
-        } catch (ProcessorException e) {}
+        //try {
+        //    processor.setEFlags(s[9]);
+        //} catch (ProcessorException e) {}
         /*processor.cs(s[10]);
         processor.ds(s[11]);
         processor.es(s[12]);
@@ -277,7 +277,7 @@ public class PC {
 
     public int[] getState()
     {
-        return new int[]
+        int[] res =  new int[]
                 {
                         processor.r_eax.get32(), processor.r_ebx.get32(), processor.r_ecx.get32(), processor.r_edx.get32(),
                         processor.r_esi.get32(), processor.r_edi.get32(), processor.r_esp.get32(), processor.r_ebp.get32(),
@@ -297,23 +297,22 @@ public class PC {
                         getBase(processor.es), getBase(processor.fs),
                         getBase(processor.gs), getBase(processor.ss),
                         processor.getCR0(),
-                        (int)Double.doubleToRawLongBits(processor.fpu.ST(0)),
-                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(0)) >> 32),
-                        (int)Double.doubleToRawLongBits(processor.fpu.ST(1)),
-                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(1)) >> 32),
-                        (int)Double.doubleToRawLongBits(processor.fpu.ST(2)),
-                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(2)) >> 32),
-                        (int)Double.doubleToRawLongBits(processor.fpu.ST(3)),
-                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(3)) >> 32),
-                        (int)Double.doubleToRawLongBits(processor.fpu.ST(4)),
-                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(4)) >> 32),
-                        (int)Double.doubleToRawLongBits(processor.fpu.ST(5)),
-                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(5)) >> 32),
-                        (int)Double.doubleToRawLongBits(processor.fpu.ST(6)),
-                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(6)) >> 32),
-                        (int)Double.doubleToRawLongBits(processor.fpu.ST(7)),
-                        (int)(Double.doubleToRawLongBits(processor.fpu.ST(7)) >> 32)
+                        0, 0,
+                        0, 0,
+                        0, 0,
+                        0, 0,
+                        0, 0,
+                        0, 0,
+                        0, 0,
+                        0, 0
                 };
+        double[] fpuStack = processor.fpu.getStack();
+        for (int i=0; i < 8; i++)
+        {
+            res[2*i+37] = (int)Double.doubleToRawLongBits(fpuStack[i]);
+            res[2*i+38] = (int)(Double.doubleToRawLongBits(fpuStack[i])>>32);
+        }
+        return res;
     }
 
     private int getBase(Segment s)

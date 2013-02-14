@@ -3202,8 +3202,10 @@ public class Processor implements HardwareComponent
         zf = ((eflags & (1 << 6)) != 0);
         sf = ((eflags & (1 <<  7)) != 0);
         eflagsTrap                    = ((eflags & (1 <<  8)) != 0);
-        eflagsInterruptEnableSoon
-            = eflagsInterruptEnable   = ((eflags & (1 <<  9)) != 0);
+
+        eflagsInterruptEnable   = ((eflags & (1 <<  9)) != 0);
+        if (eflagsInterruptEnable) // don't overwrite soon flag if restoring a false IF flag
+            eflagsInterruptEnableSoon = true;
         df                            = ((eflags & (1 << 10)) != 0);
         of = ((eflags & (1 << 11)) != 0);
         eflagsIOPrivilegeLevel        = ((eflags >> 12) & 3);

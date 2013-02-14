@@ -122,6 +122,7 @@ public class Fuzzer
         arrayImpl(names, state, formatter, 30, 37);
         arrayImpl(names, state, formatter, 37, 45);
         arrayImpl(names, state, formatter, 45, names.length);
+        doubleImpl(names, state, formatter, 37, 37+16);
         System.out.flush();
         System.out.println(builder);
     }
@@ -138,6 +139,16 @@ public class Fuzzer
         printState(fast);
         System.out.println("Old JPC state:");
         printState(old);
+    }
+
+    public static void doubleImpl(String[] names, int[] vals, Formatter f, int start, int end)
+    {
+        for (int i=start; i < end; i+=2)
+            f.format("[%8s] ", "ST"+(i-start)/2);
+        f.format("\n");
+        for (int i=start; i < end; i+=2)
+            f.format("[%f] ", Double.longBitsToDouble(vals[i]&0xffffffffL | ((vals[i+1]&0xffffffffL) << 32)));
+        f.format("\n");
     }
 
     public static void arrayImpl(String[] names, int[] vals, Formatter f, int start, int end)

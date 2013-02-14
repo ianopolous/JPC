@@ -162,7 +162,8 @@ public class LinearMemoryViewer extends MemoryViewer implements ActionListener
         }
     }
 
-    public static int translateLinearAddressToInt(PhysicalAddressSpace physical, Processor proc, int offset) {
+    public static int translateLinearAddressToInt(PhysicalAddressSpace physical, Processor proc, int offset)
+    {
         if ((proc.getCR0() & 0x80000000) == 0)
             return offset;
 
@@ -186,7 +187,7 @@ public class LinearMemoryViewer extends MemoryViewer implements ActionListener
         else 
         {
             tableIndex = (0xFFFFF000 & offset) >>> 12;
-	    int directoryBaseAddress = directoryRawBits & 0xFFFFF000;
+            int directoryBaseAddress = directoryRawBits & 0xFFFFF000;
             int tableAddress = directoryBaseAddress | ((offset >>> 10) & 0xFFC);
             int tableRawBits = physical.getDoubleWord(tableAddress); 
         
@@ -196,7 +197,7 @@ public class LinearMemoryViewer extends MemoryViewer implements ActionListener
 
             int fourKStartAddress = tableRawBits & 0xFFFFF000;
             return fourKStartAddress;
-	}
+        }
     }
     
     public static Memory translateLinearAddress(PhysicalAddressSpace physical, Processor proc, int offset)

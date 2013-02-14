@@ -387,6 +387,13 @@ public class FpuState64 extends FpuState
 //     {
 //         return new BigDecimal(pop());
 //     }
+    public double[] getStack()
+    {
+        double[] res = new double[8];
+        for (int i=0; i < 8; i++)
+            res[i] = data[(i+top)&7];
+        return res;
+    }
 
     public double ST(int index) throws ProcessorException
     {
