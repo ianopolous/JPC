@@ -49,7 +49,7 @@ public class Pointer
     private static String getImplicitSegment(Instruction.Operand operand)
     {
         // :-)
-        if (operand.toString().toLowerCase().contains("bp"))
+        if (operand.toString().toLowerCase().contains("bp") || operand.toString().toLowerCase().contains("sp"))
            return "ss";
         else
             return "ds";

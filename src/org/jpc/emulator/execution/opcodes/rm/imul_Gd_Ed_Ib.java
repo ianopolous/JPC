@@ -31,11 +31,19 @@ public class imul_Gd_Ed_Ib extends Executable
             cpu.flagResult = (int) res64;
             op1.set32(cpu.flagResult);
             cpu.flagIns = UCodes.IMUL32;
+            if (res64 == cpu.flagResult)
+            {
+                cpu.of(false);
+                cpu.cf(false);
+            } else
+            {
+                cpu.of(true);
+                cpu.cf(true);
+            }
             if (res64 < 0)
-                cpu.sf = true;
+                cpu.sf(true);
             else
-                cpu.sf = false;
-            cpu.flagStatus &= ~SF;
+                cpu.sf(false);
         return Branch.None;
     }
 

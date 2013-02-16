@@ -21,7 +21,7 @@ public class rcl_Eb_Ib extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-            int shift = (immb & 0x1f);
+            int shift = immb & 0x1f;
             shift %= 8+1;
             long val = 0xFF&op1.get8();
             val |= cpu.cf() ? 1L << 8 : 0;

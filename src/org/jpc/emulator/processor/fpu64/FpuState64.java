@@ -395,6 +395,12 @@ public class FpuState64 extends FpuState
         return res;
     }
 
+    public void setStack(double[] s)
+    {
+        for (int i=0; i < 8; i++)
+            data[(i+top)&7] = s[i];
+    }
+
     public double ST(int index) throws ProcessorException
     {
         int i = ((top + index) & 0x7);

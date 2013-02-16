@@ -20,7 +20,7 @@ public class rcl_Eb_Ib_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-            int shift = (immb & 0x1f);
+            int shift = immb & 0x1f;
             shift %= 8+1;
             long val = 0xFF&op1.get8(cpu);
             val |= cpu.cf() ? 1L << 8 : 0;

@@ -92,23 +92,25 @@ public class StaticOpcodes
 
     public static final void das(Processor cpu)
     {
-        boolean tempCF = false;
+        boolean tempCF = cpu.cf();
+        cpu.cf(false);
         int tempAL = 0xff & cpu.r_al.get8();
         if (((tempAL & 0xf) > 0x9) || cpu.af()) {
             cpu.af(true);
-            cpu.r_al.set8((cpu.r_al.get8() - 0x06) & 0xff);
-            tempCF = (tempAL < 0x06) || cpu.cf();
+            cpu.r_al.set8(cpu.r_al.get8() - 0x06);
+            cpu.cf(tempCF || (tempAL < 0x06));
+        }
+        else
+            cpu.af(false);
+
+        if ((tempAL > 0x99) || tempCF) {
+            cpu.r_al.set8(cpu.r_al.get8() - 0x60);
+            cpu.cf(true);
         }
 
-        if ((tempAL > 0x99) || cpu.cf()) {
-            cpu.r_al.set8((cpu.r_al.get8() - 0x60) & 0xff);
-            tempCF = true;
-        }
-
-        cpu.of(false);
+        cpu.of(false); // strictly undefined
         cpu.flagResult = cpu.r_al.get8();
-        cpu.flagStatus = SZAPC;
-        cpu.cf(tempCF);
+        cpu.flagStatus = SZP;
     }
 
     public static int lar(Processor cpu, int selector, int original)
@@ -1322,6 +1324,35 @@ public class StaticOpcodes
         cpu.r_di.set32(addr);
     }
 
+    public static void rep_insb_a32(Processor cpu, Segment seg)
+    {
+        int port = cpu.r_dx.get16() & 0xffff;
+        int count = cpu.r_ecx.get32();
+        int addr = cpu.r_edi.get32();
+
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    //check hardware interrupts
+                    seg.setByte(addr, (byte)cpu.ioports.ioPortRead8(port));
+                    count--;
+                    addr -= 1;
+                }
+            } else {
+                while (count != 0) {
+                    //check hardware interrupts
+                    seg.setByte(addr, (byte)cpu.ioports.ioPortRead8(port));
+                    count--;
+                    addr += 1;
+                }
+            }
+        }
+        finally {
+            cpu.r_ecx.set32(count);
+            cpu.r_edi.set32(addr);
+        }
+    }
+
     public static void rep_insw_a16(Processor cpu, Segment seg)
     {
         int port = cpu.r_dx.get16() & 0xffff;
@@ -1475,6 +1506,33 @@ public class StaticOpcodes
         finally {
             cpu.r_ecx.set16(count);
             cpu.r_esi.set16(addr);
+        }
+    }
+
+    public static void rep_outsb_a32(Processor cpu, Segment seg)
+    {
+        int port = cpu.r_dx.get16() & 0xffff;
+        int count = cpu.r_ecx.get32();
+        int addr = cpu.r_esi.get32();
+
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    cpu.ioports.ioPortWrite8(port, 0xff & seg.getByte(addr & 0xffff));
+                    count--;
+                    addr -= 1;
+                }
+            } else {
+                while (count != 0) {
+                    cpu.ioports.ioPortWrite8(port, 0xff & seg.getByte(addr & 0xffff));
+                    count--;
+                    addr += 1;
+                }
+            }
+        }
+        finally {
+            cpu.r_ecx.set32(count);
+            cpu.r_esi.set32(addr);
         }
     }
 

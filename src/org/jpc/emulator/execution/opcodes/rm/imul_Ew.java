@@ -22,8 +22,8 @@ public class imul_Ew extends Executable
             cpu.flagStatus = OSZAPC;
             cpu.flagOp1 = (short)op1.get16();
             cpu.flagOp2 = (short)cpu.r_eax.get16();
-            long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = (short)(int) res64;
+            long res64 = (((int)(short) cpu.flagOp1)*((short)cpu.flagOp2));
+            cpu.flagResult = (short) res64;
             cpu.r_eax.set16((short)cpu.flagResult);
             cpu.r_edx.set16((short)(int)(res64 >> 16));
             cpu.flagIns = UCodes.IMUL16;

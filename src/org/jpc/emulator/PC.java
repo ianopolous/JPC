@@ -234,15 +234,19 @@ public class PC {
         processor.r_esp.set32(s[6]);
         processor.r_ebp.set32(s[7]);
         processor.eip = s[8];
-        //try {
-        //    processor.setEFlags(s[9]);
-        //} catch (ProcessorException e) {}
+        try {
+            processor.setEFlags(s[9]);
+        } catch (ProcessorException e) {}
         /*processor.cs(s[10]);
         processor.ds(s[11]);
         processor.es(s[12]);
         processor.fs(s[13]);
         processor.gs(s[14]);
         processor.ss(s[15]);*/
+        double[] newFPUStack = new double[8];
+        for (int i=0; i < 8; i++)
+            newFPUStack[i] = Double.longBitsToDouble(0xffffffffL & s[2*i+37] | ((0xffffffffL & s[2*i+38]) << 32));
+        processor.fpu.setStack(newFPUStack);
     }
 
     public void setCode(byte[] code)
@@ -619,8 +623,9 @@ public class PC {
             Executable e;
             if (processor.isProtectedMode()) {
                 if (processor.isVirtual8086Mode()) {
-                    throw new IllegalStateException("Switched to VM86 mode");
-                    //executeVirtual8086Block();
+                    input.set(linearAddr, eip);
+                    in = Disassembler.disassemble16(input);
+                e = Disassembler.getExecutable(3, 0, in);
                 } else {
                     input.set(linearAddr, eip);
                     boolean opSize = processor.cs.getDefaultSizeFlag();

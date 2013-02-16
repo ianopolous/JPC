@@ -682,14 +682,15 @@ public class Processor implements HardwareComponent
             } catch (ProcessorException e) {
                 throw ProcessorException.STACK_SEGMENT_0;
             }
-            int newEIP = 0xffff & pop16();
+            int newEIP = 0xffff & ss.getWord(r_sp.get16() & 0xffff);
             if (newEIP > 0xffff)
                 throw ProcessorException.GENERAL_PROTECTION_0;
 
-            int newCS = 0xffff & pop16();
+            int newCS = 0xffff & ss.getWord((r_sp.get16() + 2) & 0xffff);
             eip = newEIP;
             cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true));
-            int newEFlags = 0xffff & pop16();
+            int newEFlags = 0xffff & ss.getWord((r_sp.get16() + 4) & 0xffff);
+            r_sp.set16(r_sp.get16()+6);
 
             //don't modify the IOPL
             int iopl = (getEFlags() >> 12) & 3;
@@ -1755,7 +1756,7 @@ public class Processor implements HardwareComponent
         if (newEIP > 0xfffff)
             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION,0,true);//ProcessorException.GENERAL_PROTECTION_0;
 
-        cs = SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true);
+        cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true));
         eip = newEIP & 0xffff;
         int newESP = pop32();
         int newSS = 0xffff & pop32();
@@ -1916,7 +1917,7 @@ public class Processor implements HardwareComponent
                     //SAME PRIVILEGE-LEVEL
                     returnSegment.checkAddress(newEIP);
                     eip = newEIP;
-                    cs = returnSegment; //do descriptor as well
+                    cs(returnSegment); //do descriptor as well
                     cf((newEFlags & 1) != 0);
                     pf((newEFlags & (1 << 2)) != 0);
                     af((newEFlags & (1 << 4)) != 0);
@@ -3203,9 +3204,7 @@ public class Processor implements HardwareComponent
         sf = ((eflags & (1 <<  7)) != 0);
         eflagsTrap                    = ((eflags & (1 <<  8)) != 0);
 
-        eflagsInterruptEnable   = ((eflags & (1 <<  9)) != 0);
-        if (eflagsInterruptEnable) // don't overwrite soon flag if restoring a false IF flag
-            eflagsInterruptEnableSoon = true;
+        eflagsInterruptEnableSoon = eflagsInterruptEnable   = ((eflags & (1 <<  9)) != 0);
         df                            = ((eflags & (1 << 10)) != 0);
         of = ((eflags & (1 << 11)) != 0);
         eflagsIOPrivilegeLevel        = ((eflags >> 12) & 3);
@@ -3522,7 +3521,7 @@ public class Processor implements HardwareComponent
             es(SegmentFactory.createRealModeSegment(physicalMemory, es));
         } catch (ProcessorException e)
         {
-            es = SegmentFactory.createRealModeSegment(physicalMemory, 0);
+            es(SegmentFactory.createRealModeSegment(physicalMemory, 0));
         }
 
         try
@@ -3684,12 +3683,12 @@ public class Processor implements HardwareComponent
         eflagsIOPrivilegeLevel = 0;
         eflagsInterruptEnableSoon = false;
 
-        cs = SegmentFactory.createRealModeSegment(physicalMemory, 0xf000);
-        ds = SegmentFactory.createRealModeSegment(physicalMemory, 0);
-        ss = SegmentFactory.createRealModeSegment(physicalMemory, 0);
-        es = SegmentFactory.createRealModeSegment(physicalMemory, 0);
-        fs = SegmentFactory.createRealModeSegment(physicalMemory, 0);
-        gs = SegmentFactory.createRealModeSegment(physicalMemory, 0);
+        cs(SegmentFactory.createRealModeSegment(physicalMemory, 0xf000));
+        ds(SegmentFactory.createRealModeSegment(physicalMemory, 0));
+        ss(SegmentFactory.createRealModeSegment(physicalMemory, 0));
+        es(SegmentFactory.createRealModeSegment(physicalMemory, 0));
+        fs(SegmentFactory.createRealModeSegment(physicalMemory, 0));
+        gs(SegmentFactory.createRealModeSegment(physicalMemory, 0));
 
         idtr = SegmentFactory.createDescriptorTableSegment(physicalMemory, 0, 0xFFFF);
         ldtr = SegmentFactory.NULL_SEGMENT;
@@ -3962,11 +3961,6 @@ public class Processor implements HardwareComponent
         if (vector == ProcessorException.Type.PAGE_FAULT.vector())
         {
             setCR2(linearMemory.getLastWalkedAddress());
-            if (linearMemory.getLastWalkedAddress() == 0xbff9a3c0)
-            {
-                System.out.println("Found it ********* @ " + Integer.toHexString(getInstructionPointer()));
-                System.exit(0);
-            }
         }
 
         int selector = vector << 3; //multiply by 8 to get offset into idt
@@ -5314,10 +5308,10 @@ public class Processor implements HardwareComponent
                                 }
                             }
 
-                            gs = SegmentFactory.NULL_SEGMENT;
-                            fs = SegmentFactory.NULL_SEGMENT;
-                            ds = SegmentFactory.NULL_SEGMENT;
-                            es = SegmentFactory.NULL_SEGMENT;
+                            gs(SegmentFactory.NULL_SEGMENT);
+                            fs(SegmentFactory.NULL_SEGMENT);
+                            ds(SegmentFactory.NULL_SEGMENT);
+                            es(SegmentFactory.NULL_SEGMENT);
 
                             eflagsInterruptEnable = eflagsInterruptEnableSoon = false;
 
@@ -5505,10 +5499,10 @@ public class Processor implements HardwareComponent
                                 }
                             }
 
-                            gs = SegmentFactory.NULL_SEGMENT;
-                            fs = SegmentFactory.NULL_SEGMENT;
-                            ds = SegmentFactory.NULL_SEGMENT;
-                            es = SegmentFactory.NULL_SEGMENT;
+                            gs(SegmentFactory.NULL_SEGMENT);
+                            fs(SegmentFactory.NULL_SEGMENT);
+                            ds(SegmentFactory.NULL_SEGMENT);
+                            es(SegmentFactory.NULL_SEGMENT);
 
                             eflagsTrap = false;
                             eflagsNestedTask = false;

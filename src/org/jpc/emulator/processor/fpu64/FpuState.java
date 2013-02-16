@@ -121,6 +121,7 @@ public abstract class FpuState implements Hibernatable
     public abstract void push(double x) throws ProcessorException;
     public abstract double pop() throws ProcessorException;
     public abstract double[] getStack();
+    public abstract void setStack(double[] s);
     public abstract double ST(int index) throws ProcessorException;
     public abstract void setST(int index, double value);
 //     public abstract void pushBig(BigDecimal x) throws ProcessorException;

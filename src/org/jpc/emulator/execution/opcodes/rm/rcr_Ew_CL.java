@@ -20,15 +20,15 @@ public class rcr_Ew_CL extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
             int shift = cpu.r_cl.get8() & 0x1f;
+            shift %= 16+1;
             if (shift != 0)
             {
-            shift %= 16+1;
             long val = 0xFFFF&op1.get16();
-            val |= cpu.cf() ? 1 << 16 : 0;
+            val |= cpu.cf() ? 1L << 16 : 0;
             val = (val >>> shift) | (val << (16+1-shift));
             op1.set16((short)(int)val);
-            boolean bit30  = (val &  (1 << (16-2))) != 0;
-            boolean bit31 = (val & (1 << (16-1))) != 0;
+            boolean bit30  = (val &  (1L << (16-2))) != 0;
+            boolean bit31 = (val & (1L << (16-1))) != 0;
             cpu.cf((val & (1L << 16)) != 0);
             if (shift == 1)
                 cpu.of(bit30 ^ bit31);

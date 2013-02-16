@@ -28,10 +28,6 @@ public class imul_Gd_Ed_mem extends Executable
             cpu.flagResult = (int) res64;
             op1.set32(cpu.flagResult);
             cpu.flagIns = UCodes.IMUL32;
-            if (res64 < 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
             if (res64 == cpu.flagResult)
             {
                 cpu.of(false);
@@ -41,6 +37,10 @@ public class imul_Gd_Ed_mem extends Executable
                 cpu.of(true);
                 cpu.cf(true);
             }
+            if (res64 < 0)
+                cpu.sf(true);
+            else
+                cpu.sf(false);
         return Branch.None;
     }
 

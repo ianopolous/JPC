@@ -53,6 +53,8 @@ public class ArgProcessor
     public static String findVariable(String[] args, String key, String defaultValue)
     {
         Option opt = Option.getParameter(key.substring(1));
+        if (opt == null)
+            opt = Option.getParameter(key);
         if ((opt != null) && opt.isSet())
             return opt.getValue().toString();
         int keyIndex = findKey(args, key);

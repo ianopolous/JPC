@@ -24,8 +24,8 @@ public class Comparison
             };
     static String newJar = "JPCApplication.jar";
     static String oldJar = "OldJPCApplication.jar";
-    public static final boolean compareFlags = false;
-    public static final boolean compareStack = false;
+    public static final boolean compareFlags = true;
+    public static final boolean compareStack = true;
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "doom10m.img"};
@@ -67,6 +67,7 @@ public class Comparison
         //flagIgnores.put("btr", ~0x1);
         flagIgnores.put("shr", ~0x810);
         //flagIgnores.put("shrd", ~0x810);
+        flagIgnores.put("shld", ~0x810);
         flagIgnores.put("lss", ~0x200);
         //flagIgnores.put("iret", ~0x10); // who cares about before the interrupt
         //flagIgnores.put("iretw", ~0x810); // who cares about before the interrupt
@@ -169,6 +170,7 @@ public class Comparison
             {
                 printHistory();
                 e.printStackTrace();
+                System.out.println("Exception during execution... look above");
                 throw e;
             }
             fast = (int[])state1.invoke(newpc);
@@ -177,11 +179,15 @@ public class Comparison
                 line = (String) instructionInfo.invoke(newpc, new Integer(1)); // instructions per block
             } catch (Exception e)
             {
-                e.printStackTrace();
-                System.out.printf("Error getting instruction info.. at cs:eip = %08x\n", fast[8]+(fast[10]<<4));
-                line = "Instruction decode error";
-                printHistory();
-                //continueExecution("after Invalid decode at cs:eip");
+                if (!e.getCause().getMessage().contains("PAGE_FAULT"))
+                {
+                    e.printStackTrace();
+                    System.out.printf("Error getting instruction info.. at cs:eip = %08x\n", fast[8]+(fast[10]<<4));
+                    line = "Instruction decode error";
+                    printHistory();
+                    //continueExecution("after Invalid decode at cs:eip");
+                }
+                line = "PAGE_FAULT getting instruction";
             }
             // send input events
             if (!keyboardInput.isEmpty())
@@ -212,6 +218,8 @@ public class Comparison
             history[historyIndex][1] = old;
             history[historyIndex][2] = line;
             historyIndex = (historyIndex+1)%history.length;
+            if (fast[16] == 0xB23C14E)
+                System.out.println("Here comes the bug!");
             Set<Integer> diff = new HashSet<Integer>();
             if (!sameStates(fast, old, compareFlags, diff))
             {
@@ -243,6 +251,12 @@ public class Comparison
                     if (instr.equals("lss"))
                         previousLss = true;
                 }
+                else if ((diff.size() == 1) && diff.contains(0) && ((fast[0]^old[0]) == 0x10))
+                {
+                    //often eax isolinux loaded with flags which contain arbirary AF values, ignore these
+                    fast[0] = old[0];
+                    setState1.invoke(newpc, (int[])fast);
+                }
                 diff.clear();
                 if (!sameStates(fast, old, compareFlags, diff))
                 {
@@ -268,13 +282,22 @@ public class Comparison
 
                 Integer sl1 = (Integer)save1.invoke(newpc, new Integer(espPageIndex), sdata1, pm);
                 Integer sl2 = (Integer)save2.invoke(oldpc, new Integer(espPageIndex), sdata2, pm);
+                List<Integer> addrs = new ArrayList();
                 if (sl2 > 0)
-                    if (!samePage(espPageIndex, sdata1, sdata2))
+                    if (!samePage(espPageIndex, sdata1, sdata2, addrs))
                     {
-                        printHistory();
-                        System.out.println("Error here... look above");
-                        printPage(sdata1, sdata2, esp);
-                        load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
+                        int addr = addrs.get(0);
+                        if ((addrs.size() == 1) && ((sdata1[addr]^sdata2[addr]) == 0x10))
+                        { // ignore differences from pushing different AF to stack
+                            load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
+                        }
+                        else
+                        {
+                            printHistory();
+                            System.out.println("Error here... look above");
+                            printPage(sdata1, sdata2, esp);
+                            load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
+                        }
                     }
             }
 
@@ -294,7 +317,7 @@ public class Comparison
                 Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1, false);
                 Integer l2 = (Integer)save2.invoke(oldpc, new Integer(i<<12), sdata2, false);
                 if (l2 > 0)
-                    if (!samePage(i, sdata1, sdata2))
+                    if (!samePage(i, sdata1, sdata2, null))
                     {
                         printHistory();
                         System.out.println("Error here... look above");
@@ -402,13 +425,15 @@ public class Comparison
         System.out.printf(" ");
     }
 
-    public static boolean samePage(int index, byte[] fast, byte[] old)
+    public static boolean samePage(int index, byte[] fast, byte[] old, List<Integer> addrs)
     {
         if (fast.length != old.length)
             throw new IllegalStateException(String.format("different page data lengths %d != %d", fast.length, old.length));
         for (int i=0; i < fast.length; i++)
             if (fast[i] != old[i])
             {
+                if (addrs!= null)
+                    addrs.add(i);
                 System.out.printf("Difference in memory state: %08x=> %02x - %02x\n", index*4096+i, fast[i], old[i]);
                 return false;
             }

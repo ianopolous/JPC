@@ -25,14 +25,10 @@ public class imul_Gw_Ew extends Executable
             cpu.flagStatus = OSZAPC;
             cpu.flagOp1 = (short)op1.get16();
             cpu.flagOp2 = (short)op2.get16();
-            long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = (int) res64;
+            long res64 = (((short) cpu.flagOp1)*cpu.flagOp2);
+            cpu.flagResult = (short) res64;
             op1.set16((short)cpu.flagResult);
             cpu.flagIns = UCodes.IMUL16;
-            if (res64 < 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
             if (res64 == cpu.flagResult)
             {
                 cpu.of(false);
@@ -42,6 +38,10 @@ public class imul_Gw_Ew extends Executable
                 cpu.of(true);
                 cpu.cf(true);
             }
+            if (res64 < 0)
+                cpu.sf(true);
+            else
+                cpu.sf(false);
         return Branch.None;
     }
 

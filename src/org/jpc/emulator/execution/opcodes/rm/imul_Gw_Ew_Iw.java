@@ -28,14 +28,22 @@ public class imul_Gw_Ew_Iw extends Executable
             cpu.flagOp1 = (short)immw;
             cpu.flagOp2 = (short)op2.get16();
             long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = (int) res64;
+            cpu.flagResult = (short)(int) res64;
             op1.set16((short)cpu.flagResult);
             cpu.flagIns = UCodes.IMUL16;
+            if (res64 == cpu.flagResult)
+            {
+                cpu.of(false);
+                cpu.cf(false);
+            } else
+            {
+                cpu.of(true);
+                cpu.cf(true);
+            }
             if (res64 < 0)
-                cpu.sf = true;
+                cpu.sf(true);
             else
-                cpu.sf = false;
-            cpu.flagStatus &= ~SF;
+                cpu.sf(false);
         return Branch.None;
     }
 

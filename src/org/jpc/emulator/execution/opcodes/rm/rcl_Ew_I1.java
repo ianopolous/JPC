@@ -19,9 +19,9 @@ public class rcl_Ew_I1 extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-            int shift = (1 & 0x1f);
+            int shift = 1 & 0x1f;
             shift %= 16+1;
-            long val = 0xFFFF&op1.get16();
+            long val = 0xffffffffL & op1.get16();
             val |= cpu.cf() ? 1L << 16 : 0;
             val = (val << shift) | (val >>> (16+1-shift));
             op1.set16((short)(int)val);
