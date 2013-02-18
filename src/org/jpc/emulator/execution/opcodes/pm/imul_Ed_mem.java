@@ -18,15 +18,13 @@ public class imul_Ed_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = op1.get32(cpu);
-            cpu.flagOp2 = cpu.r_eax.get32();
-            long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = (int) res64;
-            cpu.r_eax.set32(cpu.flagResult);
+            int iop1 = op1.get32(cpu);
+            int iop2 = cpu.r_eax.get32();
+            long res64 = (((long) iop1)*iop2);
+            int res32 = (int) res64;
+            cpu.r_eax.set32(res32);
             cpu.r_edx.set32((int)(res64 >> 32));
-            cpu.flagIns = UCodes.IMUL32;
-            if (res64 < 0)
+            if (res32 < 0)
                 cpu.sf(true);
             else
                 cpu.sf(false);

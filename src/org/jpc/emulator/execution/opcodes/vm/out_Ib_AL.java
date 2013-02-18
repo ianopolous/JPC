@@ -18,7 +18,7 @@ public class out_Ib_AL extends Executable
 
     public Branch execute(Processor cpu)
     {
-        if (cpu.checkIOPermissions8(0xFF&cpu.r_al.get8()))
+        if (cpu.checkIOPermissions8(0xFF&immb))
             cpu.ioports.ioPortWrite8(0xFF&immb, 0xFF&cpu.r_al.get8());
         else
             throw ProcessorException.GENERAL_PROTECTION_0;

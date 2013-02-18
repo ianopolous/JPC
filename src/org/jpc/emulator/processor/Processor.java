@@ -689,14 +689,14 @@ public class Processor implements HardwareComponent
             int newCS = 0xffff & ss.getWord((r_sp.get16() + 2) & 0xffff);
             eip = newEIP;
             cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true));
-            int newEFlags = 0xffff & ss.getWord((r_sp.get16() + 4) & 0xffff);
+            int newFlags = 0xffff & ss.getWord((r_sp.get16() + 4) & 0xffff);
             r_sp.set16(r_sp.get16()+6);
 
             //don't modify the IOPL
             int iopl = (getEFlags() >> 12) & 3;
-            newEFlags = newEFlags & ~Processor.IFLAGS_IOPL_MASK;
-            newEFlags |= (iopl << 12);
-            setEFlags(newEFlags);
+            newFlags = newFlags & ~Processor.IFLAGS_IOPL_MASK;
+            newFlags |= (iopl << 12);
+            setFlags((short) newFlags);
         } else
             throw ProcessorException.GENERAL_PROTECTION_0;
     }
@@ -813,6 +813,8 @@ public class Processor implements HardwareComponent
 
     public void cs(Segment seg)
     {
+        if (seg == SegmentFactory.NULL_SEGMENT)
+            throw ProcessorException.GENERAL_PROTECTION_0;
         cs = seg;
         segs[0] = seg;
     }
@@ -908,6 +910,8 @@ public class Processor implements HardwareComponent
 
     public void ss(Segment seg)
     {
+        if (seg == SegmentFactory.NULL_SEGMENT)
+            throw ProcessorException.GENERAL_PROTECTION_0;
         ss = seg;
         segs[5] = seg;
     }

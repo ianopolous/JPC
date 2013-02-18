@@ -16,6 +16,121 @@
     <args size="16">Ew;Gw</args>
   </opcode>
 
+  <opcode mnemonic="bt" mem="false">
+    <return>Branch.None</return>
+    <snippet>        cpu.zf(cpu.zf());
+        cpu.cf((($op1.get &amp; (1 &lt;&lt; ($op2.get &amp; ($size-1)))) != 0));</snippet>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+  </opcode>
+  <opcode mnemonic="bt" mem="true">
+    <return>Branch.None</return>
+    <snippet>        cpu.zf(cpu.zf());
+        int bit = 1 &lt;&lt; ($op2.get &amp; ($size-1));
+        int offset = (($op2.get &amp; ~($size-1))/8);
+        cpu.cf((($op1.getA offset) &amp; bit) != 0));</snippet>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+  </opcode>
+
+  <opcode mnemonic="btc" mem="false">
+    <return>Branch.None</return>
+    <snippet>        int bit = 1 &lt;&lt; ($op2.get &amp; ($size-1));
+        cpu.cf = (0 != ($op1.get &amp; bit));
+        cpu.flagStatus &amp;= NCF;
+        $op1.set$cast($op1.get^bit));</snippet>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Ib</args>
+    <args size="32">Ed;Gd</args>
+  </opcode>
+  <opcode mnemonic="btc" mem="true">
+    <return>Branch.None</return>
+    <snippet>        int bit = 1 &lt;&lt; ($op2.get &amp; ($size-1));
+        int offset = (($op2.get &amp; ~($size-1))/8);
+        cpu.cf = (0 != ($op1.getA offset) &amp; bit));
+        cpu.flagStatus &amp;= NCF;
+        $op1.setA offset, $cast($op1.getA offset)^bit));</snippet>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Ib</args>
+    <args size="32">Ed;Gd</args>
+  </opcode>
+
+  <opcode mnemonic="btr" mem="false">
+    <return>Branch.None</return>
+    <snippet>        int bit = 1 &lt;&lt; ($op2.get &amp; ($size-1));
+        cpu.cf = (0 != ($op1.get &amp; bit));
+        cpu.flagStatus &amp;= NCF;
+        $op1.set$cast($op1.get &amp; ~bit));</snippet>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+  </opcode>
+  <opcode mnemonic="btr" mem="true">
+    <return>Branch.None</return>
+    <snippet>        int bit = 1 &lt;&lt; ($op2.get &amp; ($size-1));
+        int offset = (($op2.get &amp; ~($size-1))/8);
+        cpu.cf = (0 != ($op1.getA offset) &amp; bit));
+        cpu.flagStatus &amp;= NCF;
+        $op1.setA offset, $cast($op1.getA offset) &amp; ~bit));</snippet>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+  </opcode>
+
+  <opcode mnemonic="bts" mem="false">
+    <return>Branch.None</return>
+    <snippet>        int bit = 1 &lt;&lt; ($op2.get &amp; ($size-1));
+        cpu.cf = (0 != ($op1.get &amp; bit));
+        cpu.flagStatus &amp;= NCF;
+        $op1.set$cast($op1.get | bit));</snippet>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+  </opcode>
+  <opcode mnemonic="bts" mem="true">
+    <return>Branch.None</return>
+    <snippet>        int bit = 1 &lt;&lt; ($op2.get &amp; ($size-1));
+        int offset = (($op2.get &amp; ~($size-1))/8);
+        cpu.cf = (0 != ($op1.getA offset) &amp; bit));
+        cpu.flagStatus &amp;= NCF;
+        $op1.setA offset, $cast($op1.getA offset) | bit));</snippet>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+  </opcode>
+
+  <opcode mnemonic="cbw">
+    <return>Branch.None</return>
+    <snippet>            cpu.r_ax.set16((byte)cpu.r_al.get8());</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="cdq">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.r_eax.get32() &lt; 0)
+            cpu.r_edx.set32(-1);
+        else
+            cpu.r_edx.set32(0);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="cmc">
+    <return>Branch.None</return>
+    <snippet>        cpu.cf = cpu.cf() ^ true;
+        cpu.flagStatus &amp;= NCF;</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="imul">
     <return>Branch.None</return>
     <snippet>            cpu.flagStatus = OSZAPC;
@@ -59,15 +174,13 @@
   </opcode>
   <opcode mnemonic="imul">
     <return>Branch.None</return>
-    <snippet>            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = $cast$op1.get;
-            cpu.flagOp2 = $castcpu.r_eax.get$size();
-            long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = (int) res64;
-            cpu.r_eax.set$size($castcpu.flagResult);
+    <snippet>            int iop1 = $cast$op1.get;
+            int iop2 = $castcpu.r_eax.get$size();
+            long res64 = (((long) iop1)*iop2);
+            int res32 = (int) res64;
+            cpu.r_eax.set$size(res32);
             cpu.r_edx.set$size($cast(int)(res64 >> $size));
-            cpu.flagIns = UCodes.IMUL$size;
-            if (res64 &lt; 0)
+            if (res32 &lt; 0)
                 cpu.sf(true);
             else
                 cpu.sf(false);
@@ -134,14 +247,12 @@
 
   <opcode mnemonic="imul">
     <return>Branch.None</return>
-    <snippet>            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = $cast$op3.get;
-            cpu.flagOp2 = $cast$op2.get;
-            long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = $cast(int) res64;
-            $op1.set$castcpu.flagResult);
-            cpu.flagIns = UCodes.IMUL$size;
-            if (res64 == cpu.flagResult)
+    <snippet>            short iop1 = $cast$op3.get;
+            short iop2 = $cast$op2.get;
+            int res32 = (((int) iop1)*iop2);
+            short res16 = (short) res32;
+            $op1.set$cast res16);
+            if (res32 == res16)
             {
                 cpu.of(false);
                 cpu.cf(false);
@@ -150,12 +261,33 @@
                 cpu.of(true);
                 cpu.cf(true);
             }
-            if (res64 &lt; 0)
+            if (res16 &lt; 0)
                 cpu.sf(true);
             else
                 cpu.sf(false);</snippet>
     <args size="16">Gw;Ew;Ib</args>
     <args size="16">Gw;Ew;Iw</args>
+  </opcode>
+  <opcode mnemonic="imul">
+    <return>Branch.None</return>
+    <snippet>            int iop1 = $cast$op3.get;
+            int iop2 = $cast$op2.get;
+            long res64 = (((long) iop1)*iop2);
+            int res32 = (int) res64;
+            $op1.set res32);
+            if (res64 == res32)
+            {
+                cpu.of(false);
+                cpu.cf(false);
+            } else
+            {
+                cpu.of(true);
+                cpu.cf(true);
+            }
+            if (res32 &lt; 0)
+                cpu.sf(true);
+            else
+                cpu.sf(false);</snippet>
     <args size="32">Gd;Ed;Ib</args>
     <args size="32">Gd;Ed;Id</args>
   </opcode>
@@ -1106,6 +1238,51 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="mul">
+    <return>Branch.None</return>
+    <snippet>            cpu.af = false;
+        int res16 = ($op1.get &amp; 0xff) * (0xFF &amp; cpu.r_eax.get8());
+        cpu.r_eax.set16(res16);
+        cpu.cf = cpu.of = (cpu.r_eax.getHigh() != 0);
+        cpu.flagResult = (short)res16;
+        cpu.flagStatus = SZP;</snippet>
+    <args size="8">Eb</args>
+  </opcode>
+  <opcode mnemonic="mul">
+    <return>Branch.None</return>
+    <snippet>            cpu.af = false;
+            long res64 = ($mask$op1.get) * ($mask cpu.r_eax.get$size());
+            cpu.r_eax.set$size($castres64);
+            cpu.r_edx.set$size($cast(res64 >> $size));
+            cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);
+            cpu.flagResult = (int)res64;
+            cpu.flagStatus = SZP;</snippet>
+    <args size="16">Ew</args>
+  </opcode>
+  <opcode mnemonic="mul">
+    <return>Branch.None</return>
+    <snippet>            cpu.af = false;
+            long res64 = (0xffffffffL &amp; $op1.get) * (0xffffffffL &amp; cpu.r_eax.get$size());
+            cpu.r_eax.set$size($castres64);
+            cpu.r_edx.set$size($cast(res64 >> $size));
+            cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);
+            cpu.flagResult = (int)res64;
+            cpu.flagStatus = SZP;</snippet>
+    <args size="32">Ed</args>
+  </opcode>
+
+  <opcode mnemonic="neg">
+    <return>Branch.None</return>
+    <snippet>            cpu.flagOp1 = $op1.get;
+            cpu.flagResult = $cast(-cpu.flagOp1);
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.NEG$size;
+            cpu.flagStatus = OSZAPC;</snippet>
+    <args size="8">Eb</args>
+    <args size="16">Ew</args>
+    <args size="32">Ed</args>
+  </opcode>
+
   <opcode mnemonic="cmpsb_a16" segment="true">
     <return>Branch.None</return>
     <snippet>        StaticOpcodes.cmpsb_a16(cpu, seg);</snippet>
@@ -1690,5 +1867,15 @@
     <args size="32">Ed;CL</args>
   </opcode>
 
-  
+  <opcode mnemonic="xlatb_a16" segment="true">
+    <return>Branch.None</return>
+    <snippet>        cpu.r_al.set8(seg.getByte((0xffff&amp;cpu.r_bx.get16()) + (0xff &amp; cpu.r_al.get8())));</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="xlatb_a32" segment="true">
+    <return>Branch.None</return>
+    <snippet>        cpu.r_al.set8(seg.getByte(cpu.r_ebx.get32() + (0xff &amp; cpu.r_al.get8())));</snippet>
+    <args size="0"></args>
+  </opcode>
 </opcodesnippets>

@@ -16,7 +16,7 @@ public class out_o16_DX_eAX extends Executable
 
     public Branch execute(Processor cpu)
     {
-        if (cpu.checkIOPermissions16(0xFFFF&cpu.r_eax.get16()))
+        if (cpu.checkIOPermissions16(0xFFFF&cpu.r_dx.get16()))
             cpu.ioports.ioPortWrite16(0xFFFF&cpu.r_dx.get16(), 0xFFFF&cpu.r_eax.get16());
         else
             throw ProcessorException.GENERAL_PROTECTION_0;

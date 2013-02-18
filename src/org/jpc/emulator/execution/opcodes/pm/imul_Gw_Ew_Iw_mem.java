@@ -23,14 +23,12 @@ public class imul_Gw_Ew_Iw_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = (short)immw;
-            cpu.flagOp2 = (short)op2.get16(cpu);
-            long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = (short)(int) res64;
-            op1.set16((short)cpu.flagResult);
-            cpu.flagIns = UCodes.IMUL16;
-            if (res64 == cpu.flagResult)
+            short iop1 = (short)immw;
+            short iop2 = (short)op2.get16(cpu);
+            int res32 = (((int) iop1)*iop2);
+            short res16 = (short) res32;
+            op1.set16((short) res16);
+            if (res32 == res16)
             {
                 cpu.of(false);
                 cpu.cf(false);
@@ -39,7 +37,7 @@ public class imul_Gw_Ew_Iw_mem extends Executable
                 cpu.of(true);
                 cpu.cf(true);
             }
-            if (res64 < 0)
+            if (res16 < 0)
                 cpu.sf(true);
             else
                 cpu.sf(false);

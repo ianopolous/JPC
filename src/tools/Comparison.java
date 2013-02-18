@@ -161,6 +161,7 @@ public class Comparison
         byte[] sdata2 = new byte[4096];
         int[] fast = null, old=null;
         boolean previousLss = false;
+        int previousStackAddr = 0;
         while (true)
         {
             try {
@@ -179,7 +180,7 @@ public class Comparison
                 line = (String) instructionInfo.invoke(newpc, new Integer(1)); // instructions per block
             } catch (Exception e)
             {
-                if (!e.getCause().getMessage().contains("PAGE_FAULT"))
+                if (!e.toString().contains("PAGE_FAULT"))
                 {
                     e.printStackTrace();
                     System.out.printf("Error getting instruction info.. at cs:eip = %08x\n", fast[8]+(fast[10]<<4));
@@ -279,26 +280,15 @@ public class Comparison
                     espPageIndex = esp;
                 else
                     espPageIndex = esp >>> 12;
+                if (previousStackAddr != espPageIndex)
+                {
+                    // we've changed stacks, compare the old one as well
+                    compareStacks(previousStackAddr, previousStackAddr, save1, newpc, sdata1, save2, oldpc, sdata2, pm, load1);
 
-                Integer sl1 = (Integer)save1.invoke(newpc, new Integer(espPageIndex), sdata1, pm);
-                Integer sl2 = (Integer)save2.invoke(oldpc, new Integer(espPageIndex), sdata2, pm);
-                List<Integer> addrs = new ArrayList();
-                if (sl2 > 0)
-                    if (!samePage(espPageIndex, sdata1, sdata2, addrs))
-                    {
-                        int addr = addrs.get(0);
-                        if ((addrs.size() == 1) && ((sdata1[addr]^sdata2[addr]) == 0x10))
-                        { // ignore differences from pushing different AF to stack
-                            load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
-                        }
-                        else
-                        {
-                            printHistory();
-                            System.out.println("Error here... look above");
-                            printPage(sdata1, sdata2, esp);
-                            load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
-                        }
-                    }
+                    previousStackAddr = espPageIndex;
+                }
+
+                compareStacks(espPageIndex, esp, save1, newpc, sdata1, save2, oldpc, sdata2, pm, load1);
             }
 
             if (!mem)
@@ -329,6 +319,29 @@ public class Comparison
                     }
             }
         }
+    }
+
+    private static void compareStacks(int espPageIndex, int esp, Method save1, Object newpc, byte[] sdata1, Method save2, Object oldpc,byte[] sdata2, boolean pm, Method load1) throws Exception
+    {
+        Integer sl1 = (Integer)save1.invoke(newpc, new Integer(espPageIndex), sdata1, pm);
+        Integer sl2 = (Integer)save2.invoke(oldpc, new Integer(espPageIndex), sdata2, pm);
+        List<Integer> addrs = new ArrayList();
+        if (sl2 > 0)
+            if (!samePage(espPageIndex, sdata1, sdata2, addrs))
+            {
+                int addr = addrs.get(0);
+                if ((addrs.size() == 1) && ((sdata1[addr]^sdata2[addr]) == 0x10))
+                { // ignore differences from pushing different AF to stack
+                    load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
+                }
+                else
+                {
+                    printHistory();
+                    System.out.println("Error here... look above");
+                    printPage(sdata1, sdata2, esp);
+                    load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
+                }
+            }
     }
 
     private static String previousInstruction()

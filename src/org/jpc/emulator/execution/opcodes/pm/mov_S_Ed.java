@@ -21,9 +21,13 @@ public class mov_S_Ed extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op2 = cpu.regs[op2Index];
+        if (segIndex == 0)
+            throw ProcessorException.UNDEFINED;
         cpu.setSeg(segIndex, (short)op2.get32());
         if (segIndex == Processor.getSegmentIndex("ss"))
+        {
             cpu.eflagsInterruptEnable = false;
+        }
         return Branch.None;
     }
 
