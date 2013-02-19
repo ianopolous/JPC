@@ -3733,7 +3733,7 @@ public class Processor implements HardwareComponent
                 handleRealModeInterrupt(vector);
             }
         }
-        eflagsInterruptEnable = eflagsInterruptEnableSoon;
+        //eflagsInterruptEnable = eflagsInterruptEnableSoon;
     }
 
     public final void processProtectedModeInterrupts(int instructions)
@@ -3751,7 +3751,7 @@ public class Processor implements HardwareComponent
                 handleHardProtectedModeInterrupt(interruptController.cpuGetInterrupt());
             }
         }
-        eflagsInterruptEnable = eflagsInterruptEnableSoon;
+        //eflagsInterruptEnable = eflagsInterruptEnableSoon;
     }
 
     public final void processVirtual8086ModeInterrupts(int instructions)
@@ -3773,7 +3773,7 @@ public class Processor implements HardwareComponent
 
             }
         }
-        eflagsInterruptEnable = eflagsInterruptEnableSoon;
+        //eflagsInterruptEnable = eflagsInterruptEnableSoon;
     }
 
     public final void handleRealModeException(ProcessorException e)

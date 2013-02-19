@@ -361,7 +361,8 @@ public class PC {
     {
         if (!linear)
             physicalAddr.setPage(page, data);
-        physicalAddr.setPage(LinearMemoryViewer.translateLinearAddressToInt(physicalAddr, processor, page)>>> 12, data);
+        else
+            physicalAddr.setPage(LinearMemoryViewer.translateLinearAddressToInt(physicalAddr, processor, page)>>> 12, data);
     }
 
     /**

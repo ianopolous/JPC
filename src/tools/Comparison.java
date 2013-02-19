@@ -38,9 +38,9 @@ public class Comparison
     public static final String[] isolinux = {"-cdrom", "isolinux.iso", "-boot", "cdrom"};
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
-    public static final String[] win3 = {"-hda", "win311.img", "-boot", "hda"};
+    public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
 
-    public static String[] pcargs = linux;
+    public static String[] pcargs = win311;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -77,9 +77,9 @@ public class Comparison
     public static TreeSet<KeyBoardEvent> keyboardInput = new TreeSet<KeyBoardEvent>();
     static
     {
-        //keyboardInput.add(new KeyBoardEvent(0x2000000L, "cd windows\n"));
-        //keyboardInput.add(new KeyBoardEvent(0x2000100L, "win\n"));
-        keyboardInput.add(new KeyBoardEvent(0x7000000L, "./test-i386\n"));
+        keyboardInput.add(new KeyBoardEvent(0x2000000L, "cd windows\n"));
+        keyboardInput.add(new KeyBoardEvent(0x2000100L, "win\n"));
+        //keyboardInput.add(new KeyBoardEvent(0x7000000L, "./test-i386\n"));
     }
 
     public static TreeSet<MouseEvent> mouseInput = new TreeSet<MouseEvent>();
@@ -332,6 +332,7 @@ public class Comparison
                 int addr = addrs.get(0);
                 if ((addrs.size() == 1) && ((sdata1[addr]^sdata2[addr]) == 0x10))
                 { // ignore differences from pushing different AF to stack
+                    System.out.println("ignoring different AF on stack...");
                     load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
                 }
                 else

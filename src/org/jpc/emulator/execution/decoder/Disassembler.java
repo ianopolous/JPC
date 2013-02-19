@@ -221,14 +221,14 @@ public class Disassembler
         Executable current = start;
         int x86Length = currentInsn.x86Length;
         int count = 1;
-        boolean previousSti = false;
+        boolean delayInterrupts = false;
         while (!currentInsn.isBranch())
         {
-            if (((previousSti) || (count >= MAX_INSTRUCTIONS_PER_BLOCK)) && !currentInsn.toString().equals("sti"))
+            if (((delayInterrupts) || (count >= MAX_INSTRUCTIONS_PER_BLOCK)) && !currentInsn.toString().equals("sti"))
             {
                 Executable eip = getEipUpdate(mode, startAddr, currentInsn);
                 current.next = eip;
-                if (!previousSti && (MAX_INSTRUCTIONS_PER_BLOCK > 10))
+                if (!delayInterrupts && (MAX_INSTRUCTIONS_PER_BLOCK > 10))
                     System.out.println((String.format("Exceeded maximum number of instructions in a block at %x", startAddr)));
                 return constructBlock(startin, start, x86Length, count);
             }
@@ -243,8 +243,8 @@ public class Disassembler
             if (debug)
                 System.out.printf("Disassembled next instruction (%d): %s at %x\n", count, next, input.getAddress());
             count++;
-            if (currentInsn.toString().equals("sti")) // to allow for checking interrupts 1 instruction after sti
-                previousSti = true;
+            if (delayInterrupts(currentInsn))
+                delayInterrupts = true;
 
             currentInsn.next = nextInsn;
             currentInsn = nextInsn;
@@ -254,6 +254,15 @@ public class Disassembler
         }
 
         return constructBlock(startin, start, x86Length, count);
+    }
+
+    public static boolean delayInterrupts(Instruction in)
+    {
+        if (in.toString().equals("sti")) // to delay checking interrupts until 1 instruction after sti
+            return true;
+        if (in.toString().startsWith("pop") && in.toString().endsWith("SS"))
+            return true;
+        return false;
     }
 
     private static BasicBlock constructBlock(Instruction startin, Executable start, int x86Length, int x86Count)

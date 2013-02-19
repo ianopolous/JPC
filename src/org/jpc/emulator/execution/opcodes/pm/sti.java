@@ -18,10 +18,10 @@ public class sti extends Executable
     {
         if (cpu.getIOPrivilegeLevel() >= cpu.getCPL()) {
                         cpu.eflagsInterruptEnable = true;
-                        cpu.eflagsInterruptEnableSoon = true;
+                        //cpu.eflagsInterruptEnableSoon = true;
                     } else {
                         if ((cpu.getIOPrivilegeLevel() < cpu.getCPL()) && (cpu.getCPL() == 3) && ((cpu.getEFlags() & (1 << 20)) == 0)) {
-                            cpu.eflagsInterruptEnableSoon = true;
+                            cpu.eflagsVirtualInterrupt = true;
                         } else
                             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
                     }

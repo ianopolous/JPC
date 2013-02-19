@@ -260,6 +260,21 @@
     <args size="32">rAX;Id</args>
   </opcode>
 
+  <opcode mnemonic="cwd">
+    <return>Branch.None</return>
+    <snippet>        if ((short)cpu.r_ax.get16() &lt; 0)
+            cpu.r_dx.set16((short)-1);
+        else
+            cpu.r_dx.set16((short)0);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="cwde">
+    <return>Branch.None</return>
+    <snippet>            cpu.r_eax.set32((short)cpu.r_ax.get16());</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="dec">
     <return>Branch.None</return>
     <snippet>        cpu.cf = cpu.cf();
@@ -643,6 +658,21 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="lss_o16">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op2.get + op2.getBase(cpu);
+        cpu.ss(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
+        $op1.setcpu.physicalMemory.getWord(addr));</snippet>
+    <args size="16">Gw;M</args>
+  </opcode>
+  <opcode mnemonic="lss_o32">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op2.get + op2.getBase(cpu);
+        cpu.ss(0xFFFF &amp; cpu.physicalMemory.getWord(addr+4));
+        $op1.setcpu.physicalMemory.getDoubleWord(addr));</snippet>
+    <args size="32">Gd;M</args>
+  </opcode>
+
   <opcode mnemonic="mov">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast$op2.get);</snippet>
@@ -768,8 +798,7 @@
 
   <opcode mnemonic="pop_o16">
     <return>Branch.None</return>
-    <snippet>        $op1.set$castcpu.pop$size());
-        cpu.eflagsInterruptEnable = false;</snippet>
+    <snippet>        $op1.set$castcpu.pop$size());</snippet>
     <args size="16">SS</args>
   </opcode>
 
@@ -1017,6 +1046,12 @@
   <opcode mnemonic="sldt">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast(0xFFFF &amp; cpu.ldtr.getSelector()));</snippet>
+    <args size="16">Ew</args>
+  </opcode>
+
+  <opcode mnemonic="smsw">
+    <return>Branch.None</return>
+    <snippet>        $op1.set$cast(0xFFFF &amp; cpu.getCR0()));</snippet>
     <args size="16">Ew</args>
   </opcode>
 

@@ -150,6 +150,21 @@
     <args size="32">rAX;Id</args>
   </opcode>
 
+  <opcode mnemonic="arpl">
+    <return>Branch.None</return>
+    <snippet>        int sel1 = $op1.get;
+        int sel2 = $op2.get;
+        if ((sel1 &amp; 3) &lt; (sel2 &amp; 3))
+        {
+            cpu.zf(true);
+            $op1.set $cast(sel1 | (sel2 &amp; 3)));
+        } else
+        {
+            cpu.zf(false);
+        }</snippet>
+    <args size="16">Ew;Gw</args>
+  </opcode>
+
   <opcode mnemonic="bound">
     <return>Branch.None</return>
     <snippet>        int addr = $op2.get;
@@ -407,6 +422,34 @@
   <opcode mnemonic="cmovns">
     <return>Branch.None</return>
     <snippet>        if (!cpu.sf())
+            $op1.set$cast$op2.get);</snippet>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+  </opcode>
+  <opcode mnemonic="cmovo">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.of())
+            $op1.set$cast$op2.get);</snippet>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+  </opcode>
+  <opcode mnemonic="cmovno">
+    <return>Branch.None</return>
+    <snippet>        if (!cpu.of())
+            $op1.set$cast$op2.get);</snippet>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+  </opcode>
+  <opcode mnemonic="cmovp">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.pf())
+            $op1.set$cast$op2.get);</snippet>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+  </opcode>
+  <opcode mnemonic="cmovnp">
+    <return>Branch.None</return>
+    <snippet>        if (!cpu.pf())
             $op1.set$cast$op2.get);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
@@ -1551,8 +1594,7 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="pop_o16">
     <return>Branch.None</return>
-    <snippet>        $op1.set$castcpu.pop$size());
-        cpu.eflagsInterruptEnable = false;</snippet>
+    <snippet>        $op1.set$castcpu.pop$size());</snippet>
     <args size="16">SS</args>
   </opcode>
 
@@ -2121,10 +2163,10 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <return>Branch.None</return>
     <snippet>        if (cpu.getIOPrivilegeLevel() >= cpu.getCPL()) {
                         cpu.eflagsInterruptEnable = true;
-                        cpu.eflagsInterruptEnableSoon = true;
+                        //cpu.eflagsInterruptEnableSoon = true;
                     } else {
                         if ((cpu.getIOPrivilegeLevel() &lt; cpu.getCPL()) &amp;&amp; (cpu.getCPL() == 3) &amp;&amp; ((cpu.getEFlags() &amp; (1 &lt;&lt; 20)) == 0)) {
-                            cpu.eflagsInterruptEnableSoon = true;
+                            cpu.eflagsVirtualInterrupt = true;
                         } else
                             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
                     }</snippet>
@@ -2399,6 +2441,7 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="8">Eb;Gb</args>
     <args size="8">Gb;Eb</args>
     <args size="16">Ew;Ib</args>
+    <args size="16">Ew;Iw</args>
     <args size="32">Ed;Ib</args>
     <args size="32">Ed;Id</args>
     <args size="16">Ew;Gw</args>

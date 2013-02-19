@@ -1,6 +1,12 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="x86optable.xsl" type="text/xsl"?>
 <opcodesnippets>
+  <opcode mnemonic="arpl">
+    <return>Branch.None</return>
+    <snippet>        if (true) throw ProcessorException.UNDEFINED;</snippet>
+    <args size="16">Ew;Gw</args>
+  </opcode>
+
   <opcode mnemonic="cli">
     <return>Branch.None</return>
     <snippet>        if (cpu.eflagsIOPrivilegeLevel == 3)
@@ -15,6 +21,13 @@
 	    else
 	        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION,0,true);//ProcessorException.GENERAL_PROTECTION_0;
         }</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="hlt">
+    <return>Branch.Jmp_Unknown</return>
+    <snippet>            cpu.eip += blockLength;
+            if (true) throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
     <args size="0"></args>
   </opcode>
 
@@ -125,6 +138,24 @@
     <args size="32">DX;eAX</args>
   </opcode>
 
+  <opcode mnemonic="rep_outsw_a16">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions16(0xffff &amp; cpu.r_dx.get16()))
+            StaticOpcodes.rep_outsw_a16(cpu, cpu.es);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="rep_outsd_a16">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions32(0xffff &amp; cpu.r_dx.get16()))
+            StaticOpcodes.rep_outsd_a16(cpu, cpu.es);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="popfw">
     <return>Branch.None</return>
     <snippet>        if (cpu.eflagsIOPrivilegeLevel &lt; 3)
@@ -133,6 +164,16 @@
         flags |= (cpu.pop16() &amp; 0xcfff);
         cpu.setFlags($cast flags);</snippet>
     <args size="16"></args>
+  </opcode>
+
+  <opcode mnemonic="popfd">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.eflagsIOPrivilegeLevel &lt; 3)
+            throw ProcessorException.GENERAL_PROTECTION_0;
+        int flags = cpu.getEFlags() &amp; ~0x24cfff;
+        flags |= (cpu.pop32() &amp; 0x24cfff);
+        cpu.setEFlags(flags);</snippet>
+    <args size="32"></args>
   </opcode>
 
   <opcode mnemonic="pushfw">

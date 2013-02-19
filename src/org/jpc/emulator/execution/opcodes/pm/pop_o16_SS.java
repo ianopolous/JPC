@@ -17,7 +17,6 @@ public class pop_o16_SS extends Executable
     public Branch execute(Processor cpu)
     {
         cpu.ss((short)cpu.pop16());
-        cpu.eflagsInterruptEnable = false;
         return Branch.None;
     }
 
