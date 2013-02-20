@@ -21,7 +21,7 @@ public class sbb_Gd_Ed_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        int add = (cpu.cf() ? 1: 0);
+        int add = (cpu.cf()? 1: 0);
         cpu.flagOp1 = op1.get32();
         cpu.flagOp2 = op2.get32(cpu);
         cpu.flagResult = (cpu.flagOp1 - (cpu.flagOp2 + add));

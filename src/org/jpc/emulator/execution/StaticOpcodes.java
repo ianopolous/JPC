@@ -1454,6 +1454,20 @@ public class StaticOpcodes
         cpu.r_si.set16(addr);
     }
 
+    public static void outsb_a32(Processor cpu, Segment seg)
+    {
+        int port = cpu.r_dx.get16() & 0xffff;
+        int addr = cpu.r_esi.get32();
+
+        cpu.ioports.ioPortWrite8(port, 0xff & seg.getByte(addr));
+        if (cpu.df) {
+            addr -= 1;
+        } else {
+            addr += 1;
+        }
+        cpu.r_esi.set32(addr);
+    }
+
     public static void outsw_a16(Processor cpu, Segment seg)
     {
         int port = cpu.r_dx.get16() & 0xffff;

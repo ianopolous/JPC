@@ -18,9 +18,9 @@ public class sbb_o16_rAX_Iw extends Executable
 
     public Branch execute(Processor cpu)
     {
-        int add = (cpu.cf() ? 1: 0);
-        cpu.flagOp1 = (short)cpu.r_eax.get16();
-        cpu.flagOp2 = (short)immw;
+        int add = (cpu.cf()? 1: 0);
+        cpu.flagOp1 = cpu.r_eax.get16();
+        cpu.flagOp2 = immw;
         cpu.flagResult = (short)(cpu.flagOp1 - (cpu.flagOp2 + add));
         cpu.r_eax.set16((short)cpu.flagResult);
         cpu.flagIns = UCodes.SBB16;

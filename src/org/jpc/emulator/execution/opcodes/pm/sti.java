@@ -18,7 +18,6 @@ public class sti extends Executable
     {
         if (cpu.getIOPrivilegeLevel() >= cpu.getCPL()) {
                         cpu.eflagsInterruptEnable = true;
-                        //cpu.eflagsInterruptEnableSoon = true;
                     } else {
                         if ((cpu.getIOPrivilegeLevel() < cpu.getCPL()) && (cpu.getCPL() == 3) && ((cpu.getEFlags() & (1 << 20)) == 0)) {
                             cpu.eflagsVirtualInterrupt = true;

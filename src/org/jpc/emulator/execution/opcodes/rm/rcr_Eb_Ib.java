@@ -22,15 +22,15 @@ public class rcr_Eb_Ib extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
             int shift = immb & 0x1f;
+            shift %= 8+1;
             if (shift != 0)
             {
-            shift %= 8+1;
             long val = 0xFF&op1.get8();
-            val |= cpu.cf() ? 1 << 8 : 0;
+            val |= cpu.cf() ? 1L << 8 : 0;
             val = (val >>> shift) | (val << (8+1-shift));
             op1.set8((byte)(int)val);
-            boolean bit30  = (val &  (1 << (8-2))) != 0;
-            boolean bit31 = (val & (1 << (8-1))) != 0;
+            boolean bit30  = (val &  (1L << (8-2))) != 0;
+            boolean bit31 = (val & (1L << (8-1))) != 0;
             cpu.cf((val & (1L << 8)) != 0);
             if (shift == 1)
                 cpu.of(bit30 ^ bit31);

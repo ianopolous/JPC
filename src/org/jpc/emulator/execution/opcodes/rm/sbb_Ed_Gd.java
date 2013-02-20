@@ -22,7 +22,7 @@ public class sbb_Ed_Gd extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
         Reg op2 = cpu.regs[op2Index];
-        int add = (cpu.cf() ? 1: 0);
+        int add = (cpu.cf()? 1: 0);
         cpu.flagOp1 = op1.get32();
         cpu.flagOp2 = op2.get32();
         cpu.flagResult = (cpu.flagOp1 - (cpu.flagOp2 + add));

@@ -27,7 +27,10 @@ public class shld_Ew_Gw_Ib extends Executable
         if(immb != 0)
         {
             int shift = immb & 0x1f;
-            cpu.flagOp1 = op1.get16();
+            if (shift <= 16)
+                cpu.flagOp1 = op1.get16();
+            else
+                cpu.flagOp1 = op2.get16();
             cpu.flagOp2 = shift;
             long rot = ((long)(0xFFFF&op1.get16()) << (2*16)) | ((0xffffffffL & 0xFFFF&op2.get16()) << 16) | (0xFFFF&op1.get16());
             cpu.flagResult = (short)((int)((rot << shift) | (rot >>> (2*16-shift))));

@@ -36,11 +36,12 @@ public class Comparison
     public static final String[] mosa = {"-hda", "mosa-project.img", "-boot", "hda"};
     public static final String[] dsl = {"-hda", "dsl-desktop-demo2.img", "-boot", "hda"};
     public static final String[] isolinux = {"-cdrom", "isolinux.iso", "-boot", "cdrom"};
+    public static final String[] dslCD = {"-cdrom", "/media/ian/My Passport/jpc/disks/cd/dsl-n-01RC4.iso", "-boot", "cdrom"};
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
 
-    public static String[] pcargs = win311;
+    public static String[] pcargs = dslCD;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -65,6 +66,7 @@ public class Comparison
         // errors with the old JPC
         //flagIgnores.put("add", ~0x800)
         //flagIgnores.put("btr", ~0x1);
+        flagIgnores.put("rcl", ~0x800);
         flagIgnores.put("shr", ~0x810);
         //flagIgnores.put("shrd", ~0x810);
         flagIgnores.put("shld", ~0x810);
@@ -161,6 +163,7 @@ public class Comparison
         byte[] sdata2 = new byte[4096];
         int[] fast = null, old=null;
         boolean previousLss = false;
+        boolean previousCli = false;
         int previousStackAddr = 0;
         while (true)
         {
@@ -221,6 +224,7 @@ public class Comparison
             historyIndex = (historyIndex+1)%history.length;
             if (fast[16] == 0xB23C14E)
                 System.out.println("Here comes the bug!");
+            
             Set<Integer> diff = new HashSet<Integer>();
             if (!sameStates(fast, old, compareFlags, diff))
             {
@@ -230,6 +234,16 @@ public class Comparison
                     String instr = ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[0];
                     if (instr.startsWith("rep"))
                         instr += ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[1];
+                    if (previousCli)
+                    {
+                         if ((fast[9]^old[9]) == 0x200)
+                         {
+                             fast[9] = old[9];
+                             setState1.invoke(newpc, (int[])fast);
+                         }
+                        previousCli = false;
+                    }
+
                     if (previousLss)
                     {
                         previousLss = false;
@@ -251,10 +265,12 @@ public class Comparison
                     }
                     if (instr.equals("lss"))
                         previousLss = true;
+                    if (instr.equals("cli"))
+                        previousCli = true;
                 }
                 else if ((diff.size() == 1) && diff.contains(0) && ((fast[0]^old[0]) == 0x10))
                 {
-                    //often eax isolinux loaded with flags which contain arbirary AF values, ignore these
+                    //often eax is loaded with flags which contain arbirary AF values, ignore these
                     fast[0] = old[0];
                     setState1.invoke(newpc, (int[])fast);
                 }
@@ -264,10 +280,7 @@ public class Comparison
                     printHistory();
                     for (int diffIndex: diff)
                         System.out.printf("Difference: %s %08x - %08x : %08x\n", names[diffIndex], fast[diffIndex], old[diffIndex], fast[diffIndex]^old[diffIndex]);
-                    //if (continueExecution("registers"))
                         setState1.invoke(newpc, (int[])old);
-                    //else
-                    //    System.exit(0);
                 }
             }
             if (compareStack)

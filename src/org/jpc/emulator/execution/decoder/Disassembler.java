@@ -224,7 +224,7 @@ public class Disassembler
         boolean delayInterrupts = false;
         while (!currentInsn.isBranch())
         {
-            if (((delayInterrupts) || (count >= MAX_INSTRUCTIONS_PER_BLOCK)) && !currentInsn.toString().equals("sti"))
+            if (((delayInterrupts) || (count >= MAX_INSTRUCTIONS_PER_BLOCK)) && !delayInterrupts(currentInsn))
             {
                 Executable eip = getEipUpdate(mode, startAddr, currentInsn);
                 current.next = eip;
@@ -260,7 +260,7 @@ public class Disassembler
     {
         if (in.toString().equals("sti")) // to delay checking interrupts until 1 instruction after sti
             return true;
-        if (in.toString().startsWith("pop") && in.toString().endsWith("SS"))
+        if (in.toString().startsWith("pop ss"))
             return true;
         return false;
     }

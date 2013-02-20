@@ -72,7 +72,7 @@ import javax.swing.*;
 public class PC {
 
     public static int SYS_RAM_SIZE;
-    public static final int DEFAULT_RAM_SIZE = Option.ram.intValue(64) * 1024 * 1024;
+    public static final int DEFAULT_RAM_SIZE = Option.ram.intValue(256) * 1024 * 1024;
     public static final int INSTRUCTIONS_BETWEEN_INTERRUPTS = 1; 
 
     public static volatile boolean compile = Option.compile.isSet();

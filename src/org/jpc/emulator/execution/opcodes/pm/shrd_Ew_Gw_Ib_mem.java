@@ -26,7 +26,10 @@ public class shrd_Ew_Gw_Ib_mem extends Executable
         if(immb != 0)
         {
             int shift = immb & 0x1f;
-            cpu.flagOp1 = op1.get16(cpu);
+            if (shift <= 16)
+                cpu.flagOp1 = op1.get16(cpu);
+            else
+                cpu.flagOp1 = op2.get16();
             cpu.flagOp2 = shift;
             long rot = ((long)op1.get16(cpu) << (2*16)) | ((0xFFFF&op2.get16()) << 16) | (0xFFFF&op1.get16(cpu));
             cpu.flagResult = (short)((int)(rot >> shift));

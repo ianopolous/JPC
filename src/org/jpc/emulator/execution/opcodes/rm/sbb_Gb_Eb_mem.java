@@ -21,9 +21,9 @@ public class sbb_Gb_Eb_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        int add = (cpu.cf() ? 1: 0);
-        cpu.flagOp1 = (byte)op1.get8();
-        cpu.flagOp2 = (byte)op2.get8(cpu);
+        int add = (cpu.cf()? 1: 0);
+        cpu.flagOp1 = op1.get8();
+        cpu.flagOp2 = op2.get8(cpu);
         cpu.flagResult = (byte)(cpu.flagOp1 - (cpu.flagOp2 + add));
         op1.set8((byte)cpu.flagResult);
         cpu.flagIns = UCodes.SBB8;

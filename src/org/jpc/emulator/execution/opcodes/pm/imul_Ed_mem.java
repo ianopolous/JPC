@@ -28,7 +28,7 @@ public class imul_Ed_mem extends Executable
                 cpu.sf(true);
             else
                 cpu.sf(false);
-            if (res64 == cpu.flagResult)
+            if (res64 == res32)
             {
                 cpu.of(false);
                 cpu.cf(false);

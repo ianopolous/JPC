@@ -16,7 +16,7 @@ public class cli extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.eflagsInterruptEnable = cpu.eflagsInterruptEnableSoon = false;
+        cpu.eflagsInterruptEnable = false;
         return Branch.None;
     }
 

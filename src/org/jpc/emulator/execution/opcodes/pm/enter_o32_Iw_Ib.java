@@ -20,8 +20,9 @@ public class enter_o32_Iw_Ib extends Executable
 
     public Branch execute(Processor cpu)
     {
-            int frameSize = immw;
+            int frameSize = 0xffff & immw;
         int nestingLevel = immb;
+        nestingLevel &= 0x1f;
         if (cpu.ss.getDefaultSizeFlag())
             cpu.enter_o32_a32(frameSize, nestingLevel);
         else

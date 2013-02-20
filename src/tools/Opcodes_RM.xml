@@ -71,7 +71,7 @@
 
   <opcode mnemonic="cli">
     <return>Branch.None</return>
-    <snippet>        cpu.eflagsInterruptEnable = cpu.eflagsInterruptEnableSoon = false;</snippet>
+    <snippet>        cpu.eflagsInterruptEnable = false;</snippet>
     <args size="0"></args>
   </opcode>
 
@@ -129,45 +129,37 @@
 
   <opcode mnemonic="enter_o16">
     <return>Branch.None</return>
-    <snippet>            int frameSize = $op1.get;
+    <snippet>            int frameSize = 0xffff &amp; $op1.get;
         int nestingLevel = $op2.get;
-        nestingLevel %= 32;
+        nestingLevel &amp;= 0x1f;
 
-        int frameTemp;
-        if (cpu.ss.getDefaultSizeFlag())
-        {
-            cpu.push32(cpu.r_ebp.get32());
-            frameTemp = cpu.r_esp.get32();
-        }
-        else
-        {
-            cpu.push16((short)cpu.r_bp.get16());
-            frameTemp = cpu.r_esp.get16();
-        }
+        cpu.push16((short)cpu.r_bp.get16());
+        int frame_ptr16 = 0xffff &amp; cpu.r_esp.get16();
 
-	if (nestingLevel != 0) {
-	    while (--nestingLevel != 0) {
-                if (cpu.ss.getDefaultSizeFlag())
-                    cpu.push16(cpu.ss.getWord(cpu.r_ebp.get32()));
-                else
-                    cpu.push16(cpu.ss.getWord(cpu.r_ebp.get16() &amp; 0xffff));
-		//tempEBP = (tempEBP &amp; ~0xffff) | ((tempEBP - 2) &amp; 0xffff);
-		//tempESP = (tempESP &amp; ~0xffff) | ((tempESP - 2) &amp; 0xffff);
-		//cpu.ss.setWord(tempESP &amp; 0xffff, cpu.ss.getWord(tempEBP &amp; 0xffff));
-	    }
-	    cpu.push16((short)frameTemp);
-	}
-	
 	if (cpu.ss.getDefaultSizeFlag())
         {
-            cpu.r_ebp.set32(frameTemp);
-            cpu.r_esp.set32(cpu.r_esp.get32()-frameSize);
-        }
-        else
+            int tmpebp = cpu.r_ebp.get32();
+            if (nestingLevel != 0) {
+	        while (--nestingLevel != 0) {
+                    tmpebp -= 2;
+                    cpu.push16(cpu.ss.getWord(tmpebp));
+                }
+                cpu.push16((short)frame_ptr16);
+            }
+        } else
         {
-            cpu.r_bp.set16((short)frameTemp);
-            cpu.r_sp.set16((short)(cpu.r_sp.get16()-frameSize));
-        }</snippet>
+            int tmpbp = 0xffff &amp; cpu.r_ebp.get16();
+            if (nestingLevel != 0) {
+	        while (--nestingLevel != 0) {
+                    tmpbp -= 2;
+                    cpu.push16(cpu.ss.getWord(tmpbp));
+                }
+                cpu.push16((short)frame_ptr16);
+            }
+        }
+
+        cpu.r_sp.set16((short)(cpu.r_sp.get16()-frameSize)); // TODO: do a write permission check here
+        cpu.r_bp.set16((short)frame_ptr16);</snippet>
     <args size="16">Iw;Ib</args>
   </opcode>
 
@@ -549,69 +541,6 @@
     <return>Branch.None</return>
     <snippet>        $op1.set$cast((cpu.zf() || (cpu.sf() != cpu.of())) ? 1 : 0));</snippet>
     <args size="8">Eb</args>
-  </opcode>
-
-  <opcode mnemonic="shld">
-    <return>Branch.None</return>
-    <snippet>        if($op3.get != 0)
-        {
-            int shift = $op3.get &amp; 0x1f;
-            cpu.flagOp1 = $op1.get;
-            cpu.flagOp2 = shift;
-            long rot = ((long)($mask$op1.get) &lt;&lt; (2*$size)) | ((0xffffffffL &amp; $mask$op2.get) &lt;&lt; $size) | ($mask$op1.get);
-            cpu.flagResult = $cast((int)((rot &lt;&lt; shift) | (rot >>> (2*$size-shift))));
-            $op1.set$castcpu.flagResult);
-            cpu.flagIns = UCodes.SHLD$size;
-            cpu.flagStatus = OSZAPC;
-        }</snippet>
-    <args size="16">Ew;Gw;Ib</args>
-  </opcode>
-  <opcode mnemonic="shld">
-    <return>Branch.None</return>
-    <snippet>        if($op3.get != 0)
-        {
-            int shift = $op3.get &amp; 0x1f;
-            cpu.flagOp1 = $op1.get;
-            cpu.flagOp2 = shift;
-            long rot = ((0xffffffffL &amp;$op2.get) &lt;&lt; $size) | (0xffffffffL &amp;$op1.get);
-            cpu.flagResult = $cast((int)((rot &lt;&lt; shift) | (rot >>> (2*$size-shift))));
-            $op1.set$castcpu.flagResult);
-            cpu.flagIns = UCodes.SHLD$size;
-            cpu.flagStatus = OSZAPC;
-        }</snippet>
-    <args size="32">Ed;Gd;Ib</args>
-  </opcode>
-
-  <opcode mnemonic="shrd">
-    <return>Branch.None</return>
-    <snippet>        if($op3.get != 0)
-        {
-            int shift = $op3.get &amp; 0x1f;
-            cpu.flagOp1 = $op1.get;
-            cpu.flagOp2 = shift;
-            long rot = ((long)$op1.get &lt;&lt; (2*$size)) | (($mask$op2.get) &lt;&lt; $size) | ($mask$op1.get);
-            cpu.flagResult = $cast((int)(rot >> shift));
-            $op1.set$castcpu.flagResult);
-            cpu.flagIns = UCodes.SHRD$size;
-            cpu.flagStatus = OSZAPC;
-        }</snippet>
-    <args size="16">Ew;Gw;Ib</args>
-    <args size="16">Ew;Gw;CL</args>
-  </opcode>
-  <opcode mnemonic="shrd">
-    <return>Branch.None</return>
-    <snippet>        if($op3.get != 0)
-        {
-            int shift = $op3.get &amp; 0x1f;
-            cpu.flagOp1 = $op1.get;
-            cpu.flagOp2 = shift;
-            long rot = ((0xffffffffL &amp;$op2.get) &lt;&lt; $size) | (0xffffffffL &amp; $op1.get);
-            cpu.flagResult = $cast((int)(rot >> shift));
-            $op1.set$castcpu.flagResult);
-            cpu.flagIns = UCodes.SHRD$size;
-            cpu.flagStatus = OSZAPC;
-        }</snippet>
-    <args size="32">Ed;Gd;Ib</args>
   </opcode>
 
   <opcode mnemonic="sti">

@@ -11,7 +11,6 @@
     <return>Branch.None</return>
     <snippet>        if (cpu.eflagsIOPrivilegeLevel == 3)
         {
-	    cpu.eflagsInterruptEnableSoon = false;
             cpu.eflagsInterruptEnable = false;
         }
 	else
@@ -62,6 +61,15 @@
     <return>Branch.None</return>
     <snippet>        if (cpu.checkIOPermissions16(0xffff &amp; cpu.r_dx.get16()))
             StaticOpcodes.insw_a16(cpu, cpu.es);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="rep_insw_a16">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions16(0xffff &amp; cpu.r_dx.get16()))
+            StaticOpcodes.rep_insw_a16(cpu, cpu.es);
         else
             throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
     <args size="0"></args>

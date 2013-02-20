@@ -1075,7 +1075,7 @@ public class Processor implements HardwareComponent
 
     public final boolean checkIOPermissions8(int ioportAddress)
     {
-        if (getCPL() <= eflagsIOPrivilegeLevel)
+        if ((getCPL() <= eflagsIOPrivilegeLevel) && !isVirtual8086Mode())
             return true;
 
         int ioPermMapBaseAddress = 0xffff & tss.getWord(102);
@@ -1092,7 +1092,7 @@ public class Processor implements HardwareComponent
 
     public final boolean checkIOPermissions16(int ioportAddress)
     {
-        if (getCPL() <= eflagsIOPrivilegeLevel)
+        if ((getCPL() <= eflagsIOPrivilegeLevel) && !isVirtual8086Mode())
             return true;
 
         int ioPermMapBaseAddress = 0xffff & tss.getWord(102);
@@ -1109,7 +1109,7 @@ public class Processor implements HardwareComponent
 
     public final boolean checkIOPermissions32(int ioportAddress)
     {
-        if (getCPL() <= eflagsIOPrivilegeLevel)
+        if ((getCPL() <= eflagsIOPrivilegeLevel) && !isVirtual8086Mode())
             return true;
 
         int ioPermMapBaseAddress = 0xffff & tss.getWord(102);
@@ -2838,6 +2838,39 @@ public class Processor implements HardwareComponent
         // read interrupt vector
         eip = 0xffff & idtr.getWord(4*vector);
         cs.setSelector(0xffff & idtr.getWord(4*vector+2));
+    }
+
+    public void sysenter()
+    {
+        int csSelector = (int) getMSR(Processor.SYSENTER_CS_MSR);
+        if (csSelector == 0)
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);//ProcessorException.GENERAL_PROTECTION_0;
+        eflagsInterruptEnable = false;
+        eflagsResume = false;
+
+        cs(SegmentFactory.createProtectedModeSegment(linearMemory, csSelector & 0xfffc, 0x00cf9b000000ffffl));
+        setCPL(0);
+        ss(SegmentFactory.createProtectedModeSegment(linearMemory, (csSelector + 8) & 0xfffc, 0x00cf93000000ffffl));
+
+        r_esp.set32((int) getMSR(Processor.SYSENTER_ESP_MSR));
+        eip = (int) getMSR(Processor.SYSENTER_EIP_MSR);
+    }
+
+    public void sysexit()
+    {
+        int csSelector= (int)getMSR(Processor.SYSENTER_CS_MSR);
+        if (csSelector == 0)
+            throw ProcessorException.GENERAL_PROTECTION_0;
+        if (getCPL() != 0)
+            throw ProcessorException.GENERAL_PROTECTION_0;
+
+        cs(SegmentFactory.createProtectedModeSegment(linearMemory, (csSelector + 16) | 0x3, 0x00cffb000000ffffl));
+        setCPL(3);
+        ss(SegmentFactory.createProtectedModeSegment(linearMemory, (csSelector + 24) | 0x3, 0x00cff3000000ffffl));
+        correctAlignmentChecking(ss);
+
+        r_esp.set32(r_ecx.get32());
+        eip = r_edx.get32();
     }
 
     public final void enter_o32_a32(int frameSize, int nestingLevel)
@@ -5715,6 +5748,10 @@ public class Processor implements HardwareComponent
         case IMUL32:
             return (((op1 & 0x80000000) == (op2 & 0x80000000)) && (((((long)op1) * op2) & 0xffffffff00000000L) != 0));
         case SHRD16:
+            if (op2 <=16)
+                return ((op1 >> (op2 - 1)) & 0x1) != 0;
+            else
+                return ((op1 >> (op2 - 17)) & 0x1) != 0;
         case SHRD32:
         case SHR8:
         case SHR16:

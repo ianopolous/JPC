@@ -169,7 +169,7 @@
                 cpu.sf(true);
             else
                 cpu.sf(false);
-            if (res64 == cpu.flagResult)
+            if (res64 == res32)
             {
                 cpu.of(false);
                 cpu.cf(false);
@@ -1819,6 +1819,7 @@
             if (shift == 1)
                 cpu.of(bit31 ^ bit32);</snippet>
     <args size="8">Eb;I1</args>
+    <args size="8">Eb;CL</args>
     <args size="8">Eb;Ib</args>
     <args size="16">Ew;I1</args>
     <args size="16">Ew;CL</args>
@@ -1836,10 +1837,6 @@
             cpu.cf(bit32);
             if (shift == 1)
                 cpu.of(bit31 ^ bit32);</snippet>
-    <args size="8">Eb;I1</args>
-    <args size="8">Eb;CL</args>
-    <args size="16">Ew;I1</args>
-    <args size="16">Ew;CL</args>
     <args size="32">Ed;I1</args>
     <args size="32">Ed;CL</args>
   </opcode>
@@ -1861,6 +1858,7 @@
                 cpu.of(bit30 ^ bit31);
             }</snippet>
     <args size="8">Eb;I1</args>
+    <args size="8">Eb;Ib</args>
     <args size="8">Eb;CL</args>
     <args size="16">Ew;I1</args>
     <args size="16">Ew;CL</args>
@@ -1943,6 +1941,177 @@
     <args size="32">Ed;Ib</args>
     <args size="16">Ew;CL</args>
     <args size="32">Ed;CL</args>
+  </opcode>
+
+  <opcode mnemonic="sbb">
+    <return>Branch.None</return>
+    <snippet>        int add = (cpu.cf()? 1: 0);
+        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = $op2.get;
+        cpu.flagResult = $cast(cpu.flagOp1 - (cpu.flagOp2 + add));
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.SBB$size;
+        cpu.flagStatus = OSZAPC;</snippet>
+    <args size="8">AL;Ib</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Eb;Gb</args>
+    <args size="8">Gb;Eb</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;Iw</args>
+    <args size="16">Ew;Gw</args>
+    <args size="32">Ed;Gd</args>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+  </opcode>
+
+  <opcode mnemonic="sbb_o16">
+    <return>Branch.None</return>
+    <snippet>        int add = (cpu.cf()? 1: 0);
+        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = $op2.get;
+        cpu.flagResult = $cast(cpu.flagOp1 - (cpu.flagOp2 + add));
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.SBB$size;
+        cpu.flagStatus = OSZAPC;</snippet>
+    <args size="16">rAX;Iw</args>
+  </opcode>
+
+  <opcode mnemonic="sbb_o32">
+    <return>Branch.None</return>
+    <snippet>        int add = (cpu.cf()? 1: 0);
+        cpu.flagOp1 = $op1.get;
+        cpu.flagOp2 = $op2.get;
+        cpu.flagResult = $cast(cpu.flagOp1 - (cpu.flagOp2 + add));
+        $op1.set$castcpu.flagResult);
+        cpu.flagIns = UCodes.SBB$size;
+        cpu.flagStatus = OSZAPC;</snippet>
+    <args size="32">rAX;Id</args>
+  </opcode>
+
+  <opcode mnemonic="shl">
+    <return>Branch.None</return>
+    <snippet>        int shift = $op2.get &amp; 0x1f;
+        if(shift != 0)
+        {
+            if (shift != 1)
+            {
+                cpu.of(cpu.of());
+                cpu.flagStatus = SZAPC;
+            }
+            else
+                cpu.flagStatus = OSZAPC;
+            cpu.flagOp1 = $op1.get;
+            cpu.flagOp2 = shift;
+            cpu.flagResult = $cast(cpu.flagOp1 &lt;&lt; cpu.flagOp2);
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHL$size;
+        }</snippet>
+    <args size="8">Eb;I1</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Eb;CL</args>
+    <args size="16">Ew;Gb</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;I1</args>
+    <args size="32">Ed;I1</args>
+    <args size="16">Ew;CL</args>
+    <args size="32">Ed;CL</args>
+  </opcode>
+
+  <opcode mnemonic="shr">
+    <return>Branch.None</return>
+    <snippet>        if((0x1f &amp; $op2.get) != 0)
+        {
+            cpu.flagOp1 = $mask$op1.get;
+            cpu.flagOp2 = 0x1f &amp; $op2.get;
+            cpu.flagResult = $cast(cpu.flagOp1 &gt;&gt;&gt; cpu.flagOp2);
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHR$size;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="8">Eb;I1</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Eb;CL</args>
+    <args size="16">Ew;Gb</args>
+    <args size="16">Ew;Ib</args>
+    <args size="32">Ed;Ib</args>
+    <args size="16">Ew;I1</args>
+    <args size="32">Ed;I1</args>
+    <args size="16">Ew;CL</args>
+    <args size="32">Ed;CL</args>
+  </opcode>
+
+  <opcode mnemonic="shld">
+    <return>Branch.None</return>
+    <snippet>        if($op3.get != 0)
+        {
+            int shift = $op3.get &amp; 0x1f;
+            if (shift &lt;= 16)
+                cpu.flagOp1 = $op1.get;
+            else
+                cpu.flagOp1 = $op2.get;
+            cpu.flagOp2 = shift;
+            long rot = ((long)($mask$op1.get) &lt;&lt; (2*$size)) | ((0xffffffffL &amp; $mask$op2.get) &lt;&lt; $size) | ($mask$op1.get);
+            cpu.flagResult = $cast((int)((rot &lt;&lt; shift) | (rot >>> (2*$size-shift))));
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHLD$size;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="16">Ew;Gw;Ib</args>
+    <args size="16">Ew;Gw;CL</args>
+  </opcode>
+  <opcode mnemonic="shld">
+    <return>Branch.None</return>
+    <snippet>        if($op3.get != 0)
+        {
+            int shift = $op3.get &amp; 0x1f;
+            cpu.flagOp1 = $op1.get;
+            cpu.flagOp2 = shift;
+            long rot = ((0xffffffffL &amp;$op2.get) &lt;&lt; $size) | (0xffffffffL &amp;$op1.get);
+            cpu.flagResult = $cast((int)((rot &lt;&lt; shift) | (rot >>> (2*$size-shift))));
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHLD$size;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="32">Ed;Gd;Ib</args>
+    <args size="32">Ed;Gd;CL</args>
+  </opcode>
+
+  <opcode mnemonic="shrd">
+    <return>Branch.None</return>
+    <snippet>        if($op3.get != 0)
+        {
+            int shift = $op3.get &amp; 0x1f;
+            if (shift &lt;= 16)
+                cpu.flagOp1 = $op1.get;
+            else
+                cpu.flagOp1 = $op2.get;
+            cpu.flagOp2 = shift;
+            long rot = ((long)$op1.get &lt;&lt; (2*$size)) | (($mask$op2.get) &lt;&lt; $size) | ($mask$op1.get);
+            cpu.flagResult = $cast((int)(rot >> shift));
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHRD$size;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="16">Ew;Gw;Ib</args>
+    <args size="16">Ew;Gw;CL</args>
+  </opcode>
+  <opcode mnemonic="shrd">
+    <return>Branch.None</return>
+    <snippet>        if($op3.get != 0)
+        {
+            int shift = $op3.get &amp; 0x1f;
+            cpu.flagOp1 = $op1.get;
+            cpu.flagOp2 = shift;
+            long rot = ((0xffffffffL &amp;$op2.get) &lt;&lt; $size) | (0xffffffffL &amp; $op1.get);
+            cpu.flagResult = $cast((int)(rot >> shift));
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SHRD$size;
+            cpu.flagStatus = OSZAPC;
+        }</snippet>
+    <args size="32">Ed;Gd;Ib</args>
+    <args size="32">Ed;Gd;CL</args>
   </opcode>
 
   <opcode mnemonic="xlatb_a16" segment="true">

@@ -22,9 +22,9 @@ public class sbb_Gw_Ew extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
         Reg op2 = cpu.regs[op2Index];
-        int add = (cpu.cf() ? 1: 0);
-        cpu.flagOp1 = (short)op1.get16();
-        cpu.flagOp2 = (short)op2.get16();
+        int add = (cpu.cf()? 1: 0);
+        cpu.flagOp1 = op1.get16();
+        cpu.flagOp2 = op2.get16();
         cpu.flagResult = (short)(cpu.flagOp1 - (cpu.flagOp2 + add));
         op1.set16((short)cpu.flagResult);
         cpu.flagIns = UCodes.SBB16;

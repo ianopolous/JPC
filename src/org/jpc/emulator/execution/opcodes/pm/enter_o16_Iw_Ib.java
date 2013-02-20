@@ -20,45 +20,37 @@ public class enter_o16_Iw_Ib extends Executable
 
     public Branch execute(Processor cpu)
     {
-            int frameSize = immw;
+            int frameSize = 0xffff & immw;
         int nestingLevel = immb;
-        nestingLevel %= 32;
+        nestingLevel &= 0x1f;
 
-        int frameTemp;
-        if (cpu.ss.getDefaultSizeFlag())
-        {
-            cpu.push16((short)cpu.r_bp.get16());
-            frameTemp = cpu.r_esp.get32();
-        }
-        else
-        {
-            cpu.push16((short)cpu.r_bp.get16());
-            frameTemp = cpu.r_esp.get16();
-        }
+        cpu.push16((short)cpu.r_bp.get16());
+        int frame_ptr16 = 0xffff & cpu.r_esp.get16();
 
-	if (nestingLevel != 0) {
-	    while (--nestingLevel != 0) {
-                if (cpu.ss.getDefaultSizeFlag())
-                    cpu.push16(cpu.ss.getWord(cpu.r_ebp.get32()));
-                else
-                    cpu.push16(cpu.ss.getWord(cpu.r_ebp.get16() & 0xffff));
-		//tempEBP = (tempEBP & ~0xffff) | ((tempEBP - 2) & 0xffff);
-		//tempESP = (tempESP & ~0xffff) | ((tempESP - 2) & 0xffff);
-		//cpu.ss.setWord(tempESP & 0xffff, cpu.ss.getWord(tempEBP & 0xffff));
-	    }
-	    cpu.push16((short)frameTemp);
-	}
-	
 	if (cpu.ss.getDefaultSizeFlag())
         {
-            cpu.r_ebp.set32(frameTemp);
-            cpu.r_esp.set32(cpu.r_esp.get32()-frameSize);
-        }
-        else
+            int tmpebp = cpu.r_ebp.get32();
+            if (nestingLevel != 0) {
+	        while (--nestingLevel != 0) {
+                    tmpebp -= 2;
+                    cpu.push16(cpu.ss.getWord(tmpebp));
+                }
+                cpu.push16((short)frame_ptr16);
+            }
+        } else
         {
-            cpu.r_bp.set16((short)frameTemp);
-            cpu.r_sp.set16((short)(cpu.r_sp.get16()-frameSize));
+            int tmpbp = 0xffff & cpu.r_ebp.get16();
+            if (nestingLevel != 0) {
+	        while (--nestingLevel != 0) {
+                    tmpbp -= 2;
+                    cpu.push16(cpu.ss.getWord(tmpbp));
+                }
+                cpu.push16((short)frame_ptr16);
+            }
         }
+
+        cpu.r_sp.set16((short)(cpu.r_sp.get16()-frameSize)); // TODO: do a write permission check here
+        cpu.r_bp.set16((short)frame_ptr16);
         return Branch.None;
     }
 

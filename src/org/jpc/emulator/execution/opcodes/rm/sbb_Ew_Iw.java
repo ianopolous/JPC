@@ -21,9 +21,9 @@ public class sbb_Ew_Iw extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        int add = (cpu.cf() ? 1: 0);
-        cpu.flagOp1 = (short)op1.get16();
-        cpu.flagOp2 = (short)immw;
+        int add = (cpu.cf()? 1: 0);
+        cpu.flagOp1 = op1.get16();
+        cpu.flagOp2 = immw;
         cpu.flagResult = (short)(cpu.flagOp1 - (cpu.flagOp2 + add));
         op1.set16((short)cpu.flagResult);
         cpu.flagIns = UCodes.SBB16;

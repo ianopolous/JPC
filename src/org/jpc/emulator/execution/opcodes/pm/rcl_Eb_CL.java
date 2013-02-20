@@ -21,7 +21,7 @@ public class rcl_Eb_CL extends Executable
         Reg op1 = cpu.regs[op1Index];
             int shift = cpu.r_cl.get8() & 0x1f;
             shift %= 8+1;
-            long val = 0xffffffffL & op1.get8();
+            long val = 0xFF&op1.get8();
             val |= cpu.cf() ? 1L << 8 : 0;
             val = (val << shift) | (val >>> (8+1-shift));
             op1.set8((byte)(int)val);

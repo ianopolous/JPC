@@ -18,9 +18,9 @@ public class sbb_AL_Ib extends Executable
 
     public Branch execute(Processor cpu)
     {
-        int add = (cpu.cf() ? 1: 0);
-        cpu.flagOp1 = (byte)cpu.r_al.get8();
-        cpu.flagOp2 = (byte)immb;
+        int add = (cpu.cf()? 1: 0);
+        cpu.flagOp1 = cpu.r_al.get8();
+        cpu.flagOp2 = immb;
         cpu.flagResult = (byte)(cpu.flagOp1 - (cpu.flagOp2 + add));
         cpu.r_al.set8((byte)cpu.flagResult);
         cpu.flagIns = UCodes.SBB8;
