@@ -36,16 +36,16 @@ package org.jpc.emulator.motherboard;
 import org.jpc.emulator.AbstractHardwareComponent;
 
 /**
- * This class holds the map between ioport addresses and <code>IOPortCapable</code>
+ * This class holds the map between ioport addresses and <code>IODevice</code>
  * objects.  Unmapped ports are redirected to an unconnected inner class instance
  * whose data lines float high, and on which writes fail silently.
  * @author Chris Dennis
  */
-public class IOPortHandler extends AbstractHardwareComponent implements IOPortCapable
+public class IOPortHandler extends AbstractHardwareComponent implements IODevice
 {
     private static final int MAX_IOPORTS = 65536;
-    private static final IOPortCapable defaultDevice = new UnconnectedIOPort();
-    private IOPortCapable[] ioPortDevice;
+    private static final IODevice defaultDevice = new UnconnectedIOPort();
+    private IODevice[] ioPortDevice;
 
     /**
      * Constructs a new <code>IOPortHandler</code> with an initially empty ioport
@@ -53,7 +53,7 @@ public class IOPortHandler extends AbstractHardwareComponent implements IOPortCa
      */
     public IOPortHandler()
     {
-        ioPortDevice = new IOPortCapable[MAX_IOPORTS];
+        ioPortDevice = new IODevice[MAX_IOPORTS];
         for (int i = 0; i < ioPortDevice.length; i++)
             ioPortDevice[i] = defaultDevice;
     }
@@ -94,14 +94,14 @@ public class IOPortHandler extends AbstractHardwareComponent implements IOPortCa
     }
 
     /**
-     * Map an <code>IOPortCapable</code> device into this handler.
+     * Map an <code>IODevice</code> device into this handler.
      * <p>
      * The range of ioports requested by this device are registered with the
      * handler.  Each individual port is registered only if that port is
      * currently unconnected.
      * @param device object to be mapped.
      */
-    public void registerIOPortCapable(IOPortCapable device)
+    public void registerIOPortCapable(IODevice device)
     {
         int[] portArray = device.ioPortsRequested();
         if (portArray == null) return;
@@ -112,14 +112,14 @@ public class IOPortHandler extends AbstractHardwareComponent implements IOPortCa
     }
 
     /**
-     * Unmap an <code>IOPortCapable</code> device from this handler.
+     * Unmap an <code>IODevice</code> device from this handler.
      * <p>
      * Ports are only unmapped from the handler if they are currently to the
      * supplied object.  References to other objects at the addresses claimed
      * are not cleared.
      * @param device object to be unmapped.
      */
-    public void deregisterIOPortCapable(IOPortCapable device)
+    public void deregisterIOPortCapable(IODevice device)
     {
         int[] portArray = device.ioPortsRequested();
         for (int port : portArray) {
@@ -130,7 +130,7 @@ public class IOPortHandler extends AbstractHardwareComponent implements IOPortCa
 
     public void reset()
     {
-        ioPortDevice = new IOPortCapable[MAX_IOPORTS];
+        ioPortDevice = new IODevice[MAX_IOPORTS];
         for (int i = 0; i < ioPortDevice.length; i++)
             ioPortDevice[i] = defaultDevice;
     }
@@ -140,7 +140,7 @@ public class IOPortHandler extends AbstractHardwareComponent implements IOPortCa
         return "IOPort Bus";
     }
 
-    private static class UnconnectedIOPort implements IOPortCapable
+    private static class UnconnectedIOPort implements IODevice
     {
 
         public int ioPortRead8(int address)

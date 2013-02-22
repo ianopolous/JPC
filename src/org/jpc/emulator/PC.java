@@ -49,7 +49,6 @@ import org.jpc.j2se.Option;
 import org.jpc.j2se.PCMonitor;
 import org.jpc.support.*;
 
-import java.awt.event.KeyEvent;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -509,8 +508,8 @@ public class PC {
                     hwc.loadState(din);
                 }
 
-                if (hwc instanceof IOPortCapable) {
-                    ioHandler.registerIOPortCapable((IOPortCapable) hwc);
+                if (hwc instanceof IODevice) {
+                    ioHandler.registerIOPortCapable((IODevice) hwc);
                 }
 
                 parts.remove(hwc);

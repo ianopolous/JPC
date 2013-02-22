@@ -24,10 +24,6 @@ public class mov_S_Ed extends Executable
         if (segIndex == 0)
             throw ProcessorException.UNDEFINED;
         cpu.setSeg(segIndex, (short)op2.get32());
-        if (segIndex == Processor.getSegmentIndex("ss"))
-        {
-            cpu.eflagsInterruptEnable = false;
-        }
         return Branch.None;
     }
 

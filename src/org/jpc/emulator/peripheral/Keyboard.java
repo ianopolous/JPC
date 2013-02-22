@@ -45,7 +45,7 @@ import org.jpc.emulator.*;
  * 
  * @author Chris Dennis
  */
-public class Keyboard extends AbstractHardwareComponent implements IOPortCapable
+public class Keyboard extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(Keyboard.class.getName());
     
@@ -212,7 +212,7 @@ public class Keyboard extends AbstractHardwareComponent implements IOPortCapable
         queue.loadState(input);
     }
 
-    //IOPortCapable Methods
+    //IODevice Methods
     public int[] ioPortsRequested()
     {
 	return new int[]{0x60, 0x64};

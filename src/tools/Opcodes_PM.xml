@@ -1398,11 +1398,7 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <return>Branch.None</return>
     <snippet>        if (segIndex == 0)
             throw ProcessorException.UNDEFINED;
-        $op1.set$cast$op2.get);
-        if (segIndex == Processor.getSegmentIndex("ss"))
-        {
-            cpu.eflagsInterruptEnable = false;
-        }</snippet>
+        $op1.set$cast$op2.get);</snippet>
     <args size="16">S;Ew</args>
     <args size="16">S;Ed</args>
   </opcode>

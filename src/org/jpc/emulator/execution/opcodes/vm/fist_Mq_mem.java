@@ -18,7 +18,7 @@ public class fist_Mq_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        op1.set64(cpu, (long)cpu.fpu.ST(0));
+        op1.set64(cpu, (long)cpu.fpu.round(cpu.fpu.ST(0)));
         return Branch.None;
     }
 

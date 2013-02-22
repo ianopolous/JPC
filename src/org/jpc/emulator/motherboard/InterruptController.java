@@ -47,7 +47,7 @@ import java.util.logging.*;
  * @see <a href="http://www.ee.hacettepe.edu.tr/~alkar/ELE414/8259.pdf">82C59A - Datasheet</a>
  * @author Chris Dennis
  */
-public class InterruptController extends AbstractHardwareComponent implements IOPortCapable
+public class InterruptController extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(InterruptController.class.getName());
     
@@ -238,7 +238,7 @@ public class InterruptController extends AbstractHardwareComponent implements IO
                 ioPorts[i] = input.readInt();
         }
 
-	/* BEGIN IOPortCapable Methods */
+	/* BEGIN IODevice Methods */
 	public int[] ioPortsRequested()
 	{
 	    return ioPorts;
@@ -364,7 +364,7 @@ public class InterruptController extends AbstractHardwareComponent implements IO
 	{
 	    elcr = data & elcrMask;
 	}
-	/* END IOPortCapable Methods */
+	/* END IODevice Methods */
 
 	private int pollRead(int address)
 	{
@@ -502,7 +502,7 @@ public class InterruptController extends AbstractHardwareComponent implements IO
     }
 
 
-    /* BEGIN IOPortCapable Defined Methods */
+    /* BEGIN IODevice Defined Methods */
     public int[] ioPortsRequested()
     {
 	int[] masterIOPorts = master.ioPortsRequested();
@@ -576,7 +576,7 @@ public class InterruptController extends AbstractHardwareComponent implements IO
 	this.ioPortWrite16(address + 2, data >>> 16);
     }
 
-    /* END IOPortCapable Defined Methods */
+    /* END IODevice Defined Methods */
 
     private void masterPollCode()
     {

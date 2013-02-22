@@ -18,7 +18,7 @@ public class fist_Md_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        op1.set32(cpu, (int)cpu.fpu.ST(0));
+        op1.set32(cpu, (int)cpu.fpu.round(cpu.fpu.ST(0)));
         return Branch.None;
     }
 

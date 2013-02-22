@@ -44,7 +44,7 @@ import java.util.logging.*;
  * 8237A - Datasheet</a>
  * @author Chris Dennis
  */
-public class DMAController extends AbstractHardwareComponent implements IOPortCapable
+public class DMAController extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(DMAController.class.getName());
 

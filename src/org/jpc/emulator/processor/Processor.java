@@ -1041,7 +1041,6 @@ public class Processor implements HardwareComponent
     public boolean eflagsVirtualInterrupt;
     public boolean eflagsVirtualInterruptPending;
     public boolean eflagsID;
-    public boolean eflagsInterruptEnableSoon;
 
     public LinearAddressSpace linearMemory;
     public PhysicalAddressSpace physicalMemory;
@@ -1935,8 +1934,7 @@ public class Processor implements HardwareComponent
                     eflagsAlignmentCheck = ((newEFlags & (1 << 18)) != 0); //do we need to call checkAlignmentChecking()?
                     eflagsID = ((newEFlags & (1 << 21)) != 0);
                     if (getCPL() <= eflagsIOPrivilegeLevel)
-                        eflagsInterruptEnableSoon
-                                = eflagsInterruptEnable = ((newEFlags & (1 <<  9)) != 0);
+                        eflagsInterruptEnable = ((newEFlags & (1 <<  9)) != 0);
                     if (getCPL() == 0) {
                         eflagsIOPrivilegeLevel = ((newEFlags >> 12) & 3);
                         eflagsVirtual8086Mode = ((newEFlags & (1 << 17)) != 0);
@@ -2825,7 +2823,6 @@ public class Processor implements HardwareComponent
         int eflags = getEFlags() & 0xffff;
         ss.setWord(r_esp.get16() & 0xffff, (short)eflags);
         eflagsInterruptEnable = false;
-        eflagsInterruptEnableSoon = false;
         eflagsTrap = false;
         eflagsAlignmentCheck = false;
         eflagsResume=false;
@@ -2994,7 +2991,7 @@ public class Processor implements HardwareComponent
         output.writeBoolean(this.eflagsVirtualInterrupt);
         output.writeBoolean(this.eflagsVirtualInterruptPending);
         output.writeBoolean(this.eflagsID);
-        output.writeBoolean(this.eflagsInterruptEnableSoon);
+        output.writeBoolean(true);
         fpu.saveState(output);
 
         output.writeInt(interruptFlags);
@@ -3062,7 +3059,7 @@ public class Processor implements HardwareComponent
         eflagsVirtualInterrupt = input.readBoolean();
         eflagsVirtualInterruptPending = input.readBoolean();
         eflagsID = input.readBoolean();
-        eflagsInterruptEnableSoon = input.readBoolean();
+        input.readBoolean();
         fpu.loadState(input);
 
         interruptFlags = input.readInt();
@@ -3222,8 +3219,7 @@ public class Processor implements HardwareComponent
         zf = ((flags & (1 << 6)) != 0);
         sf = ((flags & (1 <<  7)) != 0);
         eflagsTrap                    = ((flags & (1 <<  8)) != 0);
-        eflagsInterruptEnableSoon
-            = eflagsInterruptEnable   = ((flags & (1 <<  9)) != 0);
+        eflagsInterruptEnable   = ((flags & (1 <<  9)) != 0);
         df                            = ((flags & (1 << 10)) != 0);
         of = ((flags & (1 << 11)) != 0);
         eflagsIOPrivilegeLevel        = ((flags >> 12) & 3);
@@ -3241,7 +3237,7 @@ public class Processor implements HardwareComponent
         sf = ((eflags & (1 <<  7)) != 0);
         eflagsTrap                    = ((eflags & (1 <<  8)) != 0);
 
-        eflagsInterruptEnableSoon = eflagsInterruptEnable   = ((eflags & (1 <<  9)) != 0);
+        eflagsInterruptEnable   = ((eflags & (1 <<  9)) != 0);
         df                            = ((eflags & (1 << 10)) != 0);
         of = ((eflags & (1 << 11)) != 0);
         eflagsIOPrivilegeLevel        = ((eflags >> 12) & 3);
@@ -3718,7 +3714,6 @@ public class Processor implements HardwareComponent
         eflagsAlignmentCheck = eflagsVirtualInterrupt = eflagsVirtualInterruptPending = eflagsID = false;
 
         eflagsIOPrivilegeLevel = 0;
-        eflagsInterruptEnableSoon = false;
 
         cs(SegmentFactory.createRealModeSegment(physicalMemory, 0xf000));
         ds(SegmentFactory.createRealModeSegment(physicalMemory, 0));
@@ -3828,7 +3823,6 @@ public class Processor implements HardwareComponent
         int eflags = getEFlags() & 0xffff;
         ss.setWord(sesp & 0xffff, (short)eflags);
         eflagsInterruptEnable = false;
-        eflagsInterruptEnableSoon = false;
         eflagsTrap = false;
         eflagsAlignmentCheck = false;
         eflagsResume=false;
@@ -4155,7 +4149,7 @@ public class Processor implements HardwareComponent
                             }
 
 
-                            eflagsInterruptEnable = eflagsInterruptEnableSoon = false;
+                            eflagsInterruptEnable = false;
 
                             eflagsTrap = false;
                             eflagsNestedTask = false;
@@ -4206,7 +4200,7 @@ public class Processor implements HardwareComponent
                             eip = targetOffset;
 
                             cs.setRPL(currentPrivilegeLevel);
-                            eflagsInterruptEnable = eflagsInterruptEnableSoon = false;
+                            eflagsInterruptEnable = false;
 
                             eflagsTrap = false;
                             eflagsNestedTask = false;
@@ -4270,7 +4264,7 @@ public class Processor implements HardwareComponent
 
                         cs.setRPL(currentPrivilegeLevel);
 
-                        eflagsInterruptEnable = eflagsInterruptEnableSoon = false;
+                        eflagsInterruptEnable = false;
                         eflagsTrap = false;
                         eflagsNestedTask = false;
                         eflagsVirtual8086Mode = false;
@@ -4665,7 +4659,7 @@ public class Processor implements HardwareComponent
                             }
 
 
-                            eflagsInterruptEnable = eflagsInterruptEnableSoon = false;
+                            eflagsInterruptEnable = false;
 
                             eflagsTrap = false;
                             eflagsNestedTask = false;
@@ -4716,7 +4710,7 @@ public class Processor implements HardwareComponent
                             eip = targetOffset;
 
                             cs.setRPL(currentPrivilegeLevel);
-                            eflagsInterruptEnable = eflagsInterruptEnableSoon = false;
+                            eflagsInterruptEnable = false;
 
                             eflagsTrap = false;
                             eflagsNestedTask = false;
@@ -4780,7 +4774,7 @@ public class Processor implements HardwareComponent
 
                         cs.setRPL(currentPrivilegeLevel);
 
-                        eflagsInterruptEnable = eflagsInterruptEnableSoon = false;
+                        eflagsInterruptEnable = false;
                         eflagsTrap = false;
                         eflagsNestedTask = false;
                         eflagsVirtual8086Mode = false;
@@ -5350,7 +5344,7 @@ public class Processor implements HardwareComponent
                             ds(SegmentFactory.NULL_SEGMENT);
                             es(SegmentFactory.NULL_SEGMENT);
 
-                            eflagsInterruptEnable = eflagsInterruptEnableSoon = false;
+                            eflagsInterruptEnable = false;
 
                             eflagsTrap = false;
                             eflagsNestedTask = false;

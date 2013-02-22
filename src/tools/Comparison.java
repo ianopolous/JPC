@@ -32,7 +32,7 @@ public class Comparison
     public static final String[] worms = {"-fda", "floppy.img", "-boot", "fda", "-hda", "worms.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
     public static final String[] linux = {"-hda", "linux.img", "-boot", "hda"};
-    public static final String[] bsd = {"-hda", "netbsd.img", "-boot", "hda"};
+    public static final String[] bsd = {"-hda", "../../tmpdrives/netbsd.img", "-boot", "hda"};
     public static final String[] mosa = {"-hda", "mosa-project.img", "-boot", "hda"};
     public static final String[] dsl = {"-hda", "dsl-desktop-demo2.img", "-boot", "hda"};
     public static final String[] isolinux = {"-cdrom", "isolinux.iso", "-boot", "cdrom"};
@@ -41,7 +41,7 @@ public class Comparison
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
 
-    public static String[] pcargs = dslCD;
+    public static String[] pcargs = bsd;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -222,9 +222,17 @@ public class Comparison
             history[historyIndex][1] = old;
             history[historyIndex][2] = line;
             historyIndex = (historyIndex+1)%history.length;
+            boolean cli = false;
+            if (line.startsWith("cli"))
+                cli = true;
+            if (line.startsWith("mov ss"))
+                cli = true;
             if (fast[16] == 0xB23C14E)
                 System.out.println("Here comes the bug!");
-            
+
+            int b=0;
+            if (previousCli && (fast[9] != old[9]))
+                b = 9;
             Set<Integer> diff = new HashSet<Integer>();
             if (!sameStates(fast, old, compareFlags, diff))
             {
@@ -241,7 +249,6 @@ public class Comparison
                              fast[9] = old[9];
                              setState1.invoke(newpc, (int[])fast);
                          }
-                        previousCli = false;
                     }
 
                     if (previousLss)
@@ -265,8 +272,7 @@ public class Comparison
                     }
                     if (instr.equals("lss"))
                         previousLss = true;
-                    if (instr.equals("cli"))
-                        previousCli = true;
+
                 }
                 else if ((diff.size() == 1) && diff.contains(0) && ((fast[0]^old[0]) == 0x10))
                 {
@@ -303,7 +309,7 @@ public class Comparison
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, save2, oldpc, sdata2, pm, load1);
             }
-
+            previousCli = cli;
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();

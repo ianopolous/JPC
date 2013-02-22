@@ -770,6 +770,14 @@
     <args size="32">Ed;Ib</args>
     <args size="32">Ed;Id</args>
   </opcode>
+  <opcode mnemonic="rep_or">
+    <return>Branch.None</return>
+    <snippet>        cpu.of = cpu.af = cpu.cf = false;
+        cpu.flagResult = $cast($op1.get | $op2.get);
+        $op1.set$castcpu.flagResult);
+        cpu.flagStatus = SZP;</snippet>
+    <args size="8">Eb;Gb</args>
+  </opcode>
 
   <opcode mnemonic="or_o16">
     <return>Branch.None</return>

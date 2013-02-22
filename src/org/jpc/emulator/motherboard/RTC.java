@@ -46,7 +46,7 @@ import java.util.Calendar;
  * MC146818A - Datasheet</a>
  * @author Chris Dennis
  */
-public class RTC extends AbstractHardwareComponent implements IOPortCapable
+public class RTC extends AbstractHardwareComponent implements IODevice
 {
     private static final int RTC_SECONDS = 0;
     private static final int RTC_SECONDS_ALARM = 1;

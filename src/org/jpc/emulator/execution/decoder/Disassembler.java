@@ -258,9 +258,12 @@ public class Disassembler
 
     public static boolean delayInterrupts(Instruction in)
     {
-        if (in.toString().equals("sti")) // to delay checking interrupts until 1 instruction after sti
+        String name = in.toString();
+        if (name.equals("sti")) // to delay checking interrupts until 1 instruction after sti
             return true;
-        if (in.toString().startsWith("pop ss"))
+        if (name.startsWith("pop ss"))
+            return true;
+        if (name.startsWith("mov ss"))
             return true;
         return false;
     }

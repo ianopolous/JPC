@@ -50,7 +50,7 @@ import org.jpc.j2se.PCMonitor;
  * @author Rhys Newman
  * @author Ian Preston
  */
-public abstract class VGACard extends AbstractPCIDevice implements IOPortCapable
+public abstract class VGACard extends AbstractPCIDevice implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(VGACard.class.getName());
 
@@ -584,7 +584,7 @@ public abstract class VGACard extends AbstractPCIDevice implements IOPortCapable
             return null;
     }
 
-    //IOPortCapable Methods
+    //IODevice Methods
     public void ioPortWrite8(int address, int data)
     {
         //all byte accesses are vgaIOPort ones

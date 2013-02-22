@@ -566,6 +566,14 @@
     <args size="0">M</args>
   </opcode>
 
+  <opcode mnemonic="sidt_o32">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op1.get + op1.getBase(cpu);
+        cpu.linearMemory.setWord(addr, (short)cpu.idtr.getLimit());
+        cpu.linearMemory.setDoubleWord(addr+2, cpu.idtr.getBase());</snippet>
+    <args size="0">M</args>
+  </opcode>
+
   <opcode mnemonic="wbinvd">
     <return>Branch.None</return>
     <snippet>// write back and invalidate CPU caches</snippet>

@@ -44,7 +44,7 @@ import org.jpc.emulator.processor.Processor;
  * address line.
  * @author Chris Dennis
  */
-public class GateA20Handler extends AbstractHardwareComponent implements IOPortCapable
+public class GateA20Handler extends AbstractHardwareComponent implements IODevice
 {
     private Processor cpu;
     private PhysicalAddressSpace physicalAddressSpace;

@@ -48,7 +48,7 @@ import org.jpc.emulator.*;
  * writes indicate a BIOS panic at the written value line number.
  * @author Chris Dennis
  */
-public class VGABIOS extends Bios implements IOPortCapable
+public class VGABIOS extends Bios implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(VGABIOS.class.getName());
 

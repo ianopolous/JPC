@@ -33,13 +33,13 @@
 
 package org.jpc.emulator.pci;
 
-import org.jpc.emulator.motherboard.IOPortCapable;
+import org.jpc.emulator.motherboard.IODevice;
 
 /**
  * A PCI device compatible <code>IORegion</code> that is mapped into the io
  * space of the emulated machine.
  * @author Chris Dennis
  */
-public interface IOPortIORegion extends IOPortCapable, IORegion
+public interface IOPortIORegion extends IODevice, IORegion
 {
 }

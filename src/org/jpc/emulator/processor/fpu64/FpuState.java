@@ -34,15 +34,9 @@
 
 package org.jpc.emulator.processor.fpu64;
 
-// import java.math.BigDecimal;
 import org.jpc.emulator.processor.*;
 import org.jpc.emulator.*;
-import java.io.*;
 
-/**
- * 
- * @author Jeff Tseng
- */
 public abstract class FpuState implements Hibernatable
 {
     // stack depth (common to all x87 FPU's)
@@ -122,6 +116,7 @@ public abstract class FpuState implements Hibernatable
     public abstract double pop() throws ProcessorException;
     public abstract double[] getStack();
     public abstract void setStack(double[] s);
+    public abstract double round(double in);
     public abstract double ST(int index) throws ProcessorException;
     public abstract void setST(int index, double value);
 //     public abstract void pushBig(BigDecimal x) throws ProcessorException;

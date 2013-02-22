@@ -18,7 +18,6 @@ public class sti extends Executable
     {
         if (cpu.eflagsIOPrivilegeLevel == 3)
         {
-	    cpu.eflagsInterruptEnableSoon = true;
             cpu.eflagsInterruptEnable = true;
         }
 	else

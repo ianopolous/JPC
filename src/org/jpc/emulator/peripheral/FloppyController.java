@@ -44,7 +44,7 @@ import java.util.logging.*;
  * 
  * @author Chris Dennis
  */
-public class FloppyController implements IOPortCapable, DMATransferCapable, HardwareComponent, TimerResponsive
+public class FloppyController implements IODevice, DMATransferCapable, HardwareComponent, TimerResponsive
 {
 
     public static enum DriveType {DRIVE_144, DRIVE_288, DRIVE_120, DRIVE_NONE}

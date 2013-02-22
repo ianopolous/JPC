@@ -45,7 +45,7 @@ import java.util.logging.*;
  * 
  * @author Chris Dennis
  */
-public class SerialPort extends AbstractHardwareComponent implements IOPortCapable
+public class SerialPort extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(SerialPort.class.getName());
 

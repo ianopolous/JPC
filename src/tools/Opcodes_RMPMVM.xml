@@ -554,6 +554,19 @@
     <args size="64">STi;STi</args>
   </opcode>
 
+  <opcode mnemonic="fidiv">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = cpu.fpu.ST(0);
+        double freg1 = (double)$op1.get;
+        if (((freg0 == 0.0) &amp;&amp; (freg1 == 0.0)) || (Double.isInfinite(freg0) &amp;&amp; Double.isInfinite(freg1)))
+            cpu.fpu.setInvalidOperation();
+	if ((freg0 == 0.0) &amp;&amp; !Double.isNaN(freg1) &amp;&amp; !Double.isInfinite(freg1))
+            cpu.fpu.setZeroDivide();
+        cpu.fpu.setST(0, freg0/freg1);</snippet>
+    <args size="16">Mw</args>
+    <args size="32">Md</args>
+  </opcode>
+
   <opcode mnemonic="fidivr">
     <return>Branch.None</return>
     <snippet>        double freg0 = cpu.fpu.ST(0);
@@ -593,45 +606,67 @@
     <args size="32">Md</args>
   </opcode>
   
+  <opcode mnemonic="fisub">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.setST(0, cpu.fpu.ST(0)-$op1.get);</snippet>
+    <args size="16">Mw</args>
+    <args size="32">Md</args>
+  </opcode>
+
+  <opcode mnemonic="fisubr">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.setST(0, $op1.get-cpu.fpu.ST(0));</snippet>
+    <args size="16">Mw</args>
+    <args size="32">Md</args>
+  </opcode>
+
   <opcode mnemonic="fist">
     <return>Branch.None</return>
-    <snippet>        $op1.set(short)cpu.fpu.ST(0));</snippet>
+    <snippet>        double cast = cpu.fpu.round(cpu.fpu.ST(0));
+        if (Math.abs(cast) > Short.MAX_VALUE)
+            cast = (double)Short.MIN_VALUE;
+        $op1.set(short)cast);</snippet>
     <args size="16">Mw</args>
   </opcode>
   <opcode mnemonic="fist">
     <return>Branch.None</return>
-    <snippet>        $op1.set(int)cpu.fpu.ST(0));</snippet>
+    <snippet>        $op1.set(int)cpu.fpu.round(cpu.fpu.ST(0)));</snippet>
     <args size="32">Md</args>
   </opcode>
   <opcode mnemonic="fist">
     <return>Branch.None</return>
-    <snippet>        $op1.set(long)cpu.fpu.ST(0));</snippet>
+    <snippet>        $op1.set(long)cpu.fpu.round(cpu.fpu.ST(0)));</snippet>
     <args size="64">Mq</args>
   </opcode>
 
   <opcode mnemonic="fisttp">
     <return>Branch.None</return>
-    <snippet>        double freg0 = cpu.fpu.ST(0);
-        $op1.set(short)(Math.signum(freg0)*Math.floor(Math.abs(freg0))));
+    <snippet>        double cast = cpu.fpu.ST(0);
+        if (Math.abs(cast) > Short.MAX_VALUE)
+            cast = (double)Short.MIN_VALUE;
+        $op1.set(short)(Math.signum(cast)*Math.floor(Math.abs(cast))));
         cpu.fpu.pop();</snippet>
     <args size="16">Mw</args>
   </opcode>
 
   <opcode mnemonic="fistp">
     <return>Branch.None</return>
-    <snippet>        $op1.set(short)cpu.fpu.ST(0));
+    <snippet>        double cast = cpu.fpu.round(cpu.fpu.ST(0));
+        if (Math.abs(cast) > Short.MAX_VALUE)
+            cast = (double)Short.MIN_VALUE;
+        $op1.set(short)cast);
         cpu.fpu.pop();</snippet>
     <args size="16">Mw</args>
   </opcode>
   <opcode mnemonic="fistp">
     <return>Branch.None</return>
-    <snippet>        $op1.set(int)cpu.fpu.ST(0));
+    <snippet>        $op1.set(int)cpu.fpu.round(cpu.fpu.ST(0)));
         cpu.fpu.pop();</snippet>
     <args size="32">Md</args>
   </opcode>
   <opcode mnemonic="fistp">
     <return>Branch.None</return>
-    <snippet>        $op1.set(long)cpu.fpu.ST(0));
+    <snippet>        $op1.set(long)cpu.fpu.round(cpu.fpu.ST(0)));
         cpu.fpu.pop();</snippet>
     <args size="64">Mq</args>
   </opcode>
@@ -922,6 +957,12 @@
     <args size="64">Mq</args>
   </opcode>
 
+  <opcode mnemonic="fst">
+    <return>Branch.None</return>
+    <snippet>        $op1.setcpu.fpu.ST(0));</snippet>
+    <args size="64">STi</args>
+  </opcode>
+
   <opcode mnemonic="fstp">
     <return>Branch.None</return>
     <snippet>        $op1.setF(float)cpu.fpu.ST(0));
@@ -1135,6 +1176,15 @@
         cpu.fpu.setST(0, freg1-freg0);</snippet>
     <args size="32">Md</args>
     <args size="64">Mq</args>
+  </opcode>
+  <opcode mnemonic="fsubr">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = $op1.get;
+        double freg1 = $op2.get;
+        if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY)) 
+		    cpu.fpu.setInvalidOperation();
+        $op1.set freg1-freg0);</snippet>
+    <args size="64">STi;STi</args>
   </opcode>
   <opcode mnemonic="fsubrp">
     <return>Branch.None</return>
@@ -1958,6 +2008,7 @@
     <args size="8">Gb;Eb</args>
     <args size="16">Ew;Ib</args>
     <args size="32">Ed;Ib</args>
+    <args size="32">Ed;Id</args>
     <args size="16">Ew;Iw</args>
     <args size="16">Ew;Gw</args>
     <args size="32">Ed;Gd</args>

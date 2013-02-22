@@ -45,7 +45,7 @@ import java.io.*;
  * 82C54 - Datasheet</a>
  * @author Chris Dennis
  */
-public class IntervalTimer extends AbstractHardwareComponent implements IOPortCapable {
+public class IntervalTimer extends AbstractHardwareComponent implements IODevice {
 
     private static final int RW_STATE_LSB = 1;
     private static final int RW_STATE_MSB = 2;

@@ -46,7 +46,7 @@ import java.util.logging.*;
  * 
  * @author Ian Preston
  */
-public class PCSpeaker extends AbstractHardwareComponent implements IOPortCapable
+public class PCSpeaker extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(PCSpeaker.class.getName());
     

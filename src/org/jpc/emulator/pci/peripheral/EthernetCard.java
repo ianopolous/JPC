@@ -375,7 +375,7 @@ public class EthernetCard extends AbstractPCIDevice
             LOGGING.log(Level.FINE, "Ethernet IO address is "+Integer.toHexString(address));
         }
 
-        //IOPortCapable Methods
+        //IODevice Methods
         public void ioPortWrite8(int address, int data)
         {
             switch (address - this.getAddress())

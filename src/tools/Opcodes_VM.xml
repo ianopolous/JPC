@@ -204,7 +204,6 @@
     <return>Branch.None</return>
     <snippet>        if (cpu.eflagsIOPrivilegeLevel == 3)
         {
-	    cpu.eflagsInterruptEnableSoon = true;
             cpu.eflagsInterruptEnable = true;
         }
 	else

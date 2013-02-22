@@ -18,7 +18,10 @@ public class fist_Mw_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        op1.set16(cpu, (short)cpu.fpu.ST(0));
+        double cast = cpu.fpu.round(cpu.fpu.ST(0));
+        if (Math.abs(cast) > Short.MAX_VALUE)
+            cast = (double)Short.MIN_VALUE;
+        op1.set16(cpu, (short)cast);
         return Branch.None;
     }
 

@@ -248,27 +248,17 @@ public class FpuState64 extends FpuState
 
     public void setPrecisionControl(int value)
     { 
-        if (value != FPU_PRECISION_CONTROL_DOUBLE)
-            // trying to set precision to other than double
-            LOGGING.log(Level.FINE, "attempting to set non-double FP precision in Fpu64 mode");
-        
-        precisionControl = FPU_PRECISION_CONTROL_DOUBLE;
+        precisionControl = value & 3;
     }
 
     public void setRoundingControl(int value)
     { 
-        if (value != FPU_ROUNDING_CONTROL_EVEN)
-            // trying to set directed or truncate rounding
-            LOGGING.log(Level.FINE, "attempt to set non-nearest rounding in Fpu64 mode");
-        roundingControl = FPU_ROUNDING_CONTROL_EVEN;
+        roundingControl = value & 3;
     }
-
-    // constructor
 
     public FpuState64(Processor owner)
     {
-	cpu = owner;
-
+	    cpu = owner;
         data = new double[STACK_DEPTH];
         tag = new int[STACK_DEPTH];
         specialTag = new int[STACK_DEPTH];
@@ -487,6 +477,7 @@ public class FpuState64 extends FpuState
         int w = maskWord;
         w |= ((precisionControl & 0x3) << 8);
         w |= ((roundingControl & 0x3) << 10);
+        w |= 0x40; // reserved bit
         if (infinityControl) w |= 0x1000;
         return w;
     }
@@ -495,6 +486,7 @@ public class FpuState64 extends FpuState
     {
         maskWord &= ~0x3f;
         maskWord |= (w & 0x3f);
+
         infinityControl = ((w & 0x1000) != 0);
         setPrecisionControl((w >> 8) & 3);
         setRoundingControl((w >> 10) & 3);
@@ -528,31 +520,45 @@ public class FpuState64 extends FpuState
         }
     }
 
-    // STRICTLY SPEAKING, the x87 should preserve the SNaN and QNaN
-    // bit pattern; v1 sec 4.8.3.6 of the manual, in fact, says that
-    // these bits can be used to store diagnostic information.
-    // But Java will probably eliminate all these bits to get a code
-    // it understands (which looks like an infinity).  For now we
-    // simply don't support using NaN bits in this way.
+    public double round(double in)
+    {
+        if (!Double.isInfinite(in)) // preserve infinities
+        {
+            switch(getRoundingControl())
+            {
+                case FpuState.FPU_ROUNDING_CONTROL_EVEN:
+                    return Math.rint(in);
+                case FpuState.FPU_ROUNDING_CONTROL_DOWN:
+                    return Math.floor(in);
+                case FpuState.FPU_ROUNDING_CONTROL_UP:
+                    return Math.ceil(in);
+                case FpuState.FPU_ROUNDING_CONTROL_TRUNCATE:
+                    return Math.signum(in) * Math.floor(Math.abs(in));
+                default:
+                    throw new IllegalStateException("Invalid rounding control value");
+            }
+        }
+        return in;
+    }
 
     public static byte[] doubleToExtended(double x, boolean isSignalNaN)
     {
         byte[] b = new byte[10];
-        long fraction = 0;
+        long fraction;
         int iexp = 0;
         // other special forms?
         if (isSignalNaN)
         {
-            fraction = 0xc000000000000000L; // is this right?
+            fraction = 0xc000000000000000L;
         }
         else
         {
             long n = Double.doubleToRawLongBits(x);
-            fraction = (n & ~(0xfff << 52));
+            fraction = (n & ~(0xfffL << 52));
             iexp = ((int)(n >> 52) & 0x7ff);
-            boolean sgn = ((n & (1 << 63)) != 0);
+            boolean sgn = ((n & (1L << 63)) != 0);
             // insert implicit 1
-            fraction |= (1 << 52);
+            fraction |= (1L << 52);
             fraction <<= 11;
             // re-bias exponent
             iexp += (16383 - 1023);
@@ -564,7 +570,7 @@ public class FpuState64 extends FpuState
             fraction >>>= 8;
         }
         b[8] = (byte)iexp;
-        b[9] = (byte)(iexp >>> 8);
+        b[9] = (byte)(iexp >> 8);
         return b;
     }
 
@@ -714,7 +720,7 @@ public class FpuState64 extends FpuState
                 }
                 fraction &= ~(0xfffL << 52); // this cuts off explicit 1
                 fraction |= (((long)iexp & 0x7ff) << 52);
-                if (sgn) fraction |= (1 << 63);
+                if (sgn) fraction |= (1L << 63);
                 return Double.longBitsToDouble(fraction);
             }
             else

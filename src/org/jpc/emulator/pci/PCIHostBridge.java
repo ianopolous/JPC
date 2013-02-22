@@ -46,7 +46,7 @@ import java.util.logging.*;
  * the PCI bus and the rest if its devices.
  * @author Chris Dennis
  */
-public class PCIHostBridge extends AbstractPCIDevice implements IOPortCapable
+public class PCIHostBridge extends AbstractPCIDevice implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(PCIHostBridge.class.getName());
     
@@ -212,7 +212,7 @@ public class PCIHostBridge extends AbstractPCIDevice implements IOPortCapable
 	}
     }
 
-    /* END IOPortCapable Methods */
+    /* END IODevice Methods */
 
     private boolean ioportRegistered;
     private boolean pciRegistered;

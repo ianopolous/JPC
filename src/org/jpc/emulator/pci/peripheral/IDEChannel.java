@@ -44,7 +44,7 @@ import java.util.logging.*;
  * 
  * @author Chris Dennis
  */
-class IDEChannel extends AbstractHardwareComponent implements IOPortCapable {
+class IDEChannel extends AbstractHardwareComponent implements IODevice {
 
     private static final Logger LOGGING = Logger.getLogger(IDEChannel.class.getName());
     private IDEState[] devices;

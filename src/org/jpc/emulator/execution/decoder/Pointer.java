@@ -1,6 +1,7 @@
 package org.jpc.emulator.execution.decoder;
 
 import org.jpc.emulator.processor.Processor;
+import org.jpc.emulator.processor.fpu64.FpuState64;
 
 import java.util.BitSet;
 
@@ -102,8 +103,9 @@ public class Pointer
 
     public void setF80(Processor cpu, double val)
     {
-        set16(cpu, 8, (short)0);
-        set64(cpu, Double.doubleToRawLongBits(val));
+        byte[] b = FpuState64.doubleToExtended(val, false);
+        for (int i=0; i<10; i++)
+            set8(cpu, i, b[i]);
     }
 
     public void setF64(Processor cpu, double val)
