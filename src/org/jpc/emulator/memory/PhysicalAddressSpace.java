@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jpc.emulator.*;
-import org.jpc.emulator.memory.codeblock.CodeBlockManager;
+import org.jpc.emulator.memory.codeblock.*;
 import org.jpc.emulator.processor.Processor;
 import org.jpc.j2se.Option;
 
@@ -336,7 +336,15 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
     }
 
     public int executeReal(Processor cpu, int offset) {
-        return getReadMemoryBlockAt(offset).executeReal(cpu, offset & AddressSpace.BLOCK_MASK);
+        try {
+           return getReadMemoryBlockAt(offset).executeReal(cpu, offset & AddressSpace.BLOCK_MASK);
+        } catch (SpanningDecodeException e)
+        {
+            SpanningCodeBlock block = e.getBlock();
+            // add block to subsequent page to allow invalidation upon a write
+            getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            return getReadMemoryBlockAt(offset).executeReal(cpu, offset & AddressSpace.BLOCK_MASK);
+        }
     }
 
     public int executeProtected(Processor cpu, int offset) {
@@ -395,6 +403,9 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         {}
 
         public void unlock(int addr)
+        {}
+
+        public void addSpanningBlock(SpanningCodeBlock b, int lengthRemaining)
         {}
 
         public long getSize() {
@@ -609,20 +620,17 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
             return false;
         }
 
-        public void lock(int addr)
-        {}
+        public void lock(int addr) {}
 
-        public void unlock(int addr)
-        {}
+        public void unlock(int addr) {}
 
-        public void clear() {
-        }
+        public void addSpanningBlock(SpanningCodeBlock b, int lengthRemaining) {}
 
-        public void clear(int start, int length) {
-        }
+        public void clear() {}
 
-        public void copyContentsIntoArray(int address, byte[] buffer, int off, int len) {
-        }
+        public void clear(int start, int length) {}
+
+        public void copyContentsIntoArray(int address, byte[] buffer, int off, int len) {}
 
         public void copyArrayIntoContents(int address, byte[] buffer, int off, int len) {
             throw new IllegalStateException("Cannot load array into unconnected memory block");
@@ -656,23 +664,17 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
             return -1l;
         }
 
-        public void setByte(int offset, byte data) {
-        }
+        public void setByte(int offset, byte data) {}
 
-        public void setWord(int offset, short data) {
-        }
+        public void setWord(int offset, short data) {}
 
-        public void setDoubleWord(int offset, int data) {
-        }
+        public void setDoubleWord(int offset, int data) {}
 
-        public void setQuadWord(int offset, long data) {
-        }
+        public void setQuadWord(int offset, long data) {}
 
-        public void setLowerDoubleQuadWord(int offset, long data) {
-        }
+        public void setLowerDoubleQuadWord(int offset, long data) {}
 
-        public void setUpperDoubleQuadWord(int offset, long data) {
-        }
+        public void setUpperDoubleQuadWord(int offset, long data) {}
 
         public int executeReal(Processor cpu, int offset) {
             throw new IllegalStateException("Trying to execute in Unconnected Block @ 0x" + Integer.toHexString(offset));

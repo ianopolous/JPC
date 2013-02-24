@@ -33,6 +33,7 @@
 
 package org.jpc.emulator.pci.peripheral;
 
+import org.jpc.emulator.memory.codeblock.SpanningCodeBlock;
 import org.jpc.emulator.pci.*;
 import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.memory.*;
@@ -1028,6 +1029,11 @@ public abstract class VGACard extends AbstractPCIDevice implements IODevice
 
         public void unlock(int addr)
         {}
+
+        public void addSpanningBlock(SpanningCodeBlock span, int lengthRemaining)
+        {
+            throw new IllegalStateException("add spannign block: Invalid Operation for VGA Card");
+        }
 
         public void copyContentsIntoArray(int address, byte[] buffer, int off, int len) {
             throw new IllegalStateException("copyContentsInto: Invalid Operation for VGA Card");

@@ -8,21 +8,26 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class sysexit extends Executable
 {
+    final int blockLength;
+    final int instructionLength;
 
     public sysexit(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
+        blockLength = parent.x86Length+(int)parent.eip-blockStart;
+        instructionLength = parent.x86Length;
     }
 
     public Branch execute(Processor cpu)
     {
+        cpu.eip += blockLength;
         cpu.sysexit();
-        return Branch.None;
+        return Branch.Ret;
     }
 
     public boolean isBranch()
     {
-        return false;
+        return true;
     }
 
     public String toString()

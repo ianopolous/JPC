@@ -10,6 +10,7 @@ public class Instruction
     private static Set<String> jmp = new HashSet();
     private static Set<String> jcc = new HashSet();
     private static Set<String> hlt = new HashSet();
+    private static Set<String> repIgnores = new HashSet();
 
     //public static enum Branch {None, T1, T2, Jmp_Unknown, Call, Call_Unknown, Ret, Exception};
 
@@ -50,6 +51,7 @@ public class Instruction
         jcc.add("loope");
         jcc.add("loopnz");
         hlt.add("hlt");
+        repIgnores.add("jb");
     }
 
     public int x86Length;
@@ -67,11 +69,13 @@ public class Instruction
     public String getGeneralClassName(boolean includeOperandSize, boolean includeAddressSize)
     {
         StringBuffer b = new StringBuffer();
-        if (pfx.rep != 0)
+        if ((pfx.rep != 0) && !repIgnores.contains(operator))
             b.append("rep_");
-        if (pfx.repne != 0)
+        if ((pfx.repne != 0) && !repIgnores.contains(operator))
             b.append("repne_");
         b.append(operator);
+        if (operator.equals("nop"))
+            return b.toString();
         if (includeOperandSize)
             b.append("_o"+opr_mode);
         if (includeAddressSize)

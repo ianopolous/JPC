@@ -36,12 +36,12 @@ public class Comparison
     public static final String[] mosa = {"-hda", "mosa-project.img", "-boot", "hda"};
     public static final String[] dsl = {"-hda", "dsl-desktop-demo2.img", "-boot", "hda"};
     public static final String[] isolinux = {"-cdrom", "isolinux.iso", "-boot", "cdrom"};
-    public static final String[] dslCD = {"-cdrom", "/media/ian/My Passport/jpc/disks/cd/dsl-n-01RC4.iso", "-boot", "cdrom"};
+    public static final String[] dslCD = {"-cdrom", "../../tmpdrives/dsl-n-01RC4.iso", "-boot", "cdrom"};
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
 
-    public static String[] pcargs = bsd;
+    public static String[] pcargs = dslCD;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -79,8 +79,8 @@ public class Comparison
     public static TreeSet<KeyBoardEvent> keyboardInput = new TreeSet<KeyBoardEvent>();
     static
     {
-        keyboardInput.add(new KeyBoardEvent(0x2000000L, "cd windows\n"));
-        keyboardInput.add(new KeyBoardEvent(0x2000100L, "win\n"));
+        //keyboardInput.add(new KeyBoardEvent(0x2000000L, "cd windows\n"));
+        //keyboardInput.add(new KeyBoardEvent(0x2000100L, "win\n"));
         //keyboardInput.add(new KeyBoardEvent(0x7000000L, "./test-i386\n"));
     }
 
@@ -89,8 +89,8 @@ public class Comparison
     {
         //mouseInput.add(new MouseEvent(0x42bb000L, 0, 0, 0, true, false, false));
         //mouseInput.add(new MouseEvent(0x42bb010L, 0, 0, 0, false, false, false));
-        mouseInput.add(new MouseEvent(0x6000000L, 0, 0, 0, false, false, true));
-        mouseInput.add(new MouseEvent(0x6000100L, 0, 0, 0, false, false, false));
+        //mouseInput.add(new MouseEvent(0x6000000L, 0, 0, 0, false, false, true));
+        //mouseInput.add(new MouseEvent(0x6000100L, 0, 0, 0, false, false, false));
     }
 
     public static void main(String[] args) throws Exception
@@ -163,7 +163,6 @@ public class Comparison
         byte[] sdata2 = new byte[4096];
         int[] fast = null, old=null;
         boolean previousLss = false;
-        boolean previousCli = false;
         int previousStackAddr = 0;
         while (true)
         {
@@ -222,27 +221,20 @@ public class Comparison
             history[historyIndex][1] = old;
             history[historyIndex][2] = line;
             historyIndex = (historyIndex+1)%history.length;
-            boolean cli = false;
-            if (line.startsWith("cli"))
-                cli = true;
-            if (line.startsWith("mov ss"))
-                cli = true;
             if (fast[16] == 0xB23C14E)
                 System.out.println("Here comes the bug!");
 
-            int b=0;
-            if (previousCli && (fast[9] != old[9]))
-                b = 9;
             Set<Integer> diff = new HashSet<Integer>();
             if (!sameStates(fast, old, compareFlags, diff))
             {
                 if ((diff.size() == 1) && diff.contains(9))
                 {
                     // adopt flags
-                    String instr = ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[0];
-                    if (instr.startsWith("rep"))
-                        instr += ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[1];
-                    if (previousCli)
+                    String prevInstr = ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[0];
+                    String secondPrevInstr = ((String)(history[(historyIndex-3)&(history.length-1)][2])).split(" ")[0];
+                    if (prevInstr.startsWith("rep"))
+                        prevInstr += ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[1];
+                    if (prevInstr.startsWith("cli") || secondPrevInstr.startsWith("cli"))
                     {
                          if ((fast[9]^old[9]) == 0x200)
                          {
@@ -257,9 +249,9 @@ public class Comparison
                         fast[9] = old[9];
                         setState1.invoke(newpc, (int[])fast);
                     }
-                    else if (flagIgnores.containsKey(instr))
+                    else if (flagIgnores.containsKey(prevInstr))
                     {
-                        int mask = flagIgnores.get(instr);
+                        int mask = flagIgnores.get(prevInstr);
                         if ((fast[9]& mask) == (old[9] & mask))
                         {
                             fast[9] = old[9];
@@ -270,7 +262,7 @@ public class Comparison
                         fast[9] = old[9];
                         setState1.invoke(newpc, (int[])fast);
                     }
-                    if (instr.equals("lss"))
+                    if (prevInstr.equals("lss"))
                         previousLss = true;
 
                 }
@@ -309,7 +301,6 @@ public class Comparison
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, save2, oldpc, sdata2, pm, load1);
             }
-            previousCli = cli;
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();

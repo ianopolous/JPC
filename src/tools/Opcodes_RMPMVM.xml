@@ -554,6 +554,17 @@
     <args size="64">STi;STi</args>
   </opcode>
 
+  <opcode mnemonic="ffree">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.setTagEmpty(0);</snippet>
+    <args size="64">ST0</args>
+  </opcode>
+  <opcode mnemonic="ffree">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.setTagEmpty(1);</snippet>
+    <args size="64">ST1</args>
+  </opcode>
+
   <opcode mnemonic="fidiv">
     <return>Branch.None</return>
     <snippet>        double freg0 = cpu.fpu.ST(0);
@@ -1848,8 +1859,18 @@
     <snippet>        StaticOpcodes.rep_stosd_a16(cpu);</snippet>
     <args size="0"></args>
   </opcode>
+  <opcode mnemonic="repne_stosd_a16">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.rep_stosd_a16(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
 
   <opcode mnemonic="rep_stosd_a32">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.rep_stosd_a32(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
+  <opcode mnemonic="repne_stosd_a32">
     <return>Branch.None</return>
     <snippet>        StaticOpcodes.rep_stosd_a32(cpu);</snippet>
     <args size="0"></args>

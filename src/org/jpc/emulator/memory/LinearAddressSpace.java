@@ -38,14 +38,9 @@ import java.util.*;
 import java.util.logging.*;
 
 import org.jpc.emulator.HardwareComponent;
+import org.jpc.emulator.memory.codeblock.*;
 import org.jpc.emulator.processor.*;
 
-/**
- * Class that implements the paging system used by an x86 MMU when in protected
- * mode.
- * @author Rhys Newman
- * @author Chris Dennis
- */
 public final class LinearAddressSpace extends AddressSpace implements HardwareComponent
 {
     private static final Logger LOGGING = Logger.getLogger(LinearAddressSpace.class.getName());
@@ -831,22 +826,43 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
 
     public int executeProtected(Processor cpu, int offset)
     {
-	Memory memory = getReadMemoryBlockAt(offset);
+        Memory memory = getReadMemoryBlockAt(offset);
 
-	try {
-	    return memory.executeProtected(cpu, offset & AddressSpace.BLOCK_MASK);
-	} catch (NullPointerException n) {
-	    memory = validateTLBEntryRead(offset); //memory object was null (needs mapping)
-	} catch (ProcessorException p) {
-	    memory = validateTLBEntryRead(offset); //memory object caused a page fault (double check)
-	}
+        try {
+            return memory.executeProtected(cpu, offset & AddressSpace.BLOCK_MASK);
+        } catch (NullPointerException n) {
+            memory = validateTLBEntryRead(offset); //memory object was null (needs mapping)
+        } catch (ProcessorException p) {
+            memory = validateTLBEntryRead(offset); //memory object caused a page fault (double check)
+        } catch (SpanningDecodeException e)
+        {
+            SpanningCodeBlock block = e.getBlock();
+            // add block to subsequent page to allow invalidation upon a write
+            try {
+                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            } catch (NullPointerException n) { // had to map subsequent page
+                Memory page = validateTLBEntryRead(offset+0x1000);
+                page.addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            }
+        }
 
-	try {
-	    return memory.executeProtected(cpu, offset & AddressSpace.BLOCK_MASK);
-	} catch (ProcessorException p) {
-	    cpu.handleProtectedModeException(p);
-	    return 1;
-	} catch (IllegalStateException e) {
+        try {
+            return memory.executeProtected(cpu, offset & AddressSpace.BLOCK_MASK);
+        } catch (ProcessorException p) {
+            cpu.handleProtectedModeException(p);
+            return 1;
+        } catch (SpanningDecodeException e)
+        {
+            SpanningCodeBlock block = e.getBlock();
+            // add block to subsequent page to allow invalidation upon a write
+            try {
+                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            } catch (NullPointerException n) { // had to map subsequent page
+                Memory page = validateTLBEntryRead(offset+0x1000);
+                page.addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            }
+            return memory.executeProtected(cpu, offset & AddressSpace.BLOCK_MASK);
+        } catch (IllegalStateException e) {
             System.out.println("Current eip = " + Integer.toHexString(cpu.eip));
             throw e;
         }
@@ -854,22 +870,43 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
 
     public int executeVirtual8086(Processor cpu, int offset)
     {
-	Memory memory = getReadMemoryBlockAt(offset);
+        Memory memory = getReadMemoryBlockAt(offset);
 
-	try {
-	    return memory.executeVirtual8086(cpu, offset & AddressSpace.BLOCK_MASK);
-	} catch (NullPointerException n) {
-	    memory = validateTLBEntryRead(offset); //memory object was null (needs mapping)
-	} catch (ProcessorException p) {
-	    memory = validateTLBEntryRead(offset); //memory object caused a page fault (double check)
-	}
+        try {
+            return memory.executeVirtual8086(cpu, offset & AddressSpace.BLOCK_MASK);
+        } catch (NullPointerException n) {
+            memory = validateTLBEntryRead(offset); //memory object was null (needs mapping)
+        } catch (ProcessorException p) {
+            memory = validateTLBEntryRead(offset); //memory object caused a page fault (double check)
+        } catch (SpanningDecodeException e)
+        {
+            SpanningCodeBlock block = e.getBlock();
+            // add block to subsequent page to allow invalidation upon a write
+            try {
+                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            } catch (NullPointerException n) { // had to map subsequent page
+                Memory page = validateTLBEntryRead(offset+0x1000);
+                page.addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            }
+        }
 
-	try {
-	    return memory.executeVirtual8086(cpu, offset & AddressSpace.BLOCK_MASK);
-	} catch (ProcessorException p) {
-	    cpu.handleProtectedModeException(p);
-	    return 1;
-	}
+        try {
+            return memory.executeVirtual8086(cpu, offset & AddressSpace.BLOCK_MASK);
+        } catch (ProcessorException p) {
+            cpu.handleProtectedModeException(p);
+            return 1;
+        } catch (SpanningDecodeException e)
+        {
+            SpanningCodeBlock block = e.getBlock();
+            // add block to subsequent page to allow invalidation upon a write
+            try {
+                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            } catch (NullPointerException n) { // had to map subsequent page
+                Memory page = validateTLBEntryRead(offset+0x1000);
+                page.addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            }
+            return memory.executeVirtual8086(cpu, offset & AddressSpace.BLOCK_MASK);
+        }
     }
 
     public static final class PageFaultWrapper implements Memory
@@ -884,6 +921,8 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         public void lock(int addr) {}
 
         public void unlock(int addr) {}
+
+        public void addSpanningBlock(SpanningCodeBlock span, int lengthRemaining) {}
 
         public ProcessorException getException() 
         {

@@ -826,7 +826,7 @@ public class JPC extends ApplicationFrame implements ActionListener {
         instance.validate();
         instance.setVisible(true);
 
-        if ((args.length > 0) || Option.config.isSet()) {
+        if ((args.length > 0) || Option.config.isSet() || Option.boot.isSet()) {
             instance.createPC(args);
         }
     }

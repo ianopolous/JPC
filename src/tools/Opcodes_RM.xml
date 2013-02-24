@@ -267,6 +267,12 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="iretd">
+    <return>Branch.Ret</return>
+    <snippet>        cpu.iret_o32_a16();</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="lds_o16">
       <return>Branch.None</return>
       <snippet>        int addr = $op2.get + op2.getBase(cpu);
@@ -488,6 +494,7 @@
     <args size="16">Ew;I1</args>
     <args size="16">Ew;Ib</args>
     <args size="16">Ew;CL</args>
+    <args size="32">Ed;I1</args>
     <args size="32">Ed;Ib</args>
     <args size="32">Ed;CL</args>
   </opcode>

@@ -22,7 +22,10 @@ public class ret_o32_Iw extends Executable
 
     public Branch execute(Processor cpu)
     {
-                cpu.eip = cpu.pop32();
+        cpu.eip += blockLength;
+        int tmpEip = cpu.pop32();
+        cpu.cs.checkAddress(tmpEip);
+        cpu.eip = tmpEip;
         if (cpu.ss.getDefaultSizeFlag())
             cpu.r_esp.set32(cpu.r_esp.get32()+immw);
         else

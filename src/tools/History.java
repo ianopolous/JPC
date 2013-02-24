@@ -14,7 +14,7 @@ public class History
 
     public static void main(String[] args) throws Exception
     {
-        String[] pcargs = Comparison.doom;
+        String[] pcargs = Comparison.dslCD;
         URL[] urls1 = new URL[]{new File(newJar).toURL()};
         ClassLoader cl1 = new URLClassLoader(urls1, Comparison.class.getClassLoader());
 
@@ -35,7 +35,7 @@ public class History
         Method state1 = c1.getMethod("getState");
         Method setState1 = c1.getMethod("setState", int[].class);
         Method execute1 = c1.getMethod("executeBlock");
-        Method save1 = c1.getMethod("savePage", Integer.class, byte[].class);
+        Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
         Method startClock1 = c1.getMethod("start");
         startClock1.invoke(newpc);
         Method break1 = c1.getMethod("eipBreak", Integer.class);

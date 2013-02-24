@@ -88,7 +88,7 @@ public class SystemBIOS extends Bios implements IODevice
     public void ioPortWrite32(int address, int data)
     {
     }
-    
+
     protected int loadAddress()
     {
         return 0x100000 - length();

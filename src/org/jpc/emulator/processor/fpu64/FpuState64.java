@@ -438,19 +438,11 @@ public class FpuState64 extends FpuState
 
     public void setST(int index, double value)
     {
-        // FST says that no exception is generated if the destination
-        // is a non-empty register, so we don't generate an exception
-        // here.  TODO:  check to see if this is a general rule.
         int i = ((top + index) & 0x7);
         data[i] = value;
         tag[i] = tagCode(value);
         specialTag[i] = specialTagCode(value);
     }
-
-//     public void setBigST(int index, BigDecimal value)
-//     {
-//         setST(index, value.doubleValue());
-//     }
 
     public int getStatus()
     {

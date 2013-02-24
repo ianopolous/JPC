@@ -20,6 +20,7 @@ public class retf_o32 extends Executable
 
     public Branch execute(Processor cpu)
     {
+        cpu.eip += blockLength;
         if (cpu.ss.getDefaultSizeFlag())
             cpu.ret_far_o32_a32(0);
         else

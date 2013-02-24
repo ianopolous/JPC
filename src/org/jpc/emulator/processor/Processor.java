@@ -63,6 +63,7 @@ public class Processor implements HardwareComponent
     public static final int SYSENTER_CS_MSR = 0x174;
     public static final int SYSENTER_ESP_MSR = 0x175;
     public static final int SYSENTER_EIP_MSR = 0x176;
+    public static final int RPL_MASK = 0xfffc;
 
     private static final boolean[] parityMap;
 
@@ -292,8 +293,9 @@ public class Processor implements HardwareComponent
     public int pop16()
     {
         if (ss.getDefaultSizeFlag()) {
+            int val = ss.getWord(r_esp.get32());
             r_esp.set32(r_esp.get32() + 2);
-            return ss.getWord(r_esp.get32()-2);
+            return val;
         } else {
             int val = ss.getWord(r_esp.get16() & 0xFFFF);
             r_esp.set16(r_esp.get16() + 2);
@@ -309,19 +311,20 @@ public class Processor implements HardwareComponent
     public void push16(short val)
     {
         if (ss.getDefaultSizeFlag()) {
+            ss.setWord(r_esp.get32()-2, val);
             r_esp.set32(r_esp.get32() - 2);
-            ss.setWord(r_esp.get32(), val);
         } else {
+            ss.setWord((r_esp.get16()-2) & 0xFFFF, val);
             r_esp.set16(r_esp.get16() - 2);
-            ss.setWord(r_esp.get16() & 0xFFFF, val);
         }
     }
 
     public int pop32()
     {
         if (ss.getDefaultSizeFlag()) {
-            r_esp.set32(r_esp.get32() + 4);
-            return ss.getDoubleWord(r_esp.get32()-4);
+            int val = ss.getDoubleWord(r_esp.get32());
+            r_esp.set32(r_esp.get32()+4);
+            return val;
         } else {
             int val = ss.getDoubleWord(0xffff & r_esp.get16());
             r_esp.set16(r_esp.get16() + 4);
@@ -666,13 +669,25 @@ public class Processor implements HardwareComponent
 
     public void iret_o16_a16()
     {
-        eip = pop16() & 0xffff;
-        cs.setSelector(0xffff & pop16());
-        //System.out.printf("IRET to cs:eip %04x:%04x\n", cs.getSelector(), eip);
-        short flags = (short) pop16();
-        setFlags(flags);
+        int tmpeip = pop16() & 0xffff;
+        int tmpcs = pop16() & 0xffff;
+        int tmpflags = pop16() & 0xffff;
+        cs.checkAddress(tmpeip);
+        cs.setSelector(tmpcs);
+        eip = tmpeip;
+        setFlags((short)tmpflags);
     }
 
+    public void iret_o32_a16()
+    {
+        int tmpEip = pop32();
+        int tmpcs = pop32();
+        int tmpflags = pop32();
+        cs.checkAddress(tmpEip);
+        cs.setSelector(0xffff & tmpcs);
+        eip = tmpEip;
+        setEFlags(tmpflags, 0x257fd5); // VIF, VIP, VM unchanged
+    }
 
     public void iret_vm_o16_a16()
     {
@@ -2844,10 +2859,11 @@ public class Processor implements HardwareComponent
             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);//ProcessorException.GENERAL_PROTECTION_0;
         eflagsInterruptEnable = false;
         eflagsResume = false;
+        eflagsVirtual8086Mode = false;
 
-        cs(SegmentFactory.createProtectedModeSegment(linearMemory, csSelector & 0xfffc, 0x00cf9b000000ffffl));
+        cs(SegmentFactory.createProtectedModeSegment(linearMemory, csSelector & 0xfffc, 0x00cf9b000000ffffl)); // 0 base addr, G, D, P, S, Code, C, A
         setCPL(0);
-        ss(SegmentFactory.createProtectedModeSegment(linearMemory, (csSelector + 8) & 0xfffc, 0x00cf93000000ffffl));
+        ss(SegmentFactory.createProtectedModeSegment(linearMemory, (csSelector + 8) & 0xfffc, 0x00cf93000000ffffl));// 0 base addr, G, D, P, S, Data, R, A
 
         r_esp.set32((int) getMSR(Processor.SYSENTER_ESP_MSR));
         eip = (int) getMSR(Processor.SYSENTER_EIP_MSR);
@@ -2856,14 +2872,14 @@ public class Processor implements HardwareComponent
     public void sysexit()
     {
         int csSelector= (int)getMSR(Processor.SYSENTER_CS_MSR);
-        if (csSelector == 0)
+        if ((csSelector & RPL_MASK) == 0)
             throw ProcessorException.GENERAL_PROTECTION_0;
         if (getCPL() != 0)
             throw ProcessorException.GENERAL_PROTECTION_0;
 
-        cs(SegmentFactory.createProtectedModeSegment(linearMemory, (csSelector + 16) | 0x3, 0x00cffb000000ffffl));
+        cs(SegmentFactory.createProtectedModeSegment(linearMemory, (csSelector + 16) | 3, 0x00cffb000000ffffl)); // 0 base, G, D, P, DPL=3, S, Code, C, A,
         setCPL(3);
-        ss(SegmentFactory.createProtectedModeSegment(linearMemory, (csSelector + 24) | 0x3, 0x00cff3000000ffffl));
+        ss(SegmentFactory.createProtectedModeSegment(linearMemory, (csSelector + 24) | 3, 0x00cff3000000ffffl));
         correctAlignmentChecking(ss);
 
         r_esp.set32(r_ecx.get32());
@@ -3226,9 +3242,13 @@ public class Processor implements HardwareComponent
         eflagsNestedTask              = ((flags & (1 << 14)) != 0);
     }
 
+    public void setEFlags(int eflags, int changeMask)
+    {
+        setEFlags((getEFlags() & ~changeMask)| (eflags & changeMask));
+    }
+
     public void setEFlags(int eflags)
     {
-        // TODO:  check that there aren't flags which can't be set this way!
         flagStatus = 0;
         cf = ((eflags & 1 ) != 0);
         pf = ((eflags & (1 << 2)) != 0);

@@ -1244,10 +1244,37 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="32">Gd;M</args>
   </opcode>
 
+  <opcode mnemonic="lfs_o16">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op2.get + op2.getBase(cpu);
+        cpu.fs(0xFFFF &amp; cpu.linearMemory.getWord(addr+2));
+        $op1.setcpu.linearMemory.getWord(addr));</snippet>
+    <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
+  </opcode>
+
   <opcode mnemonic="lfs_o32">
       <return>Branch.None</return>
       <snippet>        int addr = $op2.get + op2.getBase(cpu);
         cpu.fs(0xFFFF &amp; cpu.linearMemory.getWord(addr+4));
+        $op1.setcpu.linearMemory.getDoubleWord(addr));</snippet>
+    <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
+  </opcode>
+
+  <opcode mnemonic="lgs_o16">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op2.get + op2.getBase(cpu);
+        cpu.gs(0xFFFF &amp; cpu.linearMemory.getWord(addr+2));
+        $op1.setcpu.linearMemory.getWord(addr));</snippet>
+    <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
+  </opcode>
+
+  <opcode mnemonic="lgs_o32">
+      <return>Branch.None</return>
+      <snippet>        int addr = $op2.get + op2.getBase(cpu);
+        cpu.gs(0xFFFF &amp; cpu.linearMemory.getWord(addr+4));
         $op1.setcpu.linearMemory.getDoubleWord(addr));</snippet>
     <args size="16">Gw;M</args>
     <args size="32">Gd;M</args>
@@ -1812,13 +1839,15 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="ret_o16">
     <return>Branch.Ret</return>
-    <snippet>        cpu.eip = 0xFFFF &amp; cpu.pop16();</snippet>
+    <snippet>        cpu.eip += blockLength;
+        cpu.eip = 0xFFFF &amp; cpu.pop16();</snippet>
     <args size="16"></args>
   </opcode>
 
   <opcode mnemonic="ret_o16">
     <return>Branch.Ret</return>
-    <snippet>        cpu.eip = 0xFFFF &amp; cpu.pop16();
+    <snippet>        cpu.eip += blockLength;
+        cpu.eip = 0xFFFF &amp; cpu.pop16();
         if (cpu.ss.getDefaultSizeFlag())
             cpu.r_esp.set32(cpu.r_esp.get32()+$op1.get);
         else
@@ -1828,13 +1857,19 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="ret_o32">
     <return>Branch.Ret</return>
-    <snippet>                cpu.eip = cpu.pop32();</snippet>
+    <snippet>        cpu.eip += blockLength;
+        int tmpEip = cpu.pop32();
+        cpu.cs.checkAddress(tmpEip);
+        cpu.eip = tmpEip;</snippet>
     <args size="32"></args>
   </opcode>
 
   <opcode mnemonic="ret_o32">
     <return>Branch.Ret</return>
-    <snippet>                cpu.eip = cpu.pop32();
+    <snippet>        cpu.eip += blockLength;
+        int tmpEip = cpu.pop32();
+        cpu.cs.checkAddress(tmpEip);
+        cpu.eip = tmpEip;
         if (cpu.ss.getDefaultSizeFlag())
             cpu.r_esp.set32(cpu.r_esp.get32()+$op1.get);
         else
@@ -1844,7 +1879,8 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="retf_o16">
     <return>Branch.Ret</return>
-    <snippet>        if (cpu.ss.getDefaultSizeFlag())
+    <snippet>        cpu.eip += blockLength;
+        if (cpu.ss.getDefaultSizeFlag())
             cpu.ret_far_o16_a32(0);
         else
             cpu.ret_far_o16_a16(0);</snippet>
@@ -1853,7 +1889,8 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="retf_o16">
     <return>Branch.Ret</return>
-    <snippet>        if (cpu.ss.getDefaultSizeFlag())
+    <snippet>        cpu.eip += blockLength;
+        if (cpu.ss.getDefaultSizeFlag())
             cpu.ret_far_o16_a32($op1.get);
         else
             cpu.ret_far_o16_a16($op1.get);</snippet>
@@ -1862,7 +1899,8 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="retf_o32">
     <return>Branch.Ret</return>
-    <snippet>        if (cpu.ss.getDefaultSizeFlag())
+    <snippet>        cpu.eip += blockLength;
+        if (cpu.ss.getDefaultSizeFlag())
             cpu.ret_far_o32_a32(0);
         else
             cpu.ret_far_o32_a16(0);</snippet>
@@ -1871,7 +1909,8 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="retf_o32">
     <return>Branch.Ret</return>
-    <snippet>        if (cpu.ss.getDefaultSizeFlag())
+    <snippet>        cpu.eip += blockLength;
+        if (cpu.ss.getDefaultSizeFlag())
             cpu.ret_far_o32_a32($op1.get);
         else
             cpu.ret_far_o32_a16($op1.get);</snippet>
@@ -2124,14 +2163,16 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   </opcode>
 
   <opcode mnemonic="sysenter">
-    <return>Branch.None</return>
-    <snippet>        cpu.sysenter();</snippet>
+    <return>Branch.Call_Unknown</return>
+    <snippet>        cpu.eip += blockLength;
+        cpu.sysenter();</snippet>
     <args size="0"></args>
   </opcode>
 
   <opcode mnemonic="sysexit">
-    <return>Branch.None</return>
-    <snippet>        cpu.sysexit();</snippet>
+    <return>Branch.Ret</return>
+    <snippet>        cpu.eip += blockLength;
+        cpu.sysexit();</snippet>
     <args size="0"></args>
   </opcode>
 

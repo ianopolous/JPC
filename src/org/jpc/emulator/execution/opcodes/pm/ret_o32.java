@@ -20,7 +20,10 @@ public class ret_o32 extends Executable
 
     public Branch execute(Processor cpu)
     {
-                cpu.eip = cpu.pop32();
+        cpu.eip += blockLength;
+        int tmpEip = cpu.pop32();
+        cpu.cs.checkAddress(tmpEip);
+        cpu.eip = tmpEip;
         return Branch.Ret;
     }
 

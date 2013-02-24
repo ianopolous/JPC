@@ -22,6 +22,7 @@ public class retf_o16_Iw extends Executable
 
     public Branch execute(Processor cpu)
     {
+        cpu.eip += blockLength;
         if (cpu.ss.getDefaultSizeFlag())
             cpu.ret_far_o16_a32(immw);
         else

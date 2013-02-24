@@ -20,6 +20,7 @@ public class ret_o16 extends Executable
 
     public Branch execute(Processor cpu)
     {
+        cpu.eip += blockLength;
         cpu.eip = 0xFFFF & cpu.pop16();
         return Branch.Ret;
     }

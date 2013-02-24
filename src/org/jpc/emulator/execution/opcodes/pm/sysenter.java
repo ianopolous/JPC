@@ -8,21 +8,26 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class sysenter extends Executable
 {
+    final int blockLength;
+    final int instructionLength;
 
     public sysenter(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
+        blockLength = parent.x86Length+(int)parent.eip-blockStart;
+        instructionLength = parent.x86Length;
     }
 
     public Branch execute(Processor cpu)
     {
+        cpu.eip += blockLength;
         cpu.sysenter();
-        return Branch.None;
+        return Branch.Call_Unknown;
     }
 
     public boolean isBranch()
     {
-        return false;
+        return true;
     }
 
     public String toString()

@@ -22,6 +22,7 @@ public class ret_o16_Iw extends Executable
 
     public Branch execute(Processor cpu)
     {
+        cpu.eip += blockLength;
         cpu.eip = 0xFFFF & cpu.pop16();
         if (cpu.ss.getDefaultSizeFlag())
             cpu.r_esp.set32(cpu.r_esp.get32()+immw);

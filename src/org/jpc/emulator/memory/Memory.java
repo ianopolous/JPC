@@ -33,6 +33,7 @@
 
 package org.jpc.emulator.memory;
 
+import org.jpc.emulator.memory.codeblock.SpanningCodeBlock;
 import org.jpc.emulator.processor.Processor;
 
 /**
@@ -47,6 +48,8 @@ public interface Memory
     public void lock(int addr);
 
     public void unlock(int addr);
+
+    public void addSpanningBlock(SpanningCodeBlock span, int lengthRemaining);
 
     /**
      * Returns true if this <code>Memory</code> object has had heap allocated for
