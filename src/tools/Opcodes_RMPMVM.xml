@@ -1241,6 +1241,37 @@
     <args size="64">STi</args>
   </opcode>
 
+  <opcode mnemonic="fucomip">
+    <return>Branch.None</return>
+    <snippet>        double freg0 = $op1.get;
+        double freg1 = $op2.get;
+        if (freg0 > freg1)
+        {
+            cpu.zf = cpu.pf = cpu.cf = false;
+            cpu.flagStatus &amp;= ~(ZF | PF | CF);
+        } else if (freg0 &lt; freg1)
+        {
+            cpu.zf = cpu.pf = false;
+            cpu.cf = true;
+            cpu.flagStatus &amp;= ~(ZF | PF | CF);
+        } else if (freg0 == freg1)
+        {
+            cpu.cf = cpu.pf = false;
+            cpu.zf = true;
+            cpu.sf = false;
+            cpu.flagStatus &amp;= ~(ZF | PF | CF | SF);
+        } else
+        {
+            cpu.zf = cpu.pf = cpu.cf = true;
+            cpu.flagStatus &amp;= ~(ZF | PF | CF);
+        }
+        cpu.af = false;
+        cpu.sf = false;
+        cpu.flagStatus &amp;= ~(AF | SF);
+        cpu.fpu.pop();</snippet>
+    <args size="64">ST0;STi</args>
+  </opcode>
+
   <opcode mnemonic="fucompp">
     <return>Branch.None</return>
     <snippet>        int newcode = 0xd;

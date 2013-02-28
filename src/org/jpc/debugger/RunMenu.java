@@ -253,6 +253,7 @@ public class RunMenu extends JMenu implements ActionListener {
                             WatchpointsFrame.Watchpoint wp = wps.checkForWatch();
                             if (wp != null) {
                                 SwingUtilities.invokeAndWait(u);
+                                new Alerter("Watchpoint", String.format("Watch at %08x: old value=%02x " + wp.getName(), wp.getAddress(), wp.getValue()), JOptionPane.INFORMATION_MESSAGE).show();
                                 wp.updateValue();
                             }
                         }

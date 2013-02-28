@@ -195,14 +195,19 @@ public class CodeBlockRecord {
         CodeBlock block = null;
 
         int offset = address & AddressSpace.BLOCK_MASK;
-        if (processor.isProtectedMode()) {
-            if (processor.isVirtual8086Mode()) {
-                block = codeMemory.getVirtual8086Block(offset);
+        try {
+            if (processor.isProtectedMode()) {
+                if (processor.isVirtual8086Mode()) {
+                    block = codeMemory.getVirtual8086Block(offset);
+                } else {
+                    block = codeMemory.getProtectedBlock(offset, processor.cs.getDefaultSizeFlag());
+                }
             } else {
-                block = codeMemory.getProtectedBlock(offset, processor.cs.getDefaultSizeFlag());
+                block = codeMemory.getRealBlock(offset);
             }
-        } else {
-            block = codeMemory.getRealBlock(offset);
+        } catch (SpanningDecodeException s)
+        {
+            block = s.getBlock();
         }
         decodedCount += block.getX86Count();
 

@@ -583,6 +583,7 @@
     <return>Branch.Jmp_Unknown</return>
     <snippet>        cpu.eip = $mask$op1.get;</snippet>
     <args size="16">Ew</args>
+    <args size="32">Ed</args>
   </opcode>
 
   <opcode mnemonic="jmp">
@@ -1061,6 +1062,12 @@
         cpu.flagResult = $cast($op1.get &amp; $op2.get);
         cpu.flagStatus = SZP;</snippet>
     <args size="32">rAX;Id</args>
+  </opcode>
+
+  <opcode mnemonic="verr">
+    <return>Branch.None</return>
+    <snippet>        if (true) throw ProcessorException.UNDEFINED;</snippet>
+    <args size="16">Ew</args>
   </opcode>
 
   <opcode mnemonic="xchg">

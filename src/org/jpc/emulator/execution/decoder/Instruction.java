@@ -52,6 +52,7 @@ public class Instruction
         jcc.add("loopnz");
         hlt.add("hlt");
         repIgnores.add("jb");
+        repIgnores.add("add");
     }
 
     public int x86Length;

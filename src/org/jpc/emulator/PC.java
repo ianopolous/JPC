@@ -161,6 +161,16 @@ public class PC {
         parts.add(new SystemBIOS("/resources/bios/bios.bin"));
         parts.add(new VGABIOS("/resources/bios/vgabios.bin"));
 
+        if (Option.soundenabled.value())
+        {
+            Midi.init();
+            String device = Option.sounddevice.value("sb16");
+            if (device.equals("sb16"))
+            {
+                parts.add(new SoundCard());
+            }
+        }
+
         if (!configure()) {
             throw new IllegalStateException("PC Configuration failed");
         }
@@ -369,6 +379,8 @@ public class PC {
      */
     public void start() {
         vmClock.resume();
+        if (Option.soundenabled.value())
+            AudioLayer.open(Option.mixer_javabuffer.intValue(8820), Option.mixer_rate.intValue(44100));
     }
 
     /**
@@ -376,6 +388,8 @@ public class PC {
      */
     public void stop() {
         vmClock.pause();
+        if (Option.soundenabled.value())
+            AudioLayer.stop();
     }
 
     /**

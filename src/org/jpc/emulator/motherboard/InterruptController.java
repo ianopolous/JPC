@@ -62,9 +62,9 @@ public class InterruptController extends AbstractHardwareComponent implements IO
      */
     public InterruptController()
     {
-	ioportRegistered = false;
-	master = new InterruptControllerElement(true);
-	slave = new InterruptControllerElement(false);
+        ioportRegistered = false;
+        master = new InterruptControllerElement(true);
+        slave = new InterruptControllerElement(false);
     }
 
     public void saveState(DataOutput output) throws IOException

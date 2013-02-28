@@ -260,7 +260,7 @@ public class Opcode
     private static boolean isMem(String[] args)
     {
         for (String arg: args)
-            if (arg.equals("Eb") || arg.equals("Ew") || arg.equals("Ed") || arg.equals("Ob") || arg.equals("Ow") || arg.equals("Od") || arg.equals("M"))
+            if (arg.equals("Eb") || arg.equals("Ew") || arg.equals("Ed") || arg.equals("Ob") || arg.equals("Ow") || arg.equals("Od") || arg.equals("M") || arg.equals("R"))
                 return true;
         return false;
     }

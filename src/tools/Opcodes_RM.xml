@@ -261,6 +261,13 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="into">
+    <return>Branch.Jmp_Unknown</return>
+    <snippet>        cpu.eip += blockLength;
+        if (cpu.of()) cpu.int_o16_a16(4);</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="iretw">
     <return>Branch.Ret</return>
     <snippet>        cpu.iret_o16_a16();</snippet>
