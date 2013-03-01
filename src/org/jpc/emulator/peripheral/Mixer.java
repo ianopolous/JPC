@@ -1,17 +1,23 @@
 package org.jpc.emulator.peripheral;
 
+import org.jpc.emulator.AbstractHardwareComponent;
 import org.jpc.emulator.HardwareComponent;
+import org.jpc.emulator.Timer;
+import org.jpc.emulator.TimerResponsive;
 import org.jpc.emulator.motherboard.InterruptController;
 import org.jpc.j2se.Option;
 import org.jpc.support.Clock;
 
 import java.util.logging.*;
 
-public class Mixer
+public class Mixer extends AbstractHardwareComponent
 {
     private static final Logger Log = Logger.getLogger(Mixer.class.getName());
     private static Clock timeSource;
     private static InterruptController irqDevice;
+    private static long nextExpiry;
+    private static Timer mix;
+    private static Timer mix_nosound;
 
     static public interface MIXER_MixHandler {
         public void call(/*Bit8u*/short[] sampdate, /*Bit32u*/int len);
@@ -390,7 +396,7 @@ public class Mixer
                     return;
                 }
                 // scale the sound so it is the right speed
-                float index = Pic.PIC_TickIndex();
+                float index = 1.0f;//set this to not scale for now. Pic.PIC_TickIndex();
                 Mix((/*Bitu*/int)(index*mixer.needed));
             }
         }
@@ -539,19 +545,25 @@ public class Mixer
         mixer.done = needed;
     }
 
-    static private Timer.TIMER_TickHandler MIXER_Mix = new Timer.TIMER_TickHandler() {
-        public void call() {
+    static private TimerResponsive MIXER_Mix = new TimerResponsive() {
+        public void callback() {
             synchronized (audioMutex) {
                 MIXER_MixData(mixer.needed);
                 mixer.tick_remain+=mixer.tick_add;
                 mixer.needed+=(mixer.tick_remain>>MIXER_SHIFT);
                 mixer.tick_remain&=MIXER_REMAIN;
+                nextExpiry += mixer.tick_add;
+                mix.setExpiry(nextExpiry);
             }
+        }
+        public int getType()
+        {
+            return -1;
         }
     };
 
-    static private Timer.TIMER_TickHandler MIXER_Mix_NoSound = new Timer.TIMER_TickHandler() {
-        public void call() {
+    static private TimerResponsive MIXER_Mix_NoSound = new TimerResponsive() {
+        public void callback() {
             MIXER_MixData(mixer.needed);
             /* Clear piece we've just generated */
             for (/*Bitu*/int i=0;i<mixer.needed;i++) {
@@ -569,6 +581,12 @@ public class Mixer
             mixer.needed=(int)(mixer.tick_remain>>MIXER_SHIFT);
             mixer.tick_remain&=MIXER_REMAIN;
             mixer.done=0;
+            nextExpiry += mixer.tick_add;
+            mix_nosound.setExpiry(nextExpiry);
+        }
+        public int getType()
+        {
+            return -1;
         }
     };
 
@@ -749,7 +767,10 @@ public class Mixer
         if (mixer.nosound) {
             Log.log(Level.INFO, "MIXER:No Sound Mode Selected.");
             mixer.tick_add=((mixer.freq) << MIXER_SHIFT)/1000;
-            Timer.TIMER_AddTickHandler(MIXER_Mix_NoSound);
+            //Timer.TIMER_AddTickHandler(MIXER_Mix_NoSound);
+            mix_nosound = timeSource.newTimer(MIXER_Mix_NoSound);
+            nextExpiry = timeSource.getTime();
+            mix_nosound.setExpiry(nextExpiry);
         }
         else if (!AudioLayer.open(Option.mixer_javabuffer.intValue(8820), mixer.freq)) {
 //            else if (SDL_OpenAudio(&spec, &obtained) <0 ) {
@@ -763,7 +784,10 @@ public class Mixer
 //                mixer.freq=obtained.freq;
 //                mixer.blocksize=obtained.samples;
             mixer.tick_add=(mixer.freq << MIXER_SHIFT)/1000;
-            Timer.TIMER_AddTickHandler(MIXER_Mix);
+            //Timer.TIMER_AddTickHandler(MIXER_Mix);
+            mix = timeSource.newTimer(MIXER_Mix);
+            nextExpiry = timeSource.getTime();
+            mix.setExpiry(nextExpiry);
 //                SDL_PauseAudio(0);
         }
     }
@@ -787,9 +811,6 @@ public class Mixer
 
         if (this.initialised()) {
             MIXER_Init();
-
-            mix_timer = timeSource.newTimer(mix);
-            mix_ns_timer = timeSource.newTimer(mix_ns);
         }
     }
 }

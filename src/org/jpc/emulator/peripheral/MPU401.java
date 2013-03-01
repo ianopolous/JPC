@@ -1,10 +1,17 @@
 package org.jpc.emulator.peripheral;
 
+import org.jpc.emulator.AbstractHardwareComponent;
+import org.jpc.emulator.HardwareComponent;
+import org.jpc.emulator.motherboard.IODevice;
+import org.jpc.emulator.motherboard.InterruptController;
+import org.jpc.j2se.Option;
+
 import java.util.logging.*;
 
-public class MPU401
+public class MPU401 extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger Log = Logger.getLogger(MPU401.class.getName());
+    private static InterruptController irqDevice;
 
     static final private int MPU401_VERSION = 0x15;
     static final private int MPU401_REVISION = 0x01;
@@ -101,17 +108,14 @@ public class MPU401
         mpu.queue_pos=0;
     }
 
-    private static final IoHandler.IO_ReadHandler MPU401_ReadStatus = new IoHandler.IO_ReadHandler() {
-        public /*Bitu*/int call(/*Bitu*/int port, /*Bitu*/int iolen) {
+    private static final int MPU401_ReadStatus(/*Bitu*/int port, /*Bitu*/int iolen) {
             /*Bit8u*/short ret=0x3f;	/* Bits 6 and 7 clear */
             if (mpu.state.cmd_pending!=0) ret|=0x40;
             if (mpu.queue_used==0) ret|=0x80;
             return ret;
         }
-    };
 
-    private static final IoHandler.IO_WriteHandler MPU401_WriteCommand = new IoHandler.IO_WriteHandler() {
-        public void call(/*Bitu*/int port, /*Bitu*/int val, /*Bitu*/int iolen) {
+    private static final void MPU401_WriteCommand(/*Bitu*/int port, /*Bitu*/int val, /*Bitu*/int iolen) {
             if (mpu.state.reset) {mpu.state.cmd_pending=val+1;return;}
             if (val<=0x2f) {
                 switch (val&3) { /* MIDI stop, start, continue */
@@ -248,10 +252,8 @@ public class MPU401
             }
             QueueByte(MSG_MPU_ACK);
         }
-    };
 
-    static private final IoHandler.IO_ReadHandler MPU401_ReadData = new IoHandler.IO_ReadHandler() {
-        public /*Bitu*/int call(/*Bitu*/int port, /*Bitu*/int iolen) {
+    static private final int MPU401_ReadData(/*Bitu*/int port, /*Bitu*/int iolen) {
             /*Bit8u*/short ret=MSG_MPU_ACK;
             if (mpu.queue_used!=0) {
                 if (mpu.queue_pos>=MPU401_QUEUE) mpu.queue_pos-=MPU401_QUEUE;
@@ -272,8 +274,8 @@ public class MPU401
                 mpu.state.cond_req=true;
                 if (mpu.condbuf.type!=T_OVERFLOW) {
                     mpu.state.block_ack=true;
-                    MPU401_WriteCommand.call(0x331,mpu.condbuf.value[0],1);
-                    if (mpu.state.command_byte!=0) MPU401_WriteData.call(0x330,mpu.condbuf.value[1],1);
+                    MPU401_WriteCommand(0x331,mpu.condbuf.value[0],1);
+                    if (mpu.state.command_byte!=0) MPU401_WriteData(0x330,mpu.condbuf.value[1],1);
                 }
             mpu.condbuf.type=T_OVERFLOW;
             }
@@ -283,11 +285,9 @@ public class MPU401
             }
             return ret;
         }
-    };
 
     private static /*Bitu*/int length,cnt,posd;
-    private static final IoHandler.IO_WriteHandler MPU401_WriteData = new IoHandler.IO_WriteHandler() {
-        public void call(/*Bitu*/int port, /*Bitu*/int val, /*Bitu*/int iolen) {
+    private static final void MPU401_WriteData(/*Bitu*/int port, /*Bitu*/int val, /*Bitu*/int iolen) {
             if (mpu.mode==M_UART) {Midi.MIDI_RawOutByte(val);return;}
             switch (mpu.state.command_byte) {	/* 0xe# command data */
                 case 0x00:
@@ -461,7 +461,6 @@ public class MPU401
                     if (posd==length) MPU401_EOIHandlerDispatch();
             }
         }
-    };
 
     private static void MPU401_IntelligentOut(/*Bit8u*/int chan) {
         /*Bitu*/int val;
@@ -574,7 +573,7 @@ public class MPU401
         public void call(/*Bitu*/int val) {
             mpu.state.reset=false;
             if (mpu.state.cmd_pending!=0) {
-                MPU401_WriteCommand.call(0x331,mpu.state.cmd_pending-1,1);
+                MPU401_WriteCommand(0x331,mpu.state.cmd_pending-1,1);
                 mpu.state.cmd_pending=0;
             }
         }
@@ -613,13 +612,13 @@ public class MPU401
         for (/*Bitu*/int i=0;i<8;i++) {mpu.playbuf[i].type=T_OVERFLOW;mpu.playbuf[i].counter=0;}
     }
 
-    private IoHandler.IO_ReadHandleObject[] ReadHandler=new IoHandler.IO_ReadHandleObject[2];
-    private IoHandler.IO_WriteHandleObject[] WriteHandler=new IoHandler.IO_WriteHandleObject[2];
+//    private IoHandler.IO_ReadHandleObject[] ReadHandler=new IoHandler.IO_ReadHandleObject[2];
+//    private IoHandler.IO_WriteHandleObject[] WriteHandler=new IoHandler.IO_WriteHandleObject[2];
     private boolean installed; /*as it can fail to install by 2 ways (config and no midi)*/
 
     public MPU401() {
         installed = false;
-        String s_mpu = section.Get_string("mpu401");
+        String s_mpu = Option.mpu401.value("intelligent");
         if(s_mpu.equalsIgnoreCase("none")) return;
         if(s_mpu.equalsIgnoreCase("off")) return;
         if(s_mpu.equalsIgnoreCase("false")) return;
@@ -627,16 +626,16 @@ public class MPU401
         /*Enabled and there is a Midi */
         installed = true;
 
-        for (int i=0;i<WriteHandler.length;i++) {
-            WriteHandler[i] = new IoHandler.IO_WriteHandleObject();
-        }
-        for (int i=0;i<ReadHandler.length;i++) {
-            ReadHandler[i] = new IoHandler.IO_ReadHandleObject();
-        }
-        WriteHandler[0].Install(0x330,MPU401_WriteData,IoHandler.IO_MB);
-        WriteHandler[1].Install(0x331,MPU401_WriteCommand,IoHandler.IO_MB);
-        ReadHandler[0].Install(0x330,MPU401_ReadData,IoHandler.IO_MB);
-        ReadHandler[1].Install(0x331,MPU401_ReadStatus,IoHandler.IO_MB);
+//        for (int i=0;i<WriteHandler.length;i++) {
+//            WriteHandler[i] = new IoHandler.IO_WriteHandleObject();
+//        }
+//        for (int i=0;i<ReadHandler.length;i++) {
+//            ReadHandler[i] = new IoHandler.IO_ReadHandleObject();
+//        }
+//        WriteHandler[0].Install(0x330,MPU401_WriteData,IoHandler.IO_MB);
+//        WriteHandler[1].Install(0x331,MPU401_WriteCommand,IoHandler.IO_MB);
+//        ReadHandler[0].Install(0x330,MPU401_ReadData,IoHandler.IO_MB);
+//        ReadHandler[1].Install(0x331,MPU401_ReadStatus,IoHandler.IO_MB);
 
         mpu.queue_used=0;
         mpu.queue_pos=0;
@@ -651,15 +650,82 @@ public class MPU401
         MPU401_Reset();
     }
 
+    public int ioPortRead8(int address)
+    {
+        return ioPortRead32(address);
+    }
+
+    public int ioPortRead16(int address)
+    {
+        return ioPortRead32(address);
+    }
+
+    public int ioPortRead32(int port)
+    {
+        if (port == 0x330)
+        {
+            return MPU401_ReadData(port, 32);
+        }
+        else if (port == 0x331)
+        {
+            return MPU401_ReadStatus(port, 32);
+        }
+        throw new IllegalStateException("Unknown port read "+port);
+    }
+
+    public void ioPortWrite8(int address, int data)
+    {
+        ioPortWrite32(address, data);
+    }
+
+    public void ioPortWrite16(int address, int data)
+    {
+        ioPortWrite32(address, data);
+    }
+
+    public void ioPortWrite32(int port, int data)
+    {
+        if (port == 0x330)
+        {
+            MPU401_WriteData(port, data, 32);
+        }
+        else if (port == 0x331)
+        {
+            MPU401_WriteCommand(port, data, 32);
+        }
+    }
+
+    public int[] ioPortsRequested()
+    {
+        int[] ports = new int[]{0x330, 0x331};
+        return ports;
+    }
+
+    public boolean initialised()
+    {
+        return (irqDevice != null);
+    }
+
+    public boolean updated()
+    {
+        return (irqDevice.updated());
+    }
+
+    public void acceptComponent(HardwareComponent component)
+    {
+        if ((component instanceof InterruptController) && component.initialised())
+            irqDevice = (InterruptController) component;
+    }
+
     static private MPU401 test;
 
     public static void MPU401_Destroy() {
         if(!test.installed) return;
-        if(!sec_prop.Get_string("mpu401").equalsIgnoreCase("intelligent")) return;
+        if(!Option.mpu401.value("intelligent").equalsIgnoreCase("intelligent")) return;
         Pic.PIC_SetIRQMask(mpu.irq,true);
     }
 
     public static void MPU401_Init() {
-        test = new MPU401(section);
+        test = new MPU401();
     }
 }

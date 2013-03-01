@@ -35,19 +35,20 @@ public abstract class Option {
     public static final Opt sounddevice = opt("sounddevice");
     public static final Opt mixer_rate = opt("mixer_rate");
     public static final Opt mixer_javabuffer = opt("mixer_javabuffer");
+    public static final Opt mixer_blocksize = opt("mixer_blocksize");
+    public static final Switch mixer_nosound = createSwitch("mixer_nosound");
+    public static final Opt mixer_prebuffer = opt("mixer_prebuffer");
 
+    public static final Opt mpu401 = opt("mpu401");
     public static final Opt mididevice = opt("mididevice");
     public static final Opt midiconfig = opt("midiconfig");
+
     public static final Opt sbbase = opt("sbbase");
     public static final Opt sb_irq = opt("sb_irq");
     public static final Opt sb_dma = opt("sb_dma");
     public static final Opt sb_hdma = opt("sb_hdma");
     public static final Switch sbmixer = createSwitch("sbmixer");
-
     public static final Opt sbtype = opt("sbtype");
-    public static final Opt mixer_blocksize = opt("mixer_blocksize");
-    public static final Switch mixer_nosound = createSwitch("mixer_nosound");
-    public static final Opt mixer_prebuffer = opt("mixer_prebuffer");
 
     public static String[] parse(String[] source) {
         ArrayList<String> tmp = new ArrayList<String>();

@@ -163,11 +163,11 @@ public class PC {
 
         if (Option.soundenabled.value())
         {
-            Midi.init();
+            Midi.MIDI_Init();
             String device = Option.sounddevice.value("sb16");
             if (device.equals("sb16"))
             {
-                parts.add(new SoundCard());
+                parts.add(new SBlaster());
             }
         }
 

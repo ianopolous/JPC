@@ -82,19 +82,19 @@ public class InterruptController extends AbstractHardwareComponent implements IO
 
     private void updateIRQ()
     {
-	int slaveIRQ, masterIRQ;
-	/* first look at slave irq */
-	slaveIRQ = slave.getIRQ();
-	if (slaveIRQ >= 0) {
-	    /* if irq request by slave pic, signal Master PIC */
-	    master.setIRQ(2,1);
-	    master.setIRQ(2,0);
-	}
-	/* look at requested IRQ */
-	masterIRQ = master.getIRQ();
-	if(masterIRQ >= 0) {
-	    connectedCPU.raiseInterrupt();
-	}
+        int slaveIRQ, masterIRQ;
+        /* first look at slave irq */
+        slaveIRQ = slave.getIRQ();
+        if (slaveIRQ >= 0) {
+            /* if irq request by slave pic, signal Master PIC */
+            master.setIRQ(2,1);
+            master.setIRQ(2,0);
+        }
+        /* look at requested IRQ */
+        masterIRQ = master.getIRQ();
+        if(masterIRQ >= 0) {
+            connectedCPU.raiseInterrupt();
+        }
     }
 
     /**

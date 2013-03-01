@@ -1,10 +1,15 @@
 package org.jpc.emulator.peripheral;
 
+import org.jpc.emulator.AbstractHardwareComponent;
+import org.jpc.emulator.motherboard.IODevice;
+import org.jpc.j2se.Option;
+
 import java.util.logging.*;
 
-public class SBlaster
+public class SBlaster extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger Log = Logger.getLogger(SBlaster.class.getName());
+    private static final boolean DEBUG = false;
 
     static final private int SB_PIC_EVENTS = 0;
 
@@ -602,7 +607,7 @@ public class SBlaster
         sb.dma.mode=mode;
         Pic.PIC_RemoveEvents(END_DMA_Event);
         sb.dma.chan.Register_Callback(DSP_DMA_CallBack);
-        if (Config.C_DEBUG) {
+        if (DEBUG) {
             Log.log(Level.INFO,"DMA Transfer:"+type+" "+(sb.dma.stereo ? "Stereo" : "Mono")+" "+(sb.dma.autoinit ? "Auto-Init" : "Single-Cycle")+" freq "+freq+" rate "+sb.dma.rate+" size "+sb.dma.total);
         }
     }
@@ -1438,7 +1443,7 @@ public class SBlaster
 
     private static IoHandler.IO_WriteHandler adlib_gusforward = new IoHandler.IO_WriteHandler() {
         public void call(/*Bitu*/int port, /*Bitu*/int val, /*Bitu*/int iolen) {
-            Gus.adlib_commandreg=(/*Bit8u*/short)(val&0xff);
+            //Gus.adlib_commandreg=(/*Bit8u*/short)(val&0xff);
         }
     };
 
@@ -1491,8 +1496,8 @@ public class SBlaster
     private /*OPL_Mode*/int oplmode;
 
     /* Support Functions */
-    private void Find_Type_And_Opl(Section_prop config,/*SB_TYPES*/IntRef type, /*OPL_Mode*/IntRef opl_mode){
-        String sbtype=config.Get_string("sbtype");
+    private void Find_Type_And_Opl(/*SB_TYPES*/IntRef type, /*OPL_Mode*/IntRef opl_mode){
+        String sbtype = Option.sbtype.value("sb16");
         if (sbtype.equalsIgnoreCase("sb1")) type.value=SBT_1;
         else if (sbtype.equalsIgnoreCase("sb2")) type.value=SBT_2;
         else if (sbtype.equalsIgnoreCase("sbpro1")) type.value=SBT_PRO1;
@@ -1503,53 +1508,45 @@ public class SBlaster
         else type.value=SBT_16;
 
         if (type.value==SBT_16) {
-            if ((!Dosbox.IS_EGAVGA_ARCH()) || !DMA.SecondDMAControllerAvailable()) type.value=SBT_PRO2;
+            //if ((!Dosbox.IS_EGAVGA_ARCH()) || !DMA.SecondDMAControllerAvailable()) type.value=SBT_PRO2;
+
         }
 
         /* OPL/CMS Init */
-        String omode=config.Get_string("oplmode");
-        if (omode.equalsIgnoreCase("none")) opl_mode.value=Hardware.OPL_none;
-        else if (omode.equalsIgnoreCase("cms")) opl_mode.value=Hardware.OPL_cms;
-        else if (omode.equalsIgnoreCase("opl2")) opl_mode.value=Hardware.OPL_opl2;
-        else if (omode.equalsIgnoreCase("dualopl2")) opl_mode.value=Hardware.OPL_dualopl2;
-        else if (omode.equalsIgnoreCase("opl3")) opl_mode.value=Hardware.OPL_opl3;
-        /* Else assume auto */
-        else {
-            switch (type.value) {
+        switch (type.value) {
             case SBT_NONE:
-                opl_mode.value=Hardware.OPL_none;
+                opl_mode.value = 0;
                 break;
             case SBT_GB:
-                opl_mode.value=Hardware.OPL_cms;
+                opl_mode.value=1;
                 break;
             case SBT_1:
             case SBT_2:
-                opl_mode.value=Hardware.OPL_opl2;
+                opl_mode.value=2;
                 break;
             case SBT_PRO1:
-                opl_mode.value=Hardware.OPL_dualopl2;
+                opl_mode.value=3;
                 break;
             case SBT_PRO2:
             case SBT_16:
-                opl_mode.value=Hardware.OPL_opl3;
+                opl_mode.value=4;
                 break;
-            }
         }
     }
 
     private void close() {
         switch (oplmode) {
-        case Hardware.OPL_none:
+        case 0:
             break;
-        case Hardware.OPL_cms:
-            Gameblaster.CMS_ShutDown(m_configuration);
+        case 1:
+            //Gameblaster.CMS_ShutDown(m_configuration);
             break;
-        case Hardware.OPL_opl2:
-            Gameblaster.CMS_ShutDown(m_configuration);
+        case 2:
+            //Gameblaster.CMS_ShutDown(m_configuration);
             // fall-through
-        case Hardware.OPL_dualopl2:
-        case Hardware.OPL_opl3:
-            Adlib.OPL_ShutDown(m_configuration);
+        case 3:
+        case 4:
+            //Adlib.OPL_ShutDown(m_configuration);
             break;
         }
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
@@ -1575,38 +1572,38 @@ public class SBlaster
         for (i=0;i<ReadHandler.length;i++) {
             ReadHandler[i] = new IoHandler.IO_ReadHandleObject();
         }
-        sb.hw.base=section.Get_hex("sbbase").toInt();
-        sb.hw.irq=section.Get_int("irq");
-        /*Bitu*/int dma8bit=section.Get_int("dma");
+        sb.hw.base = Option.sbbase.intValue(0x220);
+        sb.hw.irq = Option.sb_irq.intValue(7);
+        /*Bitu*/int dma8bit = Option.sb_dma.intValue(1);
         if (dma8bit>0xff) dma8bit=0xff;
         sb.hw.dma8=(/*Bit8u*/short)(dma8bit&0xff);
-        /*Bitu*/int dma16bit=section.Get_int("hdma");
+        /*Bitu*/int dma16bit = Option.sb_hdma.intValue(5);
         if (dma16bit>0xff) dma16bit=0xff;
         sb.hw.dma16=(/*Bit8u*/short)(dma16bit&0xff);
 
-        sb.mixer.enabled=section.Get_bool("sbmixer");
+        sb.mixer.enabled = Option.sbmixer.isSet();
         sb.mixer.stereo=false;
 
         IntRef t = new IntRef(sb.type);
         IntRef o = new IntRef(oplmode);
-        Find_Type_And_Opl(section,t,o);
+        Find_Type_And_Opl(t,o);
         sb.type = t.value;
         oplmode = o.value;
 
         switch (oplmode) {
-        case Hardware.OPL_none:
-            WriteHandler[0].Install(0x388,adlib_gusforward,IoHandler.IO_MB);
+        case 0:
+            //WriteHandler[0].Install(0x388,adlib_gusforward,IoHandler.IO_MB);
             break;
-        case Hardware.OPL_cms:
-            WriteHandler[0].Install(0x388,adlib_gusforward,IoHandler.IO_MB);
-            Gameblaster.CMS_Init(section);
+        case 1:
+            //WriteHandler[0].Install(0x388,adlib_gusforward,IoHandler.IO_MB);
+            //Gameblaster.CMS_Init(section);
             break;
-        case Hardware.OPL_opl2:
-            Gameblaster.CMS_Init(section);
+        case 2:
+            //Gameblaster.CMS_Init(section);
             // fall-through
-        case Hardware.OPL_dualopl2:
-        case Hardware.OPL_opl3:
-            Adlib.OPL_Init(section,oplmode);
+        case 3:
+        case 4:
+            //Adlib.OPL_Init(section,oplmode);
             break;
         }
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
@@ -1637,11 +1634,10 @@ public class SBlaster
         if (sb.type == SBT_16) sb.chan.Enable(true);
         else sb.chan.Enable(false);
 
-        String line = String.format("SET BLASTER=A%3x I%d D%d",new Object[]{new Integer(sb.hw.base),new Integer(sb.hw.irq), new Integer(sb.hw.dma8)});
-        if (sb.type==SBT_16) line+= " H"+ sb.hw.dma16;
-        line+=" T"+sb.type;
-
-        autoexecline.Install(line);
+//        String line = String.format("SET BLASTER=A%3x I%d D%d",new Object[]{new Integer(sb.hw.base),new Integer(sb.hw.irq), new Integer(sb.hw.dma8)});
+//        if (sb.type==SBT_16) line+= " H"+ sb.hw.dma16;
+//        line+=" T"+sb.type;
+//        autoexecline.Install(line);
 
         /* Soundblaster midi interface */
         if (!Midi.MIDI_Available()) sb.midi = false;
@@ -1651,6 +1647,6 @@ public class SBlaster
     public static void SBLASTER_Init()
     {
         sb = new SB_INFO();
-        test = new SBlaster(section);
+        test = new SBlaster();
     }
 }
