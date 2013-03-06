@@ -771,8 +771,8 @@ public class Mixer extends AbstractHardwareComponent
             mix_nosound = timeSource.newTimer(MIXER_Mix_NoSound);
             nextExpiry = timeSource.getTime();
             mix_nosound.setExpiry(nextExpiry);
-        }
-        else if (!AudioLayer.open(Option.mixer_javabuffer.intValue(8820), mixer.freq)) {
+//        }
+//        else if (!AudioLayer.open(Option.mixer_javabuffer.intValue(8820), mixer.freq)) {
 //            else if (SDL_OpenAudio(&spec, &obtained) <0 ) {
 //                mixer.nosound = true;
 //                Log.log_msg("MIXER:Can't open audio: %s , running in nosound mode.",SDL_GetError());
@@ -785,16 +785,14 @@ public class Mixer extends AbstractHardwareComponent
 //                mixer.blocksize=obtained.samples;
             mixer.tick_add=(mixer.freq << MIXER_SHIFT)/1000;
             //Timer.TIMER_AddTickHandler(MIXER_Mix);
-            mix = timeSource.newTimer(MIXER_Mix);
-            nextExpiry = timeSource.getTime();
-            mix.setExpiry(nextExpiry);
+
 //                SDL_PauseAudio(0);
         }
     }
 
     public boolean initialised()
     {
-        return (irqDevice != null) && (timeSource != null);
+        return (irqDevice != null) && irqDevice.initialised() && (timeSource != null);
     }
 
     public boolean updated()
@@ -807,10 +805,14 @@ public class Mixer extends AbstractHardwareComponent
         if ((component instanceof InterruptController) && component.initialised())
             irqDevice = (InterruptController) component;
         if ((component instanceof Clock) && component.initialised())
+        {
             timeSource = (Clock) component;
+            mix = timeSource.newTimer(MIXER_Mix);
+            nextExpiry = timeSource.getTime();
+            mix.setExpiry(nextExpiry);
+        }
 
         if (this.initialised()) {
-            MIXER_Init();
         }
     }
 }

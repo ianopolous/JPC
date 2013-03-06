@@ -2,9 +2,13 @@ package org.jpc.emulator.peripheral;
 
 import org.jpc.emulator.AbstractHardwareComponent;
 import org.jpc.emulator.HardwareComponent;
+import org.jpc.emulator.Timer;
+import org.jpc.emulator.TimerResponsive;
 import org.jpc.emulator.motherboard.IODevice;
+import org.jpc.emulator.motherboard.IOPortHandler;
 import org.jpc.emulator.motherboard.InterruptController;
 import org.jpc.j2se.Option;
+import org.jpc.support.Clock;
 
 import java.util.logging.*;
 
@@ -12,6 +16,9 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger Log = Logger.getLogger(MPU401.class.getName());
     private static InterruptController irqDevice;
+    private static Clock timeSource;
+    private static Timer event;
+    private static boolean ioportRegistered = false;
 
     static final private int MPU401_VERSION = 0x15;
     static final private int MPU401_REVISION = 0x01;
@@ -92,7 +99,8 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
         if (mpu.state.block_ack) {mpu.state.block_ack=false;return;}
         if (mpu.queue_used==0 && mpu.intelligent) {
             mpu.state.irq_pending=true;
-            Pic.PIC_ActivateIRQ(mpu.irq);
+            //Pic.PIC_ActivateIRQ(mpu.irq);
+            irqDevice.setIRQ(mpu.irq, 1);
         }
         if (mpu.queue_used<MPU401_QUEUE) {
             /*Bitu*/int pos=mpu.queue_used+mpu.queue_pos;
@@ -126,7 +134,7 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
                 if ((val&0x20)!=0) Log.log(Level.SEVERE,"MPU-401:Unhandled Recording Command "+Integer.toString(val,16));
                 switch (val&0xc) {
                     case  0x4:	/* Stop */
-                        Pic.PIC_RemoveEvents(MPU401_Event);
+                        //Pic.PIC_RemoveEvents(MPU401_Event);
                         mpu.state.playing=false;
                         for (/*Bitu*/int i=0xb0;i<0xbf;i++) {	/* All notes off */
                             Midi.MIDI_RawOutByte(i);
@@ -137,8 +145,9 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
                     case 0x8:	/* Play */
                         Log.log(Level.INFO,"MPU-401:Intelligent mode playback started");
                         mpu.state.playing=true;
-                        Pic.PIC_RemoveEvents(MPU401_Event);
-                        Pic.PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/(mpu.clock.tempo*mpu.clock.timebase));
+                        //Pic.PIC_RemoveEvents(MPU401_Event);
+                        //Pic.PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/(mpu.clock.tempo*mpu.clock.timebase));
+                        event.setExpiry((long)(timeSource.getTime()+MPU401_TIMECONSTANT/(mpu.clock.tempo*mpu.clock.timebase)));
                         ClrQueue();
                         break;
                 }
@@ -238,7 +247,8 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
                     break;
                 case 0xff:	/* Reset MPU-401 */
                     Log.log(Level.INFO,"MPU-401:Reset "+Integer.toString(val,16));
-                    Pic.PIC_AddEvent(MPU401_ResetDone,MPU401_RESETBUSY);
+                    //Pic.PIC_AddEvent(MPU401_ResetDone,MPU401_RESETBUSY);
+                    MPU401_ResetDone.callback();
 			        mpu.state.reset=true;
                     MPU401_Reset();
                     if (mpu.mode==M_UART) return;//do not send ack in UART mode
@@ -262,7 +272,7 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
             }
             if (!mpu.intelligent) return ret;
 
-            if (mpu.queue_used == 0) Pic.PIC_DeActivateIRQ(mpu.irq);
+            if (mpu.queue_used == 0) irqDevice.setIRQ(mpu.irq, 0);//Pic.PIC_DeActivateIRQ(mpu.irq);
 
             if (ret>=0xf0 && ret<=0xf7) { /* MIDI data request */
                 mpu.state.channel=(short)(ret&7);
@@ -509,8 +519,8 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
         mpu.state.req_mask|=(1<<9);
     }
 
-    static private final Pic.PIC_EventHandler MPU401_Event = new Pic.PIC_EventHandler() {
-        public void call(/*Bitu*/int val) {
+    static private final TimerResponsive MPU401_Event = new TimerResponsive() {
+        public void callback() {
             if (mpu.mode==M_UART) return;
             if (!mpu.state.irq_pending) {
                 for (/*Bitu*/int i=0;i<8;i++) { /* Decrease counters */
@@ -530,26 +540,29 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
                         mpu.state.req_mask|=(1<<13);
                     }
                 }
-                if (!mpu.state.irq_pending && mpu.state.req_mask!=0) MPU401_EOIHandler.call(0);
+                if (!mpu.state.irq_pending && mpu.state.req_mask!=0) MPU401_EOIHandler.callback();
             }
-            Pic.PIC_RemoveEvents(MPU401_Event);
+            //Pic.PIC_RemoveEvents(MPU401_Event);
             /*Bitu*/int new_time;
             if ((new_time=mpu.clock.tempo*mpu.clock.timebase)==0) return;
-            Pic.PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
+            //Pic.PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
+            event.setExpiry((long)(timeSource.getTime()+MPU401_TIMECONSTANT/new_time));
         }
+        public int getType() {return -1;}
     };
 
     private static void MPU401_EOIHandlerDispatch() {
         if (mpu.state.send_now) {
             mpu.state.eoi_scheduled=true;
-            Pic.PIC_AddEvent(MPU401_EOIHandler,0.06f); //Possible a bit longer
+            //Pic.PIC_AddEvent(MPU401_EOIHandler,0.06f); //Possible a bit longer
+            MPU401_EOIHandler.callback();
         }
-        else if (!mpu.state.eoi_scheduled) MPU401_EOIHandler.call(0);
+        else if (!mpu.state.eoi_scheduled) MPU401_EOIHandler.callback();
     }
 
     //Updates counters and requests new data on "End of Input"
-    static private final Pic.PIC_EventHandler MPU401_EOIHandler = new Pic.PIC_EventHandler() {
-        public void call(/*Bitu*/int val) {
+    static private final TimerResponsive MPU401_EOIHandler = new TimerResponsive() {
+        public void callback() {
             mpu.state.eoi_scheduled=false;
             if (mpu.state.send_now) {
                 mpu.state.send_now=false;
@@ -567,22 +580,25 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
                 }
             } while ((i++)<16);
         }
+        public int getType() {return -1;}
     };
 
-    static private final Pic.PIC_EventHandler MPU401_ResetDone = new Pic.PIC_EventHandler() {
-        public void call(/*Bitu*/int val) {
+    static private final TimerResponsive MPU401_ResetDone = new TimerResponsive() {
+        public void callback() {
             mpu.state.reset=false;
             if (mpu.state.cmd_pending!=0) {
                 MPU401_WriteCommand(0x331,mpu.state.cmd_pending-1,1);
                 mpu.state.cmd_pending=0;
             }
         }
+        public int getType() {return -1;}
     };
 
     private static void MPU401_Reset() {
-        Pic.PIC_DeActivateIRQ(mpu.irq);
+        //Pic.PIC_DeActivateIRQ(mpu.irq);
+        irqDevice.setIRQ(mpu.irq, 0);
         mpu.mode=(mpu.intelligent ? M_INTELLIGENT : M_UART);
-        Pic.PIC_RemoveEvents(MPU401_EOIHandler);
+        //Pic.PIC_RemoveEvents(MPU401_EOIHandler);
 	    mpu.state.eoi_scheduled=false;
         mpu.state.wsd=false;
         mpu.state.wsm=false;
@@ -646,8 +662,8 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
         if(s_mpu.equalsIgnoreCase("uart")) mpu.intelligent = false;
         if (!mpu.intelligent) return;
         /*Set IRQ and unmask it(for timequest/princess maker 2) */
-        Pic.PIC_SetIRQMask(mpu.irq,false);
-        MPU401_Reset();
+        //Pic.PIC_SetIRQMask(mpu.irq,false);
+        //MPU401_Reset();
     }
 
     public int ioPortRead8(int address)
@@ -703,18 +719,27 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
 
     public boolean initialised()
     {
-        return (irqDevice != null);
+        return (irqDevice != null) && (timeSource != null) && ioportRegistered;
     }
 
     public boolean updated()
     {
-        return (irqDevice.updated());
+        return (irqDevice.updated() && timeSource.updated());
     }
 
     public void acceptComponent(HardwareComponent component)
     {
         if ((component instanceof InterruptController) && component.initialised())
             irqDevice = (InterruptController) component;
+        if ((component instanceof Clock) && component.initialised())
+            timeSource = (Clock) component;
+        if ((component instanceof IOPortHandler) && component.initialised()) {
+            ((IOPortHandler) component).registerIOPortCapable(this);
+            ioportRegistered = true;
+        }
+
+        if (this.initialised())
+            MPU401_Init();
     }
 
     static private MPU401 test;
@@ -722,10 +747,14 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
     public static void MPU401_Destroy() {
         if(!test.installed) return;
         if(!Option.mpu401.value("intelligent").equalsIgnoreCase("intelligent")) return;
-        Pic.PIC_SetIRQMask(mpu.irq,true);
+        //Pic.PIC_SetIRQMask(mpu.irq,true);
+        irqDevice.setIRQ(mpu.irq, 0);
     }
 
     public static void MPU401_Init() {
         test = new MPU401();
+        event = timeSource.newTimer(MPU401_Event);
+        irqDevice.setIRQ(mpu.irq, 0);
+        MPU401_Reset();
     }
 }

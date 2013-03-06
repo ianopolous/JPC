@@ -1,14 +1,21 @@
 package org.jpc.emulator.peripheral;
 
 import org.jpc.emulator.AbstractHardwareComponent;
-import org.jpc.emulator.motherboard.IODevice;
+import org.jpc.emulator.HardwareComponent;
+import org.jpc.emulator.motherboard.*;
 import org.jpc.j2se.Option;
+import org.jpc.support.Clock;
 
 import java.util.logging.*;
 
 public class SBlaster extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger Log = Logger.getLogger(SBlaster.class.getName());
+    private static InterruptController irqDevice;
+    private static Clock timeSource;
+    private static DMAController dma;
+    private static boolean ioportRegistered = false;
+
     private static final boolean DEBUG = false;
 
     static final private int SB_PIC_EVENTS = 0;
@@ -86,10 +93,12 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             static private class Buf {
                 /*Bit8u*/ byte[] b8 = new byte[DMA_BUFSIZE];
                 /*Bit16s*/ short[] b16 = new short[DMA_BUFSIZE];
+                byte[] b16tmp = new byte[2*DMA_BUFSIZE];
             }
             Buf buf = new Buf();
             /*Bitu*/int bits;
-            DMA.DmaChannel chan;
+            DMAController.DMAChannel chan;
+            int position;
             /*Bitu*/int remain_size;
         }
         Dma dma = new Dma();
@@ -225,7 +234,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         if (sb.type==SBT_16) return;
         sb.chan.Enable(how);
         if (sb.speaker) {
-            Pic.PIC_RemoveEvents(DMA_Silent_Event);
+            //Pic.PIC_RemoveEvents(DMA_Silent_Event);
             CheckDMAEnd();
         } else {
 
@@ -241,7 +250,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
                 return;
             }
             sb.irq.pending_8bit=true;
-            Pic.PIC_ActivateIRQ(sb.hw.irq);
+            //Pic.PIC_ActivateIRQ(sb.hw.irq);
+            irqDevice.setIRQ(sb.hw.irq, 1);
             break;
         case SB_IRQ_16:
             if (sb.irq.pending_16bit) {
@@ -249,7 +259,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
                 return;
             }
             sb.irq.pending_16bit=true;
-            Pic.PIC_ActivateIRQ(sb.hw.irq);
+            //Pic.PIC_ActivateIRQ(sb.hw.irq);
+            irqDevice.setIRQ(sb.hw.irq, 1);
             break;
         default:
             break;
@@ -261,22 +272,22 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         sb.dsp.out.pos=0;
     }
 
-    private static DMA.DMA_CallBack DSP_DMA_CallBack = new DMA.DMA_CallBack() {
-        public void call(DMA.DmaChannel chan, int event) {
-            if (event==DMA.DMAEvent.DMA_REACHED_TC) return;
-            else if (event==DMA.DMAEvent.DMA_MASKED) {
+    private static DMAEventHandler DSP_DMA_CallBack = new DMAEventHandler() {
+        public void handleDMAEvent(DMAEvent event) {
+            if (event == DMAEvent.DMA_REACHED_TC) return;
+            else if (event == DMAEvent.DMA_MASKED) {
                 if (sb.mode==MODE_DMA) {
                     GenerateDMASound(sb.dma.min);
                     sb.mode=MODE_DMA_MASKED;
     //			DSP_ChangeMode(MODE_DMA_MASKED);
-                    Log.log(Level.INFO,"DMA masked,stopping output, left "+chan.currcnt);
+                    Log.log(Level.INFO,"DMA masked, stopping output. ");
                 }
-            } else if (event==DMA.DMAEvent.DMA_UNMASKED) {
+            } else if (event == DMAEvent.DMA_UNMASKED) {
                 if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
                     DSP_ChangeMode(MODE_DMA);
     //			sb.mode=MODE_DMA;
                     CheckDMAEnd();
-                    Log.log(Level.INFO,"DMA unmasked,starting output, auto "+chan.autoinit+" block "+chan.basecnt);
+                    Log.log(Level.INFO,"DMA unmasked, starting output. ");
                 }
             }
         }
@@ -390,7 +401,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
 
         switch (sb.dma.mode) {
         case DSP_DMA_2:
-            read=sb.dma.chan.Read(size,sb.dma.buf.b8, 0);
+            sb.dma.chan.readMemory(sb.dma.buf.b8, 0, sb.dma.position, size);//.Read(size,sb.dma.buf.b8, 0);
+            read = size;
             if (read!=0 && sb.adpcm.haveref) {
                 sb.adpcm.haveref=false;
                 sb.adpcm.reference.value=(short)(sb.dma.buf.b8[0] & 0xFF);
@@ -406,7 +418,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             sb.chan.AddSamples_m8(done,Mixer.MixTemp8);
             break;
         case DSP_DMA_3:
-            read=sb.dma.chan.Read(size,sb.dma.buf.b8, 0);
+            sb.dma.chan.readMemory(sb.dma.buf.b8, 0, sb.dma.position, size);//read = chan.Read(size,sb.dma.buf.b8, 0);
+            read = size;
             if (read!=0 && sb.adpcm.haveref) {
                 sb.adpcm.haveref=false;
                 sb.adpcm.reference.value=(short)(sb.dma.buf.b8[0] & 0xFF);
@@ -421,7 +434,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             sb.chan.AddSamples_m8(done, Mixer.MixTemp8);
             break;
         case DSP_DMA_4:
-            read=sb.dma.chan.Read(size, sb.dma.buf.b8, 0);
+            sb.dma.chan.readMemory(sb.dma.buf.b8, 0, sb.dma.position, size);//read = chan.Read(size,sb.dma.buf.b8, 0);
+            read = size;
             if (read!=0 && sb.adpcm.haveref) {
                 sb.adpcm.haveref=false;
                 sb.adpcm.reference.value=(short)(sb.dma.buf.b8[0] & 0xFF);
@@ -436,7 +450,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             break;
         case DSP_DMA_8:
             if (sb.dma.stereo) {
-                read=sb.dma.chan.Read(size, sb.dma.buf.b8, sb.dma.remain_size);
+                sb.dma.chan.readMemory(sb.dma.buf.b8, sb.dma.remain_size, sb.dma.position, size);//read=sb.dma.chan.Read(size, sb.dma.buf.b8, sb.dma.remain_size);
+                read = size;
                 /*Bitu*/int total=read+sb.dma.remain_size;
                 if (!sb.dma.sign)  sb.chan.AddSamples_s8(total>>1,sb.dma.buf.b8);
                 else sb.chan.AddSamples_s8s(total>>>1,sb.dma.buf.b8);
@@ -445,7 +460,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
                     sb.dma.buf.b8[0]=sb.dma.buf.b8[total-1];
                 } else sb.dma.remain_size=0;
             } else {
-                read=sb.dma.chan.Read(size,sb.dma.buf.b8,0);
+                sb.dma.chan.readMemory(sb.dma.buf.b8, 0, sb.dma.position, size);//read=sb.dma.chan.Read(size,sb.dma.buf.b8,0);
+                read = size;
                 if (!sb.dma.sign) sb.chan.AddSamples_m8(read,sb.dma.buf.b8);
                 else sb.chan.AddSamples_m8s(read,sb.dma.buf.b8);
             }
@@ -456,8 +472,10 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
                 /* In DSP_DMA_16_ALIASED mode temporarily divide by 2 to get number of 16-bit
                    samples, because 8-bit DMA Read returns byte size, while in DSP_DMA_16 mode
                    16-bit DMA Read returns word size */
-                read=sb.dma.chan.Read(size,sb.dma.buf.b16, sb.dma.remain_size)
-                    >> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+                sb.dma.chan.readMemory(sb.dma.buf.b16tmp, sb.dma.remain_size, sb.dma.position, 2*size);//read=sb.dma.chan.Read(size,sb.dma.buf.b16, sb.dma.remain_size)
+                for (int j=0; j< size; j++)
+                    sb.dma.buf.b16[j+sb.dma.remain_size] = (short)((sb.dma.buf.b16tmp[sb.dma.remain_size+2*j] & 0xff) | (sb.dma.buf.b16tmp[sb.dma.remain_size+2*j+1] << 8));
+                read = size >> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
                 /*Bitu*/int total=read+sb.dma.remain_size;
 //    #if defined (WORDS_BIGENDIAN)
 //                if (sb.dma.sign) sb.chan.AddSamples_s16_nonnative(total>>1,sb.dma.buf.b16);
@@ -471,8 +489,11 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
                     sb.dma.buf.b16[0]=sb.dma.buf.b16[total-1];
                 } else sb.dma.remain_size=0;
             } else {
-                read=sb.dma.chan.Read(size,sb.dma.buf.b16, 0)
-                    >> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+                //read=sb.dma.chan.Read(size,sb.dma.buf.b16, 0)
+                sb.dma.chan.readMemory(sb.dma.buf.b16tmp, 0, sb.dma.position, 2*size);
+                for (int j=0; j< size; j++)
+                    sb.dma.buf.b16[j] = (short)((sb.dma.buf.b16tmp[2*j] & 0xff) | (sb.dma.buf.b16tmp[2*j+1] << 8));
+                read = size >> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
 //    #if static final private intd(WORDS_BIGENDIAN)
 //                if (sb.dma.sign) sb.chan.AddSamples_m16_nonnative(read,sb.dma.buf.b16);
 //                else sb.chan.AddSamples_m16u_nonnative(read,(Bit16u *)sb.dma.buf.b16);
@@ -491,7 +512,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         }
         sb.dma.left-=read;
         if (sb.dma.left==0) {
-            Pic.PIC_RemoveEvents(END_DMA_Event);
+            //Pic.PIC_RemoveEvents(END_DMA_Event);
             if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
             else SB_RaiseIRQ(SB_IRQ_8);
             if (!sb.dma.autoinit) {
@@ -508,10 +529,10 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         }
     }
 
-    private static Pic.PIC_EventHandler DMA_Silent_Event = new Pic.PIC_EventHandler() {
-        public void call(/*Bitu*/int val) {
+    private static void DMA_Silent_Event(/*Bitu*/int val) {
             if (sb.dma.left<val) val=sb.dma.left;
-            /*Bitu*/int read=sb.dma.chan.Read(val,sb.dma.buf.b8, 0);
+            sb.dma.chan.readMemory(sb.dma.buf.b8, 0, sb.dma.position, val);//Read(val,sb.dma.buf.b8, 0);
+            int read = val;
             sb.dma.left-=read;
             if (sb.dma.left==0) {
                 if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
@@ -525,28 +546,26 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             if (sb.dma.left!=0) {
                 /*Bitu*/int bigger=(sb.dma.left > sb.dma.min) ? sb.dma.min : sb.dma.left;
                 float delay=(bigger*1000.0f)/sb.dma.rate;
-                Pic.PIC_AddEvent(DMA_Silent_Event,delay,bigger);
+                //Pic.PIC_AddEvent(DMA_Silent_Event,delay,bigger);
             }
         }
-    };
 
-    private static Pic.PIC_EventHandler END_DMA_Event = new Pic.PIC_EventHandler() {
-        public void call(/*Bitu*/int val) {
+    private static void END_DMA_Event(/*Bitu*/int val) {
             GenerateDMASound(val);
         }
-    };
 
     private static void CheckDMAEnd() {
         if (sb.dma.left==0) return;
         if (!sb.speaker && sb.type!=SBT_16) {
             /*Bitu*/int bigger=(sb.dma.left > sb.dma.min) ? sb.dma.min : sb.dma.left;
             float delay=(bigger*1000.0f)/sb.dma.rate;
-            Pic.PIC_AddEvent(DMA_Silent_Event,delay,bigger);
+            //Pic.PIC_AddEvent(DMA_Silent_Event,delay,bigger);
             Log.log(Level.INFO,"Silent DMA Transfer scheduling IRQ in "+ String.format("%3f", delay)+" milliseconds");
         } else if (sb.dma.left<sb.dma.min) {
             float delay=(sb.dma.left*1000.0f)/sb.dma.rate;
             Log.log(Level.INFO,"Short transfer scheduling IRQ in "+ String.format("%3f", delay)+" milliseconds");
-            Pic.PIC_AddEvent(END_DMA_Event,delay,sb.dma.left);
+            //Pic.PIC_AddEvent(END_DMA_Event,delay,sb.dma.left);
+            END_DMA_Event(sb.dma.left);
         }
     }
 
@@ -556,11 +575,11 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         sb.mode=mode;
     }
 
-    private static Pic.PIC_EventHandler DSP_RaiseIRQEvent = new Pic.PIC_EventHandler() {
-        public void call(/*Bitu*/int val) {
-            SB_RaiseIRQ(SB_IRQ_8);
-        }
-    };
+//    private static Pic.PIC_EventHandler DSP_RaiseIRQEvent = new Pic.PIC_EventHandler() {
+//        public void call(/*Bitu*/int val) {
+//            SB_RaiseIRQ(SB_IRQ_8);
+//        }
+//    };
 
     static void DSP_DoDMATransfer(/*DMA_MODES*/int mode,/*Bitu*/int freq,boolean stereo) {
         String type;
@@ -605,8 +624,9 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         sb.dma.min=(sb.dma.rate*3)/1000;
         sb.chan.SetFreq(freq);
         sb.dma.mode=mode;
-        Pic.PIC_RemoveEvents(END_DMA_Event);
-        sb.dma.chan.Register_Callback(DSP_DMA_CallBack);
+        //Pic.PIC_RemoveEvents(END_DMA_Event);
+        //sb.dma.chan.Register_Callback(DSP_DMA_CallBack);
+        sb.dma.chan.registerEventHandler(DSP_DMA_CallBack);
         if (DEBUG) {
             Log.log(Level.INFO,"DMA Transfer:"+type+" "+(sb.dma.stereo ? "Stereo" : "Mono")+" "+(sb.dma.autoinit ? "Auto-Init" : "Single-Cycle")+" freq "+freq+" rate "+sb.dma.rate+" size "+sb.dma.total);
         }
@@ -616,7 +636,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         sb.dma.autoinit=autoinit;
         sb.dma.sign=sign;
         if (!autoinit) sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
-        sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma8);
+        //sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma8);
+        sb.dma.chan = dma.getChannel(sb.hw.dma8);
         DSP_DoDMATransfer(mode,sb.freq / (sb.mixer.stereo ? 2 : 1),sb.mixer.stereo);
     }
 
@@ -627,21 +648,27 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         sb.dma.autoinit=autoinit;
         if (mode==DSP_DMA_16) {
             if (sb.hw.dma16!=0xff) {
-                sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma16);
-                if (sb.dma.chan==null) {
-                    sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma8);
-                    mode=DSP_DMA_16_ALIASED;
-                    sb.dma.total<<=1;
-                }
+                //sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma16);
+                sb.dma.chan = dma.getChannel(sb.hw.dma16);
+//                if (sb.dma.chan==null) {
+//                    sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma8);
+//                    mode=DSP_DMA_16_ALIASED;
+//                    sb.dma.total<<=1;
+//                }
             } else {
-                sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma8);
+                //sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma8);
+                sb.dma.chan = dma.getChannel(sb.hw.dma8);
                 mode=DSP_DMA_16_ALIASED;
                 //UNDOCUMENTED:
                 //In aliased mode sample length is written to DSP as number of
                 //16-bit samples so we need double 8-bit DMA buffer length
                 sb.dma.total<<=1;
             }
-        } else sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma8);
+        } else
+        {
+            //sb.dma.chan=DMA.GetDMAChannel(sb.hw.dma8);
+            sb.dma.chan = dma.getChannel(sb.hw.dma8);
+        }
         DSP_DoDMATransfer(mode,freq,stereo);
     }
 
@@ -657,24 +684,23 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         }
     }
 
-    private static Pic.PIC_EventHandler DSP_FinishReset = new Pic.PIC_EventHandler() {
-        public void call(/*Bitu*/int val) {
-            DSP_FlushData();
-            DSP_AddData((short)0xaa);
-            sb.dsp.state=DSP_S_NORMAL;
-        }
-    };
+    private static void DSP_FinishReset() {
+        DSP_FlushData();
+        DSP_AddData((short)0xaa);
+        sb.dsp.state=DSP_S_NORMAL;
+    }
 
     private static void DSP_Reset() {
-        Log.log(Level.SEVERE,"DSP:Reset");
-        Pic.PIC_DeActivateIRQ(sb.hw.irq);
+        Log.log(Level.FINE,"DSP:Reset");
+        //Pic.PIC_DeActivateIRQ(sb.hw.irq);
+        irqDevice.setIRQ(sb.hw.irq, 0);
 
         DSP_ChangeMode(MODE_NONE);
         DSP_FlushData();
         sb.dsp.cmd_len=0;
         sb.dsp.in.pos=0;
         sb.dsp.write_busy=0;
-        Pic.PIC_RemoveEvents(DSP_FinishReset);
+        //Pic.PIC_RemoveEvents(DSP_FinishReset);
 
         sb.dma.left=0;
         sb.dma.total=0;
@@ -683,7 +709,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         sb.dma.autoinit=false;
         sb.dma.mode=DSP_DMA_NONE;
         sb.dma.remain_size=0;
-        if (sb.dma.chan!=null) sb.dma.chan.Clear_Request();
+        //if (sb.dma.chan!=null) sb.dma.chan.Clear_Request();
 
         sb.freq=22050;
         sb.time_constant=45;
@@ -695,7 +721,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         sb.irq.pending_16bit=false;
         sb.chan.SetFreq(22050);
 //	DSP_SetSpeaker(false);
-        Pic.PIC_RemoveEvents(END_DMA_Event);
+        //Pic.PIC_RemoveEvents(END_DMA_Event);
     }
 
     private static void DSP_DoReset(/*Bit8u*/short val) {
@@ -705,32 +731,44 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             sb.dsp.state=DSP_S_RESET;
         } else if (((val&1)==0) && (sb.dsp.state==DSP_S_RESET)) {	// reset off
             sb.dsp.state=DSP_S_RESET_WAIT;
-            Pic.PIC_RemoveEvents(DSP_FinishReset);
-            Pic.PIC_AddEvent(DSP_FinishReset,20.0f/1000.0f,0);	// 20 microseconds
+            //Pic.PIC_RemoveEvents(DSP_FinishReset);
+            //Pic.PIC_AddEvent(DSP_FinishReset,20.0f/1000.0f,0);	// 20 microseconds
+            DSP_FinishReset();
         }
     }
 
-    private static DMA.DMA_CallBack DSP_E2_DMA_CallBack = new DMA.DMA_CallBack() {
-        public void call(DMA.DmaChannel c, int event) {
-            if (event==DMA.DMAEvent.DMA_UNMASKED) {
-                /*Bit8u*/byte[] val=new byte[] {(/*Bit8u*/byte)(sb.e2.value&0xff)};
-                DMA.DmaChannel chan=DMA.GetDMAChannel(sb.hw.dma8);
-                chan.Register_Callback(null);
-                chan.Write(1, val, 0);
-            }
+    private static DMATransferCapable DSP_E2_DMA_CallBack = new DMATransferCapable() {
+        public int handleTransfer(DMAController.DMAChannel c, int position, int size) {
+            sb.dma.chan = c;
+            sb.dma.position = position;
+            throw new IllegalStateException("Figure this out bitch...");
+//            if (event==DMA.DMAEvent.DMA_UNMASKED) {
+//                /*Bit8u*/byte[] val=new byte[] {(/*Bit8u*/byte)(sb.e2.value&0xff)};
+//                DMA.DmaChannel chan=DMA.GetDMAChannel(sb.hw.dma8);
+//                chan.Register_Callback(null);
+//                chan.Write(1, val, 0);
+//                return 1;
+//            }
+//            return 0;
         }
     };
 
-    private static DMA.DMA_CallBack DSP_ADC_CallBack = new DMA.DMA_CallBack() {
-        public void call(DMA.DmaChannel chan, int event) {
-            if (event!=DMA.DMAEvent.DMA_UNMASKED) return;
-            /*Bit8u*/byte[] val=new byte[] {(byte)128};
-            DMA.DmaChannel ch=DMA.GetDMAChannel(sb.hw.dma8);
-            while ((sb.dma.left--)!=0) {
-                ch.Write(1,val, 0);
-            }
-            SB_RaiseIRQ(SB_IRQ_8);
-            ch.Register_Callback(null);
+    private static DMATransferCapable DSP_ADC_CallBack = new DMATransferCapable() {
+        public int handleTransfer(DMAController.DMAChannel chan, int position, int size) {
+            sb.dma.chan = chan;
+            sb.dma.position = position;
+            int total = sb.dma.left;
+            throw new IllegalStateException("Figure this out too, bitch...");
+//            if (event!=DMA.DMAEvent.DMA_UNMASKED) return 0;
+//            /*Bit8u*/byte[] val=new byte[] {(byte)128};
+//            DMA.DmaChannel ch=DMA.GetDMAChannel(sb.hw.dma8);
+//            while ((sb.dma.left--)!=0) {
+//                ch.Write(1,val, 0);
+//            }
+//            SB_RaiseIRQ(SB_IRQ_8);
+//            //ch.Register_Callback(null);
+//            dma.releaseDmaRequest(sb.hw.dma8);
+//            return total;
         }
     };
 
@@ -751,7 +789,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
     }
 
     private static void DSP_DoCommand() {
-//	LOG_MSG("DSP Command %X",sb.dsp.cmd);
+	    Log.log(Level.INFO, String.format("DSP Command %X",sb.dsp.cmd));
         switch (sb.dsp.cmd) {
         case 0x04:
             if (sb.type == SBT_16) {
@@ -815,7 +853,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             sb.dma.left=sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
             sb.dma.sign=false;
             Log.log(Level.SEVERE,"DSP:Faked ADC for "+sb.dma.total+" bytes");
-            DMA.GetDMAChannel(sb.hw.dma8).Register_Callback(DSP_ADC_CallBack);
+            //DMA.GetDMAChannel(sb.hw.dma8).Register_Callback(DSP_ADC_CallBack);
+            dma.registerChannel(sb.hw.dma8, DSP_ADC_CallBack);
             break;
         case 0x14:	/* Singe Cycle 8-Bit DMA DAC */
         case 0x15:	/* Wari hack. Waru uses this one instead of 0x14, but some weird stuff going on there anyway */
@@ -869,8 +908,9 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             DSP_PrepareDMA_Old(DSP_DMA_2,false,false);
             break;
         case 0x80:	/* Silence DAC */
-            Pic.PIC_AddEvent(DSP_RaiseIRQEvent,
-                (1000.0f*(1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8))/sb.freq));
+            //Pic.PIC_AddEvent(DSP_RaiseIRQEvent,
+            //    (1000.0f*(1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8))/sb.freq));
+            SB_RaiseIRQ(SB_IRQ_8);
             break;
         case 0xb0:	case 0xb1:	case 0xb2:	case 0xb3:  case 0xb4:	case 0xb5:	case 0xb6:	case 0xb7:
         case 0xb8:	case 0xb9:	case 0xba:	case 0xbb:  case 0xbc:	case 0xbd:	case 0xbe:	case 0xbf:
@@ -895,7 +935,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
 			    // possibly different code here that does not switch to MODE_DMA_PAUSE
 		    }
             sb.mode=MODE_DMA_PAUSE;
-            Pic.PIC_RemoveEvents(END_DMA_Event);
+            //Pic.PIC_RemoveEvents(END_DMA_Event);
             break;
         case 0xd1:	/* Enable Speaker */
             DSP_SetSpeaker(true);
@@ -914,7 +954,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         case 0xd4:	/* Continue DMA 8-bit*/
             if (sb.mode==MODE_DMA_PAUSE) {
                 sb.mode=MODE_DMA_MASKED;
-                if (sb.dma.chan!=null) sb.dma.chan.Register_Callback(DSP_DMA_CallBack);
+                if (sb.dma.chan!=null) //sb.dma.chan.Register_Callback(DSP_DMA_CallBack);
+                    sb.dma.chan.registerEventHandler(DSP_DMA_CallBack);
             }
             break;
         case 0xd9:  /* Exit Autoinitialize 16-bit */
@@ -950,9 +991,10 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
                 Log.log(Level.INFO,"DSP Function 0xe2");
                 for (/*Bitu*/int i = 0; i < 8; i++)
                     if (((sb.dsp.in.data[0] >> i) & 0x01)!=0) sb.e2.value += E2_incr_table[sb.e2.count % 4][i];
-                 sb.e2.value += E2_incr_table[sb.e2.count % 4][8];
-                 sb.e2.count++;
-                 DMA.GetDMAChannel(sb.hw.dma8).Register_Callback(DSP_E2_DMA_CallBack);
+                sb.e2.value += E2_incr_table[sb.e2.count % 4][8];
+                sb.e2.count++;
+                //DMA.GetDMAChannel(sb.hw.dma8).Register_Callback(DSP_E2_DMA_CallBack);
+                dma.registerChannel(sb.hw.dma8, DSP_E2_DMA_CallBack);
             }
             break;
         case 0xe3:	/* DSP Copyright */
@@ -1063,7 +1105,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         default:
             sb.dsp.in.data[sb.dsp.in.pos]=val;
             sb.dsp.in.pos++;
-            if (sb.dsp.in.pos>=sb.dsp.cmd_len) DSP_DoCommand();
+            if (sb.dsp.in.pos>=sb.dsp.cmd_len)
+                DSP_DoCommand();
         }
     }
 
@@ -1377,75 +1420,76 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         return ret;
     }
 
-    private static IoHandler.IO_ReadHandler read_sb = new IoHandler.IO_ReadHandler() {
-        public /*Bitu*/int call(/*Bitu*/int port, /*Bitu*/int iolen) {
-            switch (port-sb.hw.base) {
-            case MIXER_INDEX:
-                return sb.mixer.index;
-            case MIXER_DATA:
-                return CTMIXER_Read();
-            case DSP_READ_DATA:
-                return DSP_ReadData();
-            case DSP_READ_STATUS:
-                //TODO See for high speed dma :)
-                if (sb.irq.pending_8bit)  {
-                    sb.irq.pending_8bit=false;
-                    Pic.PIC_DeActivateIRQ(sb.hw.irq);
-                }
-                if (sb.dsp.out.used!=0) return 0xff;
-                else return 0x7f;
-            case DSP_ACK_16BIT:
-                sb.irq.pending_16bit=false;
-                break;
-            case DSP_WRITE_STATUS:
-                switch (sb.dsp.state) {
-                case DSP_S_NORMAL:
-                    sb.dsp.write_busy++;
-                    if ((sb.dsp.write_busy & 8)!=0) return 0xff;
-                    return 0x7f;
-                case DSP_S_RESET:
-                case DSP_S_RESET_WAIT:
-                    return 0xff;
-                }
-                return 0xff;
-            case DSP_RESET:
-                return 0xff;
-            default:
-                Log.log(Level.SEVERE,"Unhandled read from SB Port "+Integer.toString(port, 16));
-                break;
-            }
-            return 0xff;
-        }
-    };
+//    private static IoHandler.IO_ReadHandler read_sb = new IoHandler.IO_ReadHandler() {
+//        public /*Bitu*/int call(/*Bitu*/int port, /*Bitu*/int iolen) {
+//            switch (port-sb.hw.base) {
+//            case MIXER_INDEX:
+//                return sb.mixer.index;
+//            case MIXER_DATA:
+//                return CTMIXER_Read();
+//            case DSP_READ_DATA:
+//                return DSP_ReadData();
+//            case DSP_READ_STATUS:
+//                //TODO See for high speed dma :)
+//                if (sb.irq.pending_8bit)  {
+//                    sb.irq.pending_8bit=false;
+//                    //Pic.PIC_DeActivateIRQ(sb.hw.irq);
+//                    irqDevice.setIRQ(sb.hw.irq, 0);
+//                }
+//                if (sb.dsp.out.used!=0) return 0xff;
+//                else return 0x7f;
+//            case DSP_ACK_16BIT:
+//                sb.irq.pending_16bit=false;
+//                break;
+//            case DSP_WRITE_STATUS:
+//                switch (sb.dsp.state) {
+//                case DSP_S_NORMAL:
+//                    sb.dsp.write_busy++;
+//                    if ((sb.dsp.write_busy & 8)!=0) return 0xff;
+//                    return 0x7f;
+//                case DSP_S_RESET:
+//                case DSP_S_RESET_WAIT:
+//                    return 0xff;
+//                }
+//                return 0xff;
+//            case DSP_RESET:
+//                return 0xff;
+//            default:
+//                Log.log(Level.SEVERE,"Unhandled read from SB Port "+Integer.toString(port, 16));
+//                break;
+//            }
+//            return 0xff;
+//        }
+//    };
 
-    private static IoHandler.IO_WriteHandler write_sb = new IoHandler.IO_WriteHandler() {
-        public void call(/*Bitu*/int port, /*Bitu*/int val, /*Bitu*/int iolen) {
-            /*Bit8u*/short val8=(/*Bit8u*/short)(val&0xff);
-            switch (port-sb.hw.base) {
-            case DSP_RESET:
-                DSP_DoReset(val8);
-                break;
-            case DSP_WRITE_DATA:
-                DSP_DoWrite(val8);
-                break;
-            case MIXER_INDEX:
-                sb.mixer.index=val8;
-                break;
-            case MIXER_DATA:
-                CTMIXER_Write(val8);
-                break;
-            default:
-                Log.log(Level.SEVERE,"Unhandled write to SB Port "+Integer.toString(port,16));
-                break;
-            }
-        }
-    };
+//    private static IoHandler.IO_WriteHandler write_sb = new IoHandler.IO_WriteHandler() {
+//        public void call(/*Bitu*/int port, /*Bitu*/int val, /*Bitu*/int iolen) {
+//            /*Bit8u*/short val8=(/*Bit8u*/short)(val&0xff);
+//            switch (port-sb.hw.base) {
+//            case DSP_RESET:
+//                DSP_DoReset(val8);
+//                break;
+//            case DSP_WRITE_DATA:
+//                DSP_DoWrite(val8);
+//                break;
+//            case MIXER_INDEX:
+//                sb.mixer.index=val8;
+//                break;
+//            case MIXER_DATA:
+//                CTMIXER_Write(val8);
+//                break;
+//            default:
+//                Log.log(Level.SEVERE,"Unhandled write to SB Port "+Integer.toString(port,16));
+//                break;
+//            }
+//        }
+//    };
 
-    private static IoHandler.IO_WriteHandler adlib_gusforward = new IoHandler.IO_WriteHandler() {
-        public void call(/*Bitu*/int port, /*Bitu*/int val, /*Bitu*/int iolen) {
-            //Gus.adlib_commandreg=(/*Bit8u*/short)(val&0xff);
-        }
-    };
+//    private static IoHandler.IO_WriteHandler adlib_gusforward = new IoHandler.IO_WriteHandler() {
+//        public void call(/*Bitu*/int port, /*Bitu*/int val, /*Bitu*/int iolen) {
+//            //Gus.adlib_commandreg=(/*Bit8u*/short)(val&0xff);
+//        }
+//    };
 
     public static boolean SB_Get_Address(/*Bitu*/IntRef sbaddr, /*Bitu*/IntRef sbirq, /*Bitu*/IntRef sbdma) {
         sbaddr.value = 0;
@@ -1490,8 +1534,8 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
     };
 
     /* Data */
-    private IoHandler.IO_ReadHandleObject[] ReadHandler = new IoHandler.IO_ReadHandleObject[0x10];
-    private IoHandler.IO_WriteHandleObject[] WriteHandler = new IoHandler.IO_WriteHandleObject[0x10];
+//    private IoHandler.IO_ReadHandleObject[] ReadHandler = new IoHandler.IO_ReadHandleObject[0x10];
+//    private IoHandler.IO_WriteHandleObject[] WriteHandler = new IoHandler.IO_WriteHandleObject[0x10];
     private Mixer.MixerObject MixerChan = new Mixer.MixerObject();
     private /*OPL_Mode*/int oplmode;
 
@@ -1553,6 +1597,102 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         DSP_Reset(); // Stop everything
     }
 
+    public int ioPortRead8(int address)
+    {
+        return ioPortRead32(address);
+    }
+
+    public int ioPortRead16(int address)
+    {
+        return ioPortRead32(address);
+    }
+
+    public int ioPortRead32(int port)
+    {
+        switch (port-sb.hw.base) {
+            case MIXER_INDEX:
+                return sb.mixer.index;
+            case MIXER_DATA:
+                return CTMIXER_Read();
+            case DSP_READ_DATA:
+                return DSP_ReadData();
+            case DSP_READ_STATUS:
+                //TODO See for high speed dma :)
+                if (sb.irq.pending_8bit)  {
+                    sb.irq.pending_8bit=false;
+                    //Pic.PIC_DeActivateIRQ(sb.hw.irq);
+                    irqDevice.setIRQ(sb.hw.irq, 0);
+                }
+                if (sb.dsp.out.used!=0) return 0xff;
+                else return 0x7f;
+            case DSP_ACK_16BIT:
+                sb.irq.pending_16bit=false;
+                break;
+            case DSP_WRITE_STATUS:
+                switch (sb.dsp.state) {
+                    case DSP_S_NORMAL:
+                        sb.dsp.write_busy++;
+                        if ((sb.dsp.write_busy & 8)!=0) return 0xff;
+                        return 0x7f;
+                    case DSP_S_RESET:
+                    case DSP_S_RESET_WAIT:
+                        return 0xff;
+                }
+                return 0xff;
+            case DSP_RESET:
+                return 0xff;
+            default:
+                Log.log(Level.SEVERE,"Unhandled read from SB Port "+Integer.toString(port, 16));
+                break;
+        }
+        return 0xff;
+    }
+
+    public void ioPortWrite8(int address, int data)
+    {
+        ioPortWrite32(address, data);
+    }
+
+    public void ioPortWrite16(int address, int data)
+    {
+        ioPortWrite32(address, data);
+    }
+
+    public void ioPortWrite32(int port, int data)
+    {
+        /*Bit8u*/short val8=(/*Bit8u*/short)(data & 0xff);
+            switch (port-sb.hw.base) {
+            case DSP_RESET:
+                DSP_DoReset(val8);
+                break;
+            case DSP_WRITE_DATA:
+                DSP_DoWrite(val8);
+                break;
+            case MIXER_INDEX:
+                sb.mixer.index=val8;
+                break;
+            case MIXER_DATA:
+                CTMIXER_Write(val8);
+                break;
+            default:
+                Log.log(Level.SEVERE,"Unhandled write to SB Port "+Integer.toString(port,16));
+                break;
+            }
+    }
+
+    public int[] ioPortsRequested()
+    {
+        int base = sb.hw.base;
+        int[] ports = new int[16-4-2];
+        int index = 0;
+        for (int i = 4; i < 16; i++)
+        {
+            if ((i==8) || (i==9))
+                continue;
+            ports[index++] = base+i;
+        }
+        return ports;
+    }
 
     private static SBlaster test;
 
@@ -1564,14 +1704,15 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
 
     public SBlaster()
     {
+        sb = new SB_INFO();
         /*Bitu*/int i;
 
-        for (i=0;i<WriteHandler.length;i++) {
-            WriteHandler[i] = new IoHandler.IO_WriteHandleObject();
-        }
-        for (i=0;i<ReadHandler.length;i++) {
-            ReadHandler[i] = new IoHandler.IO_ReadHandleObject();
-        }
+//        for (i=0;i<WriteHandler.length;i++) {
+//            WriteHandler[i] = new IoHandler.IO_WriteHandleObject();
+//        }
+//        for (i=0;i<ReadHandler.length;i++) {
+//            ReadHandler[i] = new IoHandler.IO_ReadHandleObject();
+//        }
         sb.hw.base = Option.sbbase.intValue(0x220);
         sb.hw.irq = Option.sb_irq.intValue(7);
         /*Bitu*/int dma8bit = Option.sb_dma.intValue(1);
@@ -1611,20 +1752,20 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         sb.chan=MixerChan.Install(SBLASTER_CallBack,22050,"SB");
         sb.dsp.state=DSP_S_NORMAL;
         sb.dsp.out.lastval=0xaa;
-        sb.dma.chan=null;
+        //sb.dma.chan=null;
 
-        for (i=4;i<=0xf;i++) {
-            if (i==8 || i==9) continue;
-            //Disable mixer ports for lower soundblaster
-            if ((sb.type==SBT_1 || sb.type==SBT_2) && (i==4 || i==5)) continue;
-            ReadHandler[i].Install(sb.hw.base+i,read_sb,IoHandler.IO_MB);
-            WriteHandler[i].Install(sb.hw.base+i,write_sb,IoHandler.IO_MB);
-        }
+//        for (i=4;i<=0xf;i++) {
+//            if (i==8 || i==9) continue;
+//            //Disable mixer ports for lower soundblaster
+//            if ((sb.type==SBT_1 || sb.type==SBT_2) && (i==4 || i==5)) continue;
+//            ReadHandler[i].Install(sb.hw.base+i,read_sb,IoHandler.IO_MB);
+//            WriteHandler[i].Install(sb.hw.base+i,write_sb,IoHandler.IO_MB);
+//        }
         for (i=0;i<256;i++) ASP_regs[i] = 0;
         ASP_regs[5] = 0x01;
         ASP_regs[9] = 0xf8;
 
-        DSP_Reset();
+
         CTMIXER_Reset();
 
         // The documentation does not specify if SB gets initialized with the speaker enabled
@@ -1644,9 +1785,38 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
         else sb.midi = true;
     }
 
-    public static void SBLASTER_Init()
+    public boolean initialised()
     {
-        sb = new SB_INFO();
-        test = new SBlaster();
+        return (irqDevice != null) && (timeSource != null) && (dma != null) && ioportRegistered;
+    }
+
+    public boolean updated()
+    {
+        return irqDevice.updated() && timeSource.updated() && dma.updated();
+    }
+
+    public void acceptComponent(HardwareComponent component)
+    {
+        if ((component instanceof InterruptController) && component.initialised())
+            irqDevice = (InterruptController) component;
+        if ((component instanceof Clock) && component.initialised())
+            timeSource = (Clock) component;
+        if ((component instanceof IOPortHandler) && component.initialised()) {
+            ((IOPortHandler) component).registerIOPortCapable(this);
+            ioportRegistered = true;
+        }
+
+        if ((component instanceof DMAController) && component.initialised())
+            if (((DMAController) component).isPrimary())
+            {
+                dma = (DMAController) component;
+                //dma.registerChannel(sb.hw.dma8 & 3, DSP_DMA_CallBack);
+                //dma.registerChannel(sb.hw.dma16 & 3, this);
+            }
+
+        if (this.initialised())
+        {
+            DSP_Reset();
+        }
     }
 }

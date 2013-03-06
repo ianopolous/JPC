@@ -94,7 +94,9 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
         public int mode;
         public int dack,  eop;
         public DMATransferCapable transferDevice;
+        public DMAEventHandler eventHandler;
         public int pageLow,  pageHigh;
+        private boolean masked = false;
 
         public void saveState(DataOutput output) throws IOException
         {
@@ -124,6 +126,15 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
             eop = input.readInt();
         //tactfully ignore transferDevice
 
+        }
+
+        public void registerEventHandler(DMAEventHandler handler)
+        {
+            eventHandler = handler;
+            if (masked)
+                eventHandler.handleDMAEvent(DMAEvent.DMA_MASKED);
+            else
+                eventHandler.handleDMAEvent(DMAEvent.DMA_UNMASKED);
         }
 
         /**
@@ -180,6 +191,17 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
                 memory.copyArrayIntoContents(address - position - length, buffer, offset, length);
             } else
                 memory.copyArrayIntoContents(address + position, buffer, offset, length);
+        }
+
+        private void setMask(boolean mask)
+        {
+            if (masked == mask)
+                return;
+            masked = mask;
+            if ((masked) && (eventHandler != null))
+                eventHandler.handleDMAEvent(DMAEvent.DMA_MASKED);
+            if ((!masked) && (eventHandler != null))
+                eventHandler.handleDMAEvent(DMAEvent.DMA_UNMASKED);
         }
 
         private void run()
@@ -271,6 +293,11 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
 
     }
 
+    public DMAChannel getChannel(int number)
+    {
+        return dmaChannels[number];
+    }
+
     /**
      * Returns true if this controller is the primary DMA controller.
      * <p>
@@ -335,11 +362,12 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
             case ADDRESS_WRITE_MASK_BIT:
                 if ((data & 0x4) != 0)
                     mask |= 1 << (data & 3);
-                else {
+                else
+                {
                     mask &= ~(1 << (data & 3));
                     runTransfers();
                 }
-
+                dmaChannels[data & 3].setMask((mask & (1 << (data & 3))) != 0);
                 break;
             case ADDRESS_WRITE_MODE:
                 channelNumber = data & DMAChannel.MODE_CHANNEL_SELECT;
@@ -353,13 +381,28 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
                 mask = ~0;
                 status = 0;
                 command = 0;
+                for (int i=0; i < dmaChannels.length; i++)
+                    if (dmaChannels[i] != null)
+                    {
+                        dmaChannels[i].setMask(true);
+                    }
                 break;
             case ADDRESS_WRITE_CLEAR_MASK: /* clear mask for all channels */
                 mask = 0;
+                for (int i=0; i < dmaChannels.length; i++)
+                    if (dmaChannels[i] != null)
+                    {
+                        dmaChannels[i].setMask(false);
+                    }
                 runTransfers();
                 break;
             case ADDRESS_WRITE_MASK: /* write mask for all channels */
                 mask = data;
+                for (int i=0; i < dmaChannels.length; i++)
+                    if (dmaChannels[i] != null)
+                    {
+                        dmaChannels[i].setMask((mask & (1 << i)) != 0);
+                    }
                 runTransfers();
                 break;
             default:
@@ -699,6 +742,7 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
     {
         dmaChannels[channel].transferDevice = device;
     }
+
     private boolean ioportRegistered;
 
     public boolean initialised()

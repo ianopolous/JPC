@@ -164,9 +164,12 @@ public class PC {
         if (Option.soundenabled.value())
         {
             Midi.MIDI_Init();
+            Mixer.MIXER_Init();
             String device = Option.sounddevice.value("sb16");
             if (device.equals("sb16"))
             {
+                parts.add(new Mixer());
+                parts.add(new MPU401());
                 parts.add(new SBlaster());
             }
         }
