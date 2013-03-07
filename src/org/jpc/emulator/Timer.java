@@ -147,10 +147,12 @@ public class Timer implements Comparable, Hibernatable
         if (!(o instanceof Timer))
             return -1;
 
-            if (getExpiry() - ((Timer) o).getExpiry() < 0)
-                return -1;
-            else
-                return 1;
+        if (getExpiry() - ((Timer) o).getExpiry() < 0)
+            return -1;
+        else if ((getExpiry() - ((Timer) o).getExpiry() == 0) && (callback == ((Timer)o).callback))
+            return 0;
+        else
+            return 1;
     }
 
     public int hashCode()
@@ -168,6 +170,6 @@ public class Timer implements Comparable, Hibernatable
         
         Timer t = (Timer)o;
 
-        return (t.enabled() == enabled()) && (t.getExpiry() == getExpiry());            
+        return (t.enabled() == enabled()) && (t.getExpiry() == getExpiry()) && (t.callback == callback);
     }
 }

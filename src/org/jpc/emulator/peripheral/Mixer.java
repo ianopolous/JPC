@@ -552,7 +552,7 @@ public class Mixer extends AbstractHardwareComponent
                 mixer.tick_remain+=mixer.tick_add;
                 mixer.needed+=(mixer.tick_remain>>MIXER_SHIFT);
                 mixer.tick_remain&=MIXER_REMAIN;
-                nextExpiry += mixer.tick_add;
+                nextExpiry += 1000;
                 mix.setExpiry(nextExpiry);
             }
         }
@@ -581,7 +581,7 @@ public class Mixer extends AbstractHardwareComponent
             mixer.needed=(int)(mixer.tick_remain>>MIXER_SHIFT);
             mixer.tick_remain&=MIXER_REMAIN;
             mixer.done=0;
-            nextExpiry += mixer.tick_add;
+            nextExpiry += 1000;
             mix_nosound.setExpiry(nextExpiry);
         }
         public int getType()

@@ -197,15 +197,19 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
                 tempTimer = timers.peek();
             }
             long expiry = tempTimer.getExpiry();
-            try
+            long now = getTime();
+            if (expiry > now)
             {
-                Thread.sleep(Math.min((expiry - getTime()) / 1000000, 100));
-            } catch (InterruptedException ex)
-            {
-                Logger.getLogger(VirtualClock.class.getName()).log(Level.SEVERE, null, ex);
+                try
+                {
+                    Thread.sleep(Math.min((expiry - now) / 1000000, 100));
+                } catch (InterruptedException ex)
+                {
+                    Logger.getLogger(VirtualClock.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                totalTicks += (expiry - ticksOffset - currentTime)/NSPI;
+                currentTime = expiry -ticksOffset;
             }
-            totalTicks += (expiry - ticksOffset - currentTime)/NSPI;
-            currentTime = expiry -ticksOffset;
             //System.out.println("New time during HALT: " + (expiry - ticksOffset));
             tempTimer.check(getTime());
         }
