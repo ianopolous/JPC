@@ -746,7 +746,7 @@ public class Mixer extends AbstractHardwareComponent
         mixer = new _Mixer();
 
         /* Read out config section */
-        mixer.freq = Option.mixer_rate.intValue(44100);
+        mixer.freq = Option.mixer_rate.intValue(SBlaster.OPL_RATE);
         mixer.nosound = Option.mixer_nosound.value();
         mixer.blocksize = Option.mixer_blocksize.intValue(512);
 

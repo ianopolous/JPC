@@ -171,6 +171,7 @@ public class PC {
                 parts.add(new Mixer());
                 parts.add(new MPU401());
                 parts.add(new SBlaster());
+                parts.add(new Adlib());
             }
         }
 

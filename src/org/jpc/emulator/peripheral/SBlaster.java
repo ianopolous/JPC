@@ -15,6 +15,10 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
     private static Clock timeSource;
     private static DMAController dma;
     private static boolean ioportRegistered = false;
+    public static final int BASE = 0x220;
+    public static final int OPL_RATE = 44100;
+    public static final String OPLEMU = "default";
+    public static int oplmode;
 
     private static final boolean DEBUG = false;
 
@@ -452,6 +456,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             if (sb.dma.stereo) {
                 sb.dma.chan.readMemory(sb.dma.buf.b8, sb.dma.remain_size, sb.dma.position, size);//read=sb.dma.chan.Read(size, sb.dma.buf.b8, sb.dma.remain_size);
                 read = size;
+                //System.out.printf("DMA Read 4 : %d\n", read);
                 /*Bitu*/int total=read+sb.dma.remain_size;
                 if (!sb.dma.sign)  sb.chan.AddSamples_s8(total>>1,sb.dma.buf.b8);
                 else sb.chan.AddSamples_s8s(total>>>1,sb.dma.buf.b8);
@@ -1537,7 +1542,6 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
 //    private IoHandler.IO_ReadHandleObject[] ReadHandler = new IoHandler.IO_ReadHandleObject[0x10];
 //    private IoHandler.IO_WriteHandleObject[] WriteHandler = new IoHandler.IO_WriteHandleObject[0x10];
     private Mixer.MixerObject MixerChan = new Mixer.MixerObject();
-    private /*OPL_Mode*/int oplmode;
 
     /* Support Functions */
     private void Find_Type_And_Opl(/*SB_TYPES*/IntRef type, /*OPL_Mode*/IntRef opl_mode){
@@ -1713,7 +1717,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
 //        for (i=0;i<ReadHandler.length;i++) {
 //            ReadHandler[i] = new IoHandler.IO_ReadHandleObject();
 //        }
-        sb.hw.base = Option.sbbase.intValue(0x220);
+        sb.hw.base = Option.sbbase.intValue(BASE, 16);
         sb.hw.irq = Option.sb_irq.intValue(7);
         /*Bitu*/int dma8bit = Option.sb_dma.intValue(1);
         if (dma8bit>0xff) dma8bit=0xff;
@@ -1744,7 +1748,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
             // fall-through
         case 3:
         case 4:
-            //Adlib.OPL_Init(section,oplmode);
+            //Adlib.OPL_Init(oplmode);
             break;
         }
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;

@@ -49,6 +49,8 @@ public abstract class Option {
     public static final Opt sb_hdma = opt("sb_hdma");
     public static final Switch sbmixer = createSwitch("sbmixer");
     public static final Opt sbtype = opt("sbtype");
+    public static final Opt oplemu = opt("oplemu");
+    public static final Opt oplrate = opt("oplrate");
 
     public static String[] parse(String[] source) {
         ArrayList<String> tmp = new ArrayList<String>();
