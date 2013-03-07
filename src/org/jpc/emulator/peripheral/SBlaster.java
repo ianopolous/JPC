@@ -16,6 +16,9 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
     private static DMAController dma;
     private static boolean ioportRegistered = false;
     public static final int BASE = 0x220;
+    public static final int IRQ = 7;
+    public static final int DMA = 1;
+    public static final int HDMA = 5;
     public static final int OPL_RATE = 44100;
     public static final String OPLEMU = "default";
     public static int oplmode;
@@ -1718,11 +1721,11 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
 //            ReadHandler[i] = new IoHandler.IO_ReadHandleObject();
 //        }
         sb.hw.base = Option.sbbase.intValue(BASE, 16);
-        sb.hw.irq = Option.sb_irq.intValue(7);
-        /*Bitu*/int dma8bit = Option.sb_dma.intValue(1);
+        sb.hw.irq = Option.sb_irq.intValue(IRQ);
+        /*Bitu*/int dma8bit = Option.sb_dma.intValue(DMA);
         if (dma8bit>0xff) dma8bit=0xff;
         sb.hw.dma8=(/*Bit8u*/short)(dma8bit&0xff);
-        /*Bitu*/int dma16bit = Option.sb_hdma.intValue(5);
+        /*Bitu*/int dma16bit = Option.sb_hdma.intValue(HDMA);
         if (dma16bit>0xff) dma16bit=0xff;
         sb.hw.dma16=(/*Bit8u*/short)(dma16bit&0xff);
 

@@ -177,29 +177,29 @@ public class Midi
             } catch (Exception e) {
             }
             if (synth != null) {
-                String fileName = "default";
-                try {
-                    soundbank = synth.getDefaultSoundbank();
-                } catch (Exception e) {
+                String fileName = "resources/soundbank-deluxe.gm";
+                InputStream is = Midi.class.getResourceAsStream(fileName);
+                if (is == null) {
+                    fileName = "resources/soundbank-mid.gm";
+                    is = Midi.class.getResourceAsStream(fileName);
                 }
-                if (soundbank == null) {
-                    fileName = "soundbank-deluxe.gm";
-                    InputStream is = Midi.class.getResourceAsStream(fileName);
-                    if (is == null) {
-                        fileName = "soundbank-mid.gm";
-                        is = Midi.class.getResourceAsStream("soundbank-mid.gm");
+                if (is == null) {
+                    fileName = "resources/soundbank-min.gm";
+                    is = Midi.class.getResourceAsStream(fileName);
+                }
+                if (is != null) {
+                    try {
+                        soundbank = MidiSystem.getSoundbank(is);
+                    } catch (Exception e) {
                     }
-                    if (is == null) {
-                        fileName = "soundbank-min.gm";
-                        is = Midi.class.getResourceAsStream("soundbank-min.gm");
-                    }
-                    if (is != null) {
-                        try {
-                            soundbank = MidiSystem.getSoundbank(is);
-                        } catch (Exception e) {
-                        }
-                        try {is.close();} catch (Exception e) {}
-                    }
+                    try {is.close();} catch (Exception e) {}
+                }
+                if (soundbank == null)
+                {
+                    fileName = "default";
+                    try {
+                        soundbank = synth.getDefaultSoundbank();
+                    } catch (Exception e) {}
                 }
                 if (soundbank != null) {
                     try {

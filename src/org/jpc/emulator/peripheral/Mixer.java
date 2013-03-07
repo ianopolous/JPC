@@ -13,6 +13,7 @@ import java.util.logging.*;
 public class Mixer extends AbstractHardwareComponent
 {
     private static final Logger Log = Logger.getLogger(Mixer.class.getName());
+    public static final int MIXER_PERIOD = 1000000;
     private static Clock timeSource;
     private static InterruptController irqDevice;
     private static long nextExpiry;
@@ -552,7 +553,7 @@ public class Mixer extends AbstractHardwareComponent
                 mixer.tick_remain+=mixer.tick_add;
                 mixer.needed+=(mixer.tick_remain>>MIXER_SHIFT);
                 mixer.tick_remain&=MIXER_REMAIN;
-                nextExpiry += 1000;
+                nextExpiry += MIXER_PERIOD;
                 mix.setExpiry(nextExpiry);
             }
         }
@@ -581,7 +582,7 @@ public class Mixer extends AbstractHardwareComponent
             mixer.needed=(int)(mixer.tick_remain>>MIXER_SHIFT);
             mixer.tick_remain&=MIXER_REMAIN;
             mixer.done=0;
-            nextExpiry += 1000;
+            nextExpiry += MIXER_PERIOD;
             mix_nosound.setExpiry(nextExpiry);
         }
         public int getType()
