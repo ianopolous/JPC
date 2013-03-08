@@ -13,7 +13,7 @@ import java.util.logging.*;
 public class Mixer extends AbstractHardwareComponent
 {
     private static final Logger Log = Logger.getLogger(Mixer.class.getName());
-    public static final int MIXER_PERIOD = 1000000;
+    public static final int MIXER_PERIOD = 760000;
     private static Clock timeSource;
     private static InterruptController irqDevice;
     private static long nextExpiry;
@@ -599,7 +599,7 @@ public class Mixer extends AbstractHardwareComponent
         /*Bits*/int sample;
         /* Enough room in the buffer ? */
         if (mixer.done < need) {
-    //		LOG_MSG("Full underrun need %d, have %d, min %d", need, mixer.done, mixer.min_needed);
+    		Log.log(Level.INFO, String.format("Full underrun need %d, have %d, min %d", need, mixer.done, mixer.min_needed));
             if((need - mixer.done) > (need >>7) ) //Max 1 procent stretch.
                 return false;
             reduce = mixer.done;
@@ -617,13 +617,13 @@ public class Mixer extends AbstractHardwareComponent
                     left = (mixer.min_needed - left);
                     left = 1 + (2*left) / mixer.min_needed; //left=1,2,3
                 }
-    //			LOG_MSG("needed underrun need %d, have %d, min %d, left %d", need, mixer.done, mixer.min_needed, left);
+    			Log.log(Level.INFO, String.format("needed underrun need %d, have %d, min %d, left %d", need, mixer.done, mixer.min_needed, left));
                 reduce = need - left;
                 index_add = (reduce << MIXER_SHIFT) / need;
             } else {
                 reduce = need;
                 index_add = (1 << MIXER_SHIFT);
-    //			LOG_MSG("regular run need %d, have %d, min %d, left %d", need, mixer.done, mixer.min_needed, left);
+    			Log.log(Level.INFO, String.format("regular run need %d, have %d, min %d, left %d", need, mixer.done, mixer.min_needed, left));
 
                 /* Mixer tick value being updated:
                  * 3 cases:
@@ -642,7 +642,7 @@ public class Mixer extends AbstractHardwareComponent
             }
         } else {
             /* There is way too much data in the buffer */
-    //		LOG_MSG("overflow run need %d, have %d, min %d", need, mixer.done, mixer.min_needed);
+    		Log.log(Level.INFO, String.format("overflow run need %d, have %d, min %d", need, mixer.done, mixer.min_needed));
             if (mixer.done > MIXER_BUFSIZE)
                 index_add = MIXER_BUFSIZE - 2*mixer.min_needed;
             else

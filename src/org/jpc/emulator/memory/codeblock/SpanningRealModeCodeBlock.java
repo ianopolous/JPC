@@ -15,7 +15,7 @@ class SpanningRealModeCodeBlock extends SpanningCodeBlock implements RealModeCod
         this.factories = factories;
     }
 
-    protected CodeBlock decode(Processor cpu)
+    public CodeBlock decode(Processor cpu)
     {
         decodes++;
         if (decodes % 1000 == 0)

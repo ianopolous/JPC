@@ -51,7 +51,7 @@ class SpanningVirtual8086ModeCodeBlock extends SpanningCodeBlock implements Virt
 	this.factories = factories;
     }
 
-    protected CodeBlock decode(Processor cpu)
+    public CodeBlock decode(Processor cpu)
     {
 	Virtual8086ModeCodeBlock block = null;
 	AddressSpace memory = cpu.linearMemory;

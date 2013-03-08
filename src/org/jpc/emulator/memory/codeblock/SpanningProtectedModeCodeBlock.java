@@ -13,7 +13,7 @@ class SpanningProtectedModeCodeBlock extends SpanningCodeBlock implements Protec
 
     public SpanningProtectedModeCodeBlock(CodeBlockFactory[] factories)
     {
-	this.factories = factories;
+	    this.factories = factories;
     }
 
     public int getX86Length()
@@ -21,11 +21,9 @@ class SpanningProtectedModeCodeBlock extends SpanningCodeBlock implements Protec
         return length;
     }
     
-    protected CodeBlock decode(Processor cpu)
+    public CodeBlock decode(Processor cpu)
     {
         decodes++;
-        if (decodes % 1000 == 0)
-            System.out.printf("PM Spanning block at %08x decoded %d times.\n", cpu.getInstructionPointer(), decodes);
         ProtectedModeCodeBlock block = null;
         AddressSpace memory = cpu.linearMemory;
         int address = cpu.getInstructionPointer();
@@ -37,6 +35,8 @@ class SpanningProtectedModeCodeBlock extends SpanningCodeBlock implements Protec
             } catch (IllegalStateException e) {e.printStackTrace();}
         }
         length = block.getX86Length();
+        if (decodes % 1000 == 0)
+            System.out.printf("PM Spanning block at %08x of length %d decoded %d times.\n", cpu.getInstructionPointer(), length, decodes);
         byteSourceStream.set(null, 0);
         return block;
     }

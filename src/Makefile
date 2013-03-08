@@ -64,11 +64,6 @@ tests:
 	    -C build org/jpc/j2se
 	rm -f application.manifest
 
-.PHONY: build_nereus
-build_nereus:
-	mkdir -p build
-	javac $(JAVA_BUILD_OPTS) -cp ".;NereusClient.jar" -d build `find org/jpc/nereus -name \*.java`
-
 .PHONY: clean
 clean:
 	rm -Rf build

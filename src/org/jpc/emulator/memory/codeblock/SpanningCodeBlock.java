@@ -44,7 +44,7 @@ public abstract class SpanningCodeBlock implements CodeBlock
      * @param cpu processor state on which we are about to execute
      * @return fresh <code>CodeBlock</code> instance
      */
-    protected abstract CodeBlock decode(Processor cpu);
+    public abstract CodeBlock decode(Processor cpu);
 
     public boolean handleMemoryRegionChange(int startAddress, int endAddress)
     {

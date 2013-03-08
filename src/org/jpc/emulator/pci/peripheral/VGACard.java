@@ -1010,7 +1010,7 @@ public abstract class VGACard extends AbstractPCIDevice implements IODevice
         //invalidatedYTable = new int[VGA_MAX_HEIGHT / 32];
         lastChar = new int[CH_ATTR_SIZE];
         fontOffset = new int[2];
-        vbeRegs = new int[VBE_DISPI_INDEX_NB];
+        vbeRegs = new int[VBE_DISPI_INDEX_NB+1];
         dacCache = new int[3];
         palette = new int[768];
         sequencerRegister = new int[256];
@@ -2595,7 +2595,7 @@ public abstract class VGACard extends AbstractPCIDevice implements IODevice
         palette = new int[768];
 
         ioRegion = new VGARAMIORegion();
-        vbeRegs = new int[VBE_DISPI_INDEX_NB];
+        vbeRegs = new int[VBE_DISPI_INDEX_NB+1];
 
         fontOffset = new int[2];
         lastChar = new int[CH_ATTR_SIZE];

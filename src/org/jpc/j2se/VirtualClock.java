@@ -46,7 +46,7 @@ import org.jpc.emulator.processor.Processor;
  */
 public class VirtualClock extends AbstractHardwareComponent implements Clock
 {
-    public static final long IPS = Processor.IPS;
+    public static long IPS = Option.ips.intValue(50000000); //CPU "Clock Speed" in instructions per (emulated) second
     public static final long NSPI = 10*1000000000L/IPS; //Nano seconds per instruction
     private static final Logger LOGGING = Logger.getLogger(VirtualClock.class.getName());
     private PriorityQueue<Timer> timers;

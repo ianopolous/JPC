@@ -837,12 +837,13 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         } catch (SpanningDecodeException e)
         {
             SpanningCodeBlock block = e.getBlock();
+            int length = block.decode(cpu).getX86Length();
             // add block to subsequent page to allow invalidation upon a write
             try {
-                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));
             } catch (NullPointerException n) { // had to map subsequent page
                 Memory page = validateTLBEntryRead(offset+0x1000);
-                page.addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+                page.addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));
             }
         }
 
@@ -854,12 +855,13 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         } catch (SpanningDecodeException e)
         {
             SpanningCodeBlock block = e.getBlock();
+            int length = block.decode(cpu).getX86Length();
             // add block to subsequent page to allow invalidation upon a write
             try {
-                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));
             } catch (NullPointerException n) { // had to map subsequent page
                 Memory page = validateTLBEntryRead(offset+0x1000);
-                page.addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+                page.addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));
             }
             return memory.executeProtected(cpu, offset & AddressSpace.BLOCK_MASK);
         } catch (IllegalStateException e) {
@@ -881,12 +883,13 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         } catch (SpanningDecodeException e)
         {
             SpanningCodeBlock block = e.getBlock();
+            int length = block.decode(cpu).getX86Length();
             // add block to subsequent page to allow invalidation upon a write
             try {
-                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));
             } catch (NullPointerException n) { // had to map subsequent page
                 Memory page = validateTLBEntryRead(offset+0x1000);
-                page.addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+                page.addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));
             }
         }
 
@@ -898,12 +901,13 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         } catch (SpanningDecodeException e)
         {
             SpanningCodeBlock block = e.getBlock();
+            int length = block.decode(cpu).getX86Length();
             // add block to subsequent page to allow invalidation upon a write
             try {
-                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+                getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));
             } catch (NullPointerException n) { // had to map subsequent page
                 Memory page = validateTLBEntryRead(offset+0x1000);
-                page.addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+                page.addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));
             }
             return memory.executeVirtual8086(cpu, offset & AddressSpace.BLOCK_MASK);
         }

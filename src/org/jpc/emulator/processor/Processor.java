@@ -7,6 +7,7 @@ import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.memory.*;
 import org.jpc.emulator.processor.fpu64.*;
 import org.jpc.j2se.Option;
+import org.jpc.j2se.VirtualClock;
 import org.jpc.support.*;
 
 import java.io.*;
@@ -26,8 +27,6 @@ public class Processor implements HardwareComponent
 
     public static final int STATE_VERSION = 1;
     public static final int STATE_MINOR_VERSION = 0;
-
-    public static final int IPS = Option.ips.intValue(50000000); //CPU "Clock Speed" in instructions per (emulated) second
 
     public static final int IFLAGS_HARDWARE_INTERRUPT = 0x1;
     public static final int IFLAGS_PROCESSOR_EXCEPTION = 0x2;

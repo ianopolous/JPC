@@ -82,6 +82,7 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
     private int controllerNumber;
     private PhysicalAddressSpace memory;
     private DMAChannel[] dmaChannels;
+    private DMAController slave;
 
     public class DMAChannel implements Hibernatable
     {
@@ -295,7 +296,9 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
 
     public DMAChannel getChannel(int number)
     {
-        return dmaChannels[number];
+        if (number < 4)
+            return dmaChannels[number];
+        return slave.getChannel(number-4);
     }
 
     /**
@@ -752,7 +755,7 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
 
     public boolean updated()
     {
-        return memory.updated() && ioportRegistered;
+        return memory.updated() && ioportRegistered && (!isPrimary() || (slave != null));
     }
 
     public void acceptComponent(HardwareComponent component)
@@ -763,7 +766,9 @@ public class DMAController extends AbstractHardwareComponent implements IODevice
             ((IOPortHandler) component).registerIOPortCapable(this);
             ioportRegistered = true;
         }
-
+        if (component instanceof DMAController)
+            if (!((DMAController) component).isPrimary())
+                slave = (DMAController) component;
     }
 
     public void updateComponent(HardwareComponent component)

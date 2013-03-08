@@ -341,8 +341,9 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         } catch (SpanningDecodeException e)
         {
             SpanningCodeBlock block = e.getBlock();
+            int length = block.decode(cpu).getX86Length();
             // add block to subsequent page to allow invalidation upon a write
-            getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, block.getX86Length()+0x1000-(offset & AddressSpace.BLOCK_MASK));
+            getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));
             return getReadMemoryBlockAt(offset).executeReal(cpu, offset & AddressSpace.BLOCK_MASK);
         }
     }

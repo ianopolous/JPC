@@ -66,6 +66,7 @@ public class PCMonitorFrame extends JFrame implements Runnable
     private final int nativeClockSpeed;
     private JFileChooser configFileChooser;
 
+    private static final boolean updateMHz = false;
     private volatile boolean running;
     private Thread runner;
 
@@ -278,12 +279,13 @@ public class PCMonitorFrame extends JFrame implements Runnable
                     continue;
                 totalExec += (COUNTDOWN - execCount);
                 execCount = COUNTDOWN;
-                
-                if (updateMHz(markTime, totalExec)) 
-                {
-                    markTime = System.currentTimeMillis();
-                    totalExec = 0;
-                }
+
+                if (updateMHz)
+                    if (updateMHz(markTime, totalExec))
+                    {
+                        markTime = System.currentTimeMillis();
+                        totalExec = 0;
+                    }
             }
         } 
         finally 
