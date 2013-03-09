@@ -14,6 +14,7 @@ public class Mixer extends AbstractHardwareComponent
 {
     private static final Logger Log = Logger.getLogger(Mixer.class.getName());
     public static final int MIXER_PERIOD = 760000;
+    private static final boolean LOG_BUFFERS = false;
     private static Clock timeSource;
     private static InterruptController irqDevice;
     private static long nextExpiry;
@@ -599,7 +600,8 @@ public class Mixer extends AbstractHardwareComponent
         /*Bits*/int sample;
         /* Enough room in the buffer ? */
         if (mixer.done < need) {
-    		Log.log(Level.INFO, String.format("Full underrun need %d, have %d, min %d", need, mixer.done, mixer.min_needed));
+            if (LOG_BUFFERS)
+                Log.log(Level.INFO, String.format("Full underrun need %d, have %d, min %d", need, mixer.done, mixer.min_needed));
             if((need - mixer.done) > (need >>7) ) //Max 1 procent stretch.
                 return false;
             reduce = mixer.done;
@@ -617,13 +619,15 @@ public class Mixer extends AbstractHardwareComponent
                     left = (mixer.min_needed - left);
                     left = 1 + (2*left) / mixer.min_needed; //left=1,2,3
                 }
-    			Log.log(Level.INFO, String.format("needed underrun need %d, have %d, min %d, left %d", need, mixer.done, mixer.min_needed, left));
+                if (LOG_BUFFERS)
+                    Log.log(Level.INFO, String.format("needed underrun need %d, have %d, min %d, left %d", need, mixer.done, mixer.min_needed, left));
                 reduce = need - left;
                 index_add = (reduce << MIXER_SHIFT) / need;
             } else {
                 reduce = need;
                 index_add = (1 << MIXER_SHIFT);
-    			Log.log(Level.INFO, String.format("regular run need %d, have %d, min %d, left %d", need, mixer.done, mixer.min_needed, left));
+                if (LOG_BUFFERS)
+                    Log.log(Level.INFO, String.format("regular run need %d, have %d, min %d, left %d", need, mixer.done, mixer.min_needed, left));
 
                 /* Mixer tick value being updated:
                  * 3 cases:
@@ -642,7 +646,8 @@ public class Mixer extends AbstractHardwareComponent
             }
         } else {
             /* There is way too much data in the buffer */
-    		Log.log(Level.INFO, String.format("overflow run need %d, have %d, min %d", need, mixer.done, mixer.min_needed));
+            if (LOG_BUFFERS)
+                Log.log(Level.INFO, String.format("overflow run need %d, have %d, min %d", need, mixer.done, mixer.min_needed));
             if (mixer.done > MIXER_BUFSIZE)
                 index_add = MIXER_BUFSIZE - 2*mixer.min_needed;
             else
@@ -770,7 +775,7 @@ public class Mixer extends AbstractHardwareComponent
             mixer.tick_add=((mixer.freq) << MIXER_SHIFT)/1000;
             //Timer.TIMER_AddTickHandler(MIXER_Mix_NoSound);
             mix_nosound = timeSource.newTimer(MIXER_Mix_NoSound);
-            nextExpiry = timeSource.getTime();
+            nextExpiry = timeSource.getTicks();
             mix_nosound.setExpiry(nextExpiry);
 //        }
 //        else if (!AudioLayer.open(Option.mixer_javabuffer.intValue(8820), mixer.freq)) {
@@ -809,7 +814,7 @@ public class Mixer extends AbstractHardwareComponent
         {
             timeSource = (Clock) component;
             mix = timeSource.newTimer(MIXER_Mix);
-            nextExpiry = timeSource.getTime();
+            nextExpiry = timeSource.getTicks();
             mix.setExpiry(nextExpiry);
         }
 

@@ -21,6 +21,7 @@ public abstract class Option {
     public static final Opt ss = opt("ss");
     public static final Opt ram = opt("ram");
     public static final Opt ips = opt("ips");
+    public static final Opt timeslowdown = opt("timeslowdown");
     public static final Opt max_instructions_per_block = opt("max-block-size");
     public static final Opt boot = opt("boot");
     public static final Opt fda = opt("fda");
@@ -301,14 +302,13 @@ public abstract class Option {
             }
         }
 
-        public String[] arrayValue(String[] defaultValue) {
+        public double doubleValue(double defaultValue) {
             if (value != null) {
-                return value.split(":");
+                return Double.parseDouble(value.trim());
             } else {
                 return defaultValue;
             }
         }
-
 
         public String value(String defaultValue) {
             if (value != null) {

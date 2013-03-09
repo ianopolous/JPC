@@ -38,7 +38,7 @@ import org.jpc.emulator.*;
 /**
  * Interface providing an external time source to the emulator for the provision
  * of timed callbacks.
- * @author Chris Dennis
+ * @author Ian Preston
  */
 public interface Clock extends HardwareComponent
 {
@@ -49,14 +49,6 @@ public interface Clock extends HardwareComponent
     public long getTicks();
 
     /**
-     * Get current time as measured by this clock in implementation specific
-     * units.  This may bear no relation to actual wall-time.
-     * @return current time
-     */
-    public long getTime();
-    
-    /**
-     * Get the number of implementation specific time units per emulated second.
      * @return tick rate per second
      */
     public long getTickRate();

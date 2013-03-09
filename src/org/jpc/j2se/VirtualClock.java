@@ -1,36 +1,3 @@
-/*
-    JPC: An x86 PC Hardware Emulator for a pure Java Virtual Machine
-    Release Version 2.4
-
-    A project from the Physics Dept, The University of Oxford
-
-    Copyright (C) 2007-2010 The University of Oxford
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2 as published by
-    the Free Software Foundation.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- 
-    Details (including contact information) can be found at: 
-
-    jpc.sourceforge.net
-    or the developer website
-    sourceforge.net/projects/jpc/
-
-    Conceived and Developed by:
-    Rhys Newman, Ian Preston, Chris Dennis
-
-    End of licence header
-*/
-
 package org.jpc.j2se;
 
 import org.jpc.emulator.*;
@@ -38,46 +5,42 @@ import org.jpc.support.Clock;
 import java.io.*;
 import java.util.PriorityQueue;
 import java.util.logging.*;
-import org.jpc.emulator.processor.Processor;
 
-/**
- * 
- * @author Ian Preston
- */
 public class VirtualClock extends AbstractHardwareComponent implements Clock
 {
     public static long IPS = Option.ips.intValue(50000000); //CPU "Clock Speed" in instructions per (emulated) second
-    public static final long NSPI = 10*1000000000L/IPS; //Nano seconds per instruction
-    private static final Logger LOGGING = Logger.getLogger(VirtualClock.class.getName());
+    public static long PSPI = 1000000000000L/IPS; //Pico seconds per instruction
+    private static final double slowdown = Option.timeslowdown.doubleValue(0.5);
+    private static final Logger Log = Logger.getLogger(VirtualClock.class.getName());
     private PriorityQueue<Timer> timers;
     private volatile boolean ticksEnabled;
-    private long ticksOffset;
-    private long ticksStatic;
-    private long currentTime;
     private long totalTicks = 0;
-    private static final boolean REALTIME = false; //sync clock with real clock
+
+    private long nextRateCheck = 0;
+    private long lastRealNanos = System.nanoTime();
+    private long lastTotalTicks = 0;
+    private static final long RATE_CHECK_INTERVAL = 10000000;
+    private static final boolean REALTIME = false; //start with real clock time
+    private static final boolean REAL_RATE = true; //sync clock rate with real time rate
 
     public VirtualClock()
     {
-        timers = new PriorityQueue<Timer>(20); // initial capacity to be revised
+        timers = new PriorityQueue<Timer>(20);
         ticksEnabled = false;
-        ticksOffset = 0;
-        ticksStatic = 0;
-        currentTime = getSystemTimer();
     }
 
     public void saveState(DataOutput output) throws IOException
     {
         output.writeBoolean(ticksEnabled);
-        output.writeLong(ticksOffset);
-        output.writeLong(getTime());
+        output.writeLong(0);
+        output.writeLong(getTicks());
     }
 
     public void loadState(DataInput input, PC pc) throws IOException
     {
         ticksEnabled = input.readBoolean();
-        ticksOffset = input.readLong();
-        ticksStatic = input.readLong();
+        input.readLong();
+        totalTicks = input.readLong();
     }
 
     public synchronized Timer newTimer(TimerResponsive object)
@@ -90,7 +53,7 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
     {
         Timer tempTimer;
         tempTimer = timers.peek();
-        if ((tempTimer == null) || !tempTimer.check(getTime()))
+        if ((tempTimer == null) || !tempTimer.check(getTicks()))
             return false;
         else
             return true;
@@ -105,25 +68,9 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
         }
     }
 
-    public long getTime()
-    {
-        if (ticksEnabled)
-        {
-            return this.getRealTime() + ticksOffset;
-        } else
-        {
-            return ticksStatic;
-        }
-    }
-
-    private long getRealTime()
-    {
-        return currentTime;
-    }
-
     public long getTickRate()
     {
-        return IPS*10;//1000000000L;
+        return 1000000000000L/PSPI;
     }
 
     public long getTicks() {
@@ -134,7 +81,6 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
     {
         if (ticksEnabled)
         {
-            ticksStatic = getTime();
             ticksEnabled = false;
         }
     }
@@ -143,16 +89,13 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
     {
         if (!ticksEnabled)
         {
-            ticksOffset = ticksStatic - getRealTime();
             ticksEnabled = true;
         }
     }
 
     public void reset()
     {
-            this.pause();
-            ticksOffset = 0;
-            ticksStatic = 0;
+        this.pause();
     }
 
     public String toString()
@@ -160,68 +103,67 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
         return "Virtual Clock";
     }
 
-    private long getSystemTimer()
+    public long convertTicksToNanos(long ticks)
     {
-        return System.nanoTime();
+        return (long)(ticks*PSPI/1000*slowdown);
     }
 
-    public void updateNowAndProcess() {
-        if (REALTIME) {
-            currentTime = getSystemTimer();
-            if (process())
-            {
-                return;
-            }
+    public long convertTicksToMillis(long ticks)
+    {
+        return (long)(ticks*PSPI/1000000*slowdown);
+    }
 
-            Timer tempTimer;
-            synchronized (this)
-            {
-                tempTimer = timers.peek();
-            }
-            long expiry = tempTimer.getExpiry();
+    public void updateNowAndProcess()
+    {
+        Timer tempTimer;
+        synchronized (this)
+        {
+            tempTimer = timers.peek();
+        }
+        long expiry = tempTimer.getExpiry();
+        long now = getTicks();
+        if (expiry > now)
+        {
             try
             {
-                Thread.sleep(Math.min((expiry - getTime()) / 1000000, 100));
+                //System.out.printf("Halt: sleep for %d millis...\n", convertTicksToMillis(expiry - now));
+                Thread.sleep(Math.min(convertTicksToMillis(expiry - now), 100));
             } catch (InterruptedException ex)
             {
                 Logger.getLogger(VirtualClock.class.getName()).log(Level.SEVERE, null, ex);
             }
-            totalTicks += (expiry - ticksOffset - currentTime)/NSPI;
-            currentTime = getSystemTimer();
-
-            tempTimer.check(getTime());
-        } else {
-            Timer tempTimer;
-            synchronized (this)
-            {
-                tempTimer = timers.peek();
-            }
-            long expiry = tempTimer.getExpiry();
-            long now = getTime();
-            if (expiry > now)
-            {
-                try
-                {
-                    Thread.sleep(Math.min((expiry - now) / 1000000, 100));
-                } catch (InterruptedException ex)
-                {
-                    Logger.getLogger(VirtualClock.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                totalTicks += (expiry - ticksOffset - currentTime)/NSPI;
-                currentTime = expiry -ticksOffset;
-            }
-            //System.out.println("New time during HALT: " + (expiry - ticksOffset));
-            tempTimer.check(getTime());
+            totalTicks = expiry;
         }
+        tempTimer.check(getTicks());
+    }
+
+    private void changeTimeRate(double factor)
+    {
+        System.out.printf("Pre IPS %d, PSPI %d, factor %f\n", IPS, PSPI, factor);
+        if (factor > 1.05)
+            factor = 1.05;
+        else if (factor < 0.95)
+            factor = 0.95;
+        PSPI *= factor;
+        IPS /= factor;
+        System.out.printf("Post IPS %d, PSPI %d, factor %f\n", IPS, PSPI, factor);
     }
 
     public void updateAndProcess(int instructions)
     {
         totalTicks += instructions;
-        if (REALTIME)
-            currentTime = getSystemTimer();
-        else
-            currentTime += instructions * NSPI;
+        if ((REAL_RATE) && (totalTicks > nextRateCheck))
+        {
+            long realNanosDelta = System.nanoTime() - lastRealNanos;
+            long emulatedNanosDelta = convertTicksToNanos(totalTicks-lastTotalTicks);
+            nextRateCheck += RATE_CHECK_INTERVAL;
+            if (Math.abs(emulatedNanosDelta - realNanosDelta) > 100000)
+            {
+                lastRealNanos += realNanosDelta;
+                lastTotalTicks = totalTicks;
+                changeTimeRate(((double) realNanosDelta/emulatedNanosDelta));
+            }
+        }
         process();
     }
 }
