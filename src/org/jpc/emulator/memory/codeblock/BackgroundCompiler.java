@@ -95,6 +95,9 @@ class BackgroundCompiler implements CodeBlockCompiler {
                 CodeBlock src = target.getTargetBlock();
                 CodeBlock result = null;
 
+                // for now exit until we have a compiler
+                if (true)
+                    return;
                 if (src instanceof ReplacementBlockTrigger) {
                     continue;
                 } else if (src instanceof RealModeCodeBlock) {

@@ -3,6 +3,9 @@ package org.jpc.emulator.execution.decoder;
 import org.jpc.emulator.execution.Executable;
 import org.jpc.j2se.Option;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -38,23 +41,36 @@ public class Disassembler
         String path = "org/jpc/emulator/execution/opcodes/"+mode;
         try
         {
-            Enumeration<URL> resources = cl.getResources(path);
             List<String> names=  new ArrayList();
-            while (resources.hasMoreElements())
+            InputStream nameListIn = Disassembler.class.getResourceAsStream("org/jpc/emulator/execution/opcodes/"+mode+"opcodes.txt");
+            if (nameListIn == null)
             {
-                String name = resources.nextElement().getFile();
-                if (!name.contains("!"))
-                    continue;
-                URL jar = new URL(name.split("!")[0]);
-                ZipInputStream zip = new ZipInputStream(jar.openStream());
-                ZipEntry entry = null;
-                while ((entry = zip.getNextEntry()) != null)
+                Enumeration<URL> resources = cl.getResources(path);
+                while (resources.hasMoreElements())
                 {
-                    if (entry.getName().startsWith(path))
-                        if (entry.getName().endsWith(".class"))
-                            names.add(entry.getName().substring(0, entry.getName().length()-6));
+                    String name = resources.nextElement().getFile();
+                    if (!name.contains("!"))
+                        continue;
+                    URL jar = new URL(name.split("!")[0]);
+                    ZipInputStream zip = new ZipInputStream(jar.openStream());
+                    ZipEntry entry = null;
+                    while ((entry = zip.getNextEntry()) != null)
+                    {
+                        if (entry.getName().startsWith(path))
+                            if (entry.getName().endsWith(".class"))
+                                names.add(entry.getName().substring(0, entry.getName().length()-6));
+                    }
                 }
+                if (names.size() == 0)
+                    System.out.println("Couldn't load any opcodes for "+mode+"!!!!!");
             }
+            else
+            {
+                String line = new BufferedReader(new InputStreamReader(nameListIn)).readLine();
+                names = Arrays.asList(line.split(" "));
+                System.out.println(names.size() + " opcodes in "+mode);
+            }
+
             for (String file : names)
             {
                 try
@@ -202,8 +218,13 @@ public class Disassembler
         return b.toString();
     }
 
+    private static long decodeCount = 0;
+
     public static BasicBlock disassembleBlock(PeekableInputStream input, int operand_size, int mode)
     {
+        decodeCount++;
+        if (decodeCount % 1000 == 0)
+            System.out.println("Decoded "+decodeCount + " blocks...");
         int startAddr = (int)input.getAddress();
         boolean debug = false;
         int beginCount = input.getCounter();

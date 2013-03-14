@@ -5,6 +5,7 @@ import org.jpc.emulator.HardwareComponent;
 import org.jpc.emulator.Timer;
 import org.jpc.emulator.TimerResponsive;
 import org.jpc.emulator.motherboard.InterruptController;
+import org.jpc.emulator.motherboard.IntervalTimer;
 import org.jpc.j2se.Option;
 import org.jpc.support.Clock;
 
@@ -13,7 +14,6 @@ import java.util.logging.*;
 public class Mixer extends AbstractHardwareComponent
 {
     private static final Logger Log = Logger.getLogger(Mixer.class.getName());
-    public static final int MIXER_PERIOD = 760000;
     private static final boolean LOG_BUFFERS = false;
     private static Clock timeSource;
     private static InterruptController irqDevice;
@@ -308,6 +308,11 @@ public class Mixer extends AbstractHardwareComponent
                 freq_index+=freq_add;
                 mixpos&=MIXER_BUFMASK;
                 /*Bits*/int sample=last[0]+((diff[0]*diff_mul) >> MIXER_SHIFT);
+                if (mixpos < 10)
+                {
+                    System.out.printf("last[0]=%d diff[0]=%d diff_mull=%d \n",last[0], diff[0], diff_mul);
+                System.out.printf("mixpos=%d 0=%d sample=%d volmul=%d\n", mixpos, mixer.work[mixpos][0], sample, volmul[0]);
+                }
                 mixer.work[mixpos][0]+=sample*volmul[0];
                 if (stereo) sample=last[1]+((diff[1]*diff_mul) >> MIXER_SHIFT);
                 mixer.work[mixpos][1]+=sample*volmul[1];
@@ -554,7 +559,7 @@ public class Mixer extends AbstractHardwareComponent
                 mixer.tick_remain+=mixer.tick_add;
                 mixer.needed+=(mixer.tick_remain>>MIXER_SHIFT);
                 mixer.tick_remain&=MIXER_REMAIN;
-                nextExpiry += MIXER_PERIOD;
+                nextExpiry += 1000000;
                 mix.setExpiry(nextExpiry);
             }
         }
@@ -583,7 +588,7 @@ public class Mixer extends AbstractHardwareComponent
             mixer.needed=(int)(mixer.tick_remain>>MIXER_SHIFT);
             mixer.tick_remain&=MIXER_REMAIN;
             mixer.done=0;
-            nextExpiry += MIXER_PERIOD;
+            nextExpiry += 1000000;
             mix_nosound.setExpiry(nextExpiry);
         }
         public int getType()
@@ -592,7 +597,7 @@ public class Mixer extends AbstractHardwareComponent
         }
     };
 
-    static boolean MIXER_CallBack(int userdata, byte[] stream, int len) {
+    static boolean MIXER_CallBack(byte[] stream, int len) {
         /*Bitu*/int need=(/*Bitu*/int)len/MIXER_SSIZE;
         /*Bit16s*/ShortPtr output=new ShortPtr(stream,0);
         /*Bitu*/int reduce;
@@ -602,7 +607,7 @@ public class Mixer extends AbstractHardwareComponent
         if (mixer.done < need) {
             if (LOG_BUFFERS)
                 Log.log(Level.INFO, String.format("Full underrun need %d, have %d, min %d", need, mixer.done, mixer.min_needed));
-            if((need - mixer.done) > (need >>7) ) //Max 1 procent stretch.
+            if((need - mixer.done) > (need >>7) ) //Max 1 percent stretch.
                 return false;
             reduce = mixer.done;
             index_add = (reduce << MIXER_SHIFT) / need;
@@ -775,7 +780,7 @@ public class Mixer extends AbstractHardwareComponent
             mixer.tick_add=((mixer.freq) << MIXER_SHIFT)/1000;
             //Timer.TIMER_AddTickHandler(MIXER_Mix_NoSound);
             mix_nosound = timeSource.newTimer(MIXER_Mix_NoSound);
-            nextExpiry = timeSource.getTicks();
+            nextExpiry = timeSource.getEmulatedNanos();
             mix_nosound.setExpiry(nextExpiry);
 //        }
 //        else if (!AudioLayer.open(Option.mixer_javabuffer.intValue(8820), mixer.freq)) {
@@ -814,7 +819,7 @@ public class Mixer extends AbstractHardwareComponent
         {
             timeSource = (Clock) component;
             mix = timeSource.newTimer(MIXER_Mix);
-            nextExpiry = timeSource.getTicks();
+            nextExpiry = timeSource.getEmulatedNanos();
             mix.setExpiry(nextExpiry);
         }
 

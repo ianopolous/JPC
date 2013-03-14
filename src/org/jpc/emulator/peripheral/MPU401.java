@@ -147,7 +147,7 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
                         mpu.state.playing=true;
                         //Pic.PIC_RemoveEvents(MPU401_Event);
                         //Pic.PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/(mpu.clock.tempo*mpu.clock.timebase));
-                        event.setExpiry((long)(timeSource.getTicks()+MPU401_TIMECONSTANT/(mpu.clock.tempo*mpu.clock.timebase)));
+                        event.setExpiry((long)(timeSource.getRealMillis()+MPU401_TIMECONSTANT/(mpu.clock.tempo*mpu.clock.timebase)));
                         ClrQueue();
                         break;
                 }
@@ -546,7 +546,7 @@ public class MPU401 extends AbstractHardwareComponent implements IODevice
             /*Bitu*/int new_time;
             if ((new_time=mpu.clock.tempo*mpu.clock.timebase)==0) return;
             //Pic.PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
-            event.setExpiry((long)(timeSource.getTicks()+MPU401_TIMECONSTANT/new_time));
+            event.setExpiry((long)(timeSource.getEmulatedNanos()+MPU401_TIMECONSTANT/new_time));
         }
         public int getType() {return -1;}
     };

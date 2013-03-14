@@ -32,7 +32,7 @@ public abstract class Option {
     public static final Opt hdd = opt("hdd");
     public static final Opt cdrom = opt("cdrom");
 
-    public static final Switch soundenabled = createSwitch("soundenabled");
+    public static final Switch sound = createSwitch("sound");
     public static final Opt sounddevice = opt("sounddevice");
     public static final Opt mixer_rate = opt("mixer_rate");
     public static final Opt mixer_javabuffer = opt("mixer_javabuffer");

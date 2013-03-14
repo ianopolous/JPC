@@ -48,6 +48,12 @@ public interface Clock extends HardwareComponent
 
     public long getTicks();
 
+    public long getEmulatedNanos();
+
+    public long getEmulatedMicros();
+
+    public long getRealMillis();
+
     /**
      * @return tick rate per second
      */

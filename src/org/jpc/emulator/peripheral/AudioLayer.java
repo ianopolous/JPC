@@ -5,7 +5,11 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 
-public class AudioLayer {
+/*
+ * Handle the Music output, i.e. Midi Sound
+ */
+public class AudioLayer
+{
     static private byte[] audioBuffer;
     static public SourceDataLine line;
     static private boolean audioThreadExit = false;
@@ -26,7 +30,7 @@ public class AudioLayer {
                     while (!audioThreadExit) {
                         boolean result;
                         synchronized (Mixer.audioMutex) {
-                            result = Mixer.MIXER_CallBack(0, audioBuffer, audioBuffer.length);
+                            result = Mixer.MIXER_CallBack(audioBuffer, audioBuffer.length);
                         }
                         if (result)
                             line.write(audioBuffer, 0, audioBuffer.length);

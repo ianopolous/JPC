@@ -382,6 +382,7 @@
     <snippet>        cpu.eip += blockLength;
         $op1.set$cast$op2.get);</snippet>
     <args size="32">C;R</args>
+    <args size="32">D;R</args>
   </opcode>
 
   <opcode mnemonic="out">

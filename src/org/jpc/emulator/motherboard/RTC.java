@@ -475,7 +475,7 @@ public class RTC extends AbstractHardwareComponent implements IODevice
                 case RTC_REG_A:
                     /* UIP bit is read only */
                     cmosData[RTC_REG_A] = (byte) ((data & ~REG_A_UIP) | (cmosData[RTC_REG_A] & REG_A_UIP));
-                    this.timerUpdate(timeSource.getTicks());
+                    this.timerUpdate(timeSource.getEmulatedNanos());
                     break;
                 case RTC_REG_B:
                     if (0 != (data & REG_B_SET)) {
@@ -487,7 +487,7 @@ public class RTC extends AbstractHardwareComponent implements IODevice
                         if (0 != (cmosData[RTC_REG_B] & REG_B_SET))
                             this.memoryToTime();
                     cmosData[RTC_REG_B] = (byte) data;
-                    this.timerUpdate(timeSource.getTicks());
+                    this.timerUpdate(timeSource.getEmulatedNanos());
                     break;
                 case RTC_REG_C:
                 case RTC_REG_D:
@@ -680,7 +680,7 @@ public class RTC extends AbstractHardwareComponent implements IODevice
             secondTimer = timeSource.newTimer(secondCallback);
             delayedSecondTimer = timeSource.newTimer(delayedSecondCallback);
 
-            nextSecondTime = timeSource.getTicks() + (99 * timeSource.getTickRate()) / 100;
+            nextSecondTime = timeSource.getEmulatedNanos() + 1000000000L;//+ (99 * timeSource.getTickRate()) / 100;
             delayedSecondTimer.setExpiry(nextSecondTime);
         }
     }

@@ -722,7 +722,7 @@ public class FloppyController implements IODevice, DMATransferCapable, HardwareC
                 case 0x4A:
                     /* XXX: should set main status register to busy */
                     drive.head = (fifo[1] >>> 2) & 1;
-                    resultTimer.setExpiry(clock.getTicks() + (clock.getTickRate() / 50));
+                    resultTimer.setExpiry(clock.getEmulatedNanos() + (clock.getTickRate() / 50));
                     break;
                 case 0x4C:
                     /* RESTORE */

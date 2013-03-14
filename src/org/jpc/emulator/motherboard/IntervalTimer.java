@@ -175,7 +175,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
      * @return counter output pin level.
      */
     public int getOut(int channel) {
-        return channels[channel].getOut(timingSource.getTicks());
+        return channels[channel].getOut(timingSource.getEmulatedNanos());
     }
 
     public int getMode(int channel) {
@@ -345,7 +345,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         private void latchStatus() {
             if (!statusLatched) {
 
-                status = ((getOut(timingSource.getTicks()) << 7) | (nullCount ? 0x40 : 0x00) | (rwMode << 4) | (mode << 1) | bcd);
+                status = ((getOut(timingSource.getEmulatedNanos()) << 7) | (nullCount ? 0x40 : 0x00) | (rwMode << 4) | (mode << 1) | bcd);
                 statusLatched = true;
             }
         }
@@ -403,7 +403,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                 case MODE_HARDWARE_TRIGGERED_STROBE:
                     if (!gate && value) {
                         /* restart counting on rising edge */
-                        countStartTime = timingSource.getTicks();
+                        countStartTime = timingSource.getEmulatedNanos();
                         irqTimerUpdate(countStartTime);
                     }
                     break;
@@ -411,7 +411,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                 case MODE_SQUARE_WAVE:
                     if (!gate && value) {
                         /* restart counting on rising edge */
-                        countStartTime = timingSource.getTicks();
+                        countStartTime = timingSource.getEmulatedNanos();
                         irqTimerUpdate(countStartTime);
                     }
                     /* XXX: disable/enable counting */
@@ -421,7 +421,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         }
 
         private int getCount() {
-            long now = scale64(timingSource.getTicks() - countStartTime, PIT_FREQ, (int) timingSource.getTickRate());
+            long now = scale64(timingSource.getEmulatedNanos() - countStartTime, PIT_FREQ, (int) timingSource.getTickRate());
 
             switch (mode) {
                 case MODE_INTERRUPT_ON_TERMINAL_COUNT:
@@ -541,7 +541,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             if (value == 0) {
                 value = 0x10000;
             }
-            countStartTime = timingSource.getTicks();
+            countStartTime = timingSource.getEmulatedNanos();
             countValue = value;
             this.irqTimerUpdate(countStartTime);
         }

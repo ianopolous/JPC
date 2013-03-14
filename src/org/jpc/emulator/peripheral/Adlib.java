@@ -312,7 +312,7 @@ public class Adlib extends AbstractHardwareComponent implements IODevice
                 timer[1].counter = val;
                 return true;
             case 0x04:
-                double time = timeSource.getTicks();//Pic.PIC_FullIndex();
+                double time = timeSource.getEmulatedNanos();//Pic.PIC_FullIndex();
                 if ((val & 0x80)!=0) {
                     timer[0].Reset( time );
                     timer[1].Reset( time );
@@ -343,7 +343,7 @@ public class Adlib extends AbstractHardwareComponent implements IODevice
         }
         //Read the current timer state, will use current double
         /*Bit8u*/short Read() {
-            double time = timeSource.getTicks();//Pic.PIC_FullIndex();
+            double time = timeSource.getEmulatedNanos();//Pic.PIC_FullIndex();
             timer[0].Update( time );
             timer[1].Update( time );
             /*Bit8u*/short ret = 0;
@@ -516,7 +516,7 @@ public class Adlib extends AbstractHardwareComponent implements IODevice
         //Handle port writes
         public void PortWrite(/*Bitu*/int port, /*Bitu*/short val) {
             //Keep track of last write time
-            lastUsed = timeSource.getTicks();//Pic.PIC_Ticks;
+            lastUsed = timeSource.getEmulatedMicros();//Pic.PIC_Ticks;
             //Maybe only enable with a keyon?
             if ( !mixerChan.enabled ) {
                 mixerChan.Enable(true);
@@ -615,11 +615,11 @@ public class Adlib extends AbstractHardwareComponent implements IODevice
         public void call(/*Bitu*/int len) {
             module.handler.Generate( module.mixerChan, len );
             //Disable the sound generation after 30 seconds of silence
-            if ((timeSource.getTicks() - module.lastUsed) > 30000000) {
+            if ((timeSource.getEmulatedMicros() - module.lastUsed) > 30000000) {
                 /*Bitu*/int i;
                 for (i=0xb0;i<0xb9;i++) if ((module.cache[i] &0x20)!=0 || (module.cache[i+0x100] & 0x20)!=0) break;
                 if (i==0xb9) module.mixerChan.Enable(false);
-                else module.lastUsed = timeSource.getTicks();//Pic.PIC_Ticks;
+                else module.lastUsed = timeSource.getEmulatedMicros();//Pic.PIC_Ticks;
             }
         }
     };

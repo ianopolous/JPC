@@ -156,23 +156,3 @@ linuxapplication: core
 	    resources/smallplay.png \
 	    resources/tick.png
 	rm -f linuxapplication.manifest
-
-.PHONY: applet
-applet: build_core
-	echo "Name: JPC Applet" > applet.manifest
-	echo "Main-Class: org.jpc.j2se.JPCApplet" >> applet.manifest
-	echo "Build-Date: " `date` >> applet.manifest
-	echo "" >> applet.manifest
-
-	jar -cfm JPCApplet.jar applet.manifest \
-	resources/bios/bios.bin \
-	resources/bios/vgabios.bin \
-	resources/JPCLogo.png \
-	resources/smallpause.png \
-	resources/smallplay.png \
-	resources/tick.png \
-	-C build org/jpc/classfile \
-	-C build org/jpc/emulator \
-	-C build org/jpc/support \
-	-C build org/jpc/j2se
-	rm -f applet.manifest

@@ -178,10 +178,10 @@ public class PCMonitor extends KeyHandlingPanel
         {
             while (running) 
             {
-                try 
+                try
                 {
-                    Thread.sleep(50);
-                } 
+                    Thread.sleep(20);
+                }
                 catch (InterruptedException e) {}
 
                 vgaCard.prepareUpdate();

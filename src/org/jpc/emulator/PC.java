@@ -161,7 +161,7 @@ public class PC {
         parts.add(new SystemBIOS("/resources/bios/bios.bin"));
         parts.add(new VGABIOS("/resources/bios/vgabios.bin"));
 
-        if (Option.soundenabled.value())
+        if (Option.sound.value())
         {
             Midi.MIDI_Init();
             Mixer.MIXER_Init();
@@ -383,8 +383,8 @@ public class PC {
      */
     public void start() {
         vmClock.resume();
-        if (Option.soundenabled.value())
-            AudioLayer.open(Option.mixer_javabuffer.intValue(8820), Option.mixer_rate.intValue(44100));
+        if (Option.sound.value())
+            AudioLayer.open(Option.mixer_javabuffer.intValue(8820), Option.mixer_rate.intValue(SBlaster.OPL_RATE));
     }
 
     /**
@@ -392,7 +392,7 @@ public class PC {
      */
     public void stop() {
         vmClock.pause();
-        if (Option.soundenabled.value())
+        if (Option.sound.value())
             AudioLayer.stop();
     }
 

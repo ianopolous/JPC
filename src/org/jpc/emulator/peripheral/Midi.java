@@ -55,7 +55,8 @@ public class Midi
     static private ShortMessage msg = new ShortMessage();
     static private SysexMessage sysex_msg = new SysexMessage();
 
-    static public void MIDI_RawOutByte(/*Bit8u*/int data) {
+    static public void MIDI_RawOutByte(/*Bit8u*/int data)
+    {
         if (midi.sysex.start!=0) {
             /*Bit32u*/long passed_ticks = System.currentTimeMillis() - midi.sysex.start;
             if (passed_ticks < midi.sysex.delay) try {Thread.sleep(midi.sysex.delay - passed_ticks);} catch (InterruptedException e){}
