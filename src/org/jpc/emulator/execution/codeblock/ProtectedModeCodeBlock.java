@@ -31,36 +31,8 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
-/**
- * Thrown by a codeblock on execution to indicate it requires replacement.
- * @author Chris Dennis
- */
-public class CodeBlockReplacementException extends RuntimeException
+public interface ProtectedModeCodeBlock extends CodeBlock
 {
-    private CodeBlock replacement;
-
-    /**
-     * Constructs an exception which requests the throwing block be replaced
-     * with the supplied block.
-     * <p>
-     * This is used by the codeblock compilers to inject a faster replacement
-     * block.
-     * @param replacement new block to be inserted.
-     */
-    public CodeBlockReplacementException(CodeBlock replacement)
-    {
-        super("CodeBlock Replacement Trigger Exception");
-        this.replacement = replacement;
-    }
-
-    /**
-     * Gets the new block instance.
-     * @return new block.
-     */
-    public CodeBlock getReplacement()
-    {
-        return replacement;
-    }
 }

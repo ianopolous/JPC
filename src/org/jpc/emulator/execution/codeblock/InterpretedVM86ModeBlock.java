@@ -1,15 +1,15 @@
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.execution.Executable.*;
 
-public class InterpretedProtectedModeBlock implements ProtectedModeCodeBlock
+public class InterpretedVM86ModeBlock implements Virtual8086ModeCodeBlock
 {
     private final BasicBlock b;
 
-    public InterpretedProtectedModeBlock(BasicBlock b)
+    public InterpretedVM86ModeBlock(BasicBlock b)
     {
         this.b = b;
     }
@@ -42,23 +42,17 @@ public class InterpretedProtectedModeBlock implements ProtectedModeCodeBlock
             if (current.next != null) // branches have already updated eip
                 cpu.eip += current.delta;
             else
-                cpu.eip -= current.x86Length; // so eip points at the branch that barfed
+                cpu.eip -= current.x86Length;
             if (!e.pointsToSelf())
                 cpu.eip += current.x86Length;
 
-            if (e.getType() != ProcessorException.Type.PAGE_FAULT)
-            {
-                /*System.out.println("cs selector = " + Integer.toHexString(cpu.cs.getSelector())
-                        + ", cs base = " + Integer.toHexString(cpu.cs.getBase()) + ", EIP = "
-                        + Integer.toHexString(cpu.eip));*/
-            }
-            cpu.handleProtectedModeException(e);
+            cpu.handleVirtual8086ModeException(e);
             return Branch.Exception;
         }
     }
 
     public String getDisplayString() {
-        return "Interpreted Protected Mode Block:\n"+b.getDisplayString();
+        return "Interpreted Virtual 8086 Mode Block:\n"+b.getDisplayString();
     }
 
     public Instruction getInstructions() {
@@ -68,4 +62,6 @@ public class InterpretedProtectedModeBlock implements ProtectedModeCodeBlock
     public boolean handleMemoryRegionChange(int startAddress, int endAddress) {
         return b.handleMemoryRegionChange(startAddress, endAddress);
     }
+
+
 }

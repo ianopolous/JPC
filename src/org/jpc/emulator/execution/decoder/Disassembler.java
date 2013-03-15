@@ -171,7 +171,7 @@ public class Disassembler
         try {
             get_prefixes(16, input, in);
             search_table(16, input, in);
-            do_mode(16, input, in);
+            do_mode(16, in);
             disasm_operands(16, input, in);
             resolve_operator(16, input, in);
         } catch (IllegalStateException e)
@@ -194,7 +194,7 @@ public class Disassembler
         try {
             get_prefixes(32, input, in);
             search_table(32, input, in);
-            do_mode(32, input, in);
+            do_mode(32, in);
             disasm_operands(32, input, in);
             resolve_operator(32, input, in);
         } catch (IllegalStateException e)
@@ -214,7 +214,7 @@ public class Disassembler
         input.seek(-length);
         StringBuilder b = new StringBuilder();
         for(int i=0; i < length; i++)
-            b.append(String.format("%02x ", input.read(8)));
+            b.append(String.format("%02x ", input.readU8()));
         return b.toString();
     }
 
@@ -302,7 +302,7 @@ public class Disassembler
         Instruction in = new Instruction();
         get_prefixes(mode, input, in);
         search_table(mode, input, in);
-        do_mode(mode, input, in);
+        do_mode(mode, in);
         disasm_operands(mode, input, in);
         resolve_operator(mode, input, in);
         in.x86Length = input.getCounter();
@@ -339,27 +339,47 @@ public class Disassembler
             return index;
         }
 
-        public long read(long bits)
+        public byte read8()
+        {
+            return data[index++];
+        }
+
+        public short read16()
+        {
+            return (short) readU16();
+        }
+
+        public int read32()
+        {
+            return (int) readU32();
+        }
+
+        public long readU(long bits)
         {
             if (bits == 8)
                 return data[index++] & 0xFF;
             if (bits == 16)
-                return read16();
+                return readU16();
             if (bits == 32)
-                return read32();
+                return readU32();
             if (bits == 64)
                 return (0xffffffffL & read32()) | (((long)read32()) << 32);
             throw new IllegalStateException("unimplemented read amount " + bits);
         }
 
-        public int read32()
+        public int readU8()
         {
-            return (data[index++] &0xFF) | ((data[index++] & 0xFF) << 8) | ((data[index++] & 0xFF) << 16) | ((data[index++] & 0xFF) << 24);
+            return (data[index++] & 0xFF);
         }
 
-        public int read16()
+        public int readU16()
         {
-            return (data[index++] & 0xFF) | (data[index++] << 8);
+            return (data[index++] & 0xFF) | ((data[index++] & 0xFF) << 8);
+        }
+
+        public long readU32()
+        {
+            return (data[index++] &0xFF) | ((data[index++] & 0xFF) << 8) | ((data[index++] & 0xFF) << 16) | ((data[index++] & 0xFF) << 24);
         }
 
         public int peek()
@@ -373,7 +393,7 @@ public class Disassembler
         }
     }
 
-    private static void get_prefixes(int mode, PeekableInputStream input, Instruction inst)
+    public static void get_prefixes(int mode, PeekableInputStream input, Instruction inst)
     {
         int curr;
         int i=0;
@@ -500,7 +520,7 @@ public class Disassembler
         }
     }
 
-    private static void search_table(int mode, PeekableInputStream input, Instruction inst)
+    public static void search_table(int mode, PeekableInputStream input, Instruction inst)
     {
         boolean did_peek = false;
         int peek;
@@ -658,7 +678,7 @@ public class Disassembler
             //return;
     }
 
-    private static void do_mode(int mode, PeekableInputStream input, Instruction inst)
+    public static void do_mode(int mode, Instruction inst)
     {
         // propagate prefix effects 
         if (mode == 64)  // set 64bit-mode flags
@@ -710,11 +730,11 @@ public class Disassembler
         }
     }
 
-    private static void resolve_operator(int mode, PeekableInputStream input, Instruction inst)
+    public static void resolve_operator(int mode, PeekableInputStream input, Instruction inst)
     {
         // far/near flags 
         inst.branch_dist = null;
-        // readjust operand sizes for call/jmp instrcutions 
+        // readjust operand sizes for call/jmp instructions
         if (inst.operator.equals("call") || inst.operator.equals("jmp"))
         {
             if (inst.operand[0].size == SZ_WP)
@@ -742,7 +762,7 @@ public class Disassembler
             throw new IllegalStateException("SWAPGS only valid in 64 bit mode");
     }
     
-    private static void disasm_operands(int mode, PeekableInputStream input, Instruction inst)
+    public static void disasm_operands(int mode, PeekableInputStream input, Instruction inst)
     {
         // get type
         int[] mopt = new int[inst.zygote.operand.length];
@@ -1119,7 +1139,7 @@ public class Disassembler
             op.type = "OP_PTR";
             op.size = 32;
             op.dis_start = input.getCounter();
-            op.ptr = new Instruction.Ptr(input.read16(), input.read16());
+            op.ptr = new Instruction.Ptr(input.readU16(), input.readU16());
         }
         else
         {
@@ -1127,7 +1147,7 @@ public class Disassembler
             op.type = "OP_PTR";
             op.size = 48;
             op.dis_start = input.getCounter();
-            op.ptr = new Instruction.Ptr(input.read32(), input.read16());
+            op.ptr = new Instruction.Ptr(input.read32(), input.readU16());
         }
     }
 
@@ -1293,7 +1313,7 @@ public class Disassembler
         if ((op.offset==8) || (op.offset==16) ||(op.offset==32) || (op.offset==64))
         {
             op.dis_start = input.getCounter();
-            op.lval  = input.read(op.offset);
+            op.lval  = input.readU(op.offset);
             long bound = 1L << (op.offset - 1);
             if (op.lval > bound)
                 op.lval = -(((2 * bound) - op.lval) % bound);
@@ -1321,7 +1341,7 @@ public class Disassembler
         op.size = resolve_operand_size(mode, inst, s);
         op.type = "OP_IMM";
         op.imm_start = input.getCounter();
-        op.lval = input.read(op.size);
+        op.lval = input.readU(op.size);
     }
 
     private static void decode_o(int mode, Instruction inst, PeekableInputStream input, int s, Instruction.Operand op)
@@ -1330,7 +1350,7 @@ public class Disassembler
         op.seg = inst.pfx.seg;
         op.offset = inst.adr_mode;
         op.dis_start = input.getCounter();
-        op.lval = input.read(inst.adr_mode);
+        op.lval = input.readU(inst.adr_mode);
         op.type = "OP_MEM";
         op.size = resolve_operand_size(mode, inst, s);
     }

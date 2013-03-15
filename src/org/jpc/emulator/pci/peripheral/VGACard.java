@@ -33,7 +33,7 @@
 
 package org.jpc.emulator.pci.peripheral;
 
-import org.jpc.emulator.memory.codeblock.SpanningCodeBlock;
+import org.jpc.emulator.execution.codeblock.SpanningCodeBlock;
 import org.jpc.emulator.pci.*;
 import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.memory.*;

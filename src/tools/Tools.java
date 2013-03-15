@@ -32,5 +32,11 @@ public class Tools
             System.arraycopy(args, 1, rest, 0, rest.length);
             History.main(rest);
         }
+        else if (args[0].equals("-decoder"))
+        {
+            String[] rest = new String[args.length-1];
+            System.arraycopy(args, 1, rest, 0, rest.length);
+            DecoderGenerator.generate();
+        }
     }
 }

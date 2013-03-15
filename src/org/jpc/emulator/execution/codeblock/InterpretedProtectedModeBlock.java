@@ -1,15 +1,15 @@
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.execution.Executable.*;
 
-public class InterpretedRealModeBlock implements RealModeCodeBlock
+public class InterpretedProtectedModeBlock implements ProtectedModeCodeBlock
 {
     private final BasicBlock b;
 
-    public InterpretedRealModeBlock(BasicBlock b)
+    public InterpretedProtectedModeBlock(BasicBlock b)
     {
         this.b = b;
     }
@@ -42,17 +42,23 @@ public class InterpretedRealModeBlock implements RealModeCodeBlock
             if (current.next != null) // branches have already updated eip
                 cpu.eip += current.delta;
             else
-                cpu.eip -= current.x86Length;
+                cpu.eip -= current.x86Length; // so eip points at the branch that barfed
             if (!e.pointsToSelf())
                 cpu.eip += current.x86Length;
 
-            cpu.handleRealModeException(e);
+            if (e.getType() != ProcessorException.Type.PAGE_FAULT)
+            {
+                /*System.out.println("cs selector = " + Integer.toHexString(cpu.cs.getSelector())
+                        + ", cs base = " + Integer.toHexString(cpu.cs.getBase()) + ", EIP = "
+                        + Integer.toHexString(cpu.eip));*/
+            }
+            cpu.handleProtectedModeException(e);
             return Branch.Exception;
         }
     }
 
     public String getDisplayString() {
-        return "Interpreted Real Mode Block:\n"+b.getDisplayString();
+        return "Interpreted Protected Mode Block:\n"+b.getDisplayString();
     }
 
     public Instruction getInstructions() {
@@ -62,6 +68,4 @@ public class InterpretedRealModeBlock implements RealModeCodeBlock
     public boolean handleMemoryRegionChange(int startAddress, int endAddress) {
         return b.handleMemoryRegionChange(startAddress, endAddress);
     }
-
-
 }

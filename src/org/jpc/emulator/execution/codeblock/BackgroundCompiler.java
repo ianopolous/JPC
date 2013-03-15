@@ -31,7 +31,7 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
 import java.util.logging.*;
 

@@ -31,54 +31,36 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
-
-import org.jpc.emulator.execution.Executable;
-import org.jpc.emulator.execution.decoder.Instruction;
-import org.jpc.emulator.processor.Processor;
+package org.jpc.emulator.execution.codeblock;
 
 /**
- * 
- * @author Rhys Newman
+ * Thrown by a codeblock on execution to indicate it requires replacement.
  * @author Chris Dennis
  */
-
-class ReplacementBlockTrigger implements CodeBlock
+public class CodeBlockReplacementException extends RuntimeException
 {
-    private final CodeBlock replacement;
+    private CodeBlock replacement;
 
-    public ReplacementBlockTrigger(CodeBlock block)
+    /**
+     * Constructs an exception which requests the throwing block be replaced
+     * with the supplied block.
+     * <p>
+     * This is used by the codeblock compilers to inject a faster replacement
+     * block.
+     * @param replacement new block to be inserted.
+     */
+    public CodeBlockReplacementException(CodeBlock replacement)
     {
-        replacement = block;
+        super("CodeBlock Replacement Trigger Exception");
+        this.replacement = replacement;
     }
 
-    public int getX86Length()
+    /**
+     * Gets the new block instance.
+     * @return new block.
+     */
+    public CodeBlock getReplacement()
     {
-        return replacement.getX86Length();
-    }
-
-    public int getX86Count()
-    {
-        return replacement.getX86Count();
-    }
-
-    public Executable.Branch execute(Processor cpu)
-    {
-        throw new CodeBlockReplacementException(replacement);
-    }
-
-    public String getDisplayString()
-    {
-        return replacement.getDisplayString();
-    }
-
-    public boolean handleMemoryRegionChange(int startAddress, int endAddress)
-    {
-        return false;
-    }
-
-    public Instruction getInstructions()
-    {
-        return replacement.getInstructions();
+        return replacement;
     }
 }

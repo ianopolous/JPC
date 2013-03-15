@@ -31,11 +31,10 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
 import org.jpc.emulator.execution.decoder.Disassembler;
 import org.jpc.emulator.execution.decoder.PeekableInputStream;
-import org.jpc.j2se.Option;
 
 /**
  *

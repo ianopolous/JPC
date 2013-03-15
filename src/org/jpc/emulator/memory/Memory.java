@@ -33,7 +33,7 @@
 
 package org.jpc.emulator.memory;
 
-import org.jpc.emulator.memory.codeblock.SpanningCodeBlock;
+import org.jpc.emulator.execution.codeblock.SpanningCodeBlock;
 import org.jpc.emulator.processor.Processor;
 
 /**

@@ -37,18 +37,12 @@ import java.awt.*;
 import java.awt.event.*;
 
 import java.io.DataInputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 
 import org.jpc.emulator.PC;
 import org.jpc.emulator.processor.Processor;
 import org.jpc.support.Clock;
-import org.jpc.emulator.memory.codeblock.CodeBlock;
+import org.jpc.emulator.execution.codeblock.CodeBlock;
 
 public class RunMenu extends JMenu implements ActionListener {
 

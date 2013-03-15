@@ -1,6 +1,6 @@
 package org.jpc.emulator.memory;
 
-import org.jpc.emulator.memory.codeblock.*;
+import org.jpc.emulator.execution.codeblock.*;
 
 public abstract class AbstractMemory implements Memory
 {

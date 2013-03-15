@@ -31,30 +31,32 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
-import org.jpc.emulator.execution.decoder.BasicBlock;
+/**
+ *
+ * @author Ian Preston
+ */
+public class OptimisedCompiler implements CodeBlockCompiler {
 
-public interface CodeBlockCompiler
-{
-    /**
-     * Create a real-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public RealModeCodeBlock getRealModeCodeBlock(CodeBlock block);
+    public OptimisedCompiler() {
 
-    /**
-     * Create a protected-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(CodeBlock block);
+    }
 
-    /**
-     * Create a virtual8086-mode codeblock from the given instruction source.
-     *
-     * @param block@return codeblock instance
-     */
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(CodeBlock block);
+    public RealModeCodeBlock getRealModeCodeBlock(CodeBlock source)
+    {
+        return (RealModeCodeBlock) source;
+    }
+
+    public ProtectedModeCodeBlock getProtectedModeCodeBlock(CodeBlock block)
+    {
+
+        return (ProtectedModeCodeBlock) block;
+    }
+
+    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(CodeBlock block)
+    {
+
+        return (Virtual8086ModeCodeBlock) block;
+    }
 }

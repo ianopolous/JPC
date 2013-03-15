@@ -31,38 +31,28 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
-import org.jpc.emulator.execution.decoder.PeekableInputStream;
-
-/**
- * Converts a stream of x86 bytecodes into an executable codeblock.
- * @author Chris Dennis
- */
-public interface CodeBlockFactory
+public interface CodeBlockCompiler
 {
     /**
-     * Create a real-mode codeblock from the given byte source.
+     * Create a real-mode codeblock from the given instruction source.
      *
-     * @param source bytes read from here
-     * @return codeblock instance
+     * @param block@return codeblock instance
      */
-    public RealModeCodeBlock getRealModeCodeBlock(PeekableInputStream source);
+    public RealModeCodeBlock getRealModeCodeBlock(CodeBlock block);
 
     /**
-     * Create a protected-mode codeblock from the given byte source.
+     * Create a protected-mode codeblock from the given instruction source.
      *
-     * @param source bytes read from here
-     * @param operandSize <code>true if the default operand size is 32-bit
-     * @return codeblock instance
+     * @param block@return codeblock instance
      */
-    public ProtectedModeCodeBlock getProtectedModeCodeBlock(PeekableInputStream source, boolean operandSize);
+    public ProtectedModeCodeBlock getProtectedModeCodeBlock(CodeBlock block);
 
     /**
-     * Create a virtual8086-mode codeblock from the given byte source.
+     * Create a virtual8086-mode codeblock from the given instruction source.
      *
-     * @param source bytes read from here
-     * @return codeblock instance
+     * @param block@return codeblock instance
      */
-    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(PeekableInputStream source);
+    public Virtual8086ModeCodeBlock getVirtual8086ModeCodeBlock(CodeBlock block);
 }

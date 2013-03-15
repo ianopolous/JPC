@@ -1,11 +1,6 @@
 package org.jpc.emulator.execution.decoder;
 
 import org.jpc.emulator.execution.*;
-import org.jpc.emulator.memory.codeblock.CodeBlock;
-import org.jpc.emulator.processor.*;
-import org.jpc.j2se.Option;
-
-import static org.jpc.emulator.execution.Executable.*;
 
 public class DebugBasicBlock extends BasicBlock
 {

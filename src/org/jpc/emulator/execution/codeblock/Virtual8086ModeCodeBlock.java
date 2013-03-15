@@ -31,44 +31,12 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
-
-import org.jpc.emulator.processor.Processor;
-import org.jpc.emulator.memory.AddressSpace;
+package org.jpc.emulator.execution.codeblock;
 
 /**
- * 
+ * A single chunk of Virtual-8086 mode executable code.
  * @author Chris Dennis
  */
-class SpanningVirtual8086ModeCodeBlock extends SpanningCodeBlock implements Virtual8086ModeCodeBlock
+public interface Virtual8086ModeCodeBlock extends CodeBlock
 {
-    private PeekableMemoryStream byteSourceStream = new PeekableMemoryStream();
-
-    private CodeBlockFactory[] factories;
-
-    public SpanningVirtual8086ModeCodeBlock(CodeBlockFactory[] factories)
-    {
-	this.factories = factories;
-    }
-
-    public CodeBlock decode(Processor cpu)
-    {
-	Virtual8086ModeCodeBlock block = null;
-	AddressSpace memory = cpu.linearMemory;
-	int address = cpu.getInstructionPointer();
-	for (int i = 0; (i < factories.length) && (block == null); i++) {
-	    try {
-		byteSourceStream.set(memory, address);
-		block = factories[i].getVirtual8086ModeCodeBlock(byteSourceStream);
-	    } catch (IllegalStateException e) {}
-	}
-	
-        byteSourceStream.set(null, 0);
-	return block;
-    }
-    
-    public String toString()
-    {
-	return "Spanning Virtual8086 Mode CodeBlock";
-    }
 }

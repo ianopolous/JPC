@@ -38,7 +38,7 @@ import java.util.*;
 import java.util.logging.*;
 
 import org.jpc.emulator.HardwareComponent;
-import org.jpc.emulator.memory.codeblock.*;
+import org.jpc.emulator.execution.codeblock.*;
 import org.jpc.emulator.processor.*;
 
 public final class LinearAddressSpace extends AddressSpace implements HardwareComponent

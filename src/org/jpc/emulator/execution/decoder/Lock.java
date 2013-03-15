@@ -14,12 +14,23 @@ public class Lock extends Executable
         this.exec = parent;
     }
 
+    public Lock(int blockStart, int eip, int x86Length, Executable parent)
+    {
+        super(blockStart, eip, x86Length);
+        this.exec = parent;
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.lock(0);
         Branch b = exec.execute(cpu);
         cpu.unlock(0);
         return b;
+    }
+
+    public boolean isBranch()
+    {
+        return exec.isBranch();
     }
 
     public void configure(Instruction i)

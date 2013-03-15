@@ -37,7 +37,7 @@ import org.jpc.debugger.LinearMemoryViewer;
 import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.execution.decoder.Disassembler;
 import org.jpc.emulator.execution.decoder.Instruction;
-import org.jpc.emulator.memory.codeblock.*;
+import org.jpc.emulator.execution.codeblock.*;
 import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.memory.*;
 import org.jpc.emulator.pci.peripheral.*;
@@ -57,7 +57,7 @@ import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.logging.*;
 import java.util.zip.*;
-import org.jpc.emulator.memory.codeblock.CodeBlockManager;
+import org.jpc.emulator.execution.codeblock.CodeBlockManager;
 import org.jpc.j2se.VirtualClock;
 
 import javax.swing.*;
@@ -664,7 +664,7 @@ public class PC {
             b.append(" == ");
             input.seek(-in.x86Length);
             for(int i=0; i < in.x86Length; i++)
-                b.append(String.format("%02x ", input.read(8)));
+                b.append(String.format("%02x ", input.read8()));
             b.append("\n");
             eip += in.x86Length;
             if (in.toString().equals("sti"))

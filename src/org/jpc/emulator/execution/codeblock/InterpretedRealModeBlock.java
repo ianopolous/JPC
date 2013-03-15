@@ -1,15 +1,15 @@
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.execution.Executable.*;
 
-public class InterpretedVM86ModeBlock implements Virtual8086ModeCodeBlock
+public class InterpretedRealModeBlock implements RealModeCodeBlock
 {
     private final BasicBlock b;
 
-    public InterpretedVM86ModeBlock(BasicBlock b)
+    public InterpretedRealModeBlock(BasicBlock b)
     {
         this.b = b;
     }
@@ -46,13 +46,13 @@ public class InterpretedVM86ModeBlock implements Virtual8086ModeCodeBlock
             if (!e.pointsToSelf())
                 cpu.eip += current.x86Length;
 
-            cpu.handleVirtual8086ModeException(e);
+            cpu.handleRealModeException(e);
             return Branch.Exception;
         }
     }
 
     public String getDisplayString() {
-        return "Interpreted Virtual 8086 Mode Block:\n"+b.getDisplayString();
+        return "Interpreted Real Mode Block:\n"+b.getDisplayString();
     }
 
     public Instruction getInstructions() {

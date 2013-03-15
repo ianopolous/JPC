@@ -8,11 +8,19 @@ public interface PeekableInputStream
 
     public void forward();
 
-    public long read(long bits);
+    public byte read8();
 
-    public int read16();
+    public short read16();
 
     public int read32();
+
+    public long readU(long bits);
+
+    public int readU8();
+
+    public int readU16();
+
+    public long readU32();
 
     public int getCounter();
 

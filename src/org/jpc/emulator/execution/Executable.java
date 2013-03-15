@@ -27,10 +27,20 @@ public abstract class Executable
     public static enum Branch {None, T1, T2, Jmp_Unknown, Call, Call_Unknown, Ret, Exception};
     public final int delta, x86Length;
 
+    public Executable(int blockStart, int eip, int x86Length)
+    {
+        delta = eip-blockStart;
+        this.x86Length = x86Length;
+    }
+
     public Executable(int blockStart, Instruction in)
     {
-        delta = (int)in.eip-blockStart;
-        x86Length = in.x86Length;
+        this(blockStart, (int)in.eip, in.x86Length);
+    }
+
+    public boolean isBranch()
+    {
+        return false;
     }
 
     public abstract Branch execute(Processor cpu);

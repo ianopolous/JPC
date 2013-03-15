@@ -35,7 +35,6 @@
 package org.jpc.debugger;
 
 import java.util.*;
-import java.lang.reflect.*;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -50,7 +49,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.event.*;
 
-import org.jpc.emulator.memory.codeblock.*;
+import org.jpc.emulator.execution.codeblock.*;
 
 public class DisassemblyOverlayTable extends JTable implements ListSelectionListener
 {

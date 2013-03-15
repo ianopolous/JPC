@@ -1,4 +1,4 @@
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
 import org.jpc.emulator.processor.Processor;
 import org.jpc.emulator.memory.AddressSpace;

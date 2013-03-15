@@ -93,6 +93,15 @@ public class Instruction
         return b.toString();
     }
 
+    public String[] getArgsTypes()
+    {
+        List<String> args = new ArrayList<String>();
+        for (int i=0; i < zygote.operand.length; i++)
+            if (!zygote.operand[i].name.equals("NONE"))
+                args.add(getOperandType(zygote.operand[i], operand[i]));
+        return args.toArray(new String[args.size()]);
+    }
+
     private static String getOperandType(ZygoteOperand op, Operand val)
     {
         if (!op.name.endsWith("v") && !op.name.endsWith("z"))

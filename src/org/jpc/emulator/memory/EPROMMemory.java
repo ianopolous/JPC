@@ -34,7 +34,7 @@
 package org.jpc.emulator.memory;
 
 import java.util.logging.*;
-import org.jpc.emulator.memory.codeblock.CodeBlockManager;
+import org.jpc.emulator.execution.codeblock.CodeBlockManager;
 
 /**
  * Provides a read-only memory implementation in which the contents of ROM chips

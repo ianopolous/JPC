@@ -1,0 +1,17 @@
+package org.jpc.emulator.memory.codeblock;
+
+public class CodeBlockReplacementException extends RuntimeException
+{
+    private CodeBlock spanning;
+
+    public CodeBlockReplacementException(CodeBlock spanning)
+    {
+        super("Spanning Decode Exception");
+        this.spanning = spanning;
+    }
+
+    public CodeBlock getBlock()
+    {
+        return spanning;
+    }
+}

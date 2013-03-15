@@ -42,7 +42,7 @@ import javax.swing.*;
 
 import org.jpc.debugger.util.*;
 import org.jpc.emulator.memory.AddressSpace;
-import org.jpc.emulator.memory.codeblock.CodeBlock;
+import org.jpc.emulator.execution.codeblock.CodeBlock;
 import org.jpc.emulator.execution.decoder.*;
 
 public class CodeBlockFrequencyFrame extends UtilityFrame implements PCListener, ActionListener, CodeBlockListener, Comparator

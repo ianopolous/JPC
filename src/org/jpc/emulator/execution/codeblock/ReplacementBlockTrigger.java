@@ -31,12 +31,54 @@
     End of licence header
 */
 
+package org.jpc.emulator.execution.codeblock;
+
+import org.jpc.emulator.execution.Executable;
+import org.jpc.emulator.execution.decoder.Instruction;
+import org.jpc.emulator.processor.Processor;
+
 /**
- * Top level codeblock classes and interfaces (not implementation specific)
- * <p>
- * This consists mainly of the interface set for the codeblock architecture, and
- * the main controlling classes such as <code>CodeBlockManager</code> and 
- * <code>BackgroundCompiler</code>
+ * 
+ * @author Rhys Newman
  * @author Chris Dennis
  */
-package org.jpc.emulator.memory.codeblock;
+
+class ReplacementBlockTrigger implements CodeBlock
+{
+    private final CodeBlock replacement;
+
+    public ReplacementBlockTrigger(CodeBlock block)
+    {
+        replacement = block;
+    }
+
+    public int getX86Length()
+    {
+        return replacement.getX86Length();
+    }
+
+    public int getX86Count()
+    {
+        return replacement.getX86Count();
+    }
+
+    public Executable.Branch execute(Processor cpu)
+    {
+        throw new CodeBlockReplacementException(replacement);
+    }
+
+    public String getDisplayString()
+    {
+        return replacement.getDisplayString();
+    }
+
+    public boolean handleMemoryRegionChange(int startAddress, int endAddress)
+    {
+        return false;
+    }
+
+    public Instruction getInstructions()
+    {
+        return replacement.getInstructions();
+    }
+}

@@ -6,14 +6,14 @@ import java.util.List;
 
 import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.execution.decoder.Instruction;
-import org.jpc.emulator.memory.codeblock.*;
+import org.jpc.emulator.execution.codeblock.*;
 import org.jpc.emulator.processor.Processor;
 import org.jpc.j2se.Option;
 
 /**
  * <code>Memory</code> object with simple execute capabilities.  Uses a
- * {@link org.jpc.emulator.memory.codeblock.CodeBlockManager} instance to generate
- * {@link org.jpc.emulator.memory.codeblock.CodeBlock} objects which are then
+ * {@link org.jpc.emulator.execution.codeblock.CodeBlockManager} instance to generate
+ * {@link org.jpc.emulator.execution.codeblock.CodeBlock} objects which are then
  * stored in mirror arrays of the memory structure.
  * @author Chris Dennis
  * @author Rhys Newman

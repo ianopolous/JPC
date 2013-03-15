@@ -39,7 +39,7 @@ import java.util.Arrays;
 import org.jpc.emulator.PC;
 import org.jpc.emulator.processor.*;
 import org.jpc.emulator.memory.*;
-import org.jpc.emulator.memory.codeblock.*;
+import org.jpc.emulator.execution.codeblock.*;
 
 public class CodeBlockRecord {
 

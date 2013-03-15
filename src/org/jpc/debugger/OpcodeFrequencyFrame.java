@@ -43,7 +43,7 @@ import javax.swing.*;
 import org.jpc.debugger.util.*;
 import org.jpc.emulator.execution.decoder.Instruction;
 import org.jpc.emulator.memory.AddressSpace;
-import org.jpc.emulator.memory.codeblock.*;
+import org.jpc.emulator.execution.codeblock.*;
 
 public class OpcodeFrequencyFrame extends UtilityFrame implements PCListener, ActionListener, CodeBlockListener, Comparator
 {

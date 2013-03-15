@@ -1,4 +1,4 @@
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
 import org.jpc.emulator.execution.Executable;
 import org.jpc.emulator.execution.decoder.Instruction;

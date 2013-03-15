@@ -1,7 +1,7 @@
 package org.jpc.emulator.execution.decoder;
 
 import org.jpc.emulator.execution.*;
-import org.jpc.emulator.memory.codeblock.CodeBlock;
+import org.jpc.emulator.execution.codeblock.CodeBlock;
 import org.jpc.emulator.processor.*;
 import org.jpc.j2se.Option;
 

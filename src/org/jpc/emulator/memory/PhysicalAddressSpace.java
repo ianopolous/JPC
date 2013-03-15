@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jpc.emulator.*;
-import org.jpc.emulator.memory.codeblock.*;
+import org.jpc.emulator.execution.codeblock.*;
 import org.jpc.emulator.processor.Processor;
 import org.jpc.j2se.Option;
 

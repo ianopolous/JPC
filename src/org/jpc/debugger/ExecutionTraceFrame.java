@@ -40,7 +40,7 @@ import javax.swing.JScrollPane;
 import javax.swing.event.*;
 
 import org.jpc.debugger.util.*;
-import org.jpc.emulator.memory.codeblock.CodeBlock;
+import org.jpc.emulator.execution.codeblock.CodeBlock;
 import org.jpc.emulator.memory.*;
 
 public class ExecutionTraceFrame extends UtilityFrame implements PCListener, ListSelectionListener

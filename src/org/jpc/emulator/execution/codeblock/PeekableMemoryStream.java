@@ -31,7 +31,7 @@
     End of licence header
 */
 
-package org.jpc.emulator.memory.codeblock;
+package org.jpc.emulator.execution.codeblock;
 
 import org.jpc.emulator.execution.decoder.PeekableInputStream;
 import org.jpc.emulator.memory.Memory;
@@ -71,7 +71,7 @@ public class PeekableMemoryStream implements PeekableInputStream
         return position;
     }
 
-    public long read(long bits)
+    public long readU(long bits)
     {
         if (bits == 8)
             return 0xFF & memory.getByte((int) (position++));
@@ -84,14 +84,34 @@ public class PeekableMemoryStream implements PeekableInputStream
         throw new IllegalStateException("unimplemented read amount " + bits);
     }
 
-    public int read16()
+    public byte read8()
     {
-        return (0xFF & memory.getByte((int) (position++))) | ((0xFF & memory.getByte((int) (position++))) << 8);
+        return memory.getByte((position++));
+    }
+
+    public short read16()
+    {
+        return (short)(readU8() | (read8() << 8));
     }
 
     public int read32()
     {
-        return read16() | (read16() << 16);
+        return (readU16() | (read16() << 16));
+    }
+
+    public int readU8()
+    {
+        return 0xFF & memory.getByte((int) (position++));
+    }
+
+    public int readU16()
+    {
+        return (0xFF & memory.getByte((int) (position++))) | ((0xFF & memory.getByte((int) (position++))) << 8);
+    }
+
+    public long readU32()
+    {
+        return readU16() | (readU16() << 16);
     }
 
     public long getAddress()
