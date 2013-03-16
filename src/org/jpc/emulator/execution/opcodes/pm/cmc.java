@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class cmc extends Executable
 {
 
-    public cmc(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public cmc(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

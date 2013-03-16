@@ -11,19 +11,12 @@ public class xadd_Eb_Gb extends Executable
     final int op1Index;
     final int op2Index;
 
-    public xadd_Eb_Gb(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public xadd_Eb_Gb(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Eb(modrm);
-        op2Index = FastDecoder.Gb(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Eb(modrm);
+        op2Index = Modrm.Gb(modrm);
     }
 
     public Branch execute(Processor cpu)

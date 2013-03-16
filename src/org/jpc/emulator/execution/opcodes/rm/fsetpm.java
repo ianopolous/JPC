@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fsetpm extends Executable
 {
 
-    public fsetpm(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fsetpm(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

@@ -10,13 +10,6 @@ public class push_o16_Iw extends Executable
 {
     final int immw;
 
-    public push_o16_Iw(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        immw = (short)parent.operand[0].lval;
-    }
-
-
     public push_o16_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

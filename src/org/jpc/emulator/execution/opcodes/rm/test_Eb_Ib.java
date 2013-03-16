@@ -11,18 +11,11 @@ public class test_Eb_Ib extends Executable
     final int op1Index;
     final int immb;
 
-    public test_Eb_Ib(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        immb = (byte)parent.operand[1].lval;
-    }
-
-
     public test_Eb_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Eb(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Eb(modrm);
         immb = Modrm.Ib(input);
     }
 

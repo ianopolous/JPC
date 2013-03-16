@@ -12,20 +12,12 @@ public class imul_Gw_Ew_Iw extends Executable
     final int op2Index;
     final int immw;
 
-    public imul_Gw_Ew_Iw(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-        immw = (short)parent.operand[2].lval;
-    }
-
-
     public imul_Gw_Ew_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Gw(modrm);
-        op2Index = FastDecoder.Ew(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Gw(modrm);
+        op2Index = Modrm.Ew(modrm);
         immw = Modrm.Iw(input);
     }
 

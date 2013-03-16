@@ -10,13 +10,6 @@ public class mov_rSPr12_Iw extends Executable
 {
     final int immw;
 
-    public mov_rSPr12_Iw(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        immw = (short)parent.operand[1].lval;
-    }
-
-
     public mov_rSPr12_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

@@ -11,14 +11,6 @@ public class enter_o32_Iw_Ib extends Executable
     final int immw;
     final int immb;
 
-    public enter_o32_Iw_Ib(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        immw = (short)parent.operand[0].lval;
-        immb = (byte)parent.operand[1].lval;
-    }
-
-
     public enter_o32_Iw_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

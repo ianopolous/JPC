@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class salc extends Executable
 {
 
-    public salc(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public salc(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class sti extends Executable
 {
 
-    public sti(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public sti(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

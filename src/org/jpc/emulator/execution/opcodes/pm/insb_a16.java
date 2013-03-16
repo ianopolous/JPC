@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class insb_a16 extends Executable
 {
 
-    public insb_a16(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public insb_a16(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fldz extends Executable
 {
 
-    public fldz(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fldz(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

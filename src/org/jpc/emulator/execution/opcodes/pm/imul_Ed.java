@@ -10,17 +10,11 @@ public class imul_Ed extends Executable
 {
     final int op1Index;
 
-    public imul_Ed(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-    }
-
-
     public imul_Ed(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Ed(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Ed(modrm);
     }
 
     public Branch execute(Processor cpu)

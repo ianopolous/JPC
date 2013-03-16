@@ -10,13 +10,6 @@ public class push_o32_Ib extends Executable
 {
     final int immb;
 
-    public push_o32_Ib(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        immb = (byte)parent.operand[0].lval;
-    }
-
-
     public push_o32_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

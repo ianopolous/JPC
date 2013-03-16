@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class popfw extends Executable
 {
 
-    public popfw(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public popfw(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

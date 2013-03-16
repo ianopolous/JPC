@@ -10,17 +10,10 @@ public class lodsb_a32 extends Executable
 {
     final int segIndex;
 
-    public lodsb_a32(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        segIndex = Processor.getSegmentIndex(parent.getSegment());
-    }
-
-
     public lodsb_a32(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        segIndex = Processor.getSegmentIndex(parent.getSegment());
+        segIndex = Modrm.getSegmentIndex(prefices);
     }
 
     public Branch execute(Processor cpu)

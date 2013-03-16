@@ -9,15 +9,10 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fsubrp_ST7_ST3 extends Executable
 {
 
-    public fsubrp_ST7_ST3(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fsubrp_ST7_ST3(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
     }
 
     public Branch execute(Processor cpu)

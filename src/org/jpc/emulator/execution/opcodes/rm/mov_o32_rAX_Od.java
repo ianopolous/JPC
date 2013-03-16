@@ -10,16 +10,10 @@ public class mov_o32_rAX_Od extends Executable
 {
     final Pointer op2;
 
-    public mov_o32_rAX_Od(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op2 = new Pointer(parent.operand[1], parent.adr_mode);
-    }
-
-
     public mov_o32_rAX_Od(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op2 = Modrm.getPointer(prefices, modrm, input);
     }
 

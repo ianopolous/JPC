@@ -10,13 +10,6 @@ public class aam_Ib extends Executable
 {
     final int immb;
 
-    public aam_Ib(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        immb = (byte)parent.operand[0].lval;
-    }
-
-
     public aam_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

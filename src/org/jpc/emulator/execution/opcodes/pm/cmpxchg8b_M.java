@@ -10,16 +10,10 @@ public class cmpxchg8b_M extends Executable
 {
     final Address op1;
 
-    public cmpxchg8b_M(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Address();//won't work any more delete soon
-    }
-
-
     public cmpxchg8b_M(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
     }
 

@@ -11,18 +11,11 @@ public class lfs_o32_Gd_M extends Executable
     final int op1Index;
     final Address op2;
 
-    public lfs_o32_Gd_M(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2 = new Address();//won't work any more delete soon
-    }
-
-
     public lfs_o32_Gd_M(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Gd(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Gd(modrm);
         op2 = Modrm.getPointer(prefices, modrm, input);
     }
 

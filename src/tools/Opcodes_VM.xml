@@ -93,7 +93,7 @@
         {
             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
         }
-	cpu.handleSoftVirtual8086ModeInterrupt($mask$op1.get, x86Length);</snippet>
+	cpu.handleSoftVirtual8086ModeInterrupt($mask$op1.get, instructionLength);</snippet>
     <args size="8">Ib</args>
   </opcode>
 

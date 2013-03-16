@@ -10,13 +10,6 @@ public class mov_rAXr8_Id extends Executable
 {
     final int immd;
 
-    public mov_rAXr8_Id(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        immd = (int)parent.operand[1].lval;
-    }
-
-
     public mov_rAXr8_Id(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

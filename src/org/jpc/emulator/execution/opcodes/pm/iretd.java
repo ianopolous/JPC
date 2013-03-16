@@ -11,14 +11,6 @@ public class iretd extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public iretd(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-    }
-
-
     public iretd(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

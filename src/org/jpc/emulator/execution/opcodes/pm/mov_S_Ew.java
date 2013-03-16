@@ -11,19 +11,12 @@ public class mov_S_Ew extends Executable
     final int segIndex;
     final int op2Index;
 
-    public mov_S_Ew(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        segIndex = Processor.getSegmentIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public mov_S_Ew(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         segIndex = Modrm.reg(modrm);
-        op2Index = FastDecoder.Ew(modrm);
+        op2Index = Modrm.Ew(modrm);
     }
 
     public Branch execute(Processor cpu)

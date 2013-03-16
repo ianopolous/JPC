@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fyl2x extends Executable
 {
 
-    public fyl2x(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fyl2x(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

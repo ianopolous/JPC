@@ -10,17 +10,11 @@ public class pop_Ew extends Executable
 {
     final int op1Index;
 
-    public pop_Ew(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-    }
-
-
     public pop_Ew(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Ew(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Ew(modrm);
     }
 
     public Branch execute(Processor cpu)

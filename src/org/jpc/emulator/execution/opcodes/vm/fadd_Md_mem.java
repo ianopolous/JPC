@@ -10,16 +10,10 @@ public class fadd_Md_mem extends Executable
 {
     final Pointer op1;
 
-    public fadd_Md_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-    }
-
-
     public fadd_Md_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
     }
 

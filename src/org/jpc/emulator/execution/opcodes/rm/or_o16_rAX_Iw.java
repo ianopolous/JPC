@@ -10,13 +10,6 @@ public class or_o16_rAX_Iw extends Executable
 {
     final int immw;
 
-    public or_o16_rAX_Iw(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        immw = (short)parent.operand[1].lval;
-    }
-
-
     public or_o16_rAX_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

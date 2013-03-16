@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class pushfd extends Executable
 {
 
-    public pushfd(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public pushfd(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

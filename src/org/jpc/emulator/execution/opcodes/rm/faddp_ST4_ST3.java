@@ -9,15 +9,10 @@ import static org.jpc.emulator.processor.Processor.*;
 public class faddp_ST4_ST3 extends Executable
 {
 
-    public faddp_ST4_ST3(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public faddp_ST4_ST3(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
     }
 
     public Branch execute(Processor cpu)

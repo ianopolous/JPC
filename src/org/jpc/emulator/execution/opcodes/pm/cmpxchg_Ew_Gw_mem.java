@@ -11,19 +11,12 @@ public class cmpxchg_Ew_Gw_mem extends Executable
     final Pointer op1;
     final int op2Index;
 
-    public cmpxchg_Ew_Gw_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public cmpxchg_Ew_Gw_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
-        op2Index = FastDecoder.Gw(modrm);
+        op2Index = Modrm.Gw(modrm);
     }
 
     public Branch execute(Processor cpu)

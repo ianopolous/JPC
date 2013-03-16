@@ -10,16 +10,10 @@ public class mov_Ob_AL extends Executable
 {
     final Pointer op1;
 
-    public mov_Ob_AL(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-    }
-
-
     public mov_Ob_AL(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
     }
 

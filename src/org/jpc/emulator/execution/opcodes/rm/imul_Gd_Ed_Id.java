@@ -12,20 +12,12 @@ public class imul_Gd_Ed_Id extends Executable
     final int op2Index;
     final int immd;
 
-    public imul_Gd_Ed_Id(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-        immd = (int)parent.operand[2].lval;
-    }
-
-
     public imul_Gd_Ed_Id(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Gd(modrm);
-        op2Index = FastDecoder.Ed(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Gd(modrm);
+        op2Index = Modrm.Ed(modrm);
         immd = Modrm.Id(input);
     }
 

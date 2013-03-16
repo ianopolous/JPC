@@ -12,15 +12,6 @@ public class loope_a16_Jb extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public loope_a16_Jb(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-        jmp = (byte)parent.operand[0].lval;
-    }
-
-
     public loope_a16_Jb(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

@@ -10,13 +10,6 @@ public class cmp_AL_Ib extends Executable
 {
     final int immb;
 
-    public cmp_AL_Ib(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        immb = (byte)parent.operand[1].lval;
-    }
-
-
     public cmp_AL_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

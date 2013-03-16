@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class pause extends Executable
 {
 
-    public pause(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public pause(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

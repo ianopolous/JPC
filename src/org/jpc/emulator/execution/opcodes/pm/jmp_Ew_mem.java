@@ -12,18 +12,10 @@ public class jmp_Ew_mem extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public jmp_Ew_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-    }
-
-
     public jmp_Ew_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
         instructionLength = (int)input.getAddress()-eip;
         blockLength = (int)input.getAddress()-blockStart;

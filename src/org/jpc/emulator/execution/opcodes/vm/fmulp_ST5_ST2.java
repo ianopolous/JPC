@@ -9,15 +9,10 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fmulp_ST5_ST2 extends Executable
 {
 
-    public fmulp_ST5_ST2(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fmulp_ST5_ST2(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
     }
 
     public Branch execute(Processor cpu)

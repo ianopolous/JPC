@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fnstcw_AX extends Executable
 {
 
-    public fnstcw_AX(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fnstcw_AX(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

@@ -77,7 +77,7 @@ public abstract class Operand
 
         public String directConstruct(int arg)
         {
-            return "        "+getVal(arg) + " = FastDecoder."+type+"(modrm);";
+            return "        "+getVal(arg) + " = Modrm."+type+"(modrm);";
         }
 
         public String load(int arg)
@@ -729,7 +729,7 @@ public abstract class Operand
 
         public String directConstruct(int arg)
         {
-            return "        offset = Modrm.getPointer(modrm);";
+            return "        offset = Modrm.getPointer(prefices, modrm, input);";
         }
 
         public String load(int arg)

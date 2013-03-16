@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class pop_o16_GS extends Executable
 {
 
-    public pop_o16_GS(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public pop_o16_GS(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

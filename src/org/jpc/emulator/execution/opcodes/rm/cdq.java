@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class cdq extends Executable
 {
 
-    public cdq(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public cdq(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fldl2t extends Executable
 {
 
-    public fldl2t(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fldl2t(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

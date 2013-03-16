@@ -10,16 +10,10 @@ public class shl_Ed_I1_mem extends Executable
 {
     final Pointer op1;
 
-    public shl_Ed_I1_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-    }
-
-
     public shl_Ed_I1_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
     }
 

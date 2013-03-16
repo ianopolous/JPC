@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class std extends Executable
 {
 
-    public std(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public std(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

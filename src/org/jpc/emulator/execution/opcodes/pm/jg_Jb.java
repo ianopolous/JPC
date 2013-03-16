@@ -12,15 +12,6 @@ public class jg_Jb extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public jg_Jb(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-        jmp = (byte)parent.operand[0].lval;
-    }
-
-
     public jg_Jb(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

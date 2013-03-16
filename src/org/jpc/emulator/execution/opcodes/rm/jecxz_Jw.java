@@ -12,15 +12,6 @@ public class jecxz_Jw extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public jecxz_Jw(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-        jmp = (short)parent.operand[0].lval;
-    }
-
-
     public jecxz_Jw(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

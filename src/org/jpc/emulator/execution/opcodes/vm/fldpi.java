@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fldpi extends Executable
 {
 
-    public fldpi(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fldpi(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

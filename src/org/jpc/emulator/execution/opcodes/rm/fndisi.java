@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fndisi extends Executable
 {
 
-    public fndisi(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fndisi(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

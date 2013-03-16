@@ -9,15 +9,10 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fucomp_ST7 extends Executable
 {
 
-    public fucomp_ST7(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fucomp_ST7(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
     }
 
     public Branch execute(Processor cpu)

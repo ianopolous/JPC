@@ -11,14 +11,6 @@ public class retf extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public retf(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-    }
-
-
     public retf(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

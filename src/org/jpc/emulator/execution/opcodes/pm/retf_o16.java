@@ -11,14 +11,6 @@ public class retf_o16 extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public retf_o16(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-    }
-
-
     public retf_o16(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

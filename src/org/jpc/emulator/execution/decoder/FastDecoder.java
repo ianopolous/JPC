@@ -1,6 +1,7 @@
 package org.jpc.emulator.execution.decoder;
 
 import org.jpc.emulator.execution.*;
+import org.jpc.emulator.processor.Processor;
 
 public class FastDecoder
 {
@@ -51,17 +52,17 @@ public class FastDecoder
         if (b == 0x67) // addr size
             return 1 << 1;
         if (b == 0x26) // ES
-            return 1 << 2;
+            return Processor.ES_INDEX << 2;
         if (b == 0x2E) // CS
-            return 2 << 2;
+            return Processor.CS_INDEX << 2;
         if (b == 0x36) // SS
-            return 3 << 2;
+            return Processor.SS_INDEX << 2;
         if (b == 0x3E) // DS
-            return 4 << 2;
+            return Processor.DS_INDEX << 2;
         if (b == 0x64) // FS
-            return 5 << 2;
+            return Processor.FS_INDEX << 2;
         if (b == 0x65) // GS
-            return 6 << 2;
+            return Processor.GS_INDEX << 2;
         if (b == 0xF0) // Lock
             return 1 << 5;
         if (b == 0xF2) // REPNE

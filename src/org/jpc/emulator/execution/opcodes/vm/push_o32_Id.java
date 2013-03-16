@@ -10,13 +10,6 @@ public class push_o32_Id extends Executable
 {
     final int immd;
 
-    public push_o32_Id(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        immd = (int)parent.operand[0].lval;
-    }
-
-
     public push_o32_Id(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

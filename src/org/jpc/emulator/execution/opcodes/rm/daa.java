@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class daa extends Executable
 {
 
-    public daa(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public daa(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

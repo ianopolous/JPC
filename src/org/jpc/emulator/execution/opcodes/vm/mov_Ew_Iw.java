@@ -11,18 +11,11 @@ public class mov_Ew_Iw extends Executable
     final int op1Index;
     final int immw;
 
-    public mov_Ew_Iw(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        immw = (short)parent.operand[1].lval;
-    }
-
-
     public mov_Ew_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Ew(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Ew(modrm);
         immw = Modrm.Iw(input);
     }
 

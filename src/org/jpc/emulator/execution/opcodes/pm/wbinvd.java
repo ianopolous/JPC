@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class wbinvd extends Executable
 {
 
-    public wbinvd(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public wbinvd(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

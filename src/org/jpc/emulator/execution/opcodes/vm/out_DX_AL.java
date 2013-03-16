@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class out_DX_AL extends Executable
 {
 
-    public out_DX_AL(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public out_DX_AL(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

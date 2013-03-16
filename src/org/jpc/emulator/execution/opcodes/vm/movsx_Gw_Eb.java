@@ -11,19 +11,12 @@ public class movsx_Gw_Eb extends Executable
     final int op1Index;
     final int op2Index;
 
-    public movsx_Gw_Eb(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public movsx_Gw_Eb(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Gw(modrm);
-        op2Index = FastDecoder.Eb(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Gw(modrm);
+        op2Index = Modrm.Eb(modrm);
     }
 
     public Branch execute(Processor cpu)

@@ -12,19 +12,11 @@ public class call_o32_Ew extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public call_o32_Ew(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-    }
-
-
     public call_o32_Ew(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Ew(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Ew(modrm);
         instructionLength = (int)input.getAddress()-eip;
         blockLength = (int)input.getAddress()-blockStart;
     }

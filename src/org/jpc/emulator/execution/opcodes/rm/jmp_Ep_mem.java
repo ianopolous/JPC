@@ -12,19 +12,11 @@ public class jmp_Ep_mem extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public jmp_Ep_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-        offset = new Pointer(parent.operand[0], parent.adr_mode);
-    }
-
-
     public jmp_Ep_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        offset = Modrm.getPointer(modrm);
+        int modrm = input.readU8();
+        offset = Modrm.getPointer(prefices, modrm, input);
         instructionLength = (int)input.getAddress()-eip;
         blockLength = (int)input.getAddress()-blockStart;
     }

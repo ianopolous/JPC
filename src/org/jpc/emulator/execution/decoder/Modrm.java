@@ -4,6 +4,11 @@ import org.jpc.emulator.processor.Processor;
 
 public class Modrm
 {
+    public static int getSegmentIndex(int prefices)
+    {
+        return (prefices >> 2) & 7;
+    }
+
     public static int Ib(PeekableInputStream in)
     {
         return in.read8();
@@ -69,31 +74,35 @@ public class Modrm
         return (modrm & 0xC0) != 0xC0;
     }
 
-    static public int Eb(int modrm) {
+    public static int R(int modrm) {
+        return regIndices[(modrm &7) + 16];
+    }
+
+    public static int Eb(int modrm) {
         return regIndices[modrm &7];
     }
 
-    static public int Gb(int modrm) {
+    public static int Gb(int modrm) {
         return regIndices[(modrm >> 3) & 7];
     }
 
-    static public int Ew(int modrm) {
+    public static int Ew(int modrm) {
         return regIndices[8 + (modrm & 7)];
     }
 
-    static public int Gw(int modrm) {
+    public static int Gw(int modrm) {
         return regIndices[8 + ((modrm >> 3) & 7)];
     }
 
-    static public int Ed(int modrm) {
+    public static int Ed(int modrm) {
         return regIndices[16 + (modrm & 7)];
     }
 
-    static public int Gd(int modrm) {
+    public static int Gd(int modrm) {
         return regIndices[16 + ((modrm >> 3) & 7)];
     }
 
-    static Pointer getPointer(int prefices, int modrm, PeekableInputStream input)
+    public static Pointer getPointer(int prefices, int modrm, PeekableInputStream input)
     {
         if ((prefices & 2) != 0)
             return getPointer32(prefices, modrm, input);

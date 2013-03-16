@@ -10,16 +10,10 @@ public class lgdt_o32_M_mem extends Executable
 {
     final Address op1;
 
-    public lgdt_o32_M_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Address();//won't work any more delete soon
-    }
-
-
     public lgdt_o32_M_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
     }
 

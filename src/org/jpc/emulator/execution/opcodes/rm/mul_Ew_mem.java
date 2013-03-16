@@ -10,16 +10,10 @@ public class mul_Ew_mem extends Executable
 {
     final Pointer op1;
 
-    public mul_Ew_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-    }
-
-
     public mul_Ew_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
     }
 

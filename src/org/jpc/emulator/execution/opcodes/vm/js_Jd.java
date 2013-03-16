@@ -12,15 +12,6 @@ public class js_Jd extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public js_Jd(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-        jmp = (int)parent.operand[0].lval;
-    }
-
-
     public js_Jd(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

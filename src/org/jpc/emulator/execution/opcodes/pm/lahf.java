@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class lahf extends Executable
 {
 
-    public lahf(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public lahf(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

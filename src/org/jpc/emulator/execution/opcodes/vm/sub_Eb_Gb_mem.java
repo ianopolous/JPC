@@ -11,19 +11,12 @@ public class sub_Eb_Gb_mem extends Executable
     final Pointer op1;
     final int op2Index;
 
-    public sub_Eb_Gb_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public sub_Eb_Gb_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
-        op2Index = FastDecoder.Gb(modrm);
+        op2Index = Modrm.Gb(modrm);
     }
 
     public Branch execute(Processor cpu)

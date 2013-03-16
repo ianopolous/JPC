@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class push_o32_FS extends Executable
 {
 
-    public push_o32_FS(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public push_o32_FS(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

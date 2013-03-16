@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fxam extends Executable
 {
 
-    public fxam(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fxam(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

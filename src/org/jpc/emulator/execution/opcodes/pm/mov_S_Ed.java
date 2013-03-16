@@ -11,19 +11,12 @@ public class mov_S_Ed extends Executable
     final int segIndex;
     final int op2Index;
 
-    public mov_S_Ed(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        segIndex = Processor.getSegmentIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public mov_S_Ed(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         segIndex = Modrm.reg(modrm);
-        op2Index = FastDecoder.Ed(modrm);
+        op2Index = Modrm.Ed(modrm);
     }
 
     public Branch execute(Processor cpu)

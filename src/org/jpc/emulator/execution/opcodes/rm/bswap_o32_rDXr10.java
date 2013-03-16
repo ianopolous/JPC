@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class bswap_o32_rDXr10 extends Executable
 {
 
-    public bswap_o32_rDXr10(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public bswap_o32_rDXr10(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

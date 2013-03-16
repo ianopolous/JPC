@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class sahf extends Executable
 {
 
-    public sahf(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public sahf(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

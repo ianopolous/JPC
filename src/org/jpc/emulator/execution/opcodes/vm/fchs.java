@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fchs extends Executable
 {
 
-    public fchs(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fchs(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

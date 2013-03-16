@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fscale extends Executable
 {
 
-    public fscale(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fscale(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

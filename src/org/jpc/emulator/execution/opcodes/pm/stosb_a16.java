@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class stosb_a16 extends Executable
 {
 
-    public stosb_a16(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public stosb_a16(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

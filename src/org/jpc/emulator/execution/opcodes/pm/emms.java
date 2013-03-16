@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class emms extends Executable
 {
 
-    public emms(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public emms(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

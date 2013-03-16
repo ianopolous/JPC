@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class leave_o16 extends Executable
 {
 
-    public leave_o16(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public leave_o16(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

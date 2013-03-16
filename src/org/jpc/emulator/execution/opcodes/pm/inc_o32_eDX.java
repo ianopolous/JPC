@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class inc_o32_eDX extends Executable
 {
 
-    public inc_o32_eDX(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public inc_o32_eDX(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

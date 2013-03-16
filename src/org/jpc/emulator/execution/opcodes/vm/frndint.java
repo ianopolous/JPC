@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class frndint extends Executable
 {
 
-    public frndint(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public frndint(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

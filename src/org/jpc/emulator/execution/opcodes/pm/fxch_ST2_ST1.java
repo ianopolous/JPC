@@ -9,15 +9,10 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fxch_ST2_ST1 extends Executable
 {
 
-    public fxch_ST2_ST1(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fxch_ST2_ST1(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
     }
 
     public Branch execute(Processor cpu)

@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class nop extends Executable
 {
 
-    public nop(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public nop(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

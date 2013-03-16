@@ -10,17 +10,10 @@ public class movsb_a16 extends Executable
 {
     final int segIndex;
 
-    public movsb_a16(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        segIndex = Processor.getSegmentIndex(parent.getSegment());
-    }
-
-
     public movsb_a16(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        segIndex = Processor.getSegmentIndex(parent.getSegment());
+        segIndex = Modrm.getSegmentIndex(prefices);
     }
 
     public Branch execute(Processor cpu)

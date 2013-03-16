@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class f2xm1 extends Executable
 {
 
-    public f2xm1(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public f2xm1(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

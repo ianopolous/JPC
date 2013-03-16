@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class rdmsr extends Executable
 {
 
-    public rdmsr(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public rdmsr(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

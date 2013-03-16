@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class pushad extends Executable
 {
 
-    public pushad(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public pushad(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

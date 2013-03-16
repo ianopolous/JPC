@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class cbw extends Executable
 {
 
-    public cbw(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public cbw(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

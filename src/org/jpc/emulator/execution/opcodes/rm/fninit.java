@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fninit extends Executable
 {
 
-    public fninit(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fninit(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class cld extends Executable
 {
 
-    public cld(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public cld(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

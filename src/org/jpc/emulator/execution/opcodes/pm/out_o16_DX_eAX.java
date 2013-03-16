@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class out_o16_DX_eAX extends Executable
 {
 
-    public out_o16_DX_eAX(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public out_o16_DX_eAX(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

@@ -13,21 +13,12 @@ public class mov_C_R extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public mov_C_R(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-        op1Index = Processor.getCRIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public mov_C_R(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1Index = Modrm.reg(modrm);
-        op2Index = FastDecoder.R(modrm);
+        op2Index = Modrm.R(modrm);
         instructionLength = (int)input.getAddress()-eip;
         blockLength = (int)input.getAddress()-blockStart;
     }

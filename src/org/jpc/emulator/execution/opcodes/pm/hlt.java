@@ -11,14 +11,6 @@ public class hlt extends Executable
     final int blockLength;
     final int instructionLength;
 
-    public hlt(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        blockLength = parent.x86Length+(int)parent.eip-blockStart;
-        instructionLength = parent.x86Length;
-    }
-
-
     public hlt(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

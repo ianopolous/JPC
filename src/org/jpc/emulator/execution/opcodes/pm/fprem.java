@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fprem extends Executable
 {
 
-    public fprem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fprem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

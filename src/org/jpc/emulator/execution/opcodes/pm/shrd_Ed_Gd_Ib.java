@@ -12,20 +12,12 @@ public class shrd_Ed_Gd_Ib extends Executable
     final int op2Index;
     final int immb;
 
-    public shrd_Ed_Gd_Ib(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-        immb = (byte)parent.operand[2].lval;
-    }
-
-
     public shrd_Ed_Gd_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Ed(modrm);
-        op2Index = FastDecoder.Gd(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Ed(modrm);
+        op2Index = Modrm.Gd(modrm);
         immb = Modrm.Ib(input);
     }
 

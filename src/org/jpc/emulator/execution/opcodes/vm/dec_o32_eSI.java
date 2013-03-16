@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class dec_o32_eSI extends Executable
 {
 
-    public dec_o32_eSI(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public dec_o32_eSI(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

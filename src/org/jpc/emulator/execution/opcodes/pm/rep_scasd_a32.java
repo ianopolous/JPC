@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class rep_scasd_a32 extends Executable
 {
 
-    public rep_scasd_a32(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public rep_scasd_a32(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

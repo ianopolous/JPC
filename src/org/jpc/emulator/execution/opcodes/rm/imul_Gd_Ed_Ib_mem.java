@@ -12,19 +12,11 @@ public class imul_Gd_Ed_Ib_mem extends Executable
     final Pointer op2;
     final int immb;
 
-    public imul_Gd_Ed_Ib_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2 = new Pointer(parent.operand[1], parent.adr_mode);
-        immb = (byte)parent.operand[2].lval;
-    }
-
-
     public imul_Gd_Ed_Ib_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Gd(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Gd(modrm);
         op2 = Modrm.getPointer(prefices, modrm, input);
         immb = Modrm.Ib(input);
     }

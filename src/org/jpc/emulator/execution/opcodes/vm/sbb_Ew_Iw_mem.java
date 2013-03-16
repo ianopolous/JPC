@@ -11,17 +11,10 @@ public class sbb_Ew_Iw_mem extends Executable
     final Pointer op1;
     final int immw;
 
-    public sbb_Ew_Iw_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-        immw = (short)parent.operand[1].lval;
-    }
-
-
     public sbb_Ew_Iw_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
         immw = Modrm.Iw(input);
     }

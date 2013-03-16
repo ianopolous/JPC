@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class cli extends Executable
 {
 
-    public cli(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public cli(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

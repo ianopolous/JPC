@@ -11,17 +11,10 @@ public class mov_Ed_S_mem extends Executable
     final Pointer op1;
     final int segIndex;
 
-    public mov_Ed_S_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-        segIndex = Processor.getSegmentIndex(parent.operand[1].toString());
-    }
-
-
     public mov_Ed_S_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
         segIndex = Modrm.reg(modrm);
     }

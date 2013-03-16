@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class cpuid extends Executable
 {
 
-    public cpuid(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public cpuid(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

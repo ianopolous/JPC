@@ -11,18 +11,11 @@ public class mov_R_D extends Executable
     final int op1Index;
     final int op2Index;
 
-    public mov_R_D(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2Index = Processor.getDRIndex(parent.operand[1].toString());
-    }
-
-
     public mov_R_D(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.R(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.R(modrm);
         op2Index = Modrm.reg(modrm);
     }
 

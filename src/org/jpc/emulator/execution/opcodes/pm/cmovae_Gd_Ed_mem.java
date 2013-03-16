@@ -11,18 +11,11 @@ public class cmovae_Gd_Ed_mem extends Executable
     final int op1Index;
     final Pointer op2;
 
-    public cmovae_Gd_Ed_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2 = new Pointer(parent.operand[1], parent.adr_mode);
-    }
-
-
     public cmovae_Gd_Ed_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Gd(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Gd(modrm);
         op2 = Modrm.getPointer(prefices, modrm, input);
     }
 

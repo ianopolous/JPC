@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fsin extends Executable
 {
 
-    public fsin(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fsin(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

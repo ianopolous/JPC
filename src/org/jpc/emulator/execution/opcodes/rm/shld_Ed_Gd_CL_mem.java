@@ -11,19 +11,12 @@ public class shld_Ed_Gd_CL_mem extends Executable
     final Pointer op1;
     final int op2Index;
 
-    public shld_Ed_Gd_CL_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public shld_Ed_Gd_CL_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
-        op2Index = FastDecoder.Gd(modrm);
+        op2Index = Modrm.Gd(modrm);
     }
 
     public Branch execute(Processor cpu)

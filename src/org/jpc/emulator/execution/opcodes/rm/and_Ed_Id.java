@@ -11,18 +11,11 @@ public class and_Ed_Id extends Executable
     final int op1Index;
     final int immd;
 
-    public and_Ed_Id(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        immd = (int)parent.operand[1].lval;
-    }
-
-
     public and_Ed_Id(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Ed(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Ed(modrm);
         immd = Modrm.Id(input);
     }
 

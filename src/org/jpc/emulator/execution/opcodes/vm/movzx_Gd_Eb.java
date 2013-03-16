@@ -11,19 +11,12 @@ public class movzx_Gd_Eb extends Executable
     final int op1Index;
     final int op2Index;
 
-    public movzx_Gd_Eb(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public movzx_Gd_Eb(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        op1Index = FastDecoder.Gd(modrm);
-        op2Index = FastDecoder.Eb(modrm);
+        int modrm = input.readU8();
+        op1Index = Modrm.Gd(modrm);
+        op2Index = Modrm.Eb(modrm);
     }
 
     public Branch execute(Processor cpu)

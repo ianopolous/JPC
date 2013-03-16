@@ -10,16 +10,10 @@ public class sidt_o16_M_mem extends Executable
 {
     final Address op1;
 
-    public sidt_o16_M_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Address();//won't work any more delete soon
-    }
-
-
     public sidt_o16_M_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
     }
 

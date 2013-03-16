@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class popa extends Executable
 {
 
-    public popa(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public popa(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

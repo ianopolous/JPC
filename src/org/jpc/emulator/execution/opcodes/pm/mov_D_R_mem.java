@@ -11,19 +11,12 @@ public class mov_D_R_mem extends Executable
     final int op1Index;
     final int op2Index;
 
-    public mov_D_R_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1Index = Processor.getDRIndex(parent.operand[0].toString());
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-    }
-
-
     public mov_D_R_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1Index = Modrm.reg(modrm);
-        op2Index = FastDecoder.R(modrm);
+        op2Index = Modrm.R(modrm);
     }
 
     public Branch execute(Processor cpu)

@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class fclex extends Executable
 {
 
-    public fclex(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public fclex(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

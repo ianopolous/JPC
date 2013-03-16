@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class push_o32_rDIr15 extends Executable
 {
 
-    public push_o32_rDIr15(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public push_o32_rDIr15(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

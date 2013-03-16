@@ -9,12 +9,6 @@ import static org.jpc.emulator.processor.Processor.*;
 public class xchg_o32_rDIr15_rAX extends Executable
 {
 
-    public xchg_o32_rDIr15_rAX(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-    }
-
-
     public xchg_o32_rDIr15_rAX(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);

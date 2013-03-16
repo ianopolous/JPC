@@ -12,20 +12,12 @@ public class shld_Ew_Gw_Ib_mem extends Executable
     final int op2Index;
     final int immb;
 
-    public shld_Ew_Gw_Ib_mem(int blockStart, Instruction parent)
-    {
-        super(blockStart, parent);
-        op1 = new Pointer(parent.operand[0], parent.adr_mode);
-        op2Index = Processor.getRegIndex(parent.operand[1].toString());
-        immb = (byte)parent.operand[2].lval;
-    }
-
-
     public shld_Ew_Gw_Ib_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
+        int modrm = input.readU8();
         op1 = Modrm.getPointer(prefices, modrm, input);
-        op2Index = FastDecoder.Gw(modrm);
+        op2Index = Modrm.Gw(modrm);
         immb = Modrm.Ib(input);
     }
 
