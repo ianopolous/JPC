@@ -18,6 +18,14 @@ public class sub_Ew_Ib extends Executable
         immb = (byte)parent.operand[1].lval;
     }
 
+
+    public sub_Ew_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Ew(modrm);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

@@ -16,6 +16,13 @@ public class rol_Ed_CL_mem extends Executable
         op1 = new Pointer(parent.operand[0], parent.adr_mode);
     }
 
+
+    public rol_Ed_CL_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
             int shift = cpu.r_cl.get8() & (32-1);

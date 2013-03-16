@@ -14,6 +14,12 @@ public class bswap_o32_rDXr10 extends Executable
         super(blockStart, parent);
     }
 
+
+    public bswap_o32_rDXr10(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_edx.set32(Integer.reverseBytes(cpu.r_edx.get32()));

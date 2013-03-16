@@ -18,6 +18,14 @@ public class cmovne_Gw_Ew_mem extends Executable
         op2 = new Pointer(parent.operand[1], parent.adr_mode);
     }
 
+
+    public cmovne_Gw_Ew_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Gw(modrm);
+        op2 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

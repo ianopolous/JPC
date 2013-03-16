@@ -14,6 +14,12 @@ public class fldz extends Executable
         super(blockStart, parent);
     }
 
+
+    public fldz(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.push(0.0);

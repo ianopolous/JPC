@@ -14,6 +14,12 @@ public class fxam extends Executable
         super(blockStart, parent);
     }
 
+
+    public fxam(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(0);

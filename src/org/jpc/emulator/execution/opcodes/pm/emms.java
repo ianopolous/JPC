@@ -14,6 +14,12 @@ public class emms extends Executable
         super(blockStart, parent);
     }
 
+
+    public emms(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.setTagWord(0xffff);

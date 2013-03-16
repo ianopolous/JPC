@@ -16,6 +16,13 @@ public class push_Iw extends Executable
         immw = (short)parent.operand[0].lval;
     }
 
+
+    public push_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immw = Modrm.Iw(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.push16((short)immw);

@@ -22,6 +22,16 @@ public class mov_C_R_mem extends Executable
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
 
+
+    public mov_C_R_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = Modrm.reg(modrm);
+        op2Index = FastDecoder.R(modrm);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op2 = cpu.regs[op2Index];

@@ -1,35 +1,47 @@
 package org.jpc.emulator.execution.decoder;
 
-import org.jpc.emulator.processor.*;
 import org.jpc.emulator.execution.*;
-import org.jpc.emulator.memory.*;
 
 public class FastDecoder
 {
-    static OpcodeDecoder[] pmOps = new OpcodeDecoder[0x400];
-    static OpcodeDecoder[] rmOps = new OpcodeDecoder[0x400];
-    static OpcodeDecoder[] vmOps = new OpcodeDecoder[0x400];
+    static OpcodeDecoder[] pmOps = new OpcodeDecoder[0x800];
+    static OpcodeDecoder[] rmOps = new OpcodeDecoder[0x800];
+    static OpcodeDecoder[] vmOps = new OpcodeDecoder[0x800];
 
-    public static Executable decodePMOpcode(PeekableInputStream input, boolean operandSize)
+    public static Executable decodePMOpcode(int blockStart, PeekableInputStream input, boolean is32Bit)
     {
-        int blockStart = (int) input.getAddress();
+        int opStart = (int) input.getAddress();
         int prefices = 0;
         int b = input.readU8();
+        boolean addrSize = is32Bit;
         while (isPrefix(b))
         {
             if (b == 0x66)
-                operandSize = !operandSize;
-            prefices |= encodePrefix(b);
+                is32Bit = !is32Bit;
+            else if (b == 0x67)
+                addrSize = !addrSize;
+            else
+                prefices |= encodePrefix(b);
             b = input.readU8();
         }
-        int opcode = operandSize ? 0x200 : 0;
+        int opcode = 0;
+        if (is32Bit)
+        {
+            opcode += 0x200;
+            prefices |= encodePrefix(0x66);
+        }
+        if (addrSize)
+        {
+            opcode += 0x400;
+            prefices |= encodePrefix(0x67);
+        }
         if (b == 0x0F)
         {
             opcode += 0x100;
             b = input.readU8();
         }
         opcode += b;
-        return pmOps[opcode].decodeOpcode(blockStart, prefices, input);
+        return pmOps[opcode].decodeOpcode(blockStart, opStart, prefices, input);
     }
 
     public static int encodePrefix(int b)

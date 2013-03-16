@@ -14,6 +14,12 @@ public class fld1 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fld1(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.push(1.0);

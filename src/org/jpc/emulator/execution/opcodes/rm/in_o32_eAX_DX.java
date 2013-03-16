@@ -14,6 +14,12 @@ public class in_o32_eAX_DX extends Executable
         super(blockStart, parent);
     }
 
+
+    public in_o32_eAX_DX(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_eax.set32(cpu.ioports.ioPortRead32(0xFFFF&cpu.r_dx.get16()));

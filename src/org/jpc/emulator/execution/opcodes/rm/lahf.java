@@ -14,6 +14,12 @@ public class lahf extends Executable
         super(blockStart, parent);
     }
 
+
+    public lahf(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         int result = 0x02;

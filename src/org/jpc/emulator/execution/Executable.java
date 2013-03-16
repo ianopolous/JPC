@@ -25,17 +25,16 @@ public abstract class Executable
     public Executable next;
 
     public static enum Branch {None, T1, T2, Jmp_Unknown, Call, Call_Unknown, Ret, Exception};
-    public final int delta, x86Length;
+    public final int delta;
 
-    public Executable(int blockStart, int eip, int x86Length)
+    public Executable(int blockStart, int eip)
     {
         delta = eip-blockStart;
-        this.x86Length = x86Length;
     }
 
     public Executable(int blockStart, Instruction in)
     {
-        this(blockStart, (int)in.eip, in.x86Length);
+        this(blockStart, (int)in.eip);
     }
 
     public boolean isBranch()

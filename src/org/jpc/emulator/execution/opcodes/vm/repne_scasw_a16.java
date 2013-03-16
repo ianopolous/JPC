@@ -14,6 +14,12 @@ public class repne_scasw_a16 extends Executable
         super(blockStart, parent);
     }
 
+
+    public repne_scasw_a16(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         StaticOpcodes.repne_scasw_a16(cpu);

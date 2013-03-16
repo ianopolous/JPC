@@ -16,6 +16,13 @@ public class push_o16_Ib extends Executable
         immb = (byte)parent.operand[0].lval;
     }
 
+
+    public push_o16_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.push16((short)immb);

@@ -18,6 +18,14 @@ public class iretd extends Executable
         instructionLength = parent.x86Length;
     }
 
+
+    public iretd(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.ss.getDefaultSizeFlag())

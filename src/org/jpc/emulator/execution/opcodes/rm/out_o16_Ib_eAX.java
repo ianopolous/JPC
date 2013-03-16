@@ -16,6 +16,13 @@ public class out_o16_Ib_eAX extends Executable
         immb = (byte)parent.operand[0].lval;
     }
 
+
+    public out_o16_Ib_eAX(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.ioports.ioPortWrite16(0xFF&immb, 0xFFFF&cpu.r_eax.get16());

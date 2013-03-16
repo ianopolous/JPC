@@ -16,6 +16,13 @@ public class sub_o16_rAX_Iw extends Executable
         immw = (short)parent.operand[1].lval;
     }
 
+
+    public sub_o16_rAX_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immw = Modrm.Iw(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.flagOp1 = cpu.r_eax.get16();

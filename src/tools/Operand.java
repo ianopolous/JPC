@@ -22,6 +22,8 @@ public abstract class Operand
 
     public abstract String construct(int arg);
 
+    public abstract String directConstruct(int arg);
+
     public abstract String load(int arg);
 
     public abstract String set(int arg);
@@ -73,6 +75,11 @@ public abstract class Operand
             return "        "+getVal(arg) + " = Processor.getRegIndex(parent.operand["+(arg-1)+"].toString());";
         }
 
+        public String directConstruct(int arg)
+        {
+            return "        "+getVal(arg) + " = FastDecoder."+type+"(modrm);";
+        }
+
         public String load(int arg)
         {
             return "        Reg op"+arg+" = cpu.regs["+getVal(arg)+"];";
@@ -110,6 +117,11 @@ public abstract class Operand
         public String construct(int arg)
         {
             return "        "+getVal(arg) + " = Processor.getCRIndex(parent.operand["+(arg-1)+"].toString());";
+        }
+
+        public String directConstruct(int arg)
+        {
+            return "        "+getVal(arg) + " = Modrm.reg(modrm);";
         }
 
         public String load(int arg)
@@ -154,6 +166,11 @@ public abstract class Operand
         public String construct(int arg)
         {
             return "        "+getVal(arg) + " = Processor.getDRIndex(parent.operand["+(arg-1)+"].toString());";
+        }
+
+        public String directConstruct(int arg)
+        {
+            return "        "+getVal(arg) + " = Modrm.reg(modrm);";
         }
 
         public String load(int arg)
@@ -202,6 +219,11 @@ public abstract class Operand
             return "";
         }
 
+        public String directConstruct(int arg)
+        {
+            return "";
+        }
+
         public String load(int arg)
         {
             return "";
@@ -241,6 +263,11 @@ public abstract class Operand
         }
         
         public String define(int arg)
+        {
+            return "";
+        }
+
+        public String directConstruct(int arg)
         {
             return "";
         }
@@ -289,6 +316,11 @@ public abstract class Operand
         public String construct(int arg)
         {
             return "        op"+arg+" = new Pointer(parent.operand["+(arg-1)+"], parent.adr_mode);";
+        }
+
+        public String directConstruct(int arg)
+        {
+            return "        op"+arg+" = Modrm.getPointer(prefices, modrm, input);";
         }
 
         public String load(int arg)
@@ -351,6 +383,11 @@ public abstract class Operand
             return "        segIndex = Processor.getSegmentIndex(parent.operand["+(arg-1)+"].toString());";
         }
 
+        public String directConstruct(int arg)
+        {
+            return "        segIndex = Modrm.reg(modrm);";
+        }
+
         public String load(int arg)
         {
             if (arg != 1)
@@ -396,6 +433,11 @@ public abstract class Operand
             return "";
         }
 
+        public String directConstruct(int arg)
+        {
+            return "";
+        }
+
         public String load(int arg)
         {
             return "";
@@ -431,7 +473,12 @@ public abstract class Operand
 
         public String construct(int arg)
         {
-            return "        op"+arg+" = new Address(parent.operand["+(arg-1)+"], parent.adr_mode);";
+            return "        op"+arg+" = new Address();//won't work any more delete soon";
+        }
+
+        public String directConstruct(int arg)
+        {
+            return "        op"+arg+" = Modrm.getPointer(prefices, modrm, input);";
         }
 
         public String load(int arg)
@@ -475,6 +522,11 @@ public abstract class Operand
         public String construct(int arg)
         {
             return "        "+var+" = ("+cast()+")parent.operand["+(arg-1)+"].lval;";
+        }
+
+        public String directConstruct(int arg)
+        {
+            return "        "+var+" = Modrm."+type+"(input);";
         }
 
         private String cast()
@@ -529,6 +581,11 @@ public abstract class Operand
             return "";
         }
 
+        public String directConstruct(int arg)
+        {
+            return "";
+        }
+
         public String load(int arg)
         {
             return "";
@@ -568,6 +625,11 @@ public abstract class Operand
         public String construct(int arg)
         {
             return "        jmp = ("+cast()+")parent.operand["+(arg-1)+"].lval;";
+        }
+
+        public String directConstruct(int arg)
+        {
+            return "        jmp = Modrm."+type+"(input);";
         }
 
         private String cast()
@@ -619,6 +681,11 @@ public abstract class Operand
             return "        targetEip = parent.operand["+(arg-1)+"].ptr.off;\n        cs = parent.operand["+(arg-1)+"].ptr.seg;";
         }
 
+        public String directConstruct(int arg)
+        {
+            return "        targetEip = Modrm.jmpOffset(prefices, input);\n        cs = Modrm.jmpCs(input);";
+        }
+
         public String load(int arg)
         {
             return "";
@@ -652,17 +719,22 @@ public abstract class Operand
         
         public String define(int arg)
         {
-            return "        final Pointer seg, offset;";
+            return "        final Pointer offset;\n";
         }
 
         public String construct(int arg)
         {
-            return "        offset = new Pointer(parent.operand["+(arg-1)+"], parent.adr_mode);\n        parent.operand["+(arg-1)+"].lval += "+(size/8)+";\n        seg = new Pointer(parent.operand["+(arg-1)+"], parent.adr_mode);";
+            return "        offset = new Pointer(parent.operand["+(arg-1)+"], parent.adr_mode);";
+        }
+
+        public String directConstruct(int arg)
+        {
+            return "        offset = Modrm.getPointer(modrm);";
         }
 
         public String load(int arg)
         {
-            return "        int cs = seg.get16(cpu);\n        int targetEip = offset.get"+size+"(cpu);";
+            return "        int cs = offset.get16(cpu, "+(size/8)+");\n        int targetEip = offset.get"+size+"(cpu);";
         }
 
         public String set(int arg)

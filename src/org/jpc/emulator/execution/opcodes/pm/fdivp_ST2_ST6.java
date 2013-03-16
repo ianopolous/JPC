@@ -14,6 +14,12 @@ public class fdivp_ST2_ST6 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fdivp_ST2_ST6(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(2);

@@ -16,6 +16,13 @@ public class add_o32_rAX_Id extends Executable
         immd = (int)parent.operand[1].lval;
     }
 
+
+    public add_o32_rAX_Id(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immd = Modrm.Id(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.flagOp1 = cpu.r_eax.get32();

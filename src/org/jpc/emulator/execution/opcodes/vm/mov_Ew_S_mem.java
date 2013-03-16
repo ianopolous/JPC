@@ -18,6 +18,14 @@ public class mov_Ew_S_mem extends Executable
         segIndex = Processor.getSegmentIndex(parent.operand[1].toString());
     }
 
+
+    public mov_Ew_S_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+        segIndex = Modrm.reg(modrm);
+    }
+
     public Branch execute(Processor cpu)
     {
         Segment seg = cpu.segs[segIndex];

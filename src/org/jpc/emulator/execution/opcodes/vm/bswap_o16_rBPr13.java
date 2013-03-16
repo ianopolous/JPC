@@ -14,6 +14,12 @@ public class bswap_o16_rBPr13 extends Executable
         super(blockStart, parent);
     }
 
+
+    public bswap_o16_rBPr13(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_ebp.set16(Short.reverseBytes((short)cpu.r_ebp.get16()));

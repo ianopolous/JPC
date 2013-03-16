@@ -18,6 +18,14 @@ public class mov_Gb_Eb extends Executable
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
 
+
+    public mov_Gb_Eb(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Gb(modrm);
+        op2Index = FastDecoder.Eb(modrm);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

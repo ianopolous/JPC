@@ -14,6 +14,12 @@ public class push_o32_rBXr11 extends Executable
         super(blockStart, parent);
     }
 
+
+    public push_o32_rBXr11(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.push32(cpu.r_ebx.get32());

@@ -14,6 +14,12 @@ public class fabs extends Executable
         super(blockStart, parent);
     }
 
+
+    public fabs(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.setST(0, Math.abs(cpu.fpu.ST(0)));

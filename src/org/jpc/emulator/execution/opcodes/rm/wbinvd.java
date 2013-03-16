@@ -14,6 +14,12 @@ public class wbinvd extends Executable
         super(blockStart, parent);
     }
 
+
+    public wbinvd(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
 // write back and invalidate CPU caches

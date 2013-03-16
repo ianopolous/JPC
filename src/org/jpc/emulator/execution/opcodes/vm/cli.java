@@ -14,6 +14,12 @@ public class cli extends Executable
         super(blockStart, parent);
     }
 
+
+    public cli(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.eflagsIOPrivilegeLevel == 3)

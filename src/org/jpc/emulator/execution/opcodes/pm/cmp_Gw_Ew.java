@@ -18,6 +18,14 @@ public class cmp_Gw_Ew extends Executable
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
 
+
+    public cmp_Gw_Ew(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Gw(modrm);
+        op2Index = FastDecoder.Ew(modrm);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

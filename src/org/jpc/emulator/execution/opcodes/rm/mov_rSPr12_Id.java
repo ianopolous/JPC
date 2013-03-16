@@ -16,6 +16,13 @@ public class mov_rSPr12_Id extends Executable
         immd = (int)parent.operand[1].lval;
     }
 
+
+    public mov_rSPr12_Id(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immd = Modrm.Id(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_esp.set32(immd);

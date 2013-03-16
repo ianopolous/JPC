@@ -14,6 +14,12 @@ public class fucomp_ST1 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fucomp_ST1(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         int newcode = 0xd;

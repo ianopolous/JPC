@@ -16,6 +16,13 @@ public class rol_Ew_I1_mem extends Executable
         op1 = new Pointer(parent.operand[0], parent.adr_mode);
     }
 
+
+    public rol_Ew_I1_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
             int shift = 1 & (16-1);

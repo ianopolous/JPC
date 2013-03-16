@@ -16,6 +16,13 @@ public class mov_AL_Ob extends Executable
         op2 = new Pointer(parent.operand[1], parent.adr_mode);
     }
 
+
+    public mov_AL_Ob(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op2 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_al.set8((byte)op2.get8(cpu));

@@ -14,6 +14,12 @@ public class salc extends Executable
         super(blockStart, parent);
     }
 
+
+    public salc(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_al.set8((byte)(cpu.cf() ? 1 : 0));

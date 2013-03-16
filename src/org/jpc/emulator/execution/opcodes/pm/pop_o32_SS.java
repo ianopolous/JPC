@@ -14,6 +14,12 @@ public class pop_o32_SS extends Executable
         super(blockStart, parent);
     }
 
+
+    public pop_o32_SS(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.ss(cpu.pop32());

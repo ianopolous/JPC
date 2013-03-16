@@ -14,6 +14,12 @@ public class fldln2 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fldln2(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.push(Math.log(2));

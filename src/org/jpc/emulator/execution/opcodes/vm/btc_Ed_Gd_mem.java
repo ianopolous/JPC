@@ -18,6 +18,14 @@ public class btc_Ed_Gd_mem extends Executable
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
 
+
+    public btc_Ed_Gd_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+        op2Index = FastDecoder.Gd(modrm);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op2 = cpu.regs[op2Index];

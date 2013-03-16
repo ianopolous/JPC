@@ -14,6 +14,12 @@ public class dec_o32_eDX extends Executable
         super(blockStart, parent);
     }
 
+
+    public dec_o32_eDX(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);

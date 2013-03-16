@@ -20,6 +20,15 @@ public class shrd_Ed_Gd_Ib_mem extends Executable
         immb = (byte)parent.operand[2].lval;
     }
 
+
+    public shrd_Ed_Gd_Ib_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+        op2Index = FastDecoder.Gd(modrm);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op2 = cpu.regs[op2Index];

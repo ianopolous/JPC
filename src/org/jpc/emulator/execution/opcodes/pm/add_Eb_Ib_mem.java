@@ -18,6 +18,14 @@ public class add_Eb_Ib_mem extends Executable
         immb = (byte)parent.operand[1].lval;
     }
 
+
+    public add_Eb_Ib_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.flagOp1 = op1.get8(cpu);

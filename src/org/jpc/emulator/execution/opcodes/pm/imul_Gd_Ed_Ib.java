@@ -20,6 +20,15 @@ public class imul_Gd_Ed_Ib extends Executable
         immb = (byte)parent.operand[2].lval;
     }
 
+
+    public imul_Gd_Ed_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Gd(modrm);
+        op2Index = FastDecoder.Ed(modrm);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

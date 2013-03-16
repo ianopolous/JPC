@@ -14,6 +14,12 @@ public class cpuid extends Executable
         super(blockStart, parent);
     }
 
+
+    public cpuid(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.cpuid();

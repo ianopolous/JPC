@@ -16,6 +16,13 @@ public class adc_AL_Ib extends Executable
         immb = (byte)parent.operand[1].lval;
     }
 
+
+    public adc_AL_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         boolean incf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);

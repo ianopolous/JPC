@@ -16,6 +16,13 @@ public class fld_Mt_mem extends Executable
         op1 = new Pointer(parent.operand[0], parent.adr_mode);
     }
 
+
+    public fld_Mt_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
         byte[] raw = op1.getF80(cpu);

@@ -14,6 +14,12 @@ public class fstp_ST7 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fstp_ST7(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.setST(7, cpu.fpu.ST(0));

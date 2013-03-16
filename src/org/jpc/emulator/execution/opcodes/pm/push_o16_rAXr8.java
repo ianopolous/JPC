@@ -14,6 +14,12 @@ public class push_o16_rAXr8 extends Executable
         super(blockStart, parent);
     }
 
+
+    public push_o16_rAXr8(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.push16((short)cpu.r_eax.get16());

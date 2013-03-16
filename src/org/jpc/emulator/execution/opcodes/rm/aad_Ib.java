@@ -16,6 +16,13 @@ public class aad_Ib extends Executable
         immb = (byte)parent.operand[0].lval;
     }
 
+
+    public aad_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         StaticOpcodes.aad(cpu, immb);

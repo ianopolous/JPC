@@ -14,6 +14,12 @@ public class in_AL_DX extends Executable
         super(blockStart, parent);
     }
 
+
+    public in_AL_DX(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.checkIOPermissions8(0xFFFF&cpu.r_dx.get16()))

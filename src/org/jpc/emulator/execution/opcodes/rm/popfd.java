@@ -14,6 +14,12 @@ public class popfd extends Executable
         super(blockStart, parent);
     }
 
+
+    public popfd(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.setEFlags((cpu.getEFlags() & 0x20000) | (cpu.pop32() & ~0x1a0000));

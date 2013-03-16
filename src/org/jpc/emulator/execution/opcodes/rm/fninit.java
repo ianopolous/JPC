@@ -14,6 +14,12 @@ public class fninit extends Executable
         super(blockStart, parent);
     }
 
+
+    public fninit(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.init();

@@ -18,6 +18,14 @@ public class sbb_Ew_Iw_mem extends Executable
         immw = (short)parent.operand[1].lval;
     }
 
+
+    public sbb_Ew_Iw_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+        immw = Modrm.Iw(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         int add = (cpu.cf()? 1: 0);

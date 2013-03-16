@@ -20,6 +20,15 @@ public class jecxz_Jd extends Executable
         jmp = (int)parent.operand[0].lval;
     }
 
+
+    public jecxz_Jd(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        jmp = Modrm.Jd(input);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.r_ecx.get32() == 0)

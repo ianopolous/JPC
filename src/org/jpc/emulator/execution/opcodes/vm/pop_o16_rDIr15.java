@@ -14,6 +14,12 @@ public class pop_o16_rDIr15 extends Executable
         super(blockStart, parent);
     }
 
+
+    public pop_o16_rDIr15(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_edi.set16(cpu.pop16());

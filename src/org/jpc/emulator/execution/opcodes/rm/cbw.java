@@ -14,6 +14,12 @@ public class cbw extends Executable
         super(blockStart, parent);
     }
 
+
+    public cbw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
             cpu.r_ax.set16((byte)cpu.r_al.get8());

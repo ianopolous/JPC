@@ -20,6 +20,15 @@ public class jmp_Jb extends Executable
         jmp = (byte)parent.operand[0].lval;
     }
 
+
+    public jmp_Jb(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        jmp = Modrm.Jb(input);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.eip += jmp+blockLength;

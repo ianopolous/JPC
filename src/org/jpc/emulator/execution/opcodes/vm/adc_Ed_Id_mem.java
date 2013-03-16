@@ -18,6 +18,14 @@ public class adc_Ed_Id_mem extends Executable
         immd = (int)parent.operand[1].lval;
     }
 
+
+    public adc_Ed_Id_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+        immd = Modrm.Id(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         boolean incf = cpu.cf();

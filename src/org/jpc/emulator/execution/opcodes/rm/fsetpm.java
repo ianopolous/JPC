@@ -14,6 +14,12 @@ public class fsetpm extends Executable
         super(blockStart, parent);
     }
 
+
+    public fsetpm(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
 

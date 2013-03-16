@@ -16,6 +16,13 @@ public class mov_CHr13b_Ib extends Executable
         immb = (byte)parent.operand[1].lval;
     }
 
+
+    public mov_CHr13b_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_ch.set8((byte)immb);

@@ -14,9 +14,9 @@ public class Lock extends Executable
         this.exec = parent;
     }
 
-    public Lock(int blockStart, int eip, int x86Length, Executable parent)
+    public Lock(int blockStart, int eip, Executable parent)
     {
-        super(blockStart, eip, x86Length);
+        super(blockStart, eip);
         this.exec = parent;
     }
 

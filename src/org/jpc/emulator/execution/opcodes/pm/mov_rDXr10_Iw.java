@@ -16,6 +16,13 @@ public class mov_rDXr10_Iw extends Executable
         immw = (short)parent.operand[1].lval;
     }
 
+
+    public mov_rDXr10_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immw = Modrm.Iw(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_edx.set16((short)immw);

@@ -18,6 +18,14 @@ public class cmp_Ed_Id extends Executable
         immd = (int)parent.operand[1].lval;
     }
 
+
+    public cmp_Ed_Id(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Ed(modrm);
+        immd = Modrm.Id(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

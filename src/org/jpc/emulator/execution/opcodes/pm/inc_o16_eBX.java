@@ -14,6 +14,12 @@ public class inc_o16_eBX extends Executable
         super(blockStart, parent);
     }
 
+
+    public inc_o16_eBX(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);

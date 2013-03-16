@@ -18,6 +18,14 @@ public class mov_D_R extends Executable
         op2Index = Processor.getRegIndex(parent.operand[1].toString());
     }
 
+
+    public mov_D_R(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = Modrm.reg(modrm);
+        op2Index = FastDecoder.R(modrm);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op2 = cpu.regs[op2Index];

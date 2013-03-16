@@ -16,6 +16,13 @@ public class smsw_Ed extends Executable
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
     }
 
+
+    public smsw_Ed(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Ed(modrm);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

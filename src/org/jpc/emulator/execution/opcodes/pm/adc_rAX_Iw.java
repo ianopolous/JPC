@@ -16,6 +16,13 @@ public class adc_rAX_Iw extends Executable
         immw = (short)parent.operand[1].lval;
     }
 
+
+    public adc_rAX_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immw = Modrm.Iw(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         boolean incf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);

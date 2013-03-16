@@ -16,6 +16,13 @@ public class push_o32_Id extends Executable
         immd = (int)parent.operand[0].lval;
     }
 
+
+    public push_o32_Id(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immd = Modrm.Id(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.push32(immd);

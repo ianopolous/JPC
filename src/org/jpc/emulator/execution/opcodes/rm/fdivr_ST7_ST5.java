@@ -14,6 +14,12 @@ public class fdivr_ST7_ST5 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fdivr_ST7_ST5(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(7);

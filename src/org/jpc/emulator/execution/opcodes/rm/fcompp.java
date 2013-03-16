@@ -14,6 +14,12 @@ public class fcompp extends Executable
         super(blockStart, parent);
     }
 
+
+    public fcompp(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
                             int newcode = 0xd;

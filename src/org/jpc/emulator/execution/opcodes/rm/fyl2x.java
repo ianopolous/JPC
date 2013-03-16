@@ -14,6 +14,12 @@ public class fyl2x extends Executable
         super(blockStart, parent);
     }
 
+
+    public fyl2x(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(0);

@@ -14,6 +14,12 @@ public class fxch_ST1_ST2 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fxch_ST1_ST2(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         double tmp = cpu.fpu.ST(1);

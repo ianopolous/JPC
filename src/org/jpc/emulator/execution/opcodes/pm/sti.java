@@ -14,6 +14,12 @@ public class sti extends Executable
         super(blockStart, parent);
     }
 
+
+    public sti(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.getIOPrivilegeLevel() >= cpu.getCPL()) {

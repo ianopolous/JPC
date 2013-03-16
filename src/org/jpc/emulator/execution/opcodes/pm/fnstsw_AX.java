@@ -14,6 +14,12 @@ public class fnstsw_AX extends Executable
         super(blockStart, parent);
     }
 
+
+    public fnstsw_AX(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_ax.set16((short)cpu.fpu.getStatus());

@@ -14,6 +14,12 @@ public class fcomp_ST0_ST3 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fcomp_ST0_ST3(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
                             int newcode = 0xd;

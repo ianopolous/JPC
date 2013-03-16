@@ -18,6 +18,14 @@ public class ud2 extends Executable
         instructionLength = parent.x86Length;
     }
 
+
+    public ud2(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         if (true) throw ProcessorException.UNDEFINED;

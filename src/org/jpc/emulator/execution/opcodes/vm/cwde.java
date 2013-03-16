@@ -14,6 +14,12 @@ public class cwde extends Executable
         super(blockStart, parent);
     }
 
+
+    public cwde(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
             cpu.r_eax.set32((short)cpu.r_ax.get16());

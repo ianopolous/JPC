@@ -18,6 +18,14 @@ public class iretw extends Executable
         instructionLength = parent.x86Length;
     }
 
+
+    public iretw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.ss.getDefaultSizeFlag())

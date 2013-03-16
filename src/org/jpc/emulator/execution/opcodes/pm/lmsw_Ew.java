@@ -20,6 +20,15 @@ public class lmsw_Ew extends Executable
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
     }
 
+
+    public lmsw_Ew(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Ew(modrm);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

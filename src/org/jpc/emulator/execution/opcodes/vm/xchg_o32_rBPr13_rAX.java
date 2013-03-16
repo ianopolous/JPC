@@ -14,6 +14,12 @@ public class xchg_o32_rBPr13_rAX extends Executable
         super(blockStart, parent);
     }
 
+
+    public xchg_o32_rBPr13_rAX(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
             int tmp = cpu.r_eax.get32();

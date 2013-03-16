@@ -14,6 +14,12 @@ public class pop_o16_rSPr12 extends Executable
         super(blockStart, parent);
     }
 
+
+    public pop_o16_rSPr12(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_esp.set16(cpu.pop16());

@@ -14,6 +14,12 @@ public class insb_a32 extends Executable
         super(blockStart, parent);
     }
 
+
+    public insb_a32(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.checkIOPermissions8(cpu.r_dx.get16() & 0xffff))

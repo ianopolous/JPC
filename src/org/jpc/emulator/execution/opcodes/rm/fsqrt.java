@@ -14,6 +14,12 @@ public class fsqrt extends Executable
         super(blockStart, parent);
     }
 
+
+    public fsqrt(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.fpu.ST(0) < 0)

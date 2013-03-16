@@ -18,6 +18,14 @@ public class enter_o32_Iw_Ib extends Executable
         immb = (byte)parent.operand[1].lval;
     }
 
+
+    public enter_o32_Iw_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immw = Modrm.Iw(input);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
             int frameSize = 0xffff & immw;

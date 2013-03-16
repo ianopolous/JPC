@@ -14,6 +14,12 @@ public class daa extends Executable
         super(blockStart, parent);
     }
 
+
+    public daa(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         StaticOpcodes.daa(cpu);

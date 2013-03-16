@@ -16,6 +16,13 @@ public class fst_Md_mem extends Executable
         op1 = new Pointer(parent.operand[0], parent.adr_mode);
     }
 
+
+    public fst_Md_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
         op1.setF32(cpu, (float)cpu.fpu.ST(0));

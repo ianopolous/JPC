@@ -18,6 +18,14 @@ public class movsx_Gd_Eb_mem extends Executable
         op2 = new Pointer(parent.operand[1], parent.adr_mode);
     }
 
+
+    public movsx_Gd_Eb_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Gd(modrm);
+        op2 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

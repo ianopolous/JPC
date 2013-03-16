@@ -14,6 +14,12 @@ public class pop_o16_FS extends Executable
         super(blockStart, parent);
     }
 
+
+    public pop_o16_FS(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fs(cpu.pop16());

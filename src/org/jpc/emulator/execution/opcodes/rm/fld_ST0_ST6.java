@@ -14,6 +14,12 @@ public class fld_ST0_ST6 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fld_ST0_ST6(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.push(cpu.fpu.ST(6));

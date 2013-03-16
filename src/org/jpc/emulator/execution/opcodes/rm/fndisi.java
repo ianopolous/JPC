@@ -14,6 +14,12 @@ public class fndisi extends Executable
         super(blockStart, parent);
     }
 
+
+    public fndisi(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
 

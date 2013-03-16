@@ -14,6 +14,12 @@ public class out_o32_DX_eAX extends Executable
         super(blockStart, parent);
     }
 
+
+    public out_o32_DX_eAX(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.checkIOPermissions32(0xFFFF&cpu.r_dx.get16()))

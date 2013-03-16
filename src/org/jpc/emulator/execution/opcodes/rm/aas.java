@@ -14,6 +14,12 @@ public class aas extends Executable
         super(blockStart, parent);
     }
 
+
+    public aas(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         StaticOpcodes.aas(cpu);

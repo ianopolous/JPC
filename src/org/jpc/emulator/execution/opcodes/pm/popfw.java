@@ -14,6 +14,12 @@ public class popfw extends Executable
         super(blockStart, parent);
     }
 
+
+    public popfw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.setFlags((short)cpu.pop16());

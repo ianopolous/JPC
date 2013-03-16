@@ -14,6 +14,12 @@ public class ffree_ST1 extends Executable
         super(blockStart, parent);
     }
 
+
+    public ffree_ST1(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.setTagEmpty(1);

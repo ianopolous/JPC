@@ -16,6 +16,13 @@ public class xor_o32_rAX_Id extends Executable
         immd = (int)parent.operand[1].lval;
     }
 
+
+    public xor_o32_rAX_Id(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immd = Modrm.Id(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.of = cpu.af = cpu.cf = false;

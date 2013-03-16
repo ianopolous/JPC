@@ -14,6 +14,12 @@ public class insw_a16 extends Executable
         super(blockStart, parent);
     }
 
+
+    public insw_a16(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.checkIOPermissions16(0xffff & cpu.r_dx.get16()))

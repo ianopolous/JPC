@@ -14,6 +14,12 @@ public class fdiv_ST0_ST4 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fdiv_ST0_ST4(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(0);

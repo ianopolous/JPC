@@ -20,6 +20,15 @@ public class imul_Gd_Ed_Id_mem extends Executable
         immd = (int)parent.operand[2].lval;
     }
 
+
+    public imul_Gd_Ed_Id_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Gd(modrm);
+        op2 = Modrm.getPointer(prefices, modrm, input);
+        immd = Modrm.Id(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

@@ -14,6 +14,12 @@ public class fchs extends Executable
         super(blockStart, parent);
     }
 
+
+    public fchs(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.setST(0, -cpu.fpu.ST(0));

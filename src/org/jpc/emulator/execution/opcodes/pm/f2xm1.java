@@ -14,6 +14,12 @@ public class f2xm1 extends Executable
         super(blockStart, parent);
     }
 
+
+    public f2xm1(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.setST(0, Math.pow(2.0, cpu.fpu.ST(0))- 1.0);

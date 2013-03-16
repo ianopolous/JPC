@@ -16,6 +16,13 @@ public class sbb_o16_rAX_Iw extends Executable
         immw = (short)parent.operand[1].lval;
     }
 
+
+    public sbb_o16_rAX_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immw = Modrm.Iw(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         int add = (cpu.cf()? 1: 0);

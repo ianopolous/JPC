@@ -15,7 +15,15 @@ public class lea_Gw_M_mem extends Executable
     {
         super(blockStart, parent);
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
-        op2 = new Address(parent.operand[1], parent.adr_mode);
+        op2 = new Address();//won't work any more delete soon
+    }
+
+
+    public lea_Gw_M_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Gw(modrm);
+        op2 = Modrm.getPointer(prefices, modrm, input);
     }
 
     public Branch execute(Processor cpu)

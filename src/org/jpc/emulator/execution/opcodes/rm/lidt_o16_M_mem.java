@@ -13,7 +13,14 @@ public class lidt_o16_M_mem extends Executable
     public lidt_o16_M_mem(int blockStart, Instruction parent)
     {
         super(blockStart, parent);
-        op1 = new Address(parent.operand[0], parent.adr_mode);
+        op1 = new Address();//won't work any more delete soon
+    }
+
+
+    public lidt_o16_M_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
     }
 
     public Branch execute(Processor cpu)

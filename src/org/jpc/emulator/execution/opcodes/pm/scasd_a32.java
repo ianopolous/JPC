@@ -14,6 +14,12 @@ public class scasd_a32 extends Executable
         super(blockStart, parent);
     }
 
+
+    public scasd_a32(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         StaticOpcodes.scasd_a32(cpu);

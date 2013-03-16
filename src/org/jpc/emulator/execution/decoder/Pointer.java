@@ -7,18 +7,16 @@ import java.util.BitSet;
 
 import static org.jpc.emulator.processor.Processor.*;
 
-public class Pointer
+public class Pointer extends Address
 {
     final int base, index;
     final int scale;
-    final String seg;
     final int offset;
     final int segment;
     final boolean addrSize;
 
     public Pointer(Instruction.Operand op, int adr_mode)
     {
-        seg = op.seg; // load the actual seg
         if (op.base != null)
             base = Processor.getRegIndex(op.base);
         else
@@ -39,12 +37,22 @@ public class Pointer
             offset = (byte)op.lval;
         else
             offset = (int)op.lval;
-        if (seg != null)
+        if (op.seg != null)
         {
-            segment = Processor.getSegmentIndex(seg);
+            segment = Processor.getSegmentIndex(op.seg);
         } else
             segment = Processor.getSegmentIndex(getImplicitSegment(op));
         addrSize = adr_mode == 32;
+    }
+
+    public Pointer(int base, int index, int scale, int offset, int segment, boolean addrSize)
+    {
+        this.base = base;
+        this.index = index;
+        this.scale = scale;
+        this.offset = offset;
+        this.segment = segment;
+        this.addrSize = addrSize;
     }
 
     private static String getImplicitSegment(Instruction.Operand operand)
@@ -54,6 +62,11 @@ public class Pointer
            return "ss";
         else
             return "ds";
+    }
+
+    public int getBase(Processor cpu)
+    {
+        return cpu.segs[segment].getBase();
     }
 
     public int get(Processor cpu)
@@ -196,8 +209,8 @@ public class Pointer
     public String toString()
     {
         StringBuffer b = new StringBuffer();
-        if (seg != null)
-            b.append(seg + ":");
+        if (segment != -1)
+            b.append(Processor.getSegmentString(segment) + ":");
         if (base != -1)
             b.append("regs["+base+"]");
         if (scale != 0)
@@ -210,9 +223,9 @@ public class Pointer
     public String toSource()
     {
         StringBuffer b = new StringBuffer();
-        if (seg != null)
+        if (segment != -1)
         {
-            b.append("((cpu."+seg+" != null) ? "+"cpu."+seg + ".getBase():0)");
+            b.append("((cpu."+Processor.getSegmentString(segment)+" != null) ? "+"cpu."+Processor.getSegmentString(segment) + ".getBase():0)");
             if (base != -1)
                 b.append("+");
         }
@@ -223,7 +236,7 @@ public class Pointer
             b.append(String.format("+cpu.regs[%d].get32()*%d",index, scale));
         if (offset != 0)
             b.append(String.format("+0x%08x", offset));
-        else if ((seg == null) && (base == -1) && (scale == 0))
+        else if ((segment == -1) && (base == -1) && (scale == 0))
             b.append("0x0");
         return b.toString();
     }

@@ -14,6 +14,12 @@ public class pop_o32_rCXr9 extends Executable
         super(blockStart, parent);
     }
 
+
+    public pop_o32_rCXr9(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_ecx.set32(cpu.pop32());

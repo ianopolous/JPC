@@ -14,6 +14,12 @@ public class leave_o32 extends Executable
         super(blockStart, parent);
     }
 
+
+    public leave_o32(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.ss.getDefaultSizeFlag())

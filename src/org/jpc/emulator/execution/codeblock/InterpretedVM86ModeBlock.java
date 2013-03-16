@@ -39,12 +39,16 @@ public class InterpretedVM86ModeBlock implements Virtual8086ModeCodeBlock
             return ret;
         } catch (ProcessorException e)
         {
-            if (current.next != null) // branches have already updated eip
-                cpu.eip += current.delta;
-            else
-                cpu.eip -= current.x86Length;
+            cpu.eip += current.delta;
+            if (current.next == null) // branches have already updated eip
+                cpu.eip -= getX86Length(); // so eip points at the branch that barfed
             if (!e.pointsToSelf())
-                cpu.eip += current.x86Length;
+            {
+                if (current.next == null)
+                    cpu.eip += getX86Length() - current.delta;
+                else
+                    cpu.eip += current.next.delta - current.delta;
+            }
 
             cpu.handleVirtual8086ModeException(e);
             return Branch.Exception;

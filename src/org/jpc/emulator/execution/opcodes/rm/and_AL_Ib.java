@@ -16,6 +16,13 @@ public class and_AL_Ib extends Executable
         immb = (byte)parent.operand[1].lval;
     }
 
+
+    public and_AL_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.of = cpu.af = cpu.cf = false;

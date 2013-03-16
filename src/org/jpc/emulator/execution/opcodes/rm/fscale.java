@@ -14,6 +14,12 @@ public class fscale extends Executable
         super(blockStart, parent);
     }
 
+
+    public fscale(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.fpu.setST(0, Math.scalb(cpu.fpu.ST(0), (int)cpu.fpu.ST(1)));

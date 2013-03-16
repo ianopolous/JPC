@@ -18,6 +18,14 @@ public class mov_Ew_Iw extends Executable
         immw = (short)parent.operand[1].lval;
     }
 
+
+    public mov_Ew_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Ew(modrm);
+        immw = Modrm.Iw(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

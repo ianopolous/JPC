@@ -16,6 +16,13 @@ public class cmp_AL_Ib extends Executable
         immb = (byte)parent.operand[1].lval;
     }
 
+
+    public cmp_AL_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.flagOp1 = (byte)cpu.r_al.get8();

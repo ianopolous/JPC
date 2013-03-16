@@ -16,6 +16,13 @@ public class mov_rAX_Ow_mem extends Executable
         op2 = new Pointer(parent.operand[1], parent.adr_mode);
     }
 
+
+    public mov_rAX_Ow_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op2 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_eax.set16((short)op2.get16(cpu));

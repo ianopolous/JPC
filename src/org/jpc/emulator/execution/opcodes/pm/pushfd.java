@@ -14,6 +14,12 @@ public class pushfd extends Executable
         super(blockStart, parent);
     }
 
+
+    public pushfd(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.push32(~0x30000 & cpu.getEFlags());

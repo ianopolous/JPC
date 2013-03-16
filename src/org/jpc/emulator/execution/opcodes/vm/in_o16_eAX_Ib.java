@@ -16,6 +16,13 @@ public class in_o16_eAX_Ib extends Executable
         immb = (byte)parent.operand[1].lval;
     }
 
+
+    public in_o16_eAX_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.checkIOPermissions16(0xFF&immb))

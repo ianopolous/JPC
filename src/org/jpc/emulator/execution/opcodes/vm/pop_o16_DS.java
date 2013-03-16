@@ -14,6 +14,12 @@ public class pop_o16_DS extends Executable
         super(blockStart, parent);
     }
 
+
+    public pop_o16_DS(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.ds(cpu.pop16());

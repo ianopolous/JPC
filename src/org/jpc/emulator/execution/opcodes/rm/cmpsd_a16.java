@@ -16,6 +16,13 @@ public class cmpsd_a16 extends Executable
         segIndex = Processor.getSegmentIndex(parent.getSegment());
     }
 
+
+    public cmpsd_a16(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        segIndex = Processor.getSegmentIndex(parent.getSegment());
+    }
+
     public Branch execute(Processor cpu)
     {
         Segment seg = cpu.segs[segIndex];

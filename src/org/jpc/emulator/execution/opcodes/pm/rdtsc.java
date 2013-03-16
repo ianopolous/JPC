@@ -14,6 +14,12 @@ public class rdtsc extends Executable
         super(blockStart, parent);
     }
 
+
+    public rdtsc(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if ((cpu.getCPL() == 0) || ((cpu.getCR4() & 0x4) == 0)) {

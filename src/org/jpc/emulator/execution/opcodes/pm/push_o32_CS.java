@@ -14,6 +14,12 @@ public class push_o32_CS extends Executable
         super(blockStart, parent);
     }
 
+
+    public push_o32_CS(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.push32(0xFFFF&cpu.cs());

@@ -14,6 +14,12 @@ public class pause extends Executable
         super(blockStart, parent);
     }
 
+
+    public pause(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         // hint that this is a spinloop

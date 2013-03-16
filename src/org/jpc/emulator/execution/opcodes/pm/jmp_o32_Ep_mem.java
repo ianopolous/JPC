@@ -8,7 +8,8 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class jmp_o32_Ep_mem extends Executable
 {
-        final Pointer seg, offset;    final int blockLength;
+        final Pointer offset;
+    final int blockLength;
     final int instructionLength;
 
     public jmp_o32_Ep_mem(int blockStart, Instruction parent)
@@ -17,13 +18,20 @@ public class jmp_o32_Ep_mem extends Executable
         blockLength = parent.x86Length+(int)parent.eip-blockStart;
         instructionLength = parent.x86Length;
         offset = new Pointer(parent.operand[0], parent.adr_mode);
-        parent.operand[0].lval += 4;
-        seg = new Pointer(parent.operand[0], parent.adr_mode);
+    }
+
+
+    public jmp_o32_Ep_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        offset = Modrm.getPointer(modrm);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
     }
 
     public Branch execute(Processor cpu)
     {
-        int cs = seg.get16(cpu);
+        int cs = offset.get16(cpu, 4);
         int targetEip = offset.get32(cpu);
         cpu.eip += blockLength;
         cpu.jumpFar_pm(cs, targetEip);

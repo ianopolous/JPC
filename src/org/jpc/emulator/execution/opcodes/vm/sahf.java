@@ -14,6 +14,12 @@ public class sahf extends Executable
         super(blockStart, parent);
     }
 
+
+    public sahf(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         byte fx  = (byte)(cpu.r_ah.get8());

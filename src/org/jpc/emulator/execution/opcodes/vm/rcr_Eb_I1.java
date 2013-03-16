@@ -16,6 +16,13 @@ public class rcr_Eb_I1 extends Executable
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
     }
 
+
+    public rcr_Eb_I1(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Eb(modrm);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

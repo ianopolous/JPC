@@ -14,6 +14,12 @@ public class cdq extends Executable
         super(blockStart, parent);
     }
 
+
+    public cdq(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.r_eax.get32() < 0)

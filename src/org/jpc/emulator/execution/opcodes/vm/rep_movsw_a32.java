@@ -16,6 +16,13 @@ public class rep_movsw_a32 extends Executable
         segIndex = Processor.getSegmentIndex(parent.getSegment());
     }
 
+
+    public rep_movsw_a32(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        segIndex = Processor.getSegmentIndex(parent.getSegment());
+    }
+
     public Branch execute(Processor cpu)
     {
         Segment seg = cpu.segs[segIndex];

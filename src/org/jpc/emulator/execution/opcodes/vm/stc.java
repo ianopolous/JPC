@@ -14,6 +14,12 @@ public class stc extends Executable
         super(blockStart, parent);
     }
 
+
+    public stc(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.cf(true);

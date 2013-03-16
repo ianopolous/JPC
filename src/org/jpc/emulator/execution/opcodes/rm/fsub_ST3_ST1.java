@@ -14,6 +14,12 @@ public class fsub_ST3_ST1 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fsub_ST3_ST1(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(3);

@@ -14,6 +14,12 @@ public class cmc extends Executable
         super(blockStart, parent);
     }
 
+
+    public cmc(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.cf = cpu.cf() ^ true;

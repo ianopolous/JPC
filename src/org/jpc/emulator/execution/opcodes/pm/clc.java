@@ -14,6 +14,12 @@ public class clc extends Executable
         super(blockStart, parent);
     }
 
+
+    public clc(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.cf = false;

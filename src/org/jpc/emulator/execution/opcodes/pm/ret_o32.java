@@ -18,6 +18,14 @@ public class ret_o32 extends Executable
         instructionLength = parent.x86Length;
     }
 
+
+    public ret_o32(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.eip += blockLength;

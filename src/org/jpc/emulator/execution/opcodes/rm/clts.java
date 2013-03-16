@@ -14,6 +14,12 @@ public class clts extends Executable
         super(blockStart, parent);
     }
 
+
+    public clts(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.setCR0(cpu.getCR0() & ~0x8);

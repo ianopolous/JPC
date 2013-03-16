@@ -14,6 +14,12 @@ public class out_o16_DX_eAX extends Executable
         super(blockStart, parent);
     }
 
+
+    public out_o16_DX_eAX(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.ioports.ioPortWrite16(0xFFFF&cpu.r_dx.get16(), 0xFFFF&cpu.r_eax.get16());

@@ -18,7 +18,6 @@ import static org.jpc.emulator.execution.UCodes.*;
 
 /**
  *
- * @author Chris Dennis
  * @author Ian Preston
  */
 public class Processor implements HardwareComponent
@@ -63,6 +62,38 @@ public class Processor implements HardwareComponent
     public static final int SYSENTER_ESP_MSR = 0x175;
     public static final int SYSENTER_EIP_MSR = 0x176;
     public static final int RPL_MASK = 0xfffc;
+    public static final int EAX_INDEX = 0;
+    public static final int AX_INDEX = 1;
+    public static final int AH_INDEX = 2;
+    public static final int AL_INDEX = 3;
+    public static final int EBX_INDEX = 4;
+    public static final int BX_INDEX = 5;
+    public static final int BH_INDEX = 6;
+    public static final int BL_INDEX = 7;
+    public static final int ECX_INDEX = 8;
+    public static final int CX_INDEX = 9;
+    public static final int CH_INDEX = 10;
+    public static final int CL_INDEX = 11;
+    public static final int EDX_INDEX = 12;
+    public static final int DX_INDEX = 13;
+    public static final int DH_INDEX = 14;
+    public static final int DL_INDEX = 15;
+    public static final int ESI_INDEX = 16;
+    public static final int SI_INDEX = 17;
+    public static final int EDI_INDEX = 18;
+    public static final int DI_INDEX = 19;
+    public static final int ESP_INDEX = 20;
+    public static final int SP_INDEX = 21;
+    public static final int EBP_INDEX = 22;
+    public static final int BP_INDEX = 23;
+    // these coincide with reg encoding of segment
+    public static final int ES_INDEX = 0;
+    public static final int CS_INDEX = 1;
+    public static final int SS_INDEX = 2;
+    public static final int DS_INDEX = 3;
+    public static final int FS_INDEX = 4;
+    public static final int GS_INDEX = 5;
+
 
     private static final boolean[] parityMap;
 
@@ -102,86 +133,107 @@ public class Processor implements HardwareComponent
     public final Reg r_ebp = new Reg("ebp", null);
     public final Reg r_bp = r_ebp;
     public final Reg[] regs = new Reg[] {r_eax, r_ax, r_ah, r_al, r_ebx, r_bx, r_bh, r_bl, r_ecx, r_cx, r_ch, r_cl, r_edx, r_dx, r_dh, r_dl, r_esi, r_si, r_edi, r_di, r_esp, r_sp, r_ebp, r_bp};
-    public final Segment[] segs = new Segment[] {cs, ds, es, fs, gs, ss};
+    public final Segment[] segs = new Segment[6];
 
     private void updateSegmentArray()
     {
-        segs[0]=cs;
-        segs[1]=ds;
-        segs[2]=es;
-        segs[3]=fs;
-        segs[4]=gs;
-        segs[5]=ss;
+        segs[CS_INDEX]=cs;
+        segs[DS_INDEX]=ds;
+        segs[ES_INDEX]=es;
+        segs[FS_INDEX]=fs;
+        segs[GS_INDEX]=gs;
+        segs[SS_INDEX]=ss;
     }
 
     public static int getRegIndex(String name)
     {
         if (name.equals("eax"))
-            return 0;
+            return EAX_INDEX;
         if (name.equals("ax"))
-            return 1;
+            return AX_INDEX;
         if (name.equals("ah"))
-            return 2;
+            return AH_INDEX;
         if (name.equals("al"))
-            return 3;
+            return AL_INDEX;
         if (name.equals("ebx"))
-            return 4;
+            return EBX_INDEX;
         if (name.equals("bx"))
-            return 5;
+            return BX_INDEX;
         if (name.equals("bh"))
-            return 6;
+            return BH_INDEX;
         if (name.equals("bl"))
-            return 7;
+            return BL_INDEX;
         if (name.equals("ecx"))
-            return 8;
+            return ECX_INDEX;
         if (name.equals("cx"))
-            return 9;
+            return CX_INDEX;
         if (name.equals("ch"))
-            return 10;
+            return CH_INDEX;
         if (name.equals("cl"))
-            return 11;
+            return CL_INDEX;
         if (name.equals("edx"))
-            return 12;
+            return EDX_INDEX;
         if (name.equals("dx"))
-            return 13;
+            return DX_INDEX;
         if (name.equals("dh"))
-            return 14;
+            return DH_INDEX;
         if (name.equals("dl"))
-            return 15;
+            return DL_INDEX;
         if (name.equals("esi"))
-            return 16;
+            return ESI_INDEX;
         if (name.equals("si"))
-            return 17;
+            return SI_INDEX;
         if (name.equals("edi"))
-            return 18;
+            return EDI_INDEX;
         if (name.equals("di"))
-            return 19;
+            return DI_INDEX;
         if (name.equals("esp"))
-            return 20;
+            return ESP_INDEX;
         if (name.equals("sp"))
-            return 21;
+            return SP_INDEX;
         if (name.equals("ebp"))
-            return 22;
+            return EBP_INDEX;
         if (name.equals("bp"))
-            return 23;
+            return BP_INDEX;
         throw new IllegalStateException("Unknown Register: "+name);
     }
 
     public static int getSegmentIndex(String seg)
     {
         if (seg.equals("cs"))
-            return 0;
+            return CS_INDEX;
         if (seg.equals("ds"))
-            return 1;
+            return DS_INDEX;
         if (seg.equals("es"))
-            return 2;
+            return ES_INDEX;
         if (seg.equals("fs"))
-            return 3;
+            return FS_INDEX;
         if (seg.equals("gs"))
-            return 4;
+            return GS_INDEX;
         if (seg.equals("ss"))
-            return 5;
+            return SS_INDEX;
         throw new IllegalStateException("Unknown Segment: "+seg);
+    }
+
+    public static String getSegmentString(int index)
+    {
+        switch (index)
+        {
+            case CS_INDEX:
+                return "cs";
+            case DS_INDEX:
+                return "ds";
+            case ES_INDEX:
+                return "es";
+            case FS_INDEX:
+                return "fs";
+            case GS_INDEX:
+                return "gs";
+            case SS_INDEX:
+                return "ss";
+            default:
+                throw new IllegalStateException("Unknown segment index: "+index);
+        }
     }
 
     public static int getCRIndex(String name)
@@ -830,7 +882,7 @@ public class Processor implements HardwareComponent
         if (seg == SegmentFactory.NULL_SEGMENT)
             throw ProcessorException.GENERAL_PROTECTION_0;
         cs = seg;
-        segs[0] = seg;
+        segs[CS_INDEX] = seg;
     }
 
     public int ds()
@@ -849,7 +901,7 @@ public class Processor implements HardwareComponent
     public void ds(Segment seg)
     {
         ds = seg;
-        segs[1] = seg;
+        segs[DS_INDEX] = seg;
     }
 
     public int es()
@@ -868,7 +920,7 @@ public class Processor implements HardwareComponent
     public void es(Segment seg)
     {
         es = seg;
-        segs[2] = seg;
+        segs[ES_INDEX] = seg;
     }
 
     public int fs()
@@ -887,7 +939,7 @@ public class Processor implements HardwareComponent
     public void fs(Segment seg)
     {
         fs = seg;
-        segs[3] = seg;
+        segs[FS_INDEX] = seg;
     }
 
     public int gs()
@@ -906,7 +958,7 @@ public class Processor implements HardwareComponent
     public void gs(Segment seg)
     {
         gs = seg;
-        segs[4] = seg;
+        segs[GS_INDEX] = seg;
     }
 
     public int ss()
@@ -927,7 +979,7 @@ public class Processor implements HardwareComponent
         if (seg == SegmentFactory.NULL_SEGMENT)
             throw ProcessorException.GENERAL_PROTECTION_0;
         ss = seg;
-        segs[5] = seg;
+        segs[SS_INDEX] = seg;
     }
 
     public boolean of()
@@ -1084,6 +1136,7 @@ public class Processor implements HardwareComponent
         ioports = null;
         alignmentChecking = false;
         modelSpecificRegisters = new HashMap<Integer, Long>();
+        updateSegmentArray();
     }
 
     public final boolean checkIOPermissions8(int ioportAddress)

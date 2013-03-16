@@ -14,6 +14,12 @@ public class stosw_a16 extends Executable
         super(blockStart, parent);
     }
 
+
+    public stosw_a16(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         StaticOpcodes.stosw_a16(cpu);

@@ -20,6 +20,15 @@ public class int_Ib extends Executable
         immb = (byte)parent.operand[0].lval;
     }
 
+
+    public int_Ib(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.eip += blockLength;

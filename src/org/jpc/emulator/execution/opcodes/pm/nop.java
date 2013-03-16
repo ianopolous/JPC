@@ -14,6 +14,12 @@ public class nop extends Executable
         super(blockStart, parent);
     }
 
+
+    public nop(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
 

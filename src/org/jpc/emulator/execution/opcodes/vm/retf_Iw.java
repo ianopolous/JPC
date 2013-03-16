@@ -20,6 +20,15 @@ public class retf_Iw extends Executable
         immw = (short)parent.operand[0].lval;
     }
 
+
+    public retf_Iw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immw = Modrm.Iw(input);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         //System.out.printf("Reading far return address from %08x\n", cpu.r_esp.get32());

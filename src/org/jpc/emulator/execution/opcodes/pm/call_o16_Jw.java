@@ -20,6 +20,15 @@ public class call_o16_Jw extends Executable
         jmp = (short)parent.operand[0].lval;
     }
 
+
+    public call_o16_Jw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        jmp = Modrm.Jw(input);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
                 cpu.eip += blockLength;

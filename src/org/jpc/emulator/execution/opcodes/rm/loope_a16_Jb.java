@@ -20,6 +20,15 @@ public class loope_a16_Jb extends Executable
         jmp = (byte)parent.operand[0].lval;
     }
 
+
+    public loope_a16_Jb(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        jmp = Modrm.Jb(input);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.r_cx.set16(cpu.r_cx.get16()-1);

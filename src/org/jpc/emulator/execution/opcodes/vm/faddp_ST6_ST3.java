@@ -14,6 +14,12 @@ public class faddp_ST6_ST3 extends Executable
         super(blockStart, parent);
     }
 
+
+    public faddp_ST6_ST3(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(6);

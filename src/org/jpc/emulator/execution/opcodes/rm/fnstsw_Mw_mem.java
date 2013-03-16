@@ -16,6 +16,13 @@ public class fnstsw_Mw_mem extends Executable
         op1 = new Pointer(parent.operand[0], parent.adr_mode);
     }
 
+
+    public fnstsw_Mw_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
         op1.set16(cpu, (short)cpu.fpu.getStatus());

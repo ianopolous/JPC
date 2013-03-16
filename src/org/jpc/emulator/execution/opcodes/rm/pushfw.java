@@ -14,6 +14,12 @@ public class pushfw extends Executable
         super(blockStart, parent);
     }
 
+
+    public pushfw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.push16((short)cpu.getEFlags());

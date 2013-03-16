@@ -16,6 +16,13 @@ public class out_Ib_AL extends Executable
         immb = (byte)parent.operand[0].lval;
     }
 
+
+    public out_Ib_AL(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        immb = Modrm.Ib(input);
+    }
+
     public Branch execute(Processor cpu)
     {
         cpu.ioports.ioPortWrite8(0xFF&immb, 0xFF&cpu.r_al.get8());

@@ -18,6 +18,14 @@ public class mov_Ed_S extends Executable
         segIndex = Processor.getSegmentIndex(parent.operand[1].toString());
     }
 
+
+    public mov_Ed_S(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Ed(modrm);
+        segIndex = Modrm.reg(modrm);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

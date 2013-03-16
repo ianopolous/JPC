@@ -16,6 +16,13 @@ public class ror_Ew_CL extends Executable
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
     }
 
+
+    public ror_Ew_CL(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Ew(modrm);
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];

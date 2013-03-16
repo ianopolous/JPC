@@ -14,6 +14,12 @@ public class cwd extends Executable
         super(blockStart, parent);
     }
 
+
+    public cwd(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         if ((short)cpu.r_ax.get16() < 0)

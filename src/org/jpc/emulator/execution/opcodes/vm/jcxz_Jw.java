@@ -20,6 +20,15 @@ public class jcxz_Jw extends Executable
         jmp = (short)parent.operand[0].lval;
     }
 
+
+    public jcxz_Jw(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        jmp = Modrm.Jw(input);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         if (cpu.r_cx.get16() == 0)

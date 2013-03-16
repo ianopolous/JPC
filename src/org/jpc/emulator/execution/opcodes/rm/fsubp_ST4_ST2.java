@@ -14,6 +14,12 @@ public class fsubp_ST4_ST2 extends Executable
         super(blockStart, parent);
     }
 
+
+    public fsubp_ST4_ST2(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+    }
+
     public Branch execute(Processor cpu)
     {
         double freg0 = cpu.fpu.ST(4);

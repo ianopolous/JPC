@@ -18,6 +18,14 @@ public class mov_S_Ew_mem extends Executable
         op2 = new Pointer(parent.operand[1], parent.adr_mode);
     }
 
+
+    public mov_S_Ew_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        segIndex = Modrm.reg(modrm);
+        op2 = Modrm.getPointer(prefices, modrm, input);
+    }
+
     public Branch execute(Processor cpu)
     {
         if (segIndex == 0)

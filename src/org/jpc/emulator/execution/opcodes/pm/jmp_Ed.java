@@ -20,6 +20,15 @@ public class jmp_Ed extends Executable
         op1Index = Processor.getRegIndex(parent.operand[0].toString());
     }
 
+
+    public jmp_Ed(int blockStart, int eip, int prefices, PeekableInputStream input)
+    {
+        super(blockStart, eip);
+        op1Index = FastDecoder.Ed(modrm);
+        instructionLength = (int)input.getAddress()-eip;
+        blockLength = (int)input.getAddress()-blockStart;
+    }
+
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
