@@ -232,7 +232,7 @@ public class Opcode
     private String getDirectConstructor()
     {
         StringBuilder b = new StringBuilder();
-        b.append("\n    public "+getName()+"("+DecoderGenerator.args+")\n    {\n        super(blockStart, eip);\n");
+        b.append("\n    public "+getName()+"("+DecoderGenerator.argsDef+")\n    {\n        super(blockStart, eip);\n");
         if (needsModrm())
             b.append("        int modrm = input.readU8();\n");
         if (needsSegment)

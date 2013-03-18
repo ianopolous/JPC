@@ -42,7 +42,7 @@ public class Disassembler
         try
         {
             List<String> names=  new ArrayList();
-            InputStream nameListIn = Disassembler.class.getResourceAsStream("org/jpc/emulator/execution/opcodes/"+mode+"opcodes.txt");
+            InputStream nameListIn = null;//Disassembler.class.getResourceAsStream("org/jpc/emulator/execution/opcodes/"+mode+"opcodes.txt");
             if (nameListIn == null)
             {
                 Enumeration<URL> resources = cl.getResources(path);
@@ -77,7 +77,7 @@ public class Disassembler
                 {
                     Class c = Class.forName(file.replaceAll("/", "."));
                     int slash = file.lastIndexOf("/");
-                    instructions.put(file.substring(slash+1), c.getConstructor(int.class, Instruction.class));
+                    instructions.put(file.substring(slash+1), c.getConstructor(int.class, int.class, int.class, PeekableInputStream.class));
                     //System.out.println("Loaded: "+mode+"/"+file.substring(slash+1));
                 } catch (Exception e)
                 {e.printStackTrace();}
@@ -131,6 +131,43 @@ public class Disassembler
         {e.printStackTrace();}
         catch (InvocationTargetException e) {e.printStackTrace();}
         throw new IllegalStateException("Unimplemented opcode: " + ((mode == 2) ? "PM:": (mode == 1) ? "RM:": "VM:") +in.toString() + ", general pattern: " + in.getGeneralClassName(true, true)+".");
+    }
+
+    public static String getExecutableName(int mode, Instruction in)
+    {
+        String gen = in.getGeneralClassName(false, false);
+        Map<String, Constructor<? extends Executable>> instructions = null;
+        String prefix;
+        switch (mode)
+        {
+            case 1:
+                instructions = rm_instructions;
+                prefix = "org.jpc.emulator.execution.opcodes.rm.";
+                break;
+            case 2:
+                instructions = pm_instructions;
+                prefix = "org.jpc.emulator.execution.opcodes.pm.";
+                break;
+            case 3:
+                instructions = vm_instructions;
+                prefix = "org.jpc.emulator.execution.opcodes.vm.";
+                break;
+            default:
+                throw new IllegalStateException("Unknown mode: " + mode);
+        }
+
+        if (instructions.containsKey(gen))
+            return prefix + gen;
+
+        if (instructions.containsKey(in.getGeneralClassName(true, false)))
+            return prefix + in.getGeneralClassName(true, false);
+        if (instructions.containsKey(in.getGeneralClassName(false, true)))
+            return prefix + in.getGeneralClassName(false, true);
+        if (instructions.containsKey(in.getGeneralClassName(true, true)))
+            return prefix + in.getGeneralClassName(true, true);
+        if (gen.equals("invalid"))
+            return prefix + "InvalidOpcode";
+        return prefix + "UnimplementedOpcode";
     }
 
     public static Executable getEipUpdate(int mode, int blockStart, Instruction prev)

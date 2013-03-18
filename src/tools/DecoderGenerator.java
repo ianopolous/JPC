@@ -7,20 +7,8 @@ import org.jpc.emulator.execution.decoder.*;
 
 public class DecoderGenerator
 {
-    static OpcodeHolder[] pmops = new OpcodeHolder[0x800];
-    static OpcodeHolder[] rmops = new OpcodeHolder[0x800];
-    static OpcodeHolder[] vmops = new OpcodeHolder[0x800];
-    static
-    {
-        for (int i=0; i < pmops.length; i++)
-            pmops[i] = new OpcodeHolder(2);
-        for (int i=0; i < rmops.length; i++)
-            rmops[i] = new OpcodeHolder(1);
-        for (int i=0; i < vmops.length; i++)
-            vmops[i] = new OpcodeHolder(3);
-    }
-
-    public static String args = "int blockStart, int eip, int prefices, PeekableInputStream input";
+    public static String args = "blockStart, eip, prefices, input";
+    public static String argsDef = "int blockStart, int eip, int prefices, PeekableInputStream input";
 
     public static byte[] EMPTY = new byte[28];
 
@@ -28,6 +16,7 @@ public class DecoderGenerator
     {
         Map<Instruction, byte[]> myops = new HashMap();
         List<String> names = new ArrayList();
+        Set<String> namesSet = new HashSet();
         private int modeType;
 
         public OpcodeHolder(int modeType)
@@ -37,42 +26,84 @@ public class DecoderGenerator
 
         public void addOpcode(Instruction in, byte[] raw)
         {
-            try {
-                if (names.contains(Disassembler.getExecutable(modeType, 0, in).getClass().getName()))
-                    return;
-            } catch (Exception s) {return;}
-            names.add(Disassembler.getExecutable(modeType, 0, in).getClass().getName());
+            String name = Disassembler.getExecutableName(modeType, in);
+            //try {
+            //    if (names.contains(name) && !name.contains("Unimplemented")&& !name.contains("Illegal"))
+            //        return;
+            //} catch (Exception s) {return;}
+            names.add(name);
+            namesSet.add(name);
             myops.put(in, raw);
+        }
+
+        public Map<Instruction, byte[]> getReps()
+        {
+            Map<Instruction, byte[]> reps = new HashMap();
+            for (Instruction in: myops.keySet())
+                if (myops.get(in)[0] == (byte)0xF3)
+                    reps.put(in, myops.get(in));
+            return reps;
+        }
+
+        public Map<Instruction, byte[]> getRepnes()
+        {
+            Map<Instruction, byte[]> reps = new HashMap();
+            for (Instruction in: myops.keySet())
+                if (myops.get(in)[0] == (byte)0xF2)
+                    reps.put(in, myops.get(in));
+            return reps;
+        }
+
+        public Map<Instruction, byte[]> getNonreps()
+        {
+            Map<Instruction, byte[]> reps = new HashMap();
+            for (Instruction in: myops.keySet())
+                if ((myops.get(in)[0] != (byte)0xF2) && (myops.get(in)[0] != (byte)0xF3))
+                    reps.put(in, myops.get(in));
+            return reps;
+        }
+
+        public boolean allUnimplemented()
+        {
+            for (String name: names)
+                if (!name.contains("Unimplemented"))
+                    return false;
+            return true;
         }
 
         public String toString()
         {
-            if (myops.size() == 0)
-                return "illegal";
+            if (namesSet.size() == 0)
+                return "null;";
 
             StringBuilder b = new StringBuilder();
-            if (myops.size() == 1)
+            if (namesSet.size() == 1)
             {
                 b.append(new SingleOpcode(names.get(0)));
             }
-            else if (myops.size() == 2)
+            else if (namesSet.size() == 2)
             {
-                String name = names.get(0);
-                if (names.get(1).length() < name.length())
-                    name = names.get(1);
+                String name = null;
+                for (String n: namesSet)
+                {
+                    if (name == null)
+                        name = n;
+                    else if (name.length() > n.length())
+                        name = n;
+                }
                 b.append(new MemoryChooser(name));
             }
             else
-                for (Instruction i: myops.keySet())
+            {
+                if (allUnimplemented())
                 {
-                    try {
-                        b.append(Disassembler.getExecutable(modeType, 0, i).getClass().getName() + " ");
-                    } catch (IllegalStateException s)
-                    {
-                        // add unimplemented exception generator
-                        s.printStackTrace();
-                    }
+                    b.append(new SingleOpcode(names.get(0)));
                 }
+                else
+                {
+                    b.append(new RepChooser(getReps(), getRepnes(), getNonreps(), modeType));
+                }
+            }
             return b.toString().trim();
         }
     }
@@ -81,12 +112,12 @@ public class DecoderGenerator
     {
         public void writeStart(StringBuilder b)
         {
-            b.append("new OpcodeDecoder() {\n   public Executable decodeOpcode("+args+") {\n        ");
+            b.append("new OpcodeDecoder() {\n    public Executable decodeOpcode("+argsDef+") {\n");
         }
 
         public void writeBody(StringBuilder b)
         {
-            b.append("throw new IllegalStateException(\"Illegal Opcode\");");
+            b.append("throw new IllegalStateException(\"Unimplemented Opcode\");");
         }
 
         public void writeEnd(StringBuilder b)
@@ -115,7 +146,108 @@ public class DecoderGenerator
 
         public void writeBody(StringBuilder b)
         {
-            b.append("return new "+classname + "("+args+");\n");
+            b.append("        return new "+classname + "("+args+");\n");
+        }
+    }
+
+    public static class RepChooser extends DecoderTemplate
+    {
+        Map<Instruction, byte[]> reps;
+        Map<Instruction, byte[]> repnes;
+        Map<Instruction, byte[]> normals;
+        int mode;
+
+        public RepChooser(Map<Instruction, byte[]> reps, Map<Instruction, byte[]> repnes, Map<Instruction, byte[]> normals, int mode)
+        {
+            this.reps = reps;
+            this.repnes = repnes;
+            this.normals = normals;
+            this.mode = mode;
+        }
+
+        public void writeBody(StringBuilder b)
+        {
+            if (repnes.size() > 0)
+            {
+                b.append("        if (Prefices.isRepne(prefices)\n        {\n");
+                genericChooser(repnes, mode, b);
+                b.append("        }\n");
+            }
+            if (reps.size() > 0)
+            {
+                b.append("        if (Prefices.isRep(prefices)\n        {\n");
+                genericChooser(reps, mode, b);
+                b.append("        }\n");
+            }
+            genericChooser(normals, mode, b);
+        }
+    }
+
+    public static void genericChooser(Map<Instruction, byte[]> ops, int mode, StringBuilder b)
+    {
+        if (ops.size() == 0)
+            return;
+        if (ops.size() == 1)
+        {
+            for (Instruction in: ops.keySet())
+            {
+                String name = Disassembler.getExecutableName(mode, in);
+                b.append("            return new "+name+"("+args+");\n");
+            }
+            return;
+        }
+        int differentIndex = 0;
+        byte[][] bs = new byte[ops.size()][];
+        int index = 0;
+        for (byte[] bytes: ops.values())
+            bs[index++] = bytes;
+        boolean same = true;
+        while (same)
+        {
+            byte elem = bs[0][differentIndex];
+            for (int i=1; i < bs.length; i++)
+                if (bs[i][differentIndex] != elem)
+                {
+                    same = false;
+                    break;
+                }
+            if (same)
+                differentIndex++;
+        }
+        // if all names are the same, collapse to 1
+        String prevname = null;
+        boolean allSameName = true;
+        for (Instruction in: ops.keySet())
+        {
+            String name = Disassembler.getExecutableName(mode, in);
+            if (prevname == null)
+                prevname = name;
+            else if (prevname.equals(name))
+                continue;
+            else
+            {
+                allSameName = false;
+                break;
+            }
+        }
+        if (allSameName)
+        {
+            b.append("        return new "+prevname+"("+args+");\n");
+        }
+        else
+        {
+            String[] cases = new String[ops.size()];
+            int i = 0;
+            for (Instruction in: ops.keySet())
+            {
+                String name = Disassembler.getExecutableName(mode, in);
+                cases[i++]=String.format("            case 0x%02x", ops.get(in)[differentIndex])+": return new "+name+"("+args+");\n";
+            }
+            b.append("        switch (input.peek()) {\n");
+            Arrays.sort(cases);
+            for (String line: cases)
+                b.append(line);
+            b.append("        }\n");
         }
     }
 
@@ -130,25 +262,39 @@ public class DecoderGenerator
 
         public void writeBody(StringBuilder b)
         {
-            b.append("if (FastDecoder.isMem(source.peek()))\n    return new "+name+"("+args+");\nelse\n    return new "+name+"_mem("+args+");\n");
+            b.append("        if (Modrm.isMem(source.peek()))\n            return new "+name+"("+args+");\n        else\n            return new "+name+"_mem("+args+");\n");
         }
     }
 
     public static void generate()
     {
-        generateRep(32, pmops);
-        generateRep(16, rmops);
-        generateRep(16, vmops);
+        System.out.println("package org.jpc.emulator.decoder;\n\n");
+        System.out.println("public class ExecutableTables {\n");
+        System.out.println("    public static void populateRMOpcodes(OpcodeDecoder[] ops) {\n");
 
-        System.out.println("*************************");
+        OpcodeHolder[] rmops = new OpcodeHolder[0x800];
         for (int i=0; i < rmops.length; i++)
-            System.out.printf("%02x: "+rmops[i]+"\n", i);
-        System.out.println("*************************");
+            rmops[i] = new OpcodeHolder(1);
+        generateRep(16, rmops);
+        for (int i=0; i < rmops.length; i++)
+            System.out.printf("ops[0x%02x] = "+rmops[i]+"\n", i);
+        System.out.println("}\n\n    public static void populatePMOpcodes(OpcodeDecoder[] ops) {\n");
+
+        OpcodeHolder[] pmops = new OpcodeHolder[0x800];
         for (int i=0; i < pmops.length; i++)
-            System.out.printf("%02x: "+pmops[i]+"\n", i);
-        System.out.println("*************************");
+            pmops[i] = new OpcodeHolder(2);
+        generateRep(32, pmops);
+        for (int i=0; i < pmops.length; i++)
+            System.out.printf("ops[0x%02x] = "+pmops[i]+"\n", i);
+        System.out.println("}\n\n    public static void populateVMOpcodes(OpcodeDecoder[] ops) {\n");
+
+        OpcodeHolder[] vmops = new OpcodeHolder[0x800];
         for (int i=0; i < vmops.length; i++)
-            System.out.printf("%02x: "+vmops[i]+"\n", i);
+            vmops[i] = new OpcodeHolder(3);
+        generateRep(16, vmops);
+        for (int i=0; i < vmops.length; i++)
+            System.out.printf("ops[0x%02x] = "+vmops[i]+"\n", i);
+        System.out.println("}\n}\n");
     }
 
     public static void generateRep(int mode, OpcodeHolder[] ops)
@@ -175,7 +321,7 @@ public class DecoderGenerator
                 {
                     for (int opcode = 0; opcode < 256; opcode++)
                     {
-                        if (FastDecoder.isPrefix(opcode))
+                        if (Prefices.isPrefix(opcode))
                             continue;
                         if ((opcode == 0x0f) && ((base & 0x100) == 0))
                             continue;
@@ -196,8 +342,8 @@ public class DecoderGenerator
                             opcodeLength = input.getCounter() - preficesLength;
 
                             // decode operands
-                            Disassembler.disasm_operands(32, input, in);
-                            Disassembler.resolve_operator(32, input, in);
+                            Disassembler.disasm_operands(mode, input, in);
+                            Disassembler.resolve_operator(mode, input, in);
                         } catch (IllegalStateException s) {continue;}
                         int argumentsLength = input.getCounter()-opcodeLength-preficesLength;
                         String[] args = in.getArgsTypes();
@@ -224,8 +370,8 @@ public class DecoderGenerator
                                     Disassembler.get_prefixes(mode, input, modin);
                                     Disassembler.search_table(mode, input, modin);
                                     Disassembler.do_mode(mode, modin);
-                                    Disassembler.disasm_operands(32, input, modin);
-                                    Disassembler.resolve_operator(32, input, modin);
+                                    Disassembler.disasm_operands(mode, input, modin);
+                                    Disassembler.resolve_operator(mode, input, modin);
                                 } catch (IllegalStateException s)
                                 {
                                     x86[opbyte+1] = 0;
@@ -248,7 +394,7 @@ public class DecoderGenerator
                 System.arraycopy(EMPTY, opbyte, x86, opbyte, x86.length-opbyte);
                 x86[opbyte++] = 0x66;
             }
-            System.arraycopy(EMPTY, 0, x86, 0, x86.length);
+            System.arraycopy(EMPTY, originalOpbyte, x86, originalOpbyte, x86.length -originalOpbyte);
             x86[originalOpbyte] = 0x67;
             opbyte = originalOpbyte + 1;
         }

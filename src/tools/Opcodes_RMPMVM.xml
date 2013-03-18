@@ -1,6 +1,12 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="x86optable.xsl" type="text/xsl"?>
 <opcodesnippets>
+  <opcode mnemonic="UnimplementedOpcode" mem="false">
+    <return>Branch.Jmp_Unknown</return>
+    <snippet>        if (true) throw new IllegalStateException("Unimplemented opcode");</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="bt" mem="false">
     <return>Branch.None</return>
     <snippet>        cpu.zf(cpu.zf());
@@ -589,6 +595,7 @@
         cpu.fpu.setST(0, freg1/freg0);</snippet>
     <args size="16">Mw</args>
     <args size="32">Md</args>
+    <args size="64">Mq</args>
   </opcode>
 
   <opcode mnemonic="fiadd">
@@ -615,6 +622,7 @@
         cpu.fpu.setST(0, freg0*freg1);</snippet>
     <args size="16">Mw</args>
     <args size="32">Md</args>
+    <args size="64">Mq</args>
   </opcode>
   
   <opcode mnemonic="fisub">
@@ -1940,6 +1948,7 @@
             if (shift == 1)
                 cpu.of(bit31 ^ bit32);</snippet>
     <args size="32">Ed;I1</args>
+    <args size="32">Ed;Ib</args>
     <args size="32">Ed;CL</args>
   </opcode>
 

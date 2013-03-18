@@ -10,7 +10,8 @@ public class Instruction
     private static Set<String> jmp = new HashSet();
     private static Set<String> jcc = new HashSet();
     private static Set<String> hlt = new HashSet();
-    private static Set<String> repIgnores = new HashSet();
+    private static Set<String> reps = new HashSet();
+    private static Set<String> repnes = new HashSet();
 
     //public static enum Branch {None, T1, T2, Jmp_Unknown, Call, Call_Unknown, Ret, Exception};
 
@@ -51,8 +52,33 @@ public class Instruction
         jcc.add("loope");
         jcc.add("loopnz");
         hlt.add("hlt");
-        repIgnores.add("jb");
-        repIgnores.add("add");
+        reps.add("movsb");
+        reps.add("movsw");
+        reps.add("movsd");
+        reps.add("cmpsb");
+        reps.add("cmpsw");
+        reps.add("cmpsd");
+        reps.add("lodsb");
+        reps.add("lodsw");
+        reps.add("lodsd");
+        reps.add("stosb");
+        reps.add("stosw");
+        reps.add("stosd");
+        reps.add("scasb");
+        reps.add("scasw");
+        reps.add("scasd");
+        reps.add("insb");
+        reps.add("insw");
+        reps.add("insd");
+        reps.add("outsb");
+        reps.add("outsw");
+        reps.add("outsd");
+        repnes.add("cmpsb");
+        repnes.add("cmpsw");
+        repnes.add("cmpsd");
+        repnes.add("scasb");
+        repnes.add("scasw");
+        repnes.add("scasd");
     }
 
     public int x86Length;
@@ -70,10 +96,15 @@ public class Instruction
     public String getGeneralClassName(boolean includeOperandSize, boolean includeAddressSize)
     {
         StringBuffer b = new StringBuffer();
-        if ((pfx.rep != 0) && !repIgnores.contains(operator))
+        if ((pfx.rep != 0) && reps.contains(operator)) // what happens if a scas has a rep and repne prefix...
             b.append("rep_");
-        if ((pfx.repne != 0) && !repIgnores.contains(operator))
-            b.append("repne_");
+        if (pfx.repne != 0)
+        {
+            if (repnes.contains(operator))
+                b.append("repne_");
+            else if (reps.contains(operator))
+                b.append("rep_");
+        }
         b.append(operator);
         if (operator.equals("nop"))
             return b.toString();
@@ -86,7 +117,7 @@ public class Instruction
                 b.append("_"+getOperandType(zygote.operand[i], operand[i]));
         boolean mem = false;
         for (Operand o : operand)
-            if (o.type.equals("OP_MEM"))
+            if ((o.type != null) && o.type.equals("OP_MEM"))
                 mem = true;
         if (mem)
             b.append("_mem");
