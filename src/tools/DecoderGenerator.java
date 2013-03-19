@@ -66,7 +66,15 @@ public class DecoderGenerator
         public boolean hasReps()
         {
             for (String opname: namesSet)
-                if (opname.startsWith("rep"))
+                if (opname.contains("rep"))
+                    return true;
+            return false;
+        }
+
+        public boolean hasUnimplemented()
+        {
+            for (String name: names)
+                if (name.contains("Unimplemented"))
                     return true;
             return false;
         }
@@ -79,6 +87,23 @@ public class DecoderGenerator
             return true;
         }
 
+        public boolean isMem()
+        {
+            if (namesSet.size() > 2)
+                return false;
+            String name = null;
+            for (String s: namesSet)
+            {
+                if (name == null)
+                    name = s;
+                else if ((name + "_mem").equals(s))
+                    return true;
+                else if ((s+"_mem").equals(name))
+                    return true;
+            }
+            return false;
+        }
+
         public String toString()
         {
             if (namesSet.size() == 0)
@@ -89,7 +114,7 @@ public class DecoderGenerator
             {
                 b.append(new SingleOpcode(names.get(0)));
             }
-            else if (namesSet.size() == 2)
+            else if (isMem())
             {
                 String name = null;
                 for (String n: namesSet)
@@ -189,14 +214,14 @@ public class DecoderGenerator
             if (!normalNames.containsAll(repneNames))
                 if (repnes.size() > 0)
                 {
-                    b.append("        if (Prefices.isRepne(prefices)\n        {\n");
+                    b.append("        if (Prefices.isRepne(prefices))\n        {\n");
                     genericChooser(repnes, mode, b);
                     b.append("        }\n");
                 }
             if (!normalNames.containsAll(repNames))
                 if (reps.size() > 0)
                 {
-                    b.append("        if (Prefices.isRep(prefices)\n        {\n");
+                    b.append("        if (Prefices.isRep(prefices))\n        {\n");
                     genericChooser(reps, mode, b);
                     b.append("        }\n");
                 }
@@ -268,7 +293,7 @@ public class DecoderGenerator
             Arrays.sort(cases);
             for (String line: cases)
                 b.append(line);
-            b.append("        }\n");
+            b.append("        }\n        return null;\n");
         }
     }
 
@@ -283,15 +308,19 @@ public class DecoderGenerator
 
         public void writeBody(StringBuilder b)
         {
-            b.append("        if (Modrm.isMem(source.peek()))\n            return new "+name+"("+args+");\n        else\n            return new "+name+"_mem("+args+");\n");
+            b.append("        if (Modrm.isMem(input.peek()))\n            return new "+name+"_mem("+args+");\n        else\n            return new "+name+"("+args+");\n");
         }
     }
 
     public static void generate()
     {
-        System.out.println("package org.jpc.emulator.decoder;\n\n");
-        System.out.println("public class ExecutableTables {\n");
-        System.out.println("    public static void populateRMOpcodes(OpcodeDecoder[] ops) {\n");
+        System.out.println("package org.jpc.emulator.execution.decoder;\n");
+        System.out.println("import org.jpc.emulator.execution.*;");
+        System.out.println("import org.jpc.emulator.execution.opcodes.rm.*;");
+        System.out.println("import org.jpc.emulator.execution.opcodes.pm.*;");
+        System.out.println("import org.jpc.emulator.execution.opcodes.vm.*;\n");
+        System.out.println("public class ExecutableTables {");
+        System.out.println("    public static void populateRMOpcodes(OpcodeDecoder[] ops) {");
 
         OpcodeHolder[] rmops = new OpcodeHolder[0x800];
         for (int i=0; i < rmops.length; i++)
@@ -408,7 +437,7 @@ public class DecoderGenerator
                     base += 0x100; // now do the 0x0f opcodes (2 byte opcodes)
                 }
 
-                if (x86[0] == (byte)0x67)
+                if (x86[originalOpbyte] == (byte)0x67)
                     opbyte = originalOpbyte + 1;
                 else
                     opbyte = originalOpbyte;
