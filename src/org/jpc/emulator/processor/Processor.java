@@ -769,17 +769,17 @@ public class Processor implements HardwareComponent
 
     public void setSeg(int index, int value)
     {
-        if (index == 0)
+        if (index == CS_INDEX)
             cs(value);
-        else if (index == 1)
+        else if (index == DS_INDEX)
             ds(value);
-        else if (index == 2)
+        else if (index == ES_INDEX)
             es(value);
-        else if (index == 3)
+        else if (index == FS_INDEX)
             fs(value);
-        else if (index == 4)
+        else if (index == GS_INDEX)
             gs(value);
-        else if (index == 5)
+        else if (index == SS_INDEX)
             ss(value);
         else throw new IllegalStateException("Unknown Segment index: "+index);
     }

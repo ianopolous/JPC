@@ -333,7 +333,7 @@ public class DecoderGenerator
         OpcodeHolder[] pmops = new OpcodeHolder[0x800];
         for (int i=0; i < pmops.length; i++)
             pmops[i] = new OpcodeHolder(2);
-        generateRep(32, pmops);
+        generateRep(16, pmops);
         for (int i=0; i < pmops.length; i++)
             System.out.printf("ops[0x%02x] = "+pmops[i]+"\n", i);
         System.out.println("}\n\n    public static void populateVMOpcodes(OpcodeDecoder[] ops) {\n");
@@ -371,6 +371,8 @@ public class DecoderGenerator
                 {
                     for (int opcode = 0; opcode < 256; opcode++)
                     {
+                        if (opcode == 0xba)
+                            System.out.printf("");
                         if (Prefices.isPrefix(opcode))
                             continue;
                         if ((opcode == 0x0f) && ((base & 0x100) == 0))

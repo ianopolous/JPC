@@ -13,8 +13,7 @@ public class mov_o32_Od_rAX extends Executable
     public mov_o32_Od_rAX(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        int modrm = input.readU8();
-        op1 = Modrm.getPointer(prefices, modrm, input);
+        op1 = Modrm.Od(prefices, input);
     }
 
     public Branch execute(Processor cpu)

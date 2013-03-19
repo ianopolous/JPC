@@ -43,7 +43,7 @@ public class Modrm
     {
         if ((prefices & 1) != 0)
             return in.read32();
-        return in.read16();
+        return in.readU16();
     }
 
     public static int jmpCs(PeekableInputStream in)
@@ -102,6 +102,30 @@ public class Modrm
         return regIndices[16 + ((modrm >> 3) & 7)];
     }
 
+    public static Pointer Ob(int prefices, PeekableInputStream input)
+    {
+        if (Prefices.isAddr16(prefices))
+            return new Pointer(-1, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
+        else
+            return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
+    }
+
+    public static Pointer Ow(int prefices, PeekableInputStream input)
+    {
+        if (Prefices.isAddr16(prefices))
+            return new Pointer(-1, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
+        else
+            return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
+    }
+
+    public static Pointer Od(int prefices, PeekableInputStream input)
+    {
+        if (Prefices.isAddr16(prefices))
+            return new Pointer(-1, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
+        else
+            return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
+    }
+
     public static Pointer getPointer(int prefices, int modrm, PeekableInputStream input)
     {
         if ((prefices & 2) != 0)
@@ -113,317 +137,317 @@ public class Modrm
     {
         if (modrm < 0x40) {
             switch (modrm & 7) {
-                case 0x00: return Ptr16_00(input);
-                case 0x01: return Ptr16_01(input);
-                case 0x02: return Ptr16_02(input);
-                case 0x03: return Ptr16_03(input);
-                case 0x04: return Ptr16_04(input);
-                case 0x05: return Ptr16_05(input);
-                case 0x06: return Ptr16_06(input);
-                case 0x07: return Ptr16_07(input);
+                case 0x00: return Ptr16_00(input, prefices);
+                case 0x01: return Ptr16_01(input, prefices);
+                case 0x02: return Ptr16_02(input, prefices);
+                case 0x03: return Ptr16_03(input, prefices);
+                case 0x04: return Ptr16_04(input, prefices);
+                case 0x05: return Ptr16_05(input, prefices);
+                case 0x06: return Ptr16_06(input, prefices);
+                case 0x07: return Ptr16_07(input, prefices);
             }
         } else if (modrm<0x80) {
             switch (modrm & 7) {
-                case 0x00: return Ptr16_40(input);
-                case 0x01: return Ptr16_41(input);
-                case 0x02: return Ptr16_42(input);
-                case 0x03: return Ptr16_43(input);
-                case 0x04: return Ptr16_44(input);
-                case 0x05: return Ptr16_45(input);
-                case 0x06: return Ptr16_46(input);
-                case 0x07: return Ptr16_47(input);
+                case 0x00: return Ptr16_40(input, prefices);
+                case 0x01: return Ptr16_41(input, prefices);
+                case 0x02: return Ptr16_42(input, prefices);
+                case 0x03: return Ptr16_43(input, prefices);
+                case 0x04: return Ptr16_44(input, prefices);
+                case 0x05: return Ptr16_45(input, prefices);
+                case 0x06: return Ptr16_46(input, prefices);
+                case 0x07: return Ptr16_47(input, prefices);
             }
         } else {
             switch (modrm & 7) {
-                case 0x00: return Ptr16_80(input);
-                case 0x01: return Ptr16_81(input);
-                case 0x02: return Ptr16_82(input);
-                case 0x03: return Ptr16_83(input);
-                case 0x04: return Ptr16_84(input);
-                case 0x05: return Ptr16_85(input);
-                case 0x06: return Ptr16_86(input);
-                case 0x07: return Ptr16_87(input);
+                case 0x00: return Ptr16_80(input, prefices);
+                case 0x01: return Ptr16_81(input, prefices);
+                case 0x02: return Ptr16_82(input, prefices);
+                case 0x03: return Ptr16_83(input, prefices);
+                case 0x04: return Ptr16_84(input, prefices);
+                case 0x05: return Ptr16_85(input, prefices);
+                case 0x06: return Ptr16_86(input, prefices);
+                case 0x07: return Ptr16_87(input, prefices);
             }
         }
         return null;
     }
 
-    private static Pointer Ptr16_00(PeekableInputStream input)
+    private static Pointer Ptr16_00(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BX_INDEX, Processor.SI_INDEX, 1, 0, Processor.DS_INDEX, false);
+        return new Pointer(Processor.BX_INDEX, Processor.SI_INDEX, 1, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_01(PeekableInputStream input)
+    private static Pointer Ptr16_01(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BX_INDEX, Processor.DI_INDEX, 1, 0, Processor.DS_INDEX, false);
+        return new Pointer(Processor.BX_INDEX, Processor.DI_INDEX, 1, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_02(PeekableInputStream input)
+    private static Pointer Ptr16_02(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BP_INDEX, Processor.SI_INDEX, 1, 0, Processor.SS_INDEX, false);
+        return new Pointer(Processor.BP_INDEX, Processor.SI_INDEX, 1, 0, Prefices.getSegment(prefices, Processor.SS_INDEX), false);
     }
 
-    private static Pointer Ptr16_03(PeekableInputStream input)
+    private static Pointer Ptr16_03(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BP_INDEX, Processor.DI_INDEX, 1, 0, Processor.SS_INDEX, false);
+        return new Pointer(Processor.BP_INDEX, Processor.DI_INDEX, 1, 0, Prefices.getSegment(prefices, Processor.SS_INDEX), false);
     }
 
-    private static Pointer Ptr16_04(PeekableInputStream input)
+    private static Pointer Ptr16_04(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.SI_INDEX, -1, 0, 0, Processor.DS_INDEX, false);
+        return new Pointer(Processor.SI_INDEX, -1, 0, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_05(PeekableInputStream input)
+    private static Pointer Ptr16_05(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.DI_INDEX, -1, 0, 0, Processor.DS_INDEX, false);
+        return new Pointer(Processor.DI_INDEX, -1, 0, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_06(PeekableInputStream input)
+    private static Pointer Ptr16_06(PeekableInputStream input, int prefices)
     {
-        return new Pointer(-1, -1, 0, input.readU16(), Processor.DS_INDEX, false);
+        return new Pointer(-1, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_07(PeekableInputStream input)
+    private static Pointer Ptr16_07(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BX_INDEX, -1, -1, 0, Processor.DS_INDEX, false);
+        return new Pointer(Processor.BX_INDEX, -1, 0, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_40(PeekableInputStream input)
+    private static Pointer Ptr16_40(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BX_INDEX, Processor.SI_INDEX, 1, input.read8(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.BX_INDEX, Processor.SI_INDEX, 1, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_41(PeekableInputStream input)
+    private static Pointer Ptr16_41(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BX_INDEX, Processor.DI_INDEX, 1, input.read8(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.BX_INDEX, Processor.DI_INDEX, 1, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_42(PeekableInputStream input)
+    private static Pointer Ptr16_42(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BP_INDEX, Processor.SI_INDEX, 1, input.read8(), Processor.SS_INDEX, false);
+        return new Pointer(Processor.BP_INDEX, Processor.SI_INDEX, 1, input.read8(), Prefices.getSegment(prefices, Processor.SS_INDEX), false);
     }
 
-    private static Pointer Ptr16_43(PeekableInputStream input)
+    private static Pointer Ptr16_43(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BP_INDEX, Processor.DI_INDEX, 1, input.read8(), Processor.SS_INDEX, false);
+        return new Pointer(Processor.BP_INDEX, Processor.DI_INDEX, 1, input.read8(), Prefices.getSegment(prefices, Processor.SS_INDEX), false);
     }
 
-    private static Pointer Ptr16_44(PeekableInputStream input)
+    private static Pointer Ptr16_44(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.SI_INDEX, -1, 0, input.read8(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.SI_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_45(PeekableInputStream input)
+    private static Pointer Ptr16_45(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.DI_INDEX, -1, 0, input.read8(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.DI_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_46(PeekableInputStream input)
+    private static Pointer Ptr16_46(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BP_INDEX, -1, 0, input.read8(), Processor.SS_INDEX, false);
+        return new Pointer(Processor.BP_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.SS_INDEX), false);
     }
 
-    private static Pointer Ptr16_47(PeekableInputStream input)
+    private static Pointer Ptr16_47(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BX_INDEX, -1, -1, input.read8(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.BX_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_80(PeekableInputStream input)
+    private static Pointer Ptr16_80(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BX_INDEX, Processor.SI_INDEX, 1, input.readU16(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.BX_INDEX, Processor.SI_INDEX, 1, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_81(PeekableInputStream input)
+    private static Pointer Ptr16_81(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BX_INDEX, Processor.DI_INDEX, 1, input.readU16(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.BX_INDEX, Processor.DI_INDEX, 1, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_82(PeekableInputStream input)
+    private static Pointer Ptr16_82(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BP_INDEX, Processor.SI_INDEX, 1, input.readU16(), Processor.SS_INDEX, false);
+        return new Pointer(Processor.BP_INDEX, Processor.SI_INDEX, 1, input.readU16(), Prefices.getSegment(prefices, Processor.SS_INDEX), false);
     }
 
-    private static Pointer Ptr16_83(PeekableInputStream input)
+    private static Pointer Ptr16_83(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BP_INDEX, Processor.DI_INDEX, 1, input.readU16(), Processor.SS_INDEX, false);
+        return new Pointer(Processor.BP_INDEX, Processor.DI_INDEX, 1, input.readU16(), Prefices.getSegment(prefices, Processor.SS_INDEX), false);
     }
 
-    private static Pointer Ptr16_84(PeekableInputStream input)
+    private static Pointer Ptr16_84(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.SI_INDEX, -1, 0, input.readU16(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.SI_INDEX, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_85(PeekableInputStream input)
+    private static Pointer Ptr16_85(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.DI_INDEX, -1, 0, input.readU16(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.DI_INDEX, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
-    private static Pointer Ptr16_86(PeekableInputStream input)
+    private static Pointer Ptr16_86(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BP_INDEX, -1, 0, input.readU16(), Processor.SS_INDEX, false);
+        return new Pointer(Processor.BP_INDEX, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.SS_INDEX), false);
     }
 
-    private static Pointer Ptr16_87(PeekableInputStream input)
+    private static Pointer Ptr16_87(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.BX_INDEX, -1, -1, input.readU16(), Processor.DS_INDEX, false);
+        return new Pointer(Processor.BX_INDEX, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
     }
 
     static Pointer getPointer32(int prefices, int modrm, PeekableInputStream input)
     {
         if (modrm < 0x40) {
             switch (modrm & 7) {
-                case 0x00: return Ptr32_00(input);
-                case 0x01: return Ptr32_01(input);
-                case 0x02: return Ptr32_02(input);
-                case 0x03: return Ptr32_03(input);
-                case 0x04: return Ptr32_04(input);
-                case 0x05: return Ptr32_05(input);
-                case 0x06: return Ptr32_06(input);
-                case 0x07: return Ptr32_07(input);
+                case 0x00: return Ptr32_00(input, prefices);
+                case 0x01: return Ptr32_01(input, prefices);
+                case 0x02: return Ptr32_02(input, prefices);
+                case 0x03: return Ptr32_03(input, prefices);
+                case 0x04: return Ptr32_04(input, prefices);
+                case 0x05: return Ptr32_05(input, prefices);
+                case 0x06: return Ptr32_06(input, prefices);
+                case 0x07: return Ptr32_07(input, prefices);
             }
         } else if (modrm<0x80) {
             switch (modrm & 7) {
-                case 0x00: return Ptr32_40(input);
-                case 0x01: return Ptr32_41(input);
-                case 0x02: return Ptr32_42(input);
-                case 0x03: return Ptr32_43(input);
-                case 0x04: return Ptr32_44(input);
-                case 0x05: return Ptr32_45(input);
-                case 0x06: return Ptr32_46(input);
-                case 0x07: return Ptr32_47(input);
+                case 0x00: return Ptr32_40(input, prefices);
+                case 0x01: return Ptr32_41(input, prefices);
+                case 0x02: return Ptr32_42(input, prefices);
+                case 0x03: return Ptr32_43(input, prefices);
+                case 0x04: return Ptr32_44(input, prefices);
+                case 0x05: return Ptr32_45(input, prefices);
+                case 0x06: return Ptr32_46(input, prefices);
+                case 0x07: return Ptr32_47(input, prefices);
             }
         } else {
             switch (modrm & 7) {
-                case 0x00: return Ptr32_80(input);
-                case 0x01: return Ptr32_81(input);
-                case 0x02: return Ptr32_82(input);
-                case 0x03: return Ptr32_83(input);
-                case 0x04: return Ptr32_84(input);
-                case 0x05: return Ptr32_85(input);
-                case 0x06: return Ptr32_86(input);
-                case 0x07: return Ptr32_87(input);
+                case 0x00: return Ptr32_80(input, prefices);
+                case 0x01: return Ptr32_81(input, prefices);
+                case 0x02: return Ptr32_82(input, prefices);
+                case 0x03: return Ptr32_83(input, prefices);
+                case 0x04: return Ptr32_84(input, prefices);
+                case 0x05: return Ptr32_85(input, prefices);
+                case 0x06: return Ptr32_86(input, prefices);
+                case 0x07: return Ptr32_87(input, prefices);
             }
         }
         return null;
     }
 
-    private static Pointer Ptr32_00(PeekableInputStream input)
+    private static Pointer Ptr32_00(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EAX_INDEX, -1, 0, 0, Processor.DS_INDEX, true);
+        return new Pointer(Processor.EAX_INDEX, -1, 0, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_01(PeekableInputStream input)
+    private static Pointer Ptr32_01(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.ECX_INDEX, -1, 0, 0, Processor.DS_INDEX, true);
+        return new Pointer(Processor.ECX_INDEX, -1, 0, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_02(PeekableInputStream input)
+    private static Pointer Ptr32_02(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EDX_INDEX, -1, 0, 0, Processor.DS_INDEX, true);
+        return new Pointer(Processor.EDX_INDEX, -1, 0, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_03(PeekableInputStream input)
+    private static Pointer Ptr32_03(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EBX_INDEX, -1, 0, 0, Processor.DS_INDEX, true);
+        return new Pointer(Processor.EBX_INDEX, -1, 0, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_04(PeekableInputStream input)
+    private static Pointer Ptr32_04(PeekableInputStream input, int prefices)
     {
-        return Sib.Ptr32_04(input);
+        return Sib.Ptr32_04(input, prefices);
     }
 
-    private static Pointer Ptr32_05(PeekableInputStream input)
+    private static Pointer Ptr32_05(PeekableInputStream input, int prefices)
     {
-        return new Pointer(-1, -1, 0, input.read32(), Processor.DS_INDEX, true);
+        return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_06(PeekableInputStream input)
+    private static Pointer Ptr32_06(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.ESI_INDEX, -1, 0, 0, Processor.DS_INDEX, true);
+        return new Pointer(Processor.ESI_INDEX, -1, 0, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_07(PeekableInputStream input)
+    private static Pointer Ptr32_07(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EDI_INDEX, -1, 0, 0, Processor.DS_INDEX, true);
+        return new Pointer(Processor.EDI_INDEX, -1, 0, 0, Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_40(PeekableInputStream input)
+    private static Pointer Ptr32_40(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EAX_INDEX, -1, 0, input.read8(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.EAX_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_41(PeekableInputStream input)
+    private static Pointer Ptr32_41(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.ECX_INDEX, -1, 0, input.read8(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.ECX_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_42(PeekableInputStream input)
+    private static Pointer Ptr32_42(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EDX_INDEX, -1, 0, input.read8(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.EDX_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_43(PeekableInputStream input)
+    private static Pointer Ptr32_43(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EBX_INDEX, -1, 0, input.read8(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.EBX_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_44(PeekableInputStream input)
+    private static Pointer Ptr32_44(PeekableInputStream input, int prefices)
     {
-        return Sib.Ptr32_44(input);
+        return Sib.Ptr32_44(input, prefices);
     }
 
-    private static Pointer Ptr32_45(PeekableInputStream input)
+    private static Pointer Ptr32_45(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EBP_INDEX, -1, 0, input.read8(), Processor.SS_INDEX, true);
+        return new Pointer(Processor.EBP_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.SS_INDEX), true);
     }
 
-    private static Pointer Ptr32_46(PeekableInputStream input)
+    private static Pointer Ptr32_46(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.ESI_INDEX, -1, 0, input.read8(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.ESI_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_47(PeekableInputStream input)
+    private static Pointer Ptr32_47(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EDI_INDEX, -1, 0, input.read8(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.EDI_INDEX, -1, 0, input.read8(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_80(PeekableInputStream input)
+    private static Pointer Ptr32_80(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EAX_INDEX, -1, 0, input.read32(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.EAX_INDEX, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_81(PeekableInputStream input)
+    private static Pointer Ptr32_81(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.ECX_INDEX, -1, 0, input.read32(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.ECX_INDEX, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_82(PeekableInputStream input)
+    private static Pointer Ptr32_82(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EDX_INDEX, -1, 0, input.read32(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.EDX_INDEX, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_83(PeekableInputStream input)
+    private static Pointer Ptr32_83(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EBX_INDEX, -1, 0, input.read32(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.EBX_INDEX, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_84(PeekableInputStream input)
+    private static Pointer Ptr32_84(PeekableInputStream input, int prefices)
     {
-        return Sib.Ptr32_84(input);
+        return Sib.Ptr32_84(input, prefices);
     }
 
-    private static Pointer Ptr32_85(PeekableInputStream input)
+    private static Pointer Ptr32_85(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EBP_INDEX, -1, 0, input.read32(), Processor.SS_INDEX, true);
+        return new Pointer(Processor.EBP_INDEX, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.SS_INDEX), true);
     }
 
-    private static Pointer Ptr32_86(PeekableInputStream input)
+    private static Pointer Ptr32_86(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.ESI_INDEX, -1, 0, input.read32(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.ESI_INDEX, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
-    private static Pointer Ptr32_87(PeekableInputStream input)
+    private static Pointer Ptr32_87(PeekableInputStream input, int prefices)
     {
-        return new Pointer(Processor.EDI_INDEX, -1, 0, input.read32(), Processor.DS_INDEX, true);
+        return new Pointer(Processor.EDI_INDEX, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 }

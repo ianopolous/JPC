@@ -8,7 +8,7 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class mov_S_Ed_mem extends Executable
 {
-    final int segIndex;
+    public final int segIndex;
     final Pointer op2;
 
     public mov_S_Ed_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
@@ -21,7 +21,7 @@ public class mov_S_Ed_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        if (segIndex == 0)
+        if (segIndex == Processor.CS_INDEX)
             throw ProcessorException.UNDEFINED;
         cpu.setSeg(segIndex, (short)op2.get32(cpu));
         return Branch.None;

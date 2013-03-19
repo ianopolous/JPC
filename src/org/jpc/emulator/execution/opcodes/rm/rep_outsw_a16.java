@@ -13,7 +13,7 @@ public class rep_outsw_a16 extends Executable
     public rep_outsw_a16(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        segIndex = Modrm.getSegmentIndex(prefices);
+        segIndex = Prefices.getSegment(prefices, Processor.DS_INDEX);
     }
 
     public Branch execute(Processor cpu)

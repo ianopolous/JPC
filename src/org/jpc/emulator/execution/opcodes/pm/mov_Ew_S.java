@@ -9,7 +9,7 @@ import static org.jpc.emulator.processor.Processor.*;
 public class mov_Ew_S extends Executable
 {
     final int op1Index;
-    final int segIndex;
+    public final int segIndex;
 
     public mov_Ew_S(int blockStart, int eip, int prefices, PeekableInputStream input)
     {

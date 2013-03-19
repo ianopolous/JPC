@@ -9,7 +9,7 @@
 
   <opcode mnemonic="InvalidOpcode" mem="false">
     <return>Branch.Jmp_Unknown</return>
-    <snippet>        if (true) throw new IllegalStateException("Unimplemented opcode");</snippet>
+    <snippet>        if (true) throw new IllegalStateException("Invalid opcode");</snippet>
     <args size="0"></args>
   </opcode>
 

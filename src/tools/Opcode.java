@@ -236,7 +236,7 @@ public class Opcode
         if (needsModrm())
             b.append("        int modrm = input.readU8();\n");
         if (needsSegment)
-            b.append("        segIndex = Modrm.getSegmentIndex(prefices);\n");
+            b.append("        segIndex = Prefices.getSegment(prefices, Processor.DS_INDEX);\n");
         if (multiSize)
         {
             //b.append("        size = parent.opr_mode;\n");//parent.operand["+vIndex+"].size;\n");
@@ -267,7 +267,7 @@ public class Opcode
             else if (operand instanceof Operand.DebugReg)
                 return true;
             else if (operand instanceof Operand.Mem)
-                return true;
+                return operand.needsModrm();
             else if (operand instanceof Operand.Reg)
                 return true;
             else if (operand instanceof Operand.Segment)

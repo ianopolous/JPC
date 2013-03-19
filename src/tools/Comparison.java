@@ -29,6 +29,7 @@ public class Comparison
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "doom10m.img"};
+    public static final String[] doom2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom2.img"};
     public static final String[] worms = {"-fda", "floppy.img", "-boot", "fda", "-hda", "worms.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
     public static final String[] linux = {"-hda", "linux.img", "-boot", "hda"};
@@ -41,7 +42,7 @@ public class Comparison
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
 
-    public static String[] pcargs = dslCD;
+    public static String[] pcargs = doom2;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -105,7 +106,11 @@ public class Comparison
 
         Class opts = cl1.loadClass("org.jpc.j2se.Option");
         Method parse = opts.getMethod("parse", String[].class);
-        args = (String[]) parse.invoke(opts, (Object)args);
+        parse.invoke(opts, (Object)args);
+
+        Class opts2 = cl2.loadClass("org.jpc.j2se.Option");
+        Method parse2 = opts2.getMethod("parse", String[].class);
+        parse2.invoke(opts2, (Object)args);
 
         Calendar start1 = Calendar.getInstance();
         Class c1 = cl1.loadClass("org.jpc.emulator.PC");

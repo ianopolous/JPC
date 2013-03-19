@@ -63,10 +63,8 @@ import org.jpc.j2se.VirtualClock;
 import javax.swing.*;
 
 /**
- * This class represents the emulated PC as a whole, and holds references
- * to its main hardware components.
+ * This class represents the emulated PC and holds references to the hardware components.
  * @author Ian Preston
- * @author Chris Dennis
  */
 public class PC {
 
@@ -638,12 +636,12 @@ public class PC {
         {
             PeekableMemoryStream input = new PeekableMemoryStream();
             Instruction in;
-            Executable e;
+            String e;
             if (processor.isProtectedMode()) {
                 if (processor.isVirtual8086Mode()) {
                     input.set(linearAddr, eip);
                     in = Disassembler.disassemble16(input);
-                e = Disassembler.getExecutable(3, 0, in);
+                e = Disassembler.getExecutableName(3, in);
                 } else {
                     input.set(linearAddr, eip);
                     boolean opSize = processor.cs.getDefaultSizeFlag();
@@ -651,16 +649,16 @@ public class PC {
                         in = Disassembler.disassemble32(input);
                     else
                         in = Disassembler.disassemble16(input);
-                    e = Disassembler.getExecutable(2, 0, in);
+                    e = Disassembler.getExecutableName(2, in);
                 }
             } else {
                 input.set(physicalAddr, eip);
                 in = Disassembler.disassemble16(input);
-                e = Disassembler.getExecutable(1, 0, in);
+                e = Disassembler.getExecutableName(1, in);
             }
             b.append(in.toString());
             b.append(" == ");
-            b.append(e.getClass());
+            b.append(e);
             b.append(" == ");
             input.seek(-in.x86Length);
             for(int i=0; i < in.x86Length; i++)

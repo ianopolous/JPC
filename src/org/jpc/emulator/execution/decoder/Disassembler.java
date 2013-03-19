@@ -80,7 +80,7 @@ public class Disassembler
                     instructions.put(file.substring(slash+1), c.getConstructor(int.class, int.class, int.class, PeekableInputStream.class));
                     //System.out.println("Loaded: "+mode+"/"+file.substring(slash+1));
                 } catch (Exception e)
-                {e.printStackTrace();}
+                {}//e.printStackTrace();}
             }   
         } catch (Exception e)
         {e.printStackTrace();}

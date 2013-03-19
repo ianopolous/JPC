@@ -13,7 +13,7 @@ public class rep_movsb_a32 extends Executable
     public rep_movsb_a32(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        segIndex = Modrm.getSegmentIndex(prefices);
+        segIndex = Prefices.getSegment(prefices, Processor.DS_INDEX);
     }
 
     public Branch execute(Processor cpu)

@@ -30,6 +30,11 @@ public abstract class Operand
 
     public abstract String get(int arg);
 
+    public boolean needsModrm()
+    {
+        return false;
+    }
+
     public String setF(int arg)
     {
         throw new IllegalStateException("Unimplemented setF!");
@@ -303,6 +308,17 @@ public abstract class Operand
             this.size = size;
         }
 
+        public boolean needsModrm()
+        {
+            if (type.startsWith("E"))
+                return true;
+            if (type.startsWith("M"))
+                return true;
+            if (type.startsWith("O"))
+                return false;
+            throw new IllegalStateException("Does Mem type "+ type + " need modrm?");
+        }
+
         public int getSize()
         {
             return size;
@@ -320,7 +336,10 @@ public abstract class Operand
 
         public String directConstruct(int arg)
         {
-            return "        op"+arg+" = Modrm.getPointer(prefices, modrm, input);";
+            if (needsModrm())
+                return "        op"+arg+" = Modrm.getPointer(prefices, modrm, input);";
+            else
+                return "        op"+arg+" = Modrm."+type+"(prefices, input);";
         }
 
         public String load(int arg)
@@ -375,7 +394,7 @@ public abstract class Operand
         
         public String define(int arg)
         {
-            return "    final int segIndex;\n";
+            return "    public final int segIndex;\n";
         }
 
         public String construct(int arg)

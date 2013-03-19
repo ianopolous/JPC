@@ -13,8 +13,7 @@ public class mov_o16_rAX_Ow extends Executable
     public mov_o16_rAX_Ow(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        int modrm = input.readU8();
-        op2 = Modrm.getPointer(prefices, modrm, input);
+        op2 = Modrm.Ow(prefices, input);
     }
 
     public Branch execute(Processor cpu)

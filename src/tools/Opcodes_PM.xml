@@ -1423,7 +1423,7 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="mov">
     <return>Branch.None</return>
-    <snippet>        if (segIndex == 0)
+    <snippet>        if (segIndex == Processor.CS_INDEX)
             throw ProcessorException.UNDEFINED;
         $op1.set$cast$op2.get);</snippet>
     <args size="16">S;Ew</args>

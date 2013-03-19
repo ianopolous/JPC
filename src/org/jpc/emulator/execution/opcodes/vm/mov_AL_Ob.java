@@ -13,8 +13,7 @@ public class mov_AL_Ob extends Executable
     public mov_AL_Ob(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        int modrm = input.readU8();
-        op2 = Modrm.getPointer(prefices, modrm, input);
+        op2 = Modrm.Ob(prefices, input);
     }
 
     public Branch execute(Processor cpu)
