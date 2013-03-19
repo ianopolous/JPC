@@ -63,6 +63,14 @@ public class DecoderGenerator
             return reps;
         }
 
+        public boolean hasReps()
+        {
+            for (String opname: namesSet)
+                if (opname.startsWith("rep"))
+                    return true;
+            return false;
+        }
+
         public boolean allUnimplemented()
         {
             for (String name: names)
@@ -167,18 +175,31 @@ public class DecoderGenerator
 
         public void writeBody(StringBuilder b)
         {
-            if (repnes.size() > 0)
-            {
-                b.append("        if (Prefices.isRepne(prefices)\n        {\n");
-                genericChooser(repnes, mode, b);
-                b.append("        }\n");
-            }
-            if (reps.size() > 0)
-            {
-                b.append("        if (Prefices.isRep(prefices)\n        {\n");
-                genericChooser(reps, mode, b);
-                b.append("        }\n");
-            }
+            Set<String> repNames = new HashSet<String>();
+            for (Instruction in: reps.keySet())
+                repNames.add(Disassembler.getExecutableName(mode, in));
+            Set<String> repneNames = new HashSet<String>();
+            for (Instruction in: repnes.keySet())
+                repneNames.add(Disassembler.getExecutableName(mode, in));
+            Set<String> normalNames = new HashSet<String>();
+            for (Instruction in: normals.keySet())
+                normalNames.add(Disassembler.getExecutableName(mode, in));
+
+            // only add rep clauses if rep name sets are different to normal name set
+            if (!normalNames.containsAll(repneNames))
+                if (repnes.size() > 0)
+                {
+                    b.append("        if (Prefices.isRepne(prefices)\n        {\n");
+                    genericChooser(repnes, mode, b);
+                    b.append("        }\n");
+                }
+            if (!normalNames.containsAll(repNames))
+                if (reps.size() > 0)
+                {
+                    b.append("        if (Prefices.isRep(prefices)\n        {\n");
+                    genericChooser(reps, mode, b);
+                    b.append("        }\n");
+                }
             genericChooser(normals, mode, b);
         }
     }
