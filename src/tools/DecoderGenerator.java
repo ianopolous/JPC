@@ -1,6 +1,5 @@
 package tools;
 
-import java.io.*;
 import java.util.*;
 
 import org.jpc.emulator.execution.decoder.*;
@@ -320,44 +319,37 @@ public class DecoderGenerator
         System.out.println("import org.jpc.emulator.execution.opcodes.pm.*;");
         System.out.println("import org.jpc.emulator.execution.opcodes.vm.*;\n");
         System.out.println("public class ExecutableTables {");
-        System.out.println("    public static void populateRMOpcodes(OpcodeDecoder[] ops) {");
 
-        OpcodeHolder[] rmops = new OpcodeHolder[0x800];
-        for (int i=0; i < rmops.length; i++)
-            rmops[i] = new OpcodeHolder(1);
-        generateRep(16, rmops);
-        for (int i=0; i < rmops.length; i++)
-            System.out.printf("ops[0x%02x] = "+rmops[i]+"\n", i);
-        System.out.println("}\n\n    public static void populatePMOpcodes(OpcodeDecoder[] ops) {\n");
+        generateMode(1, "RM");
+        generateMode(2, "PM");
+        generateMode(3, "VM");
 
-        OpcodeHolder[] pmops = new OpcodeHolder[0x800];
-        for (int i=0; i < pmops.length; i++)
-            pmops[i] = new OpcodeHolder(2);
-        generateRep(16, pmops);
-        for (int i=0; i < pmops.length; i++)
-            System.out.printf("ops[0x%02x] = "+pmops[i]+"\n", i);
-        System.out.println("}\n\n    public static void populateVMOpcodes(OpcodeDecoder[] ops) {\n");
+        System.out.println("}\n");
+    }
 
-        OpcodeHolder[] vmops = new OpcodeHolder[0x800];
-        for (int i=0; i < vmops.length; i++)
-            vmops[i] = new OpcodeHolder(3);
-        generateRep(16, vmops);
-        for (int i=0; i < vmops.length; i++)
-            System.out.printf("ops[0x%02x] = "+vmops[i]+"\n", i);
-        System.out.println("}\n}\n");
+    public static void generateMode(int modeType, String mode)
+    {
+        System.out.println("    public static void populate"+mode+"Opcodes(OpcodeDecoder[] ops) {\n");
+        OpcodeHolder[] ops = new OpcodeHolder[0x800];
+        for (int i=0; i < ops.length; i++)
+            ops[i] = new OpcodeHolder(modeType);
+        generateRep(16, ops);
+        for (int i=0; i < ops.length; i++)
+            System.out.printf("ops[0x%02x] = "+ops[i]+"\n", i);
+        System.out.println("}\n\n");
     }
 
     public static void generateRep(int mode, OpcodeHolder[] ops)
     {
         byte[] x86 = new byte[28];
-        generateMode(mode, x86, 0, ops);
+        generateAll(mode, x86, 0, ops);
         x86[0] = (byte)0xF2;
-        generateMode(mode, x86, 1, ops);
+        generateAll(mode, x86, 1, ops);
         x86[0] = (byte)0xF3;
-        generateMode(mode, x86, 1, ops);
+        generateAll(mode, x86, 1, ops);
     }
 
-    public static void generateMode(int mode, byte[] x86, int opbyte, OpcodeHolder[] ops)
+    public static void generateAll(int mode, byte[] x86, int opbyte, OpcodeHolder[] ops)
     {
         Disassembler.ByteArrayPeekStream input = new Disassembler.ByteArrayPeekStream(x86);
 
@@ -371,8 +363,6 @@ public class DecoderGenerator
                 {
                     for (int opcode = 0; opcode < 256; opcode++)
                     {
-                        if (opcode == 0xba)
-                            System.out.printf("");
                         if (Prefices.isPrefix(opcode))
                             continue;
                         if ((opcode == 0x0f) && ((base & 0x100) == 0))
@@ -399,12 +389,7 @@ public class DecoderGenerator
                         } catch (IllegalStateException s) {continue;}
                         int argumentsLength = input.getCounter()-opcodeLength-preficesLength;
                         String[] args = in.getArgsTypes();
-                        if (argumentsLength == 0)
-                        {
-                            // single byte opcode
-                            ops[base + opcode].addOpcode(in, x86.clone());
-                        }
-                        else if ((args.length == 1) && (immediates.contains(args[0])))
+                        if ((args.length == 1) && (immediates.contains(args[0])))
                         {
                             // don't enumerate immediates
                             ops[base + opcode].addOpcode(in, x86.clone());
