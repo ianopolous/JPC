@@ -286,7 +286,15 @@ public class DecoderGenerator
             for (Instruction in: ops.keySet())
             {
                 String name = Disassembler.getExecutableName(mode, in);
-                cases[i++]=String.format("            case 0x%02x", ops.get(in)[differentIndex])+": return new "+name+"("+args+");\n";
+                String[] argTypes = in.getArgsTypes();
+                boolean consumesModrm = false;
+                for (String arg: argTypes)
+                    if (!Operand.segs.containsKey(arg) && !Operand.reg8.containsKey(arg) && !Operand.reg16.containsKey(arg) && !Operand.reg16only.containsKey(arg))
+                        consumesModrm = true;
+                if (!consumesModrm && !name.contains("Unimplemented") && !name.contains("Illegal")) // has zero args, but uses modrm as opcode extension
+                    cases[i++]=String.format("            case 0x%02x", ops.get(in)[differentIndex])+": input.read8(); return new "+name+"("+args+");\n";
+                else
+                    cases[i++]=String.format("            case 0x%02x", ops.get(in)[differentIndex])+": return new "+name+"("+args+");\n";
             }
             b.append("        switch (input.peek()) {\n");
             Arrays.sort(cases);

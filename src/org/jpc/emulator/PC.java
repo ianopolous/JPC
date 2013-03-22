@@ -823,7 +823,8 @@ public class PC {
         try
         {
             for (int i = 0; i < 100; i++)
-            {
+            {if (processor.getInstructionPointer()==0x10217f)
+                System.out.printf("");
                 int block= linearAddr.executeProtected(processor, processor.getInstructionPointer());
                 x86Count += block;
                 clockx86Count += block;

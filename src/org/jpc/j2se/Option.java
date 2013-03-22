@@ -9,7 +9,7 @@ public abstract class Option {
 
     public static final Opt config = opt("config"); // This one is special...
 
-    public static final Switch track_writes = createSwitch("track-writes");
+    public static final Switch track_writes = createSwitch("track-writes"); // needed to use -mem with compare
     public static final Switch debug_blocks = createSwitch("debug-blocks");
     public static final Switch log_disam = createSwitch("log-disam");
     public static final Switch log_disam_addresses = createSwitch("log-disam-addresses");

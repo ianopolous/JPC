@@ -9,14 +9,14 @@ import static org.jpc.emulator.processor.Processor.*;
 public class wait extends Executable
 {
 
-    public wait(int blockStart, Instruction parent)
+    public wait(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
-        super(blockStart, parent);
+        super(blockStart, eip);
     }
 
     public Branch execute(Processor cpu)
     {
-        cpu.fpu.checkExceptions();
+            cpu.fpu.checkExceptions();
         return Branch.None;
     }
 

@@ -107,7 +107,7 @@ public class Modrm
         if (Prefices.isAddr16(prefices))
             return new Pointer(-1, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
         else
-            return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
+            return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
     public static Pointer Ow(int prefices, PeekableInputStream input)
@@ -115,7 +115,7 @@ public class Modrm
         if (Prefices.isAddr16(prefices))
             return new Pointer(-1, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
         else
-            return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
+            return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
     public static Pointer Od(int prefices, PeekableInputStream input)
@@ -123,7 +123,7 @@ public class Modrm
         if (Prefices.isAddr16(prefices))
             return new Pointer(-1, -1, 0, input.readU16(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
         else
-            return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), false);
+            return new Pointer(-1, -1, 0, input.read32(), Prefices.getSegment(prefices, Processor.DS_INDEX), true);
     }
 
     public static Pointer getPointer(int prefices, int modrm, PeekableInputStream input)

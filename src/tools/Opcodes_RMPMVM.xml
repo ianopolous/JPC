@@ -1422,6 +1422,12 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="wait">
+    <return>Branch.None</return>
+    <snippet>            cpu.fpu.checkExceptions();</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="mul">
     <return>Branch.None</return>
     <snippet>            cpu.af = false;

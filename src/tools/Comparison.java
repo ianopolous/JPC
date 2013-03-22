@@ -28,11 +28,11 @@ public class Comparison
     public static final boolean compareStack = true;
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
-    public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "doom10m.img"};
+    public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom10m.img"};
     public static final String[] doom2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom2.img"};
     public static final String[] worms = {"-fda", "floppy.img", "-boot", "fda", "-hda", "worms.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
-    public static final String[] linux = {"-hda", "linux.img", "-boot", "hda"};
+    public static final String[] linux = {"-hda", "../../tmpdrives/linux.img", "-boot", "hda"};
     public static final String[] bsd = {"-hda", "../../tmpdrives/netbsd.img", "-boot", "hda"};
     public static final String[] mosa = {"-hda", "mosa-project.img", "-boot", "hda"};
     public static final String[] dsl = {"-hda", "dsl-desktop-demo2.img", "-boot", "hda"};
@@ -42,7 +42,7 @@ public class Comparison
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
 
-    public static String[] pcargs = doom2;
+    public static String[] pcargs = linux;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -131,6 +131,7 @@ public class Comparison
         Method setState1 = c1.getMethod("setState", int[].class);
         Method execute1 = c1.getMethod("executeBlock");
         Method dirty1 = c1.getMethod("getDirtyPages", Set.class);
+        Method dirty2 = c2.getMethod("getDirtyPages", Set.class);
         Method state2 = c2.getMethod("getState");
         Method execute2 = c2.getMethod("executeBlock");
         Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
@@ -309,14 +310,17 @@ public class Comparison
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();
-            dirty1.invoke(newpc, dirtyPages);
-            /*if (dirtyPages.size() > 0)
+            //dirty1.invoke(newpc, dirtyPages);
+            dirty2.invoke(oldpc, dirtyPages);
+            //for (int i=0; i < 2*1024; i++)
+            //    dirtyPages.add(i);
+            if (dirtyPages.size() > 0)
             {
                 System.out.printf("Comparing");
                 for (int i: dirtyPages)
                     System.out.printf(" %08x", i << 12);
                 System.out.println(" after " + previousInstruction());
-            }*/
+            }
             for (int i : dirtyPages)
             {
                 Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1, false);
