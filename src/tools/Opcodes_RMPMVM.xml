@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="x86optable.xsl" type="text/xsl"?>
 <opcodesnippets>
-  <opcode mnemonic="UnimplementedOpcode" mem="false">
+<!--  <opcode mnemonic="UnimplementedOpcode" mem="false">
     <return>Branch.Jmp_Unknown</return>
     <snippet>        if (true) throw new IllegalStateException("Unimplemented opcode");</snippet>
     <args size="0"></args>
@@ -11,7 +11,7 @@
     <return>Branch.Jmp_Unknown</return>
     <snippet>        if (true) throw new IllegalStateException("Invalid opcode");</snippet>
     <args size="0"></args>
-  </opcode>
+  </opcode>-->
 
   <opcode mnemonic="bt" mem="false">
     <return>Branch.None</return>
