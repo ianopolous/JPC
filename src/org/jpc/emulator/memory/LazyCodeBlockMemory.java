@@ -212,6 +212,8 @@ public class LazyCodeBlockMemory extends AbstractMemory
     {
         spanning.add(b);
         // add markers up to the codeblock's length
+        if (remainingLength > 4096)
+            remainingLength = 4096;
         if (b instanceof RealModeCodeBlock)
         {
             if (realCodeBuffer == null) {

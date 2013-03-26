@@ -355,6 +355,42 @@
     <args size="32">Ed</args>
   </opcode>
 
+  <opcode mnemonic="enter_o16">
+    <return>Branch.None</return>
+    <snippet>            int frameSize = 0xffff &amp; $op1.get;
+        int nestingLevel = $op2.get;
+        nestingLevel &amp;= 0x1f;
+
+        cpu.push16((short)cpu.r_bp.get16());
+        int frame_ptr16 = 0xffff &amp; cpu.r_esp.get16();
+
+	if (cpu.ss.getDefaultSizeFlag())
+        {
+            int tmpebp = cpu.r_ebp.get32();
+            if (nestingLevel != 0) {
+	        while (--nestingLevel != 0) {
+                    tmpebp -= 2;
+                    cpu.push16(cpu.ss.getWord(tmpebp));
+                }
+                cpu.push16((short)frame_ptr16);
+            }
+        } else
+        {
+            int tmpbp = 0xffff &amp; cpu.r_ebp.get16();
+            if (nestingLevel != 0) {
+	        while (--nestingLevel != 0) {
+                    tmpbp -= 2;
+                    cpu.push16(cpu.ss.getWord(tmpbp));
+                }
+                cpu.push16((short)frame_ptr16);
+            }
+        }
+
+        cpu.r_sp.set16((short)(cpu.r_sp.get16()-frameSize)); // TODO: do a write permission check here
+        cpu.r_bp.set16((short)frame_ptr16);</snippet>
+    <args size="16">Iw;Ib</args>
+  </opcode>
+
   <opcode mnemonic="inc">
     <return>Branch.None</return>
     <snippet>        cpu.cf = Processor.getCarryFlag(cpu.flagStatus, cpu.cf, cpu.flagOp1, cpu.flagOp2, cpu.flagResult, cpu.flagIns);

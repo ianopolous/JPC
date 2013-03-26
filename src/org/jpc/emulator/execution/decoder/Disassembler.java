@@ -135,8 +135,7 @@ public class Disassembler
 
     public static String getExecutableName(int mode, Instruction in)
     {
-        String gen = in.getGeneralClassName(false, false);
-        Map<String, Constructor<? extends Executable>> instructions = null;
+        Map<String, Constructor<? extends Executable>> instructions;
         String prefix;
         switch (mode)
         {
@@ -154,6 +153,14 @@ public class Disassembler
                 break;
             default:
                 throw new IllegalStateException("Unknown mode: " + mode);
+        }
+        String gen;
+        try {
+            gen = in.getGeneralClassName(false, false);
+        } catch (IllegalStateException e)
+        {
+            e.printStackTrace();
+            return prefix + "InvalidOpcode";
         }
 
         if (instructions.containsKey(gen))

@@ -279,6 +279,10 @@ public class DecoderGenerator
         {
             b.append("        return new "+prevname+"("+args+");\n");
         }
+        else if (isSimpleModrmSplit(ops, mode, differentIndex, b))
+        {
+
+        }
         else
         {
             String[] cases = new String[ops.size()];
@@ -286,15 +290,7 @@ public class DecoderGenerator
             for (Instruction in: ops.keySet())
             {
                 String name = Disassembler.getExecutableName(mode, in);
-                String[] argTypes = in.getArgsTypes();
-                boolean consumesModrm = false;
-                for (String arg: argTypes)
-                    if (!Operand.segs.containsKey(arg) && !Operand.reg8.containsKey(arg) && !Operand.reg16.containsKey(arg) && !Operand.reg16only.containsKey(arg))
-                        consumesModrm = true;
-                if (!consumesModrm && !name.contains("Unimplemented") && !name.contains("Illegal")) // has zero args, but uses modrm as opcode extension
-                    cases[i++]=String.format("            case 0x%02x", ops.get(in)[differentIndex])+": input.read8(); return new "+name+"("+args+");\n";
-                else
-                    cases[i++]=String.format("            case 0x%02x", ops.get(in)[differentIndex])+": return new "+name+"("+args+");\n";
+                cases[i++] = getConstructorLine(name, ops.get(in)[differentIndex]);
             }
             b.append("        switch (input.peek()) {\n");
             Arrays.sort(cases);
@@ -302,6 +298,58 @@ public class DecoderGenerator
                 b.append(line);
             b.append("        }\n        return null;\n");
         }
+    }
+
+    public static String getConstructorLine(String name, int modrm)
+    {
+        modrm &= 0xff;
+        String[] argTypes;
+        if (name.contains("_"))
+            argTypes = name.substring(name.indexOf("_")+1).split("_");
+        else
+            argTypes = new String[0];
+        boolean consumesModrm = false;
+        for (String arg: argTypes)
+            if (!Operand.segs.containsKey(arg) && !Operand.reg8.containsKey(arg) && !Operand.reg16.containsKey(arg) && !Operand.reg16only.containsKey(arg))
+                consumesModrm = true;
+        if (!consumesModrm && !name.contains("Unimplemented") && !name.contains("Illegal")) // has zero args, but uses modrm as opcode extension
+            return String.format("            case 0x%02x", modrm)+": input.read8(); return new "+name+"("+args+");\n";
+        else
+            return String.format("            case 0x%02x", modrm)+": return new "+name+"("+args+");\n";
+    }
+
+    public static boolean isSimpleModrmSplit(Map<Instruction, byte[]> ops, int mode, int differentIndex, StringBuilder b)
+    {
+        String[] names = new String[256];
+        for (Instruction in: ops.keySet())
+            names[ops.get(in)[differentIndex] & 0xff] = Disassembler.getExecutableName(mode, in);
+        for (int i=0; i < 8; i++)
+            for (int k=0; k < 0xC0; k += 0x40)
+                for (int j=0; j<8; j++)
+                    if (!names[j + k+(i << 3)].equals(names[i << 3]))
+                        return false;
+        for (int i=0; i < 8; i++)
+                for (int j=0; j<8; j++)
+                    if (!names[j + 0xC0 +(i << 3)].equals(names[0xC0 + (i << 3)]))
+                        return false;
+
+        // write out code
+        b.append("        int modrm = input.peek() & 0xFF;\n");
+        b.append("        int reg = (modrm >> 3) & 7;\n");
+        b.append("        if (modrm < 0xC0)\n        {\n");
+        b.append("            switch (reg) {\n");
+        for (int i=0; i < 8; i++)
+            b.append(getConstructorLine(names[i*8], i));
+        b.append("            }\n");
+        b.append("        }\n");
+        b.append("        else\n        {\n");
+        b.append("            switch (reg) {\n");
+        for (int i=0; i < 8; i++)
+            b.append(getConstructorLine(names[0xc0+i*8], i));
+        b.append("            }\n");
+        b.append("        }\n");
+        b.append("        return null;\n");
+        return true;
     }
 
     public static class MemoryChooser extends DecoderTemplate
@@ -419,6 +467,8 @@ public class DecoderGenerator
                                     Disassembler.resolve_operator(mode, input, modin);
                                 } catch (IllegalStateException s)
                                 {
+                                    // add the illegals
+                                    ops[base + opcode].addOpcode(modin, x86.clone());
                                     x86[opbyte+1] = 0;
                                     continue;
                                 }
