@@ -283,6 +283,10 @@ public class DecoderGenerator
         {
 
         }
+        else if (almostIsSimpleModrmSplit(ops, mode, differentIndex, b))
+        {
+
+        }
         else
         {
             String[] cases = new String[ops.size()];
@@ -339,17 +343,66 @@ public class DecoderGenerator
         b.append("        if (modrm < 0xC0)\n        {\n");
         b.append("            switch (reg) {\n");
         for (int i=0; i < 8; i++)
-            b.append(getConstructorLine(names[i*8], i));
+            if ((i+1 < 8) && names[i*8].equals(names[i*8+8]))
+                b.append(String.format("            case 0x%02x:\n", i));
+            else
+                b.append(getConstructorLine(names[i*8], i));
         b.append("            }\n");
         b.append("        }\n");
         b.append("        else\n        {\n");
         b.append("            switch (reg) {\n");
         for (int i=0; i < 8; i++)
-            b.append(getConstructorLine(names[0xc0+i*8], i));
+            if ((i+1 < 8) && names[0xc0+i*8].equals(names[0xc0+i*8+8]))
+                b.append(String.format("            case 0x%02x:\n", i));
+            else
+                b.append(getConstructorLine(names[0xc0+i*8], i));
         b.append("            }\n");
         b.append("        }\n");
         b.append("        return null;\n");
         return true;
+    }
+
+    public static boolean almostIsSimpleModrmSplit(Map<Instruction, byte[]> ops, int mode, int differentIndex, StringBuilder b)
+    {
+        String[] names = new String[256];
+        for (Instruction in: ops.keySet())
+            names[ops.get(in)[differentIndex] & 0xff] = Disassembler.getExecutableName(mode, in);
+        boolean subC0Simple = true;
+        for (int i=0; i < 8; i++)
+            for (int k=0; k < 0xC0; k += 0x40)
+                for (int j=0; j<8; j++)
+                    if (!names[j + k+(i << 3)].equals(names[i << 3]))
+                        subC0Simple = false;
+        boolean postC0Simple = true;
+        for (int i=0; i < 8; i++)
+                for (int j=0; j<8; j++)
+                    if (!names[j + 0xC0 +(i << 3)].equals(names[0xC0 + (i << 3)]))
+                        postC0Simple = false;
+
+        if (subC0Simple)
+        {
+            b.append("        int modrm = input.peek() & 0xFF;\n");
+            b.append("        int reg = (modrm >> 3) & 7;\n");
+            b.append("        if (modrm < 0xC0)\n        {\n");
+            b.append("            switch (reg) {\n");
+            for (int i=0; i < 8; i++)
+                b.append(getConstructorLine(names[i*8], i));
+            b.append("            }\n");
+            b.append("        }\n");
+
+            // post must be false otherwise IsSimpleModrmSplit would be true
+            b.append("            switch (modrm) {\n");
+        for (int i=0xc0; i < 0x100; i++)
+            if ((i+1 < 0x100) && names[i].equals(names[i+1]))
+                b.append(String.format("            case 0x%02x:\n", i));
+            else
+                b.append(getConstructorLine(names[i], i));
+        b.append("            }\n");
+        b.append("        return null;\n");
+            return true;
+        }
+        else
+            return false;
     }
 
     public static class MemoryChooser extends DecoderTemplate
