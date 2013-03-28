@@ -17,6 +17,7 @@ public class DecoderGenerator
         List<String> names = new ArrayList();
         Set<String> namesSet = new HashSet();
         private int modeType;
+        private int copyOf = -1;
 
         public OpcodeHolder(int modeType)
         {
@@ -33,6 +34,25 @@ public class DecoderGenerator
             names.add(name);
             namesSet.add(name);
             myops.put(in, raw);
+        }
+
+        public boolean equals(Object o)
+        {
+            if (!(o instanceof OpcodeHolder))
+                return false;
+            OpcodeHolder other = (OpcodeHolder)o;
+            if (myops.size() != other.myops.size())
+                return false;
+            if (!namesSet.equals(other.namesSet))
+                return false;
+            if (!names.equals(other.names))
+                return false;
+            return true;
+        }
+
+        public void setDuplicateOf(int index)
+        {
+            copyOf = index;
         }
 
         public Map<Instruction, byte[]> getReps()
@@ -107,6 +127,11 @@ public class DecoderGenerator
         {
             if (namesSet.size() == 0)
                 return "null;";
+
+            if (copyOf != -1)
+            {
+                return String.format("ops[0x%x];\n", copyOf);
+            }
 
             StringBuilder b = new StringBuilder();
             if (namesSet.size() == 1)
@@ -420,6 +445,13 @@ public class DecoderGenerator
         }
     }
 
+    public static void removeDuplicates(OpcodeHolder[] ops)
+    {
+        for (int i=0x200; i < 0x800; i++)
+            if (ops[i].equals(ops[i % 0x200]))
+                ops[i].setDuplicateOf(i % 0x200);
+    }
+
     public static void generate()
     {
         System.out.println("package org.jpc.emulator.execution.decoder;\n");
@@ -443,6 +475,7 @@ public class DecoderGenerator
         for (int i=0; i < ops.length; i++)
             ops[i] = new OpcodeHolder(modeType);
         generateRep(16, ops);
+        removeDuplicates(ops);
         for (int i=0; i < ops.length; i++)
             System.out.printf("ops[0x%02x] = "+ops[i]+"\n", i);
         System.out.println("}\n\n");
