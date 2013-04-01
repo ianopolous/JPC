@@ -158,7 +158,7 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         }
     }
 
-    private static void loadMemory(DataInput input, Memory[] quick, Memory[][] full) throws IOException {
+    private static void loadMemory(DataInput input, Memory[] quick, Memory[][] full, CodeBlockManager manager) throws IOException {
         byte[] temp = new byte[0];
         int quickLength = input.readInt();
         for (int i = 0; i < quickLength; i++) {
@@ -175,12 +175,16 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
 
         int fullLength = input.readInt();
         for (int i = 0; i < fullLength; i++) {
-            Memory[] chunk = full[i];
             int chunkLength = input.readInt();
-
+            if (chunkLength == 0)
+                continue;
+            full[i] = new Memory[chunkLength];
+            Memory[] chunk = full[i];
             for (int j = 0; j < chunkLength; j++) {
-                Memory block = chunk[j];
                 int blockLength = input.readInt();
+                if (blockLength == 0) continue;
+                chunk[j] = new LazyCodeBlockMemory(blockLength, manager);
+                Memory block = chunk[j];
                 if (blockLength > 0) {
                     if (blockLength > temp.length) {
                         temp = new byte[blockLength];
@@ -211,7 +215,7 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         this.manager = manager;
         initialiseMemory();
         setGateA20State(input.readBoolean());
-        loadMemory(input, quickNonA20MaskedIndex, nonA20MaskedIndex);
+        loadMemory(input, quickNonA20MaskedIndex, nonA20MaskedIndex, manager);
 
         for (int a = 0; a < TOP_INDEX_SIZE; a++)
         {
