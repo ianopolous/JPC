@@ -17,7 +17,7 @@ public class call_o32_Jd extends Executable
         super(blockStart, eip);
         jmp = Modrm.Jd(input);
         instructionLength = (int)input.getAddress()-eip;
-        blockLength = (int)input.getAddress()-blockStart;
+        blockLength = eip-blockStart+instructionLength;
     }
 
     public Branch execute(Processor cpu)

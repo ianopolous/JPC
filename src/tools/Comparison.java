@@ -30,6 +30,7 @@ public class Comparison
 
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom10m.img"};
     public static final String[] doom2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom2.img"};
+    public static final String[] prince1 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/prince1.img"};
     public static final String[] worms = {"-fda", "floppy.img", "-boot", "fda", "-hda", "worms.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
     public static final String[] linux = {"-hda", "../../tmpdrives/linux.img", "-boot", "hda"};
@@ -42,7 +43,7 @@ public class Comparison
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
 
-    public static String[] pcargs = linux;
+    public static String[] pcargs = prince1;
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -108,9 +109,9 @@ public class Comparison
         Method parse = opts.getMethod("parse", String[].class);
         parse.invoke(opts, (Object)args);
 
-        Class opts2 = cl2.loadClass("org.jpc.j2se.Option");
-        Method parse2 = opts2.getMethod("parse", String[].class);
-        parse2.invoke(opts2, (Object)args);
+        //Class opts2 = cl2.loadClass("org.jpc.j2se.Option");
+        //Method parse2 = opts2.getMethod("parse", String[].class);
+        //parse2.invoke(opts2, (Object)args);
 
         Calendar start1 = Calendar.getInstance();
         Class c1 = cl1.loadClass("org.jpc.emulator.PC");
@@ -131,7 +132,7 @@ public class Comparison
         Method setState1 = c1.getMethod("setState", int[].class);
         Method execute1 = c1.getMethod("executeBlock");
         Method dirty1 = c1.getMethod("getDirtyPages", Set.class);
-        Method dirty2 = c2.getMethod("getDirtyPages", Set.class);
+        Method dirty2 = null;//c2.getMethod("getDirtyPages", Set.class);
         Method state2 = c2.getMethod("getState");
         Method execute2 = c2.getMethod("executeBlock");
         Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);

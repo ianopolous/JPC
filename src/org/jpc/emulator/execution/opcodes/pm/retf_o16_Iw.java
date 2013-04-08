@@ -17,7 +17,7 @@ public class retf_o16_Iw extends Executable
         super(blockStart, eip);
         immw = Modrm.Iw(input);
         instructionLength = (int)input.getAddress()-eip;
-        blockLength = (int)input.getAddress()-blockStart;
+        blockLength = eip-blockStart+instructionLength;
     }
 
     public Branch execute(Processor cpu)

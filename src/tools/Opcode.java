@@ -250,7 +250,7 @@ public class Opcode
         if (isBranch)
         {
             b.append("        instructionLength = (int)input.getAddress()-eip;\n");
-            b.append("        blockLength = (int)input.getAddress()-blockStart;\n");
+            b.append("        blockLength = eip-blockStart+instructionLength;\n");
         }
         b.append("    }\n\n");
         return b.toString();

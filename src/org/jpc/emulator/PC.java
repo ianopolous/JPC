@@ -766,7 +766,6 @@ public class PC {
      * @return total number of x86 instructions executed.
      */
     public final int execute() {
-
         try {
             if (processor.isProtectedMode()) {
                 if (processor.isVirtual8086Mode()) {

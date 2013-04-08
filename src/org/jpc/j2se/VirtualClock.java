@@ -23,7 +23,7 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
     private long lastRealNanos = System.nanoTime();
     private long lastTotalTicks = 0;
     private static final long RATE_CHECK_INTERVAL = 2*1000000;
-    private static final boolean REAL_RATE = true; //sync clock rate with real time rate
+    private static final boolean REAL_RATE = false; //sync clock rate with real time rate
 
     public VirtualClock()
     {

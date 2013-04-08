@@ -18,7 +18,7 @@ public class call_o32_Ep_mem extends Executable
         int modrm = input.readU8();
         offset = Modrm.getPointer(prefices, modrm, input);
         instructionLength = (int)input.getAddress()-eip;
-        blockLength = (int)input.getAddress()-blockStart;
+        blockLength = eip-blockStart+instructionLength;
     }
 
     public Branch execute(Processor cpu)

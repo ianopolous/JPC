@@ -20,7 +20,7 @@ public class mov_D_R extends Executable
         op1Index = Modrm.reg(modrm);
         op2Index = Modrm.R(modrm);
         instructionLength = (int)input.getAddress()-eip;
-        blockLength = (int)input.getAddress()-blockStart;
+        blockLength = eip-blockStart+instructionLength;
     }
 
     public Branch execute(Processor cpu)

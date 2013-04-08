@@ -1,5 +1,6 @@
 package tools;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.*;
 import java.net.*;
@@ -14,7 +15,7 @@ public class History
 
     public static void main(String[] args) throws Exception
     {
-        String[] pcargs = Comparison.dslCD;
+        String[] pcargs = Comparison.pcargs;
         URL[] urls1 = new URL[]{new File(newJar).toURL()};
         ClassLoader cl1 = new URLClassLoader(urls1, Comparison.class.getClassLoader());
 
@@ -40,6 +41,14 @@ public class History
         startClock1.invoke(newpc);
         Method break1 = c1.getMethod("eipBreak", Integer.class);
         Method instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
+
+        // setup screen from new JPC
+        JPanel screen = (JPanel)c1.getMethod("getNewMonitor").invoke(newpc);
+        JFrame frame = new JFrame();
+        frame.getContentPane().add("Center", new JScrollPane(screen));
+        frame.validate();
+        frame.setVisible(true);
+        frame.setBounds(100, 100, 760, 500);
 
         String line = null;
         int skip = 0;

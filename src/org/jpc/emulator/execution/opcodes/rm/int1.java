@@ -15,7 +15,7 @@ public class int1 extends Executable
     {
         super(blockStart, eip);
         instructionLength = (int)input.getAddress()-eip;
-        blockLength = (int)input.getAddress()-blockStart;
+        blockLength = eip-blockStart+instructionLength;
     }
 
     public Branch execute(Processor cpu)

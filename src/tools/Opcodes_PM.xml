@@ -2208,7 +2208,8 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="ud2">
     <return>Branch.Exception</return>
-    <snippet>        if (true) throw ProcessorException.UNDEFINED;</snippet>
+    <snippet>        cpu.eip += blockLength;
+        if (true) throw ProcessorException.UNDEFINED;</snippet>
         <args size="0"></args>
   </opcode>
 

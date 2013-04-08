@@ -18,7 +18,7 @@ public class call_o32_Ap extends Executable
         targetEip = Modrm.jmpOffset(prefices, input);
         cs = Modrm.jmpCs(input);
         instructionLength = (int)input.getAddress()-eip;
-        blockLength = (int)input.getAddress()-blockStart;
+        blockLength = eip-blockStart+instructionLength;
     }
 
     public Branch execute(Processor cpu)

@@ -288,14 +288,14 @@ public class DriveSet extends AbstractHardwareComponent
         initialArgs = newArgs;
 
         //do not load drives
-//        DriveSet temp = buildFromArgs(initialArgs);
-//
-//        floppies = new BlockDevice[2];
-//        for (int i = 0; i < floppies.length; i++)
-//            floppies[i] = temp.getFloppyDrive(i);
-//
-//        for (int i = 0; i < ides.length; i++)
-//            ides[i] = temp.getHardDrive(i);
+        DriveSet temp = buildFromArgs(initialArgs);
+
+        floppies = new BlockDevice[2];
+        for (int i = 0; i < floppies.length; i++)
+            floppies[i] = temp.getFloppyDrive(i);
+
+        for (int i = 0; i < ides.length; i++)
+            ides[i] = temp.getHardDrive(i);
     }
 
     /**

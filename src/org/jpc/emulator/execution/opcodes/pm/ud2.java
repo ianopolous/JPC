@@ -15,11 +15,12 @@ public class ud2 extends Executable
     {
         super(blockStart, eip);
         instructionLength = (int)input.getAddress()-eip;
-        blockLength = (int)input.getAddress()-blockStart;
+        blockLength = eip-blockStart+instructionLength;
     }
 
     public Branch execute(Processor cpu)
     {
+        cpu.eip += blockLength;
         if (true) throw ProcessorException.UNDEFINED;
         return Branch.Exception;
     }

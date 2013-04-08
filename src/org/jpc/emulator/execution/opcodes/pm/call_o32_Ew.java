@@ -18,7 +18,7 @@ public class call_o32_Ew extends Executable
         int modrm = input.readU8();
         op1Index = Modrm.Ew(modrm);
         instructionLength = (int)input.getAddress()-eip;
-        blockLength = (int)input.getAddress()-blockStart;
+        blockLength = eip-blockStart+instructionLength;
     }
 
     public Branch execute(Processor cpu)
