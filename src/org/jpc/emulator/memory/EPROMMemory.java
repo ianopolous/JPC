@@ -75,29 +75,30 @@ public class EPROMMemory extends LazyCodeBlockMemory
         super.copyArrayIntoContents(base, data, offset, Math.min(size - base, Math.min(length, data.length - offset)));
     }
 
-    /**
-     * Silently returns as this is a read-only instance.
-     */
-    public void setByte(int offset, byte data)
-    {
-        //writeAttempted(offset, 1);
-    }
-
-    /**
-     * Silently returns as this is a read-only instance.
-     */
-    public void setWord(int offset, short data)
-    {
-        //writeAttempted(offset, 2);
-    }
-
-    /**
-     * Silently returns as this is a read-only instance.
-     */
-    public void setDoubleWord(int offset, int data)
-    {
-        writeAttempted(offset, 4);
-    }
+    // EEPROM can be written to! There are data tables in the bios...
+//    /**
+//     * Silently returns as this is a read-only instance.
+//     */
+//    public void setByte(int offset, byte data)
+//    {
+//        //writeAttempted(offset, 1);
+//    }
+//
+//    /**
+//     * Silently returns as this is a read-only instance.
+//     */
+//    public void setWord(int offset, short data)
+//    {
+//        //writeAttempted(offset, 2);
+//    }
+//
+//    /**
+//     * Silently returns as this is a read-only instance.
+//     */
+//    public void setDoubleWord(int offset, int data)
+//    {
+//        writeAttempted(offset, 4);
+//    }
 
     /**
      * Silently returns as this is a read-only instance.

@@ -1,5 +1,6 @@
 package tools;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.*;
 import java.net.*;
@@ -33,21 +34,24 @@ public class ComparisonToSingleStep
 
         Class opts2 = cl2.loadClass("org.jpc.j2se.Option");
         Method parse2 = opts2.getMethod("parse", String[].class);
-        parse2.invoke(opts2, (Object)new String[] {"-max-block-size", ""+M});
+        parse2.invoke(opts2, (Object)new String[] {"-max-block-size", ""+M, "-singlestep-time"});
 
         Calendar start = Calendar.getInstance();
         Class c1 = cl1.loadClass("org.jpc.emulator.PC");
         Constructor ctor = c1.getConstructor(String[].class, Calendar.class);
-        Object newpc = ctor.newInstance((Object)pcargs, start);
+        Object singleStepPC = ctor.newInstance((Object)pcargs, start);
 
         Class c2 = cl2.loadClass("org.jpc.emulator.PC");
         Constructor ctor2 = c2.getConstructor(String[].class, Calendar.class);
         Object oldpc = ctor2.newInstance((Object)pcargs, start);
 
         Method m1 = c1.getMethod("hello");
-        m1.invoke(newpc);
+        m1.invoke(singleStepPC);
         Method m2 = c2.getMethod("hello");
         m2.invoke(oldpc);
+
+        Method ints1 = c1.getMethod("checkInterrupts");
+        Method ints2 = c2.getMethod("checkInterrupts");
 
         Method state1 = c1.getMethod("getState");
         Method setState1 = c1.getMethod("setState", int[].class);
@@ -60,16 +64,26 @@ public class ComparisonToSingleStep
         Method save2 = c2.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
         Method startClock1 = c1.getMethod("start");
         Method startClock2 = c2.getMethod("start");
-        startClock1.invoke(newpc);
+        startClock1.invoke(singleStepPC);
         startClock2.invoke(oldpc);
         Method break1 = c1.getMethod("eipBreak", Integer.class);
         Method break2 = c2.getMethod("eipBreak", Integer.class);
         Method instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
 
-        Method input1 = c1.getMethod("sendKeys", String.class);
-        Method input2 = c2.getMethod("sendKeys", String.class);
+        Method keysDown1 = c1.getMethod("sendKeysDown", String.class);
+        Method keysUp1 = c1.getMethod("sendKeysUp", String.class);
+        Method keysDown2 = c2.getMethod("sendKeysDown", String.class);
+        Method keysUp2 = c2.getMethod("sendKeysUp", String.class);
         Method minput1 = c1.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
         Method minput2 = c2.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
+
+        // setup screen from new JPC
+        JPanel screen = (JPanel)c1.getMethod("getNewMonitor").invoke(singleStepPC);
+        JFrame frame = new JFrame();
+        frame.getContentPane().add("Center", new JScrollPane(screen));
+        frame.validate();
+        frame.setVisible(true);
+        frame.setBounds(100, 100, 760, 500);
 
         if (mem)
             System.out.println("Comparing memory and registers..");
@@ -83,17 +97,28 @@ public class ComparisonToSingleStep
         int ticksDelta = 0;
         while (true)
         {
-            execute2.invoke(oldpc);
-            execute1.invoke(newpc);
-            int[] fast = (int[])state1.invoke(newpc);
+            try {
+                execute2.invoke(oldpc);
+            } catch (Exception e)
+            {
+                System.err.println("Error excuting normal blocks..");
+                e.printStackTrace();
+                printHistory();
+                throw e;
+            }
+            ints2.invoke(oldpc);
+            execute1.invoke(singleStepPC);
+            int[] fast = (int[])state1.invoke(singleStepPC);
             int[] old = (int[])state2.invoke(oldpc);
             old[16] += ticksDelta;
             int count = 1;
+            if (old[16] >= 0x7BD1647)
+                System.out.println("here");
             while (fast[16] < old[16])
             {
-                execute1.invoke(newpc);
+                execute1.invoke(singleStepPC);
                 count++;
-                fast = (int[])state1.invoke(newpc);
+                fast = (int[])state1.invoke(singleStepPC);
                 if (count > M)
                 {
                     System.out.println("Never reached same ticks as block at a time");
@@ -105,9 +130,9 @@ public class ComparisonToSingleStep
             {
                 while (fast[8] != old[8])
                 {
-                    execute1.invoke(newpc);
+                    execute1.invoke(singleStepPC);
                     count++;
-                    fast = (int[])state1.invoke(newpc);
+                    fast = (int[])state1.invoke(singleStepPC);
                     if (count > M)
                     {
                         System.out.println("Never reached same eip as block at a time");
@@ -115,12 +140,14 @@ public class ComparisonToSingleStep
                         System.exit(0);
                     }
                 }
-                //fix ticks difference after mode switch
-                ticksDelta = fast[16] - old[16];
+                //fix ticks difference after mode switch - NOT NEEDED ANYMORE
+                ticksDelta += fast[16] - old[16];
                 fast[16] = old[16];
             }
+            ints1.invoke(singleStepPC);
+            fast = (int[])state1.invoke(singleStepPC);
             try {
-                line = (String) instructionInfo.invoke(newpc, new Integer(1)); // instructions per block
+                line = (String) instructionInfo.invoke(singleStepPC, new Integer(1)); // instructions per block
             } catch (Exception e)
             {
                 e.printStackTrace();
@@ -130,22 +157,33 @@ public class ComparisonToSingleStep
                 continueExecution("after Invalid decode at cs:eip");
             }
             // send input events
-            if (!Comparison.keyboardInput.isEmpty())
+            if (!Comparison.keyPresses.isEmpty())
             {
-                Comparison.KeyBoardEvent k = Comparison.keyboardInput.first();
+                Comparison.KeyBoardEvent k = Comparison.keyPresses.first();
                 if (fast[16] > k.time)
                 {
-                    input1.invoke(newpc, k.text);
-                    input2.invoke(oldpc, k.text);
-                    Comparison.keyboardInput.remove(k);
+                    keysDown1.invoke(singleStepPC, k.text);
+                    keysDown2.invoke(oldpc, k.text);
+                    System.out.println("Sent key presses: "+k.text);
+                    Comparison.keyPresses.remove(k);
                 }
             }
-            if (!Comparison.mouseInput.isEmpty())
+            if (!Comparison.keyReleases.isEmpty())
+            {
+                Comparison.KeyBoardEvent k = Comparison.keyReleases.first();
+                if (fast[16] > k.time)
+                {
+                    keysUp1.invoke(singleStepPC, k.text);
+                    keysUp2.invoke(oldpc, k.text);
+                    System.out.println("Sent key releases: "+k.text);
+                    Comparison.keyReleases.remove(k);
+                }
+            }if (!Comparison.mouseInput.isEmpty())
             {
                 Comparison.MouseEvent k = Comparison.mouseInput.first();
                 if (fast[16] > k.time)
                 {
-                    minput1.invoke(newpc, k.dx, k.dy, k.dz, k.buttons);
+                    minput1.invoke(singleStepPC, k.dx, k.dy, k.dz, k.buttons);
                     minput2.invoke(oldpc, k.dx, k.dy, k.dz, k.buttons);
                     Comparison.mouseInput.remove(k);
                 }
@@ -163,7 +201,7 @@ public class ComparisonToSingleStep
                 {
                     // adopt flags
                     fast[9] = old[9];
-                    setState1.invoke(newpc, (int[])fast);
+                    setState1.invoke(singleStepPC, (int[])fast);
                 }
                 diff.clear();
                 if (!Comparison.sameStates(fast, old, compareFlags, diff))
@@ -172,7 +210,7 @@ public class ComparisonToSingleStep
                     for (int diffIndex: diff)
                         System.out.printf("Difference: %s %08x - %08x\n", names[diffIndex], fast[diffIndex], old[diffIndex]);
                     if (continueExecution("registers"))
-                        setState1.invoke(newpc, (int[])old);
+                        setState1.invoke(singleStepPC, (int[])old);
                     else
                         System.exit(0);
                 }
@@ -188,7 +226,7 @@ public class ComparisonToSingleStep
                 else
                     espPageIndex = esp >>> 12;
 
-                Integer sl1 = (Integer)save1.invoke(newpc, new Integer(espPageIndex), sdata1, pm);
+                Integer sl1 = (Integer)save1.invoke(singleStepPC, new Integer(espPageIndex), sdata1, pm);
                 Integer sl2 = (Integer)save2.invoke(oldpc, new Integer(espPageIndex), sdata2, pm);
                 if (sl2 > 0)
                     if (!samePage(espPageIndex, sdata1, sdata2))
@@ -197,7 +235,7 @@ public class ComparisonToSingleStep
                         System.out.println("Error (memory difference) here... look above");
                         printPage(sdata1, sdata2, esp);
                         if (continueExecution("stack"))
-                            load1.invoke(newpc, new Integer(espPageIndex), sdata2, pm);
+                            load1.invoke(singleStepPC, new Integer(espPageIndex), sdata2, pm);
                         else
                             System.exit(0);
                     }
@@ -206,7 +244,7 @@ public class ComparisonToSingleStep
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();
-            dirty1.invoke(newpc, dirtyPages);
+            dirty1.invoke(singleStepPC, dirtyPages);
             /*if (dirtyPages.size() > 0)
             {
                 System.out.printf("Comparing");
@@ -216,7 +254,7 @@ public class ComparisonToSingleStep
             }*/
             for (int i : dirtyPages)
             {
-                Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1);
+                Integer l1 = (Integer)save1.invoke(singleStepPC, new Integer(i<<12), sdata1);
                 Integer l2 = (Integer)save2.invoke(oldpc, new Integer(i<<12), sdata2);
                 if (l2 > 0)
                     if (!samePage(i, sdata1, sdata2))
@@ -225,7 +263,7 @@ public class ComparisonToSingleStep
                         System.out.println("Error here... look above");
                         printPage(sdata1, sdata2, i << 12);
                         if (continueExecution("memory"))
-                            load1.invoke(newpc, new Integer(i), sdata2);
+                            load1.invoke(singleStepPC, new Integer(i), sdata2);
                         else
                             System.exit(0);
                     }
@@ -241,7 +279,7 @@ public class ComparisonToSingleStep
         return (String)prev[2];
     }
 
-    public static String[] names = new String[] {"eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp", "eip", "flags", "cs", "ds", "es", "fs", "gs", "ss", "ticks"};
+    public static String[] names = Comparison.names;
     static Object[][] history = new Object[50][];
     static int historyIndex=0;
 

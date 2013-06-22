@@ -20,6 +20,7 @@ public class iretd extends Executable
 
     public Branch execute(Processor cpu)
     {
+        cpu.eip += blockLength;
         cpu.iret_o32_a16();
         return Branch.Ret;
     }

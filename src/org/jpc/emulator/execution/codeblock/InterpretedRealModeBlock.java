@@ -7,7 +7,7 @@ import static org.jpc.emulator.execution.Executable.*;
 
 public class InterpretedRealModeBlock implements RealModeCodeBlock
 {
-    private final BasicBlock b;
+    public final BasicBlock b;
 
     public InterpretedRealModeBlock(BasicBlock b)
     {
@@ -39,19 +39,37 @@ public class InterpretedRealModeBlock implements RealModeCodeBlock
             return ret;
         } catch (ProcessorException e)
         {
+            int starteip = cpu.eip;
             cpu.eip += current.delta;
-            if (current.next == null) // branches have already updated eip
+            if (current.isBranch()) // branches have already updated eip
                 cpu.eip -= getX86Length(); // so eip points at the branch that barfed
             if (!e.pointsToSelf())
             {
-                if (current.next == null)
+                if (current.isBranch())
                     cpu.eip += getX86Length() - current.delta;
                 else
                     cpu.eip += current.next.delta - current.delta;
             }
-
+            int endeip = cpu.eip;
+            System.out.printf("RM exception: eip corrected to %08x from %08x\n", endeip, starteip);
             cpu.handleRealModeException(e);
             return Branch.Exception;
+        }
+        catch (ModeSwitchException e)
+        {
+            int count = 1;
+            Executable p = b.start;
+            while (p != current)
+            {
+                count++;
+                p = p.next;
+            }
+            e.setX86Count(count);
+            throw e;
+        }
+        finally
+        {
+            b.postBlock(cpu);
         }
     }
 

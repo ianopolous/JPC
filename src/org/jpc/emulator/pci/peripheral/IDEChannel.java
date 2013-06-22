@@ -52,6 +52,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
     private int ioBase,  ioBaseTwo,  irq;
     private InterruptController irqDevice;
     private int nextDriveSerial;
+    public static final String CDLABEL = "CDROM";//"JPC CD-ROM";
 
     public void saveState(DataOutput output) throws IOException {
         output.writeInt(ioBase);
@@ -1240,7 +1241,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
             putLE16InByte(ioBuffer, 42, 512); /* cache size in sectors */
             putLE16InByte(ioBuffer, 44, 4); /* ecc bytes */
             stringToBytes(HD_VERSION, ioBuffer, 46, 8);
-            stringToBytes("JPC CD-ROM", ioBuffer, 54, 40);
+            stringToBytes(CDLABEL, ioBuffer, 54, 40);
             putLE16InByte(ioBuffer, 96, 1); /* dword I/O */
             putLE16InByte(ioBuffer, 98, (1 << 9)); /* DMA and LBA supported */
             putLE16InByte(ioBuffer, 106, 3); /* words 54-58, 64-70 are valid */
@@ -1361,7 +1362,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
             putLE16InByte(ioBuffer, 42, 512); /* cache size in sectors */
             putLE16InByte(ioBuffer, 44, 4); /* ecc bytes */
             stringToBytes(HD_VERSION, ioBuffer, 46, 8);
-            stringToBytes("JPC HARDDISK", ioBuffer, 54, 40);
+            stringToBytes("Generic 1234", ioBuffer, 54, 40); //TODO revert to "JPC HARDDISK"
             putLE16InByte(ioBuffer, 94, 0x8000 | MAX_MULT_SECTORS);
             putLE16InByte(ioBuffer, 96, 1); /* dword I/O */
             putLE16InByte(ioBuffer, 98, (1 << 11) | (1 << 9) | (1 << 8)); /* DMA and LBA supported */
@@ -1785,7 +1786,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                         }
                     }
                      {
-                        byte[] temp = "JPC CD-ROM".getBytes();
+                        byte[] temp = CDLABEL.getBytes();
                         int i = 16;
                         for (int j = 0; j < temp.length; i++, j++) {
                             ioBuffer[i] = temp[j];

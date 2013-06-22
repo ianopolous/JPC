@@ -54,6 +54,8 @@ public class FastDecoder
         int beginCount = input.getCounter();
         boolean is32Bit = operand_size == 32;
 
+        if (debug)
+            System.out.printf("Block decode started at %x\n", input.getAddress());
         Executable start = decodeOpcode(startAddr, input, mode, is32Bit);
         if (PRINT_DISAM)
         {
@@ -79,7 +81,7 @@ public class FastDecoder
                 current.next = eip;
                 if (!delayInterrupts && (MAX_INSTRUCTIONS_PER_BLOCK > 10))
                     System.out.println((String.format("Exceeded maximum number of instructions in a block at %x", startAddr)));
-                return constructBlock(start, (int)input.getAddress()-startAddr, count);
+                return constructBlock(start, (int)input.getAddress()-startAddr, count, input, operand_size);
             }
             beginCount = input.getCounter();
             Executable next = decodeOpcode(startAddr, input, mode, is32Bit);
@@ -99,13 +101,24 @@ public class FastDecoder
             current = next;
         }
 
-        return constructBlock(start, (int)input.getAddress()-startAddr, count);
+        return constructBlock(start, (int)input.getAddress()-startAddr, count, input, operand_size);
     }
 
-    private static BasicBlock constructBlock(Executable start, int x86Length, int x86Count)
+    private static BasicBlock constructBlock(Executable start, int x86Length, int x86Count, PeekableInputStream input, int mode)
     {
-        //if (DEBUG_BLOCKS)
-        //    return new DebugBasicBlock(startin, start, x86Length, x86Count);
+        if (DEBUG_BLOCKS)
+        {
+            input.seek(-x86Length);
+            Instruction startin = Disassembler.disassemble(input, mode);
+            Instruction prev = startin;
+            for (int i=1; i < x86Count; i++)
+            {
+                Instruction next = Disassembler.disassemble(input, mode);
+                prev.next = next;
+                prev = next;
+            }
+            return new DebugBasicBlock(startin, start, x86Length, x86Count);
+        }
         return new BasicBlock(start, x86Length, x86Count);
     }
 

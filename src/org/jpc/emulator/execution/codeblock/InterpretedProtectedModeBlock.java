@@ -40,11 +40,11 @@ public class InterpretedProtectedModeBlock implements ProtectedModeCodeBlock
         } catch (ProcessorException e)
         {
             cpu.eip += current.delta;
-            if (current.next == null) // branches have already updated eip
+            if (current.isBranch()) // branches have already updated eip
                 cpu.eip -= getX86Length(); // so eip points at the branch that barfed
             if (!e.pointsToSelf())
             {
-                if (current.next == null)
+                if (current.isBranch())
                     cpu.eip += getX86Length() - current.delta;
                 else
                     cpu.eip += current.next.delta - current.delta;
@@ -58,6 +58,22 @@ public class InterpretedProtectedModeBlock implements ProtectedModeCodeBlock
             }
             cpu.handleProtectedModeException(e);
             return Branch.Exception;
+        }
+        catch (ModeSwitchException e)
+        {
+            int count = 1;
+            Executable p = b.start;
+            while (p != current)
+            {
+                count++;
+                p = p.next;
+            }
+            e.setX86Count(count);
+            throw e;
+        }
+        finally
+        {
+            b.postBlock(cpu);
         }
     }
 

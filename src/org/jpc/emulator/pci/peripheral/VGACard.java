@@ -1032,7 +1032,7 @@ public abstract class VGACard extends AbstractPCIDevice implements IODevice
 
         public void addSpanningBlock(SpanningCodeBlock span, int lengthRemaining)
         {
-            throw new IllegalStateException("add spannign block: Invalid Operation for VGA Card");
+            throw new IllegalStateException("add spanning block: Invalid Operation for VGA Card");
         }
 
         public void copyContentsIntoArray(int address, byte[] buffer, int off, int len) {

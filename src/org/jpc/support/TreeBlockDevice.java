@@ -434,11 +434,23 @@ public class TreeBlockDevice implements BlockDevice
             }
         else {
             //cluster is not allocated
-            byte[] temp = new byte[SECTOR_SIZE];
-            System.arraycopy(buffer, 0, temp, 0, SECTOR_SIZE);
-            bufferedWrites.put(Long.valueOf(sectorNumber), temp);
-            
-            unmappedClusters.add(Long.valueOf(getClusterNumber(sectorNumber)));
+            // try apepnding to previous sector if it is non empty
+            if (sectorToFatEntry.containsKey(Long.valueOf(sectorNumber-1)))
+            {
+                entry = sectorToFatEntry.get(Long.valueOf(sectorNumber-1));
+                try {
+                    entry.write(sectorNumber, buffer);
+                } catch (IOException e) {
+                return -1;
+            }
+            }
+            else
+            {
+                byte[] temp = new byte[SECTOR_SIZE];
+                System.arraycopy(buffer, 0, temp, 0, SECTOR_SIZE);
+                bufferedWrites.put(Long.valueOf(sectorNumber), temp);
+                unmappedClusters.add(Long.valueOf(getClusterNumber(sectorNumber)));
+            }
         }
         return 0;
     }

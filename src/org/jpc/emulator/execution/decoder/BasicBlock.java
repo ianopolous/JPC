@@ -1,5 +1,6 @@
 package org.jpc.emulator.execution.decoder;
 
+import org.jpc.emulator.PC;
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.codeblock.CodeBlock;
 import org.jpc.emulator.processor.*;
@@ -11,6 +12,10 @@ public class BasicBlock implements CodeBlock
 {
     public static final boolean LOG_BLOCKENTRY = Option.log_blockentry.value();
     public static final boolean LOG_STATE = Option.log_state.value();
+    public static final boolean SINGLE_STEP_TIME = Option.singlesteptime.value();
+    public static final int MIN_ADDR_WATCH = Option.min_addr_watch.intValue(0);
+    public static final int MAX_ADDR_WATCH = Option.max_addr_watch.intValue(0xffffffff);
+    public static int lastExitEip;
 
     public Executable start;
     public BasicBlock link1, link2;
@@ -27,17 +32,36 @@ public class BasicBlock implements CodeBlock
 
     public void preBlock(Processor cpu)
     {
-        if (LOG_BLOCKENTRY)
+        if ((LOG_BLOCKENTRY) && watchedAddress(cpu.getInstructionPointer()))
             System.out.printf("*****Entering basic block %08x\n", cpu.cs.getBase()+cpu.eip);
+        if (PC.HISTORY)
+            PC.logBlock(cpu.getInstructionPointer(), this);
+    }
+
+    public void postBlock(Processor cpu)
+    {
+        if (PC.HISTORY)
+            lastExitEip = cpu.getInstructionPointer();
+    }
+
+    private boolean watchedAddress(int addr)
+    {
+        if (addr < MIN_ADDR_WATCH)
+            return false;
+        if ((addr & 0xFFFFFFFFL) > (MAX_ADDR_WATCH & 0xFFFFFFFFL))
+            return false;
+        return true;
     }
 
     public void postInstruction(Processor cpu, Executable last)
     {
-        if (LOG_STATE)
+        if ((LOG_STATE) && watchedAddress(cpu.getInstructionPointer()))
         {
             System.out.println("\t"+last);
             State.print(cpu);
         }
+        if ((SINGLE_STEP_TIME) && !last.toString().contains("eip"))
+            cpu.vmClock.update(1);
     }
 
     public Branch execute(Processor cpu)
@@ -52,6 +76,7 @@ public class BasicBlock implements CodeBlock
             current = current.next;
         }
         postInstruction(cpu, current);
+        postBlock(cpu);
         return ret;
     }
 
@@ -65,15 +90,6 @@ public class BasicBlock implements CodeBlock
         return x86Count;
     }
 
-    /**
-     * Returns true if this block has been rendered invalid.
-     * <p>
-     * If modification of memory within the given range causes this block to
-     * become invalid then returns <code>true</code>.
-     * @param startAddress inclusive start address of memory region
-     * @param endAddress exclusive end address of memory region
-     * @return <code>true</code> if this block is invalid
-     */
     public boolean handleMemoryRegionChange(int startAddress, int endAddress)
     {
         return false;

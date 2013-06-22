@@ -1,5 +1,7 @@
 package org.jpc.emulator.execution.decoder;
 
+import org.jpc.j2se.Option;
+
 import java.util.*;
 
 public class Instruction
@@ -371,7 +373,14 @@ public class Instruction
             {
                 if (!pattern)
                 {
-                    if (eip+x86Length+lval < 0)
+                    if (Option.debug_blocks.value())
+                    {
+                        if (lval < 0)
+                            b.append(String.format("0x%x", (lval) & ((1L << maxSize)-1)));
+                        else
+                            b.append(String.format("0x%x", lval));
+                    }
+                    else if (eip+x86Length+lval < 0)
                         b.append(String.format("0x%x", (eip+x86Length+lval) & ((1L << maxSize)-1)));
                     else
                         b.append(String.format("0x%x", eip+x86Length+lval));

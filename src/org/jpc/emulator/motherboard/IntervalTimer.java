@@ -57,7 +57,8 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
     private static final int MODE_SQUARE_WAVE = 3;
     private static final int MODE_SOFTWARE_TRIGGERED_STROBE = 4;
     private static final int MODE_HARDWARE_TRIGGERED_STROBE = 5;
-    public static final int PIT_FREQ = 1193182;
+    private static final int CONTROL_ADDRESS = 3;
+    public static final int PIT_FREQ = 1193181;
     private TimerChannel[] channels;
     private InterruptController irqDevice;
     private Clock timingSource;
@@ -66,6 +67,22 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
     private boolean ioportRegistered;
     private int ioPortBase;
     private int irq;
+
+    public int[] getState()
+    {
+        int[] state = new int[3*4];
+        channels[0].getState(state, 0);
+        channels[1].getState(state, 4);
+        channels[2].getState(state, 8);
+        return state;
+    }
+
+    public void clockAll(int cycles)
+    {
+        channels[0].clockMultiple(cycles);
+        channels[1].clockMultiple(cycles);
+        channels[2].clockMultiple(cycles);
+    }
 
     private static final long scale64(long input, int multiply, int divide) {
         //return (BigInteger.valueOf(input).multiply(BigInteger.valueOf(multiply)).divide(BigInteger.valueOf(divide))).longValue();
@@ -125,6 +142,8 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
     }
 
     public int ioPortRead8(int address) {
+        if ((address & 3) == 3)
+            return 0; // read from control word register
         return channels[address & 0x3].read();
     }
 
@@ -141,7 +160,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
     public void ioPortWrite8(int address, int data) {
         data &= 0xff;
         address &= 0x3;
-        if (address == 3) { //writing control word
+        if (address == CONTROL_ADDRESS) { //writing control word
             int channel = data >>> 6;
             if (channel == 3) { // read back command
                 for (channel = 0; channel < 3; channel++) {
@@ -175,7 +194,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
      * @return counter output pin level.
      */
     public int getOut(int channel) {
-        return channels[channel].getOut(timingSource.getEmulatedNanos());
+        return channels[channel].getOut(getTime());
     }
 
     public int getMode(int channel) {
@@ -203,7 +222,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
      * Set the gate pin state of the specified channel.
      * <p>
      * Broadly speaking setting the gate low will disable the timer, and setting
-     * it high will enable the timer, although exact behaviour is dependant on
+     * it high will enable the timer, although exact behaviour is dependent on
      * the current channel mode.
      * @param channel selected channel index.
      * @param value required gate status.
@@ -212,48 +231,82 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         channels[channel].setGate(value);
     }
 
+    private long getTime()
+    {
+        return timingSource.getEmulatedMicros();
+    }
+
+    private long getTickRate()
+    {
+        return 1000000;
+//        return timingSource.getTickRate();
+    }
+
+    enum RW_Status {LSByte, MSByte, LSByte_Multple, MSByte_multiple}
+
     private class TimerChannel extends AbstractHardwareComponent implements TimerResponsive {
 
-        private int countValue;
-        private int outputLatch;
-        private int inputLatch;
-        private int countLatched;
+
+        private int countValue; // U32
+        private int outputLatch; // U16
+        private int inputLatch; // U16
+
+        private boolean countLatched_LSB;
+        private boolean countLatched_MSB;
         private boolean statusLatched;
+
         private boolean nullCount;
         private boolean gate;
-        private int status;
-        private int readState;
-        private int writeState;
-        private int rwMode;
-        private int mode;
-        private int bcd; /* not supported */
+        private boolean outPin;
+
+        private int statusLatch; // U8
+        private RW_Status readState;
+        private RW_Status writeState;
+        boolean triggerGate; // did the gate rise this cycle?
+        private int rwMode;// 2 bits from command word register
+        private int mode; // 3 bits from command word register
+        private boolean bcd; /* uimplemented */
+
+        private boolean countWritten; // has the count been written since being programmed
+        private boolean firstPass; // is this the first count loaded
+        private boolean stateBit_1;
+        private boolean stateBit_2;
 
         private long countStartTime;
         /* irq handling */
         private long nextTransitionTimeValue;
+        private int next_change_time;
         private Timer irqTimer;
         private int irq;
 
         public TimerChannel(int index) {
             mode = MODE_SQUARE_WAVE;
-            gate = (index != 2);
+            gate = true;
             loadCount(0);
             nullCount = true;
+        }
+
+        private void getState(int[] buf, int start)
+        {
+            buf[start] = getCount() % 0x10000;
+            buf[start +1] = gate?1:0;
+            buf[start +2] = outPin?1:0;
+            buf[start +3] = next_change_time;
         }
 
         public void saveState(DataOutput output) throws IOException {
             output.writeInt(countValue);
             output.writeInt(outputLatch);
             output.writeInt(inputLatch);
-            output.writeInt(countLatched);
+            output.writeInt((countLatched_MSB ? 2 : 0) | (countLatched_LSB ? 1 : 0));
             output.writeBoolean(statusLatched);
             output.writeBoolean(gate);
-            output.writeInt(status);
-            output.writeInt(readState);
-            output.writeInt(writeState);
+            output.writeInt(statusLatch);
+            output.writeInt(readState.ordinal());
+            output.writeInt(writeState.ordinal());
             output.writeInt(rwMode);
             output.writeInt(mode);
-            output.writeInt(bcd);
+            output.writeInt(bcd ? 1 : 0);
             output.writeLong(countStartTime);
             output.writeLong(nextTransitionTimeValue);
             if (irqTimer == null) {
@@ -268,15 +321,17 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             countValue = input.readInt();
             outputLatch = input.readInt();
             inputLatch = input.readInt();
-            countLatched = input.readInt();
+            int cl = input.readInt();
+            countLatched_LSB = (cl & 1) != 0;
+            countLatched_MSB = (cl & 2) != 0;
             statusLatched = input.readBoolean();
             gate = input.readBoolean();
-            status = input.readInt();
-            readState = input.readInt();
-            writeState = input.readInt();
+            statusLatch = input.readInt();
+            readState = RW_Status.values()[input.readInt()];
+            writeState = RW_Status.values()[input.readInt()];
             rwMode = input.readInt();
             mode = input.readInt();
-            bcd = input.readInt();
+            bcd = input.readInt() != 0;
             countStartTime = input.readLong();
             nextTransitionTimeValue = input.readLong();
             int test = input.readInt();
@@ -286,66 +341,104 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             }
         }
 
+        private void setOut(boolean val)
+        {
+            if (outPin != val)
+            {
+                outPin = val;
+                // call out handler TODO
+            }
+        }
+
         public int read() {
             if (statusLatched) {
+                if (countLatched_MSB && (readState == RW_Status.MSByte_multiple))
+                    throw new IllegalStateException("status is latched and count half read");
                 statusLatched = false;
-                return status;
+                return statusLatch;
             }
-
-            switch (countLatched) {
-                case RW_STATE_LSB:
-                    countLatched = 0;
-                    return outputLatch & 0xff;
-                case RW_STATE_MSB:
-                    countLatched = 0;
-                    return (outputLatch >>> 8) & 0xff;
-                case RW_STATE_WORD:
-                    countLatched = RW_STATE_WORD_2;
-                    return outputLatch & 0xff;
-                case RW_STATE_WORD_2:
-                    countLatched = 0;
-                    return (outputLatch >>> 8) & 0xff;
-                default:
-                case 0: //not latched
-                    switch (readState) {
-                        default:
-                        case RW_STATE_LSB:
-                            return getCount() & 0xff;
-                        case RW_STATE_MSB:
-                            return (getCount() >>> 8) & 0xff;
-                        case RW_STATE_WORD:
-                            readState = RW_STATE_WORD_2;
-                            return getCount() & 0xff;
-                        case RW_STATE_WORD_2:
-                            readState = RW_STATE_WORD;
-                            return (getCount() >>> 8) & 0xff;
-                    }
+            // latched count read
+            if (countLatched_LSB)
+            {
+                // read LSB
+                if (readState == RW_Status.LSByte_Multple)
+                {
+                    readState = RW_Status.MSByte_multiple;
+                }
+                countLatched_LSB = false;
+                return outputLatch & 0xff;
+            }
+            if (countLatched_MSB)
+            {
+                // read MSB
+                if (readState == RW_Status.MSByte_multiple)
+                {
+                    readState = RW_Status.LSByte_Multple;
+                }
+                countLatched_MSB = false;
+                return (outputLatch >> 8) & 0xff;
+            }
+            if (!((readState == RW_Status.MSByte) || (readState == RW_Status.MSByte_multiple)))
+            {
+                // read LSB
+                if (readState == RW_Status.LSByte_Multple)
+                    readState = RW_Status.MSByte_multiple;
+                return getCount() & 0xff;
+            }
+            else
+            {
+                if (readState == RW_Status.MSByte_multiple)
+                    readState = RW_Status.LSByte_Multple;
+                return (getCount() >> 8) & 0xff;
             }
         }
 
         public void readBack(int data) {
-            if (0 == (data & 0x20)) //latch counter value
+            if (0 == (data & 0x20)) //latch count
             {
                 latchCount();
             }
 
-            if (0 == (data & 0x10)) //latch counter value
+            if (0 == (data & 0x10)) //latch status
             {
                 latchStatus();
             }
         }
 
         private void latchCount() {
-            if (0 != countLatched) {
-                outputLatch = this.getCount();
-                countLatched = rwMode;
+            // do nothing if previous latch state hasn't been read
+            if (!countLatched_LSB && !countLatched_MSB) {
+                switch (readState)
+                {
+                    case MSByte:
+                        outputLatch = getCount() & 0xffff;
+                        countLatched_MSB = true;
+                        break;
+                    case LSByte:
+                        outputLatch = 0xffff & getCount();
+                        countLatched_LSB = true;
+                        break;
+                    case LSByte_Multple:
+                        outputLatch = 0xffff & getCount();
+                        countLatched_LSB = true;
+                        countLatched_MSB = true;
+                        break;
+                    case MSByte_multiple:
+                        readState = RW_Status.LSByte_Multple;
+                        outputLatch = 0xffff & getCount();
+                        countLatched_LSB = true;
+                        countLatched_MSB = true;
+                        break;
+                }
+                //outputLatch = this.getCount() & 0xffff;
+                //countLatched = rwMode;
             }
         }
 
         private void latchStatus() {
             if (!statusLatched) {
 
-                status = ((getOut(timingSource.getEmulatedNanos()) << 7) | (nullCount ? 0x40 : 0x00) | (rwMode << 4) | (mode << 1) | bcd);
+                statusLatch = (outPin ? 0x80 : 0)  | (nullCount ? 0x40 : 0x00) | (rwMode << 4) | (mode << 1) | (bcd ? 1 : 0);
                 statusLatched = true;
             }
         }
@@ -353,43 +446,445 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         public void write(int data) {
             switch (writeState) {
                 default:
-                case RW_STATE_LSB:
-                    nullCount = true;
+                    throw new IllegalStateException("write counter in invalid write state");
+                case LSByte:
+                    countWritten = true;
                     loadCount(0xff & data);
                     break;
-                case RW_STATE_MSB:
-                    nullCount = true;
+                case MSByte:
+                    countWritten = true;
                     loadCount((0xff & data) << 8);
                     break;
-                case RW_STATE_WORD:
+                case LSByte_Multple:
                     //null count setting is delayed until after second byte is written
                     inputLatch = data;
-                    writeState = RW_STATE_WORD_2;
+                    writeState = RW_Status.MSByte_multiple;
                     break;
-                case RW_STATE_WORD_2:
-                    nullCount = true;
+                case MSByte_multiple:
+                    countWritten = true;
+                    writeState = RW_Status.LSByte_Multple;
                     loadCount((0xff & inputLatch) | ((0xff & data) << 8));
-                    writeState = RW_STATE_WORD;
+                    break;
+            }
+            switch (mode) {
+                case 0:
+                    if (writeState == RW_Status.MSByte_multiple)
+                        setOut(false);
+                    nextTransitionTimeValue = 1;
+                    break;
+                case 5:
+                case 1:
+                    if (triggerGate) // if already saw trigger
+                        nextTransitionTimeValue = 1;
+                    break;
+                case 6:
+                case 2:
+                    nextTransitionTimeValue  =1;
+                    break;
+                case 7:
+                case 3:
+                    nextTransitionTimeValue  =1;
+                    break;
+                case 4:
+                    nextTransitionTimeValue  =1;
                     break;
             }
         }
 
         public void writeControlWord(int data) {
-            int access = (data >>> 4) & 3;
-
-            if (access == 0) {
-                latchCount(); //counter latch command
-            } else {
-                nullCount = true;
-
-                rwMode = access;
-                readState = access;
-                writeState = access;
-
-                mode = (data >>> 1) & 7;
-                bcd = (data & 1);
-            /* XXX: update irq timer ? */
+            int RW = (data >> 4 ) & 3;
+            if (RW == 0)
+            {
+                latchCount();
             }
+            else
+            {
+                nullCount = true;
+                countLatched_LSB = false;
+                countLatched_MSB = false;
+                statusLatched = false;
+                inputLatch = 0;
+                countWritten = false;
+                firstPass = true;
+                rwMode = RW;
+                bcd = (data & 1) != 0;
+                mode = (data >> 1) &7;
+                switch (RW) {
+                    case 1:
+                        // set read state to LSB
+                        readState = RW_Status.LSByte;
+                        writeState = RW_Status.LSByte;
+                        break;
+                    case 2:
+                        // set read state to MSB
+                        readState = RW_Status.MSByte;
+                        writeState = RW_Status.MSByte;
+                        break;
+                    case 3:
+                        // set read state to LSB multiple
+                        readState = RW_Status.LSByte_Multple;
+                        writeState = RW_Status.LSByte_Multple;
+                        break;
+                    default:
+                        throw new IllegalStateException("Invalid RW access field in control word write of PIT");
+                }
+                // initial output of all modes except 0 is 1
+                if (mode == 0)
+                    setOut(true);
+                else
+                    setOut(false);
+                nextTransitionTimeValue = 0;
+            }
+        }
+
+        public void clockMultiple(int cycles)
+        {
+            while(cycles>0) {
+                if (next_change_time==0) {
+                    if (countWritten) {
+                        switch(mode) {
+                            case 0:
+                                if (gate && (writeState != RW_Status.MSByte_multiple)) {
+                                    decrementMultiple(cycles);
+                                }
+                                break;
+                            case 1:
+                                decrementMultiple(cycles);
+                                break;
+                            case 2:
+                                if (!firstPass && gate) {
+                                    decrementMultiple(cycles);
+                                }
+                                break;
+                            case 3:
+                                if (!firstPass && gate) {
+                                    decrementMultiple(2*cycles);
+                                }
+                                break;
+                            case 4:
+                                if (gate) {
+                                    decrementMultiple(cycles);
+                                }
+                                break;
+                            case 5:
+                                decrementMultiple(cycles);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    cycles -= cycles;
+                } else {
+                    switch(mode) {
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 4:
+                        case 5:
+                            if (next_change_time > cycles) {
+                                decrementMultiple(cycles);
+                                next_change_time-=cycles;
+                                cycles-=cycles;
+                            } else {
+                                decrementMultiple(next_change_time-1);
+                                cycles-=next_change_time;
+                                clock();
+                            }
+                            break;
+                        case 3:
+                            if (next_change_time > cycles) {
+                                decrementMultiple(cycles*2);
+                                next_change_time-=cycles;
+                                cycles-=cycles;
+                            } else {
+                                decrementMultiple((next_change_time-1)*2);
+                                cycles-=next_change_time;
+                                clock();
+                            }
+                            break;
+                        default:
+                            cycles-=cycles;
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void clock()
+        {
+            switch(mode) {
+                case 0:
+                    if (countWritten) {
+                        if (nullCount) {
+                            countValue = 0xFFFF & inputLatch;
+                            if (gate) {
+                                if (countValue==0) {
+                                    next_change_time=1;
+                                } else {
+                                    next_change_time=countValue & 0xFFFF;
+                                }
+                            } else {
+                                next_change_time=0;
+                            }
+                            nullCount = false;
+                        } else {
+                            if (gate && (writeState != RW_Status.MSByte_multiple)) {
+                                decrement();
+                                if (!outPin) {
+                                    next_change_time=countValue & 0xFFFF;
+                                    if (countValue == 0) {
+                                        setOut(true);
+                                    }
+                                } else {
+                                    next_change_time=0;
+                                }
+                            } else {
+                                next_change_time=0; //if the clock isn't moving.
+                            }
+                        }
+                    } else {
+                        next_change_time=0; //default to 0.
+                    }
+                    triggerGate=false;
+                    break;
+                case 1:
+                    if (countWritten) {
+                        if (triggerGate) {
+                            countValue = 0xffff & inputLatch;
+                            if (countValue==0) {
+                                next_change_time=1;
+                            } else {
+                                next_change_time=countValue & 0xFFFF;
+                            }
+                            nullCount = false;
+                            setOut(false);
+                            if (writeState==RW_Status.MSByte_multiple) {
+                                throw new IllegalStateException(("Undefined behavior when loading a half loaded count."));
+                            }
+                        } else {
+                            decrement();
+                            if (!outPin) {
+                                if (countValue==0) {
+                                    next_change_time=1;
+                                } else {
+                                    next_change_time=countValue & 0xFFFF;
+                                }
+                                if (countValue==0) {
+                                    setOut(true);
+                                }
+                            } else {
+                                next_change_time=0;
+                            }
+                        }
+                    } else {
+                        next_change_time=0; //default to 0.
+                    }
+                    triggerGate=false;
+                    break;
+                case 2:
+                    if (countWritten) {
+                        if (triggerGate || firstPass) {
+                            countValue = 0xffff & inputLatch;
+                            next_change_time=(countValue-1) & 0xFFFF;
+                            nullCount= false;
+                            if (inputLatch==1) {
+                                throw new IllegalStateException(("ERROR: count of 1 is invalid in pit mode 2."));
+                            }
+                            if (!outPin) {
+                                setOut(true);
+                            }
+                            if (writeState==RW_Status.MSByte_multiple) {
+                                throw new IllegalStateException(("Undefined behavior when loading a half loaded count."));
+                            }
+                            firstPass = false;
+                        } else {
+                            if (gate) {
+                                decrement();
+                                next_change_time=(countValue-1) & 0xFFFF;
+                                if (countValue==1) {
+                                    next_change_time=1;
+                                    setOut(false);
+                                    firstPass=true;
+                                }
+                            } else {
+                                next_change_time=0;
+                            }
+                        }
+                    } else {
+                        next_change_time=0;
+                    }
+                    triggerGate=false;
+                    break;
+                case 3:
+                    if (countWritten) {
+                        if ((triggerGate || firstPass || stateBit_2) && gate) {
+                            countValue = 0xffff & (inputLatch & 0xFFFE);
+                            stateBit_1 = (inputLatch & 0x1) != 0;
+                            if (!outPin || !stateBit_1) {
+                                if (((countValue/2)-1)==0) {
+                                    next_change_time=1;
+                                } else {
+                                    next_change_time=((countValue/2)-1) & 0xFFFF;
+                                }
+                            } else {
+                                if ((countValue/2)==0) {
+                                    next_change_time=1;
+                                } else {
+                                    next_change_time=(countValue/2) & 0xFFFF;
+                                }
+                            }
+                            nullCount=false;
+                            if (inputLatch==1) {
+                                throw new IllegalStateException(("Count of 1 is invalid in pit mode 3."));
+                            }
+                            if (!outPin) {
+                                setOut(true);
+                            } else if (outPin && !firstPass) {
+                                setOut(false);
+                            }
+                            if (writeState==RW_Status.MSByte_multiple) {
+                                throw new IllegalStateException(("Undefined behavior when loading a half loaded count."));
+                            }
+                            stateBit_2=false;
+                            firstPass=false;
+                        } else {
+                            if (gate) {
+                                decrement();
+                                decrement();
+                                if (!outPin || !stateBit_1) {
+                                    next_change_time=((countValue/2)-1) & 0xFFFF;
+                                } else {
+                                    next_change_time=(countValue/2) & 0xFFFF;
+                                }
+                                if (countValue==0) {
+                                    stateBit_2=true;
+                                    next_change_time=1;
+                                }
+                                if ((countValue==2) && (!outPin || !stateBit_1))
+                                {
+                                    stateBit_2=true;
+                                    next_change_time=1;
+                                }
+                            } else {
+                                next_change_time=0;
+                            }
+                        }
+                    } else {
+                        next_change_time=0;
+                    }
+                    triggerGate=false;
+                    break;
+                case 4:
+                    if (countWritten) {
+                        if (!outPin) {
+                            setOut(true);
+                        }
+                        if (nullCount) {
+                            countValue = 0xffff & inputLatch;
+                            if (gate) {
+                                if (countValue==0) {
+                                    next_change_time=1;
+                                } else {
+                                    next_change_time=countValue & 0xFFFF;
+                                }
+                            } else {
+                                next_change_time=0;
+                            }
+                            nullCount=false;
+                            if (writeState==RW_Status.MSByte_multiple) {
+                                throw new IllegalStateException(("Undefined behavior when loading a half loaded count."));
+                            }
+                            firstPass=true;
+                        } else {
+                            if (gate) {
+                                decrement();
+                                if (firstPass) {
+                                    next_change_time=countValue & 0xFFFF;
+                                    if (countValue == 0) {
+                                        setOut(false);
+                                        next_change_time=1;
+                                        firstPass=false;
+                                    }
+                                } else {
+                                    next_change_time=0;
+                                }
+                            } else {
+                                next_change_time=0;
+                            }
+                        }
+                    } else {
+                        next_change_time=0;
+                    }
+                    triggerGate=false;
+                    break;
+                case 5:
+                    if (countWritten) {
+                        if (!outPin) {
+                            setOut(true);
+                        }
+                        if (triggerGate) {
+                            countValue = 0xffff & inputLatch;
+                            if (countValue==0) {
+                                next_change_time=1;
+                            } else {
+                                next_change_time=countValue & 0xFFFF;
+                            }
+                            nullCount=false;
+                            if (writeState==RW_Status.MSByte_multiple) {
+                                throw new IllegalStateException(("Undefined behavior when loading a half loaded count."));
+                            }
+                            firstPass=true;
+                        } else {
+                            decrement();
+                            if (firstPass) {
+                                next_change_time=countValue & 0xFFFF;
+                                if (countValue == 0) {
+                                    setOut(false);
+                                    next_change_time=1;
+                                    firstPass=false;
+                                }
+                            } else {
+                                next_change_time=0;
+                            }
+                        }
+                    } else {
+                        next_change_time=0;
+                    }
+                    triggerGate=false;
+                    break;
+                default:
+                    next_change_time=0;
+                    triggerGate=false;
+                    throw new IllegalStateException(("Mode not implemented."));
+            }
+        }
+
+        private void decrementMultiple(int cycles)
+        {
+            while (cycles > 0)
+            {
+                if (cycles <= countValue)
+                {
+                    countValue -= cycles;
+                    break;
+                }
+                cycles -= countValue + 1;
+                countValue = 0;
+                decrement();
+            }
+        }
+
+        private void decrement()
+        {
+            if (countValue == 0)
+            {
+                if (bcd)
+                    countValue = 0x9999;
+                else
+                    countValue = 0xffff;
+            }
+            else
+                countValue--;
         }
 
         public void setGate(boolean value) {
@@ -403,7 +898,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                 case MODE_HARDWARE_TRIGGERED_STROBE:
                     if (!gate && value) {
                         /* restart counting on rising edge */
-                        countStartTime = timingSource.getEmulatedNanos();
+                        countStartTime = getTime();
                         irqTimerUpdate(countStartTime);
                     }
                     break;
@@ -411,7 +906,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                 case MODE_SQUARE_WAVE:
                     if (!gate && value) {
                         /* restart counting on rising edge */
-                        countStartTime = timingSource.getEmulatedNanos();
+                        countStartTime = getTime();
                         irqTimerUpdate(countStartTime);
                     }
                     /* XXX: disable/enable counting */
@@ -421,7 +916,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         }
 
         private int getCount() {
-            long now = scale64(timingSource.getEmulatedNanos() - countStartTime, PIT_FREQ, (int) timingSource.getTickRate());
+            long now = scale64(getTime() - countStartTime, PIT_FREQ, (int) getTickRate());
 
             switch (mode) {
                 case MODE_INTERRUPT_ON_TERMINAL_COUNT:
@@ -438,7 +933,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         }
 
         private int getOut(long currentTime) {
-            long now = scale64(currentTime - countStartTime, PIT_FREQ, (int) timingSource.getTickRate());
+            long now = scale64(currentTime - countStartTime, PIT_FREQ, (int) getTickRate());
             switch (mode) {
                 default:
                 case MODE_INTERRUPT_ON_TERMINAL_COUNT:
@@ -478,7 +973,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         private long getNextTransitionTime(long currentTime) {
             long nextTime;
 
-            long now = scale64(currentTime - countStartTime, PIT_FREQ, (int) timingSource.getTickRate());
+            long now = scale64(currentTime - countStartTime, PIT_FREQ, (int) getTickRate());
             switch (mode) {
                 default:
                 case MODE_INTERRUPT_ON_TERMINAL_COUNT:
@@ -526,7 +1021,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                     break;
             }
             /* convert to timer units */
-            nextTime = countStartTime + scale64(nextTime, (int) timingSource.getTickRate(), PIT_FREQ);
+            nextTime = countStartTime + scale64(nextTime, (int) getTickRate(), PIT_FREQ);
 
             /* fix potential rounding problems */
             /* XXX: better solution: use a clock at PIT_FREQ Hz */
@@ -541,7 +1036,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             if (value == 0) {
                 value = 0x10000;
             }
-            countStartTime = timingSource.getEmulatedNanos();
+            countStartTime = getTime();
             countValue = value;
             this.irqTimerUpdate(countStartTime);
         }
@@ -552,6 +1047,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             }
             long expireTime = getNextTransitionTime(currentTime);
             int irqLevel = getOut(currentTime);
+            setOut(irqLevel == 1);
             irqDevice.setIRQ(irq, irqLevel);
             nextTransitionTimeValue = expireTime;
             if (expireTime != -1) {

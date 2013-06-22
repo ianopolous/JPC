@@ -297,7 +297,7 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
         p1.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         p1.add("Center", keys);
         p1.add("East", pp);              
-        getContentPane().add("South", p1); 
+        //getContentPane().add("South", p1);
 
         setSize(monitor.getPreferredSize());
         LICENCE.setPreferredSize(monitor.getPreferredSize());

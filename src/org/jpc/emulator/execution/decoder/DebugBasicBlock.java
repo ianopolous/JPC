@@ -16,7 +16,11 @@ public class DebugBasicBlock extends BasicBlock
         {
             b.append(startin.toString());
             b.append("\n");
+            String classname = start.toString();
+            b.append("  ("+classname.substring(classname.lastIndexOf('.')+1)+")");
+            b.append("\n");
             startin = startin.next;
+            start = start.next;
         }
         contents = b.toString();
     }

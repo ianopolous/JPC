@@ -121,17 +121,18 @@ public static final int ITAB__1BYTE__OP_F6__REG = 101;
 public static final int ITAB__1BYTE__OP_F7__REG = 102;
 public static final int ITAB__1BYTE__OP_FE__REG = 103;
 public static final int ITAB__1BYTE__OP_FF__REG = 104;
-public static final int ITAB__3DNOW = 105;
-public static final int ITAB__PFX_SSE66__0F = 106;
-public static final int ITAB__PFX_SSE66__0F__OP_71__REG = 107;
-public static final int ITAB__PFX_SSE66__0F__OP_72__REG = 108;
-public static final int ITAB__PFX_SSE66__0F__OP_73__REG = 109;
-public static final int ITAB__PFX_SSE66__0F__OP_C7__REG = 110;
-public static final int ITAB__PFX_SSE66__0F__OP_C7__REG__OP_00__VENDOR = 111;
-public static final int ITAB__PFX_SSEF2__0F = 112;
-public static final int ITAB__PFX_SSEF3__0F = 113;
-public static final int ITAB__PFX_SSEF3__0F__OP_C7__REG = 114;
-public static final int ITAB__PFX_SSEF3__0F__OP_C7__REG__OP_07__VENDOR = 115;
+public static final int ITAB__1BYTE__OP_FF__REG__OP_05__MOD = 105;
+public static final int ITAB__3DNOW = 106;
+public static final int ITAB__PFX_SSE66__0F = 107;
+public static final int ITAB__PFX_SSE66__0F__OP_71__REG = 108;
+public static final int ITAB__PFX_SSE66__0F__OP_72__REG = 109;
+public static final int ITAB__PFX_SSE66__0F__OP_73__REG = 110;
+public static final int ITAB__PFX_SSE66__0F__OP_C7__REG = 111;
+public static final int ITAB__PFX_SSE66__0F__OP_C7__REG__OP_00__VENDOR = 112;
+public static final int ITAB__PFX_SSEF2__0F = 113;
+public static final int ITAB__PFX_SSEF3__0F = 114;
+public static final int ITAB__PFX_SSEF3__0F__OP_C7__REG = 115;
+public static final int ITAB__PFX_SSEF3__0F__OP_C7__REG__OP_07__VENDOR = 116;
 
 public static List<String> operator = Arrays.asList(new String[]{
   "3dnow",
@@ -2953,8 +2954,12 @@ private ZygoteInstruction[] itab__1byte__op_ff__reg = new ZygoteInstruction[]{
   new ZygoteInstruction( "call",          O_Ev,    O_NONE,  O_NONE,  P_c1|P_def64|P_aso|P_oso|P_rexw|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "call",          O_Ep,    O_NONE,  O_NONE,  P_c1|P_aso|P_oso|P_rexw|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "jmp",           O_Ev,    O_NONE,  O_NONE,  P_c1|P_def64|P_depM|P_aso|P_oso|P_rexw|P_rexr|P_rexx|P_rexb ),
-  new ZygoteInstruction( "jmp",           O_Ep,    O_NONE,  O_NONE,  P_c1|P_aso|P_oso|P_rexw|P_rexr|P_rexx|P_rexb ),
+  new ZygoteInstruction( "grp_mod",       O_NONE, O_NONE, O_NONE,    ITAB__1BYTE__OP_FF__REG__OP_05__MOD ),
   new ZygoteInstruction( "push",          O_Ev,    O_NONE,  O_NONE,  P_c1|P_def64|P_aso|P_oso|P_rexw|P_rexr|P_rexx|P_rexb ),
+  new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
+};
+private ZygoteInstruction[] itab__1byte__op_ff__reg__op_05__mod = new ZygoteInstruction[]{
+  new ZygoteInstruction( "jmp",           O_Ep,    O_NONE,  O_NONE,  P_c1|P_aso|P_oso|P_rexw|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "invalid",       O_NONE, O_NONE, O_NONE,    P_none ),
 };
 private ZygoteInstruction[] itab__3dnow = new ZygoteInstruction[]{
@@ -4155,6 +4160,7 @@ public ZygoteInstruction[][] itab_list = new ZygoteInstruction[][]{
     itab__1byte__op_f7__reg,
     itab__1byte__op_fe__reg,
     itab__1byte__op_ff__reg,
+    itab__1byte__op_ff__reg__op_05__mod,
     itab__3dnow,
     itab__pfx_sse66__0f,
     itab__pfx_sse66__0f__op_71__reg,

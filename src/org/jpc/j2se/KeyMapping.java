@@ -271,12 +271,14 @@ public class KeyMapping
     	case '\'': return new int[]{KeyEvent.VK_QUOTE};
     	case '"': return new int[]{KeyEvent.VK_QUOTEDBL};
     	case ',': return new int[]{KeyEvent.VK_COMMA};
-    	case '<': return new int[]{KeyEvent.VK_LESS};
+            //case '<': return new int[]{KeyEvent.VK_LESS};
+        case '<': return new int[]{KeyEvent.VK_LEFT};
     	case '.': return new int[]{KeyEvent.VK_PERIOD};
-    	case '>': return new int[]{KeyEvent.VK_GREATER};
-    	case '/': return new int[]{KeyEvent.VK_SLASH};
-    	case '?': return new int[]{KeyEvent.VK_SHIFT, KeyEvent.VK_SLASH};
-    	case ' ': return new int[]{KeyEvent.VK_SPACE};
+    	//case '>': return new int[]{KeyEvent.VK_GREATER};
+        case '>': return new int[]{KeyEvent.VK_RIGHT};
+        case '/': return new int[]{KeyEvent.VK_SLASH};
+        case '?': return new int[]{KeyEvent.VK_SHIFT, KeyEvent.VK_SLASH};
+        case ' ': return new int[]{KeyEvent.VK_SPACE};
     	default:
     		throw new IllegalArgumentException("Cannot type character " + c);
     	}

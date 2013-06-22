@@ -569,7 +569,7 @@ public class JPC extends ApplicationFrame implements ActionListener {
                 bringToFront(m);
             } else {
                 m = new PCMonitorFrame();
-                addInternalFrame(desktop, 30, 30, m);
+                addInternalFrame(desktop, 0, 0, m);
             }
         }
 //         else if (src == frequencies)

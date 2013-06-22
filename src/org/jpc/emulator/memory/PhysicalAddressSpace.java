@@ -341,10 +341,19 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
 
     public int executeReal(Processor cpu, int offset) {
         try {
-           return getReadMemoryBlockAt(offset).executeReal(cpu, offset & AddressSpace.BLOCK_MASK);
+//            if (PC.HISTORY)
+//            {
+//                try {
+//                Memory m = getReadMemoryBlockAt(offset);
+//                PC.logBlock(((LazyCodeBlockMemory)m).getRealBlock(offset & AddressSpace.BLOCK_MASK));
+//                } catch (Exception e) {}
+//            }
+            return getReadMemoryBlockAt(offset).executeReal(cpu, offset & AddressSpace.BLOCK_MASK);
         } catch (SpanningDecodeException e)
         {
             SpanningCodeBlock block = e.getBlock();
+//            if (PC.HISTORY)
+//                PC.logBlock(block.decode(cpu));
             int length = block.decode(cpu).getX86Length();
             // add block to subsequent page to allow invalidation upon a write
             getReadMemoryBlockAt(offset+0x1000).addSpanningBlock(block, length-(0x1000-(offset & AddressSpace.BLOCK_MASK)));

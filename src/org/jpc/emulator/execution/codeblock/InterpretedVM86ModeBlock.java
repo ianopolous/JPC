@@ -53,6 +53,22 @@ public class InterpretedVM86ModeBlock implements Virtual8086ModeCodeBlock
             cpu.handleVirtual8086ModeException(e);
             return Branch.Exception;
         }
+        catch (ModeSwitchException e)
+        {
+            int count = 1;
+            Executable p = b.start;
+            while (p != current)
+            {
+                count++;
+                p = p.next;
+            }
+            e.setX86Count(count);
+            throw e;
+        }
+        finally
+        {
+            b.postBlock(cpu);
+        }
     }
 
     public String getDisplayString() {

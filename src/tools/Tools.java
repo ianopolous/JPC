@@ -8,6 +8,12 @@ public class Tools
         {
             Generator.main(args);
         }
+        else if (args[0].equals("-bochs"))
+        {
+            String[] rest = new String[args.length-1];
+            System.arraycopy(args, 1, rest, 0, rest.length);
+            CompareToBochs.main(rest);
+        }
         else if (args[0].equals("-compare"))
         {
             String[] rest = new String[args.length-1];

@@ -14,14 +14,18 @@ public abstract class Option {
     public static final Switch log_disam = createSwitch("log-disam");
     public static final Switch log_disam_addresses = createSwitch("log-disam-addresses");
     public static final Switch log_state = createSwitch("log-state");
-    public static final Switch log_blockentry = createSwitch("log-blockentry");
+    public static final Switch log_blockentry = createSwitch("log-block-entry");
     public static final Switch compile = createSwitch("compile");
     public static final Switch fullscreen = createSwitch("fullscreen");
+    public static final Switch history = createSwitch("history");
+    public static final Opt min_addr_watch = opt("min-addr-watch");
+    public static final Opt max_addr_watch = opt("max-addr-watch");
 
     public static final Opt ss = opt("ss");
     public static final Opt ram = opt("ram");
     public static final Opt ips = opt("ips");
-    public static final Opt timeslowdown = opt("timeslowdown");
+    public static final Opt timeslowdown = opt("time-slowdown");
+    public static final Switch singlesteptime = createSwitch("single-step-time");
     public static final Opt max_instructions_per_block = opt("max-block-size");
     public static final Opt boot = opt("boot");
     public static final Opt fda = opt("fda");
@@ -35,14 +39,14 @@ public abstract class Option {
     public static final Switch sound = createSwitch("sound");
     public static final Opt sounddevice = opt("sounddevice");
     public static final Opt mixer_rate = opt("mixer_rate");
-    public static final Opt mixer_javabuffer = opt("mixer_javabuffer");
-    public static final Opt mixer_blocksize = opt("mixer_blocksize");
-    public static final Switch mixer_nosound = createSwitch("mixer_nosound");
+    public static final Opt mixer_javabuffer = opt("mixer_java-buffer");
+    public static final Opt mixer_blocksize = opt("mixer_block-size");
+    public static final Switch mixer_nosound = createSwitch("mixer_no-sound");
     public static final Opt mixer_prebuffer = opt("mixer_prebuffer");
 
     public static final Opt mpu401 = opt("mpu401");
-    public static final Opt mididevice = opt("mididevice");
-    public static final Opt midiconfig = opt("midiconfig");
+    public static final Opt mididevice = opt("midi-device");
+    public static final Opt midiconfig = opt("midi-config");
 
     public static final Opt sbbase = opt("sbbase");
     public static final Opt sb_irq = opt("sb_irq");

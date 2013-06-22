@@ -29,7 +29,7 @@ public abstract class SpanningCodeBlock implements CodeBlock
     
     public Executable.Branch execute(Processor cpu)
     {
-        if (lastBlock == null)
+        //if (lastBlock == null)
             lastBlock = decode(cpu);
         return lastBlock.execute(cpu);
     }

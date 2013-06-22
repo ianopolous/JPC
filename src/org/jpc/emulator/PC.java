@@ -34,7 +34,8 @@
 package org.jpc.emulator;
 
 import org.jpc.debugger.LinearMemoryViewer;
-import org.jpc.emulator.execution.Executable;
+import org.jpc.emulator.execution.decoder.BasicBlock;
+import org.jpc.emulator.execution.decoder.DebugBasicBlock;
 import org.jpc.emulator.execution.decoder.Disassembler;
 import org.jpc.emulator.execution.decoder.Instruction;
 import org.jpc.emulator.execution.codeblock.*;
@@ -73,6 +74,13 @@ public class PC {
     public static final int INSTRUCTIONS_BETWEEN_INTERRUPTS = 1; 
 
     public static volatile boolean compile = Option.compile.isSet();
+
+    public static final boolean HISTORY = Option.history.isSet();
+    public static final int HISTORY_SIZE = 200;
+    private static final int[] ipHistory = new int[HISTORY_SIZE];
+    private static int historyIndex = 0;
+    private static int insHistoryIndex = 0;
+    private static CodeBlock[] prevBlocks = new CodeBlock[HISTORY_SIZE];
 
     private static final Logger LOGGING = Logger.getLogger(PC.class.getName());
 
@@ -145,6 +153,9 @@ public class PC {
         parts.add(new DefaultVGACard());
 
         parts.add(new SerialPort(0));
+        parts.add(new SerialPort(1));
+        parts.add(new SerialPort(2));
+        parts.add(new SerialPort(3));
         keyboard = new Keyboard();
         parts.add(keyboard);
         parts.add(new FloppyController());
@@ -220,34 +231,40 @@ public class PC {
 
     public Instruction getInstruction()
     {
+        return getInstruction(processor.getInstructionPointer());
+    }
+
+    public Instruction getInstruction(int addr)
+    {
         if (processor.isProtectedMode())
         {
             byte[] code = new byte[15];
-            linearAddr.copyContentsIntoArray(processor.getInstructionPointer(), code, 0, code.length);
+            linearAddr.copyContentsIntoArray(addr, code, 0, code.length);
             if (processor.cs.getDefaultSizeFlag())
                 return Disassembler.disassemble32(new Disassembler.ByteArrayPeekStream(code));
             else
                 return Disassembler.disassemble16(new Disassembler.ByteArrayPeekStream(code));
         }
         byte[] code = new byte[15];
-        physicalAddr.copyContentsIntoArray(processor.getInstructionPointer(), code, 0, code.length);
+        physicalAddr.copyContentsIntoArray(addr, code, 0, code.length);
         return Disassembler.disassemble16(new Disassembler.ByteArrayPeekStream(code));
     }
 
     public void setState(int[] s)
     {
         processor.r_eax.set32(s[0]);
-        processor.r_ebx.set32(s[1]);
-        processor.r_ecx.set32(s[2]);
-        processor.r_edx.set32(s[3]);
-        processor.r_esi.set32(s[4]);
-        processor.r_edi.set32(s[5]);
-        processor.r_esp.set32(s[6]);
-        processor.r_ebp.set32(s[7]);
+        processor.r_ecx.set32(s[1]);
+        processor.r_edx.set32(s[2]);
+        processor.r_ebx.set32(s[3]);
+        processor.r_esp.set32(s[4]);
+        processor.r_ebp.set32(s[5]);
+        processor.r_esi.set32(s[6]);
+        processor.r_edi.set32(s[7]);
         processor.eip = s[8];
         try {
             processor.setEFlags(s[9]);
         } catch (ProcessorException e) {}
+        vmClock.update(s[16]-(int)vmClock.getTicks());
         /*processor.cs(s[10]);
         processor.ds(s[11]);
         processor.es(s[12]);
@@ -273,14 +290,22 @@ public class PC {
         }
     }
 
-    public void sendKeys(String text)
+    public void sendKeysDown(String text)
     {
         for (char c: text.toCharArray())
         {
             int[] keycodes = KeyMapping.getJavaKeycodes(c);
             for (int i = 0; i < keycodes.length; i++)
                 keyboard.keyPressed(KeyMapping.getScancode(keycodes[i]));
-            for (int i = keycodes.length-1; i >= 0; i--)
+        }
+    }
+
+    public void sendKeysUp(String text)
+    {
+        for (char c: text.toCharArray())
+        {
+            int[] keycodes = KeyMapping.getJavaKeycodes(c);
+            for (int i = 0; i < keycodes.length; i++)
                 keyboard.keyReleased(KeyMapping.getScancode(keycodes[i]));
         }
     }
@@ -294,23 +319,23 @@ public class PC {
     {
         int[] res =  new int[]
                 {
-                        processor.r_eax.get32(), processor.r_ebx.get32(), processor.r_ecx.get32(), processor.r_edx.get32(),
-                        processor.r_esi.get32(), processor.r_edi.get32(), processor.r_esp.get32(), processor.r_ebp.get32(),
+                        processor.r_eax.get32(), processor.r_ecx.get32(), processor.r_edx.get32(), processor.r_ebx.get32(),
+                        processor.r_esp.get32(), processor.r_ebp.get32(), processor.r_esi.get32(), processor.r_edi.get32(),
                         processor.eip, processor.getEFlags(),
-                        processor.cs.getSelector(), processor.ds.getSelector(),
-                        processor.es.getSelector(), processor.fs.getSelector(),
-                        processor.gs.getSelector(), processor.ss.getSelector(),
+                        processor.es.getSelector(), processor.cs.getSelector(),
+                        processor.ss.getSelector(), processor.ds.getSelector(),
+                        processor.fs.getSelector(), processor.gs.getSelector(),
                         (int)getTicks(),
-                        getLimit(processor.cs), getLimit(processor.ds),
-                        getLimit(processor.es), getLimit(processor.fs),
-                        getLimit(processor.gs), getLimit(processor.ss),
+                        getLimit(processor.es), getLimit(processor.cs),
+                        getLimit(processor.ss), getLimit(processor.ds),
+                        getLimit(processor.fs), getLimit(processor.gs),
                         processor.cs.getDefaultSizeFlag()? 1: 0,
                         getBase(processor.gdtr),getLimit(processor.gdtr),
                         getBase(processor.idtr),getLimit(processor.idtr),
                         getBase(processor.ldtr),getLimit(processor.ldtr),
-                        getBase(processor.cs), getBase(processor.ds),
-                        getBase(processor.es), getBase(processor.fs),
-                        getBase(processor.gs), getBase(processor.ss),
+                        getBase(processor.es), getBase(processor.cs),
+                        getBase(processor.ss), getBase(processor.ds),
+                        getBase(processor.fs), getBase(processor.gs),
                         processor.getCR0(),
                         0, 0,
                         0, 0,
@@ -319,7 +344,8 @@ public class PC {
                         0, 0,
                         0, 0,
                         0, 0,
-                        0, 0
+                        0, 0,
+                        //(int)vmClock.nextExpiry()
                 };
         double[] fpuStack = processor.fpu.getStack();
         for (int i=0; i < 8; i++)
@@ -340,7 +366,7 @@ public class PC {
     private int getLimit(Segment s)
     {
         if (s instanceof SegmentFactory.NullSegment)
-            return 0;
+            return 0xffff;
         return s.getLimit();
     }
 
@@ -352,6 +378,18 @@ public class PC {
                 return ((VirtualClock) c).getTicks();
             }
         return 0;
+    }
+
+    public byte[] getCMOS()
+    {
+        RTC rtc = (RTC)getComponent(RTC.class);
+        return rtc.getCMOS();
+    }
+
+    public int[] getPit()
+    {
+        IntervalTimer pit = (IntervalTimer) getComponent(IntervalTimer.class);
+        return pit.getState();
     }
 
     public JPanel getNewMonitor()
@@ -691,15 +729,33 @@ public class PC {
         }
     }
 
+    public void checkInterrupts()
+    {
+        if (processor.isProtectedMode()) {
+            if (processor.isVirtual8086Mode()) {
+                processor.processVirtual8086ModeInterrupts(0);
+            } else {
+                processor.processProtectedModeInterrupts(0);
+            }
+        } else {
+            processor.processRealModeInterrupts(0);
+        }
+    }
+
     public int executeRealBlock()
     {
         try
         {
             int block = physicalAddr.executeReal(processor, processor.getInstructionPointer());
             staticClockx86Count += block;
-            if (staticClockx86Count > INSTRUCTIONS_BETWEEN_INTERRUPTS)
+            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
             {
-                processor.processRealModeInterrupts(staticClockx86Count);
+                //processor.processRealModeInterrupts(staticClockx86Count);
+                // for multi instruction blocks simulate checking interrupts at each instruction
+                // this ensures timers expire the same as in single stepped execution
+                if (!Option.singlesteptime.value())
+                    for (int i=0; i < staticClockx86Count; i++)
+                        vmClock.update(1);
                 staticClockx86Count = 0;
             }
             return block;
@@ -708,6 +764,14 @@ public class PC {
         }
         catch (ModeSwitchException e)
         {
+            // uncomment for compare to single stepping or comparing to Bochs...
+            staticClockx86Count += e.getX86Count();
+            if (Option.singlesteptime.value())
+                vmClock.updateAndProcess(1);
+            else
+                for (int i=0; i < staticClockx86Count; i++)
+                    vmClock.updateAndProcess(1);
+            staticClockx86Count = 0;
             LOGGING.log(Level.FINE, "Mode switch in RM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return 0;
@@ -719,9 +783,14 @@ public class PC {
         {
             int block = linearAddr.executeVirtual8086(processor, processor.getInstructionPointer());
             staticClockx86Count += block;
-            if (staticClockx86Count > INSTRUCTIONS_BETWEEN_INTERRUPTS)
+            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
             {
-                processor.processVirtual8086ModeInterrupts(staticClockx86Count);
+                //processor.processVirtual8086ModeInterrupts(staticClockx86Count);
+                // for multi instruction blocks simulate checking interrupts at each instruction
+                // this ensures timers expire the same as in single stepped execution
+                if (!Option.singlesteptime.value())
+                    for (int i=0; i < staticClockx86Count; i++)
+                        vmClock.update(1);
                 staticClockx86Count = 0;
             }
             return block;
@@ -730,6 +799,14 @@ public class PC {
         }
         catch (ModeSwitchException e)
         {
+            // uncomment for compare to single stepping...
+            staticClockx86Count += e.getX86Count();
+            if (Option.singlesteptime.value())
+                vmClock.updateAndProcess(1);
+            else
+                for (int i=0; i < staticClockx86Count; i++)
+                    vmClock.updateAndProcess(1);
+            staticClockx86Count = 0;
             LOGGING.log(Level.FINE, "Mode switch in VM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return 0;
@@ -741,9 +818,14 @@ public class PC {
         {
             int block = linearAddr.executeProtected(processor, processor.getInstructionPointer());
             staticClockx86Count += block;
-            if (staticClockx86Count > INSTRUCTIONS_BETWEEN_INTERRUPTS)
+            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
             {
-                processor.processProtectedModeInterrupts(staticClockx86Count);
+                //processor.processProtectedModeInterrupts(staticClockx86Count);
+                // for multi instruction blocks simulate checking interrupts at each instruction
+                // this ensures timers expire the same as in single stepped execution
+                if (!Option.singlesteptime.value())
+                    for (int i=0; i < staticClockx86Count; i++)
+                        vmClock.update(1);
                 staticClockx86Count = 0;
             }
             return block;
@@ -752,6 +834,14 @@ public class PC {
         }
         catch (ModeSwitchException e)
         {
+            // uncomment for compare to single stepping...
+            staticClockx86Count += e.getX86Count();
+            if (Option.singlesteptime.value())
+                vmClock.updateAndProcess(1);
+            else
+                for (int i=0; i < staticClockx86Count; i++)
+                    vmClock.updateAndProcess(1);
+            staticClockx86Count = 0;
             LOGGING.log(Level.FINE, "Mode switch in PM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
         return 0;
@@ -779,8 +869,76 @@ public class PC {
         } catch (RuntimeException e)
         {
             System.out.printf("Error at cs:eip = %08x\n", processor.getInstructionPointer());
+            System.out.printf("Last exit eip = %08x\n", BasicBlock.lastExitEip);
+            //printHistory();
+            System.out.println("*****");
+            printInsHistory();
+            System.out.printf("Error at cs:eip = %08x\n", processor.getInstructionPointer());
             throw e;
         }
+    }
+
+    private void printInsHistory()
+    {
+        for (int i = historyIndex; i != (historyIndex-1+HISTORY_SIZE)%HISTORY_SIZE; i = (i+1)%HISTORY_SIZE)
+        {
+            if (prevBlocks[i] == null) continue;
+            DebugBasicBlock deb = (DebugBasicBlock)prevBlocks[i];
+//            CodeBlock block = prevBlocks[i];
+//            if (block instanceof AbstractCodeBlockWrapper)
+//                deb = (DebugBasicBlock)(((InterpretedRealModeBlock)((AbstractCodeBlockWrapper)block).getTargetBlock()).b);
+//            else
+//                System.out.println(block.getClass().getName());
+//            Instruction disam = deb.start;
+//            int length = disam.x86Length;
+//            StringBuilder b = new StringBuilder();
+//            while (!disam.isBranch())
+//            {
+//                b.append(String.format("   %s\n", disam));
+//                length += disam.x86Length;
+//                disam = disam.next;
+//            }
+//            b.append(String.format("   %s\n", disam));
+            System.out.printf("Block at %08x length: %d\n", ipHistory[i], deb.getX86Length());
+            System.out.printf(deb.getDisplayString());
+        }
+    }
+
+//    private void printHistory()
+//    {
+//        for (int i = historyIndex; i != (historyIndex-1+HISTORY_SIZE)%HISTORY_SIZE; i = (i+1)%HISTORY_SIZE)
+//        {
+//            if (ipHistory[i] == 0) continue;
+//            int addr = ipHistory[i];
+//            Instruction disam = getInstruction(addr); // won't work if there was a recent mode switch
+//            int length = disam.x86Length;
+//            StringBuilder b = new StringBuilder();
+//            while (!disam.isBranch())
+//            {
+//                b.append(String.format("   %s\n", disam));
+//                addr += disam.x86Length;
+//                length += disam.x86Length;
+//                disam = getInstruction(addr);
+//            }
+//            b.append(String.format("   %s\n", disam));
+//            System.out.printf("Block at %08x length: %d\n", addr, length);
+//            System.out.printf(b.toString());
+//        }
+//    }
+
+    private static void logIP(int cseip)
+    {
+        ipHistory[historyIndex % HISTORY_SIZE] = cseip;
+        historyIndex++;
+        historyIndex %= HISTORY_SIZE;
+    }
+
+    public static void logBlock(int cseip, CodeBlock block)
+    {
+        logIP(cseip);
+        prevBlocks[insHistoryIndex % HISTORY_SIZE] = block;
+        insHistoryIndex++;
+        insHistoryIndex %= HISTORY_SIZE;
     }
 
     public final int executeReal()
@@ -793,6 +951,8 @@ public class PC {
             for (int i = 0; i < 100; i++)
             {
                 ethernet.checkForPackets();
+//                if (!princeAddrs.contains(processor.getInstructionPointer()))
+//                    throw new IllegalStateException("new address reached "+Integer.toHexString(processor.getInstructionPointer()));
                 int block = physicalAddr.executeReal(processor, processor.getInstructionPointer());
                 x86Count += block;
                 clockx86Count += block;
@@ -804,6 +964,7 @@ public class PC {
                 }
             }
         } catch (ProcessorException p) {
+            System.out.printf("Proc exception %s\n", p);
              processor.handleRealModeException(p);
         }
         catch (ModeSwitchException e)
@@ -822,8 +983,7 @@ public class PC {
         try
         {
             for (int i = 0; i < 100; i++)
-            {if (processor.getInstructionPointer()==0x10217f)
-                System.out.printf("");
+            {
                 int block= linearAddr.executeProtected(processor, processor.getInstructionPointer());
                 x86Count += block;
                 clockx86Count += block;

@@ -25,6 +25,12 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="arpl">
+    <return>Branch.None</return>
+    <snippet>        if (true) throw ProcessorException.UNDEFINED;</snippet>
+    <args size="16">Ew;Gw</args>
+  </opcode>
+
   <opcode mnemonic="bound_o16">
     <return>Branch.None</return>
     <snippet>        int addr = $op2.get;
@@ -234,13 +240,15 @@
 
   <opcode mnemonic="iretw">
     <return>Branch.Ret</return>
-    <snippet>        cpu.iret_o16_a16();</snippet>
+    <snippet>        cpu.eip += blockLength;
+        cpu.iret_o16_a16();</snippet>
     <args size="0"></args>
   </opcode>
 
   <opcode mnemonic="iretd">
     <return>Branch.Ret</return>
-    <snippet>        cpu.iret_o32_a16();</snippet>
+    <snippet>        cpu.eip += blockLength;
+        cpu.iret_o32_a16();</snippet>
     <args size="0"></args>
   </opcode>
 

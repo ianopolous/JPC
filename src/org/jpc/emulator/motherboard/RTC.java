@@ -71,6 +71,8 @@ public class RTC extends AbstractHardwareComponent implements IODevice
     private static final int REG_B_PIE = 0x40;
     private static final int REG_B_AIE = 0x20;
     private static final int REG_B_UIE = 0x10;
+    private static final int REG_CSUM_HIGH = 0x2e;
+    private static final int REG_CSUM_LOW = 0x2f;
     private byte[] cmosData; //rowa
 
     private byte cmosIndex; //rw
@@ -240,6 +242,12 @@ public class RTC extends AbstractHardwareComponent implements IODevice
                 cmosData[0x3d] = (byte) 0x03; /* CD-ROM boot */
                 break;
         }
+        cmosData[0x2d] = 0x20;
+        int sum = 0;
+        for (int i=0x10; i<=0x2d; i++)
+            sum += cmosData[i] & 0xff;
+        cmosData[REG_CSUM_HIGH] = (byte) (sum >> 8);
+        cmosData[REG_CSUM_LOW] = (byte) sum;
     }
 
     private void cmosInitHD(DriveSet drives)
@@ -680,9 +688,16 @@ public class RTC extends AbstractHardwareComponent implements IODevice
             secondTimer = timeSource.newTimer(secondCallback);
             delayedSecondTimer = timeSource.newTimer(delayedSecondCallback);
 
-            nextSecondTime = timeSource.getEmulatedNanos() + 1000000000L;//+ (99 * timeSource.getTickRate()) / 100;
+            nextSecondTime = timeSource.getEmulatedNanos() /*+ 1000000000L;/*/ + (99 * timeSource.getTickRate()) / 100;
             delayedSecondTimer.setExpiry(nextSecondTime);
         }
+    }
+
+    public byte[] getCMOS()
+    {
+        byte[] res = new byte[128];
+        System.arraycopy(cmosData, 0, res, 0, 128);
+        return res;
     }
 
     public String toString()

@@ -104,6 +104,7 @@ public class Processor implements HardwareComponent
             parityMap[i] = ((Integer.bitCount(i) & 0x1) == 0);
     }
 
+    private static boolean SKIP_SLEEPS = Option.max_instructions_per_block.intValue(1000) == 1;
 
     public int eip;
     public Segment cs, ds, ss, es, fs, gs;
@@ -367,6 +368,17 @@ public class Processor implements HardwareComponent
         } else {
             ss.setWord((r_esp.get16()-2) & 0xFFFF, val);
             r_esp.set16(r_esp.get16() - 2);
+        }
+    }
+
+    public int push16(int addr, short val)
+    {
+        if (ss.getDefaultSizeFlag()) {
+            ss.setWord(addr-2, val);
+            return addr - 2;
+        } else {
+            ss.setWord((addr-2) & 0xFFFF, val);
+            return (addr & ~0xffff) | ((addr-2) & 0xffff);
         }
     }
 
@@ -723,7 +735,7 @@ public class Processor implements HardwareComponent
         int tmpeip = pop16() & 0xffff;
         int tmpcs = pop16() & 0xffff;
         int tmpflags = pop16() & 0xffff;
-        cs.checkAddress(tmpeip);
+        //cs.checkAddress(tmpeip);
         cs.setSelector(tmpcs);
         eip = tmpeip;
         setFlags((short)tmpflags);
@@ -1058,24 +1070,37 @@ public class Processor implements HardwareComponent
                 r_ecx.set32(0x6c65746e); /* "ntel", with n in the low nibble of CL */
                 return;
             case 0x01:
-                r_eax.set32(0x00000633); // Pentium II Model 8 Stepping 3
+                //r_eax.set32(0x00000633); // Pentium II Model 8 Stepping 3
+                r_eax.set32(0x00000533); // Pentium MMX Model 8 Stepping 3
                 r_ebx.set32(8 << 8); //not implemented (should be brand index)
                 r_ecx.set32(0);
 
                 int features = 0;
-                features |= 0x01; //Have an FPU;
-                features |= (1<< 8);  // Support CMPXCHG8B instruction
+                features |= 1; //Have an FPU;
+                //features |= (1<< 1);  // VME - Virtual 8086 mode enhancements, CR4.VME and eflags.VIP and VIF
+                features |= (1<< 2); // Debugging extensions CR4.DE and DR4 and DR5
+                features |= (1<< 3);  // Support Page-Size Extension (4M pages)
+
                 features |= (1<< 4);  // implement TSC
                 features |= (1<< 5);  // support RDMSR/WRMSR
+                //features |= (1<< 6);  // Support PAE.
+                features |= (1<< 7);  // Machine Check exception
+
+                features |= (1<< 8);  // Support CMPXCHG8B instruction - Bochs doesn't have this!
+                //features |= (1<< 9);   // APIC on chip
+                // (1<<12) is reserved
+                //features |= (1<<11);  // SYSENTER/SYSEXIT
+
+                //features |= (1<<12);  // Memory type range registers
+                features |= (1<<13);  // Support Global pages.
+                features |= (1<<14);  //
+                features |= (1<<15);  // Implement CMOV instructions.
+
                 //features |= (1<<23);  // support MMX
                 //features |= (1<<24);  // Implement FSAVE/FXRSTOR instructions.
-                features |= (1<<15);  // Implement CMOV instructions.
-                //features |= (1<< 9);   // APIC on chip
                 //features |= (1<<25);  // support SSE
-                features |= (1<< 3);  // Support Page-Size Extension (4M pages)
-                features |= (1<<13);  // Support Global pages.
-                //features |= (1<< 6);  // Support PAE.
-                features |= (1<<11);  // SYSENTER/SYSEXIT
+                //features |= (1<<26);  // support SSE2
+                //features |= (1<<28);  // Max APIC ids reserved field is valid
                 r_edx.set32(features);
                 return;
             default:
@@ -1122,7 +1147,7 @@ public class Processor implements HardwareComponent
     private long resetTime;
     private int currentPrivilegeLevel;
     private boolean started = false;
-    private Clock vmClock;
+    public Clock vmClock;
 
     public FpuState fpu;
 
@@ -2876,32 +2901,33 @@ public class Processor implements HardwareComponent
 
     public final void int_o16_a16(int vector)
     {
-        //System.out.println("Real Mode execption " + Integer.toHexString(vector));
+        //System.out.println("Real Mode exception " + Integer.toHexString(vector));
 
         if (vector == 0)
             throw new IllegalStateException("INT 0 allowed? 0x" + Integer.toHexString(getInstructionPointer()));
 
         if (((0xffff & r_sp.get16()) < 6) && (r_sp.get16() != 0)) {
-            throw new IllegalStateException("SS Processor Exception Thrown in \"handleInterrupt("+vector+")\"");
-            //throw exceptionSS; //?
+            throw ProcessorException.STACK_SEGMENT_0;//?
             //maybe just change vector value
         }
-        r_esp.set16(r_esp.get16()-2);
-        int eflags = getEFlags() & 0xffff;
-        ss.setWord(r_esp.get16() & 0xffff, (short)eflags);
+        int esp = push16(r_esp.get32(), (short)getEFlags());
         eflagsInterruptEnable = false;
         eflagsTrap = false;
         eflagsAlignmentCheck = false;
         eflagsResume=false;
-        r_esp.set16(r_esp.get16()-2);
-        ss.setWord(r_esp.get16() & 0xffff, (short)cs.getSelector());
-        //System.out.printf("INT: saved cs=%04x to %04x\n", cs.getSelector(), r_esp.get16());
-        r_esp.set16(r_esp.get16()-2);
-        ss.setWord(r_esp.get16() & 0xffff, (short)eip);
-        //System.out.printf("INT: saved eip=%04x to %04x\n", (short)eip, r_esp.get16());
+        esp = push16(esp, (short)cs.getSelector());
+        //System.out.printf("INT: saved cs=%04x to %04x\n", cs.getSelector(), esp);
+        esp = push16(esp, (short)eip);
+        //System.out.printf("INT: saved eip=%04x to %04x\n", (short)eip, esp);
+        int debug = getInstructionPointer();
+
         // read interrupt vector
-        eip = 0xffff & idtr.getWord(4*vector);
+        int neweip = 0xffff & idtr.getWord(4*vector);
+        //  now commit
         cs.setSelector(0xffff & idtr.getWord(4*vector+2));
+        eip = neweip;
+        r_esp.set32(esp);
+        //System.out.printf("INT: targeteip=%04x cs: %04x\n", (short)eip, cs());
     }
 
     public void sysenter()
@@ -3370,11 +3396,13 @@ public class Processor implements HardwareComponent
 
     public void waitForInterrupt()
     {
-        //System.out.println("*****START HALT");
+        System.out.printf("*****START HALT %016x\n", vmClock.getEmulatedNanos());
+        int ints = 0;
         while ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) == 0) {
-            vmClock.updateNowAndProcess();
+            vmClock.updateNowAndProcess(!SKIP_SLEEPS);
+            ints++;
         }
-        //System.out.println("END HALT");
+        System.out.printf("END HALT %016x, interrupts=%d\n", vmClock.getEmulatedNanos(), ints);
         if (isProtectedMode()) {
             if (isVirtual8086Mode()) {
                 processProtectedModeInterrupts(0);
@@ -3762,7 +3790,8 @@ public class Processor implements HardwareComponent
         r_esi.set32(0);
         r_ebp.set32(0);
         r_esp.set32(0);
-        r_edx.set32(0x00000633); // Pentium II Model 3 Stepping 3
+        //r_edx.set32(0x00000633); // Pentium II Model 3 Stepping 3
+        r_edx.set32(0); // to comform with Bochs
 
         interruptFlags = 0;
         currentPrivilegeLevel = 0;
@@ -3890,28 +3919,24 @@ public class Processor implements HardwareComponent
         int newEip = 0xffff & idtr.getWord(vector);
         int newSelector = 0xffff & idtr.getWord(vector+2);
 
-        short sesp = (short) r_esp.get16();
-        sesp -= 2;
-        int eflags = getEFlags() & 0xffff;
-        ss.setWord(sesp & 0xffff, (short)eflags);
+        int esp = push16(r_esp.get32(), (short)getEFlags());
         eflagsInterruptEnable = false;
         eflagsTrap = false;
         eflagsAlignmentCheck = false;
         eflagsResume=false;
-        sesp -= 2;
-        ss.setWord(sesp & 0xffff, (short)cs.getSelector());
-        sesp -= 2;
-        ss.setWord(sesp & 0xffff, (short)eip);
-        r_esp.set16(sesp & 0xFFFF);
-        // read interrupt vector
+        esp = push16(esp, (short)cs.getSelector());
+        esp = push16(esp, (short)eip);
+        // commit
+        r_esp.set32(esp);
         eip = newEip;
-
+        //System.out.printf("RM HW int to cs:eip = %08x:%08x = %08x\n", cs.getBase(), eip, cs.getBase()+eip);
         if (!cs.setSelector(newSelector))
         {
             System.out.println("Setting CS to RM in RM interrupt");
             cs(SegmentFactory.createRealModeSegment(physicalMemory, newSelector));
             setCPL(0);
         }
+        //System.out.printf("Hardware int with vector %d to %04x:%04x = %08x\n", vector/4, newSelector, newEip, cs.getBase()+newEip);
     }
 
     public final void handleProtectedModeException(ProcessorException pe)
