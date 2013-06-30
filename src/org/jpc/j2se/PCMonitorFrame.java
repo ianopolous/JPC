@@ -150,7 +150,7 @@ public class PCMonitorFrame extends JFrame implements Runnable
 
         setJMenuBar(bar);
         
-        getContentPane().add("South", speedDisplay);
+        //getContentPane().add("South", speedDisplay);
 
         try
         {

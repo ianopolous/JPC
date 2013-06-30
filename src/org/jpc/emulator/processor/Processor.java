@@ -3910,7 +3910,7 @@ public class Processor implements HardwareComponent
         handleRealModeInterrupt(e.getType().vector());
     }
 
-    private final void handleRealModeInterrupt(int vector)
+    public final void handleRealModeInterrupt(int vector)
     {
         if (vector*4 +3 > idtr.getLimit())
             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
@@ -3918,6 +3918,10 @@ public class Processor implements HardwareComponent
         vector *= 4;
         int newEip = 0xffff & idtr.getWord(vector);
         int newSelector = 0xffff & idtr.getWord(vector+2);
+        if (vector == 32)
+        {
+            System.out.printf("** PIT int from eip=%08x to eip=%08x, ticks=%08x\n", eip, newEip, vmClock.getTicks());
+        }
 
         int esp = push16(r_esp.get32(), (short)getEFlags());
         eflagsInterruptEnable = false;

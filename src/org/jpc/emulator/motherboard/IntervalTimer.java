@@ -470,23 +470,23 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                 case 0:
                     if (writeState == RW_Status.MSByte_multiple)
                         setOut(false);
-                    nextTransitionTimeValue = 1;
+//                    nextTransitionTimeValue = 1;
                     break;
                 case 5:
                 case 1:
                     if (triggerGate) // if already saw trigger
-                        nextTransitionTimeValue = 1;
+//                        nextTransitionTimeValue = 1;
                     break;
                 case 6:
                 case 2:
-                    nextTransitionTimeValue  =1;
+//                    nextTransitionTimeValue  =1;
                     break;
                 case 7:
                 case 3:
-                    nextTransitionTimeValue  =1;
+//                    nextTransitionTimeValue  =1;
                     break;
                 case 4:
-                    nextTransitionTimeValue  =1;
+//                    nextTransitionTimeValue  =1;
                     break;
             }
         }
@@ -949,11 +949,10 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                         return 0;
                     }
                 case MODE_RATE_GENERATOR:
-                    if (((now % countValue) == 0) && (now != 0)) {
+                    if (((now % countValue) == 0))// && (now != 0)) // Bochs starts out pin high TODO
                         return 1;
-                    } else {
+                    else
                         return 0;
-                    }
                 case MODE_SQUARE_WAVE:
                     if ((now % countValue) < ((countValue + 1) >>> 1)) {
                         return 1;

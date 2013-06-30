@@ -6,7 +6,6 @@ public interface EmulatorControl
 {
     // return disam of next instruction
     public String executeInstruction() throws IOException;
-
     public int[] getState() throws IOException;
     public void setState(int[] state) throws IOException;
 

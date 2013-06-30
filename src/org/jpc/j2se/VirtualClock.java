@@ -15,7 +15,6 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
     public static final long NSPI = 1000000000L/IPS; //Nano seconds per instruction
     private static final Logger LOGGING = Logger.getLogger(VirtualClock.class.getName());
     private PriorityQueue<Timer> timers;
-    private List<CycleListener> bikes = new LinkedList();
     private volatile boolean ticksEnabled;
     private long ticksOffset;
     private long ticksStatic;
@@ -30,11 +29,6 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
         ticksOffset = 0;
         ticksStatic = 0;
         currentTime = 0;//getSystemTimer();
-    }
-
-    public void registerCycleListener(CycleListener listener)
-    {
-        bikes.add(listener);
     }
 
     public void saveState(DataOutput output) throws IOException
@@ -219,8 +213,6 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
             currentTime = getSystemTimer();
         else
             currentTime += instructions * NSPI;
-        for (CycleListener listener: bikes)
-            listener.cyclesPassed(instructions);
     }
 
     public long nextExpiry()

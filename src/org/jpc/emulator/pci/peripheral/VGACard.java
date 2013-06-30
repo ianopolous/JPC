@@ -356,6 +356,19 @@ public abstract class VGACard extends AbstractPCIDevice implements IODevice
         vbeRegs[VBE_DISPI_INDEX_BPP] = 32;
     }
 
+    public String getText()
+    {
+        StringBuilder b = new StringBuilder();
+        for (int i=0; i < lastChar.length/80; i++)
+        {
+            StringBuilder row = new StringBuilder();
+            for (int j=0; j < 80; j++)
+                row.append((char)lastChar[j+80*i]);
+            b.append(row.toString().trim()+"\n");
+        }
+        return b.toString();
+    }
+
     public void saveState(DataOutput output) throws IOException
     {
         super.saveState(output);

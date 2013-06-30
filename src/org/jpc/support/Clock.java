@@ -42,8 +42,6 @@ import org.jpc.emulator.*;
  */
 public interface Clock extends HardwareComponent
 {
-    public void registerCycleListener(CycleListener listener);
-
     public long nextExpiry();
 
     public void update(int instructions);

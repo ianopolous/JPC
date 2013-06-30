@@ -149,7 +149,9 @@ public class CompareToBochs
         Method state1 = c1.getMethod("getState");
         Method cmos1 = c1.getMethod("getCMOS");
         Method pit1 = c1.getMethod("getPit");
-
+        Method enterInt = c1.getMethod("forceEnterInterrupt", Integer.class);
+        Method exitInt = c1.getMethod("forceExitInterrupt");
+        Method ticksDelta = c1.getMethod("addToTicks", Integer.class);
 
         Method setState1 = c1.getMethod("setState", int[].class);
         Method execute1 = c1.getMethod("executeBlock");
@@ -182,7 +184,7 @@ public class CompareToBochs
         String line;
         byte[] sdata1 = new byte[4096];
         byte[] sdata2 = new byte[4096];
-        int[] fast = null, old=null;
+        int[] fast = null, bochsState=null;
         boolean previousLss = false;
         int previousStackAddr = 0;
         boolean startedRight = false, startedLeft = false;
@@ -211,7 +213,7 @@ public class CompareToBochs
                 throw e;
             }
             fast = (int[])state1.invoke(newpc);
-            old = bochs.getState();
+            bochsState = bochs.getState();
             try {
                 line = (String) instructionInfo.invoke(newpc, new Integer(1)) + " == " + nextBochs; // instructions per block
             } catch (Exception e)
@@ -229,23 +231,23 @@ public class CompareToBochs
             if (e1 != null)
                 throw e1;
             // account for repeated strings
-            if ((fast[8] != old[8]) && (currentInstruction().contains("rep")))
+            if ((fast[8] != bochsState[8]) && (currentInstruction().contains("rep")))
             {
-                while (fast[8] != old[8])
+                while (fast[8] != bochsState[8])
                 {
                     bochs.executeInstruction();
-                    old = bochs.getState();
+                    bochsState = bochs.getState();
                 }
                 // now update ticks
-                fast[16] = old[16];
+                fast[16] = bochsState[16];
                 setState1.invoke(newpc, (int[])fast);
             }
             // sometimes JPC does 2 instructions at once for atomicity relative to interrupts
-            if (fast[16] == old[16] +1)
+            if (fast[16] == bochsState[16] +1)
             {
                 try {
                     bochs.executeInstruction();
-                    old = bochs.getState();
+                    bochsState = bochs.getState();
                 } catch (Exception e)
                 {
                     printHistory();
@@ -320,13 +322,48 @@ public class CompareToBochs
             if (history[historyIndex] == null)
                 history[historyIndex] = new Object[3];
             history[historyIndex][0] = fast;
-            history[historyIndex][1] = old;
+            history[historyIndex][1] = bochsState;
             history[historyIndex][2] = line;
             historyIndex = (historyIndex+1)%history.length;
             
+            // COMPARE INTERRUPT STATE
+            int prevIndex = ((historyIndex-2)%history.length + history.length) % history.length;
+            if (history[prevIndex] != null)
+            {
+                boolean JPCInt = inInt((int[])(history[prevIndex][0]), fast);
+                boolean BochsInt = inInt((int[])(history[prevIndex][1]), bochsState);
+                if (!BochsInt)
+                {
+                    if (JPCInt)
+                    {
+                        exitInt.invoke(newpc);
+                        fast = (int[])state1.invoke(newpc);
+                        System.out.println("Forced exit interrupt.");
+                    }
+                }
+                else
+                {
+                    if (!JPCInt)
+                    {
+                        enterInt.invoke(newpc, new Integer(8)); // assume int from PIT for now
+                        fast = (int[])state1.invoke(newpc);
+                        System.out.println("Forced enter interrupt.");
+                        if (bochsState[8] == 0xfea6)
+                        {
+                            System.out.println("HACK to follow bizarre Bochs behaviour");
+                            // HACK to follow boch's bizarre (wrong?) behaviour here
+                            execute1.invoke(newpc); // will do STI and following instruction, then take away one tick
+                            ticksDelta.invoke(newpc, new Integer(-1));
+                            fast = (int[])state1.invoke(newpc);
+                            nextBochs = bochs.executeInstruction(); // will do instruction following STI
+                            bochsState = bochs.getState();
+                        }
+                    }
+                }
+            }
 
             Set<Integer> diff = new HashSet<Integer>();
-            if (!sameStates(fast, old, compareFlags, diff))
+            if (!sameStates(fast, bochsState, compareFlags, diff))
             {
                 if ((diff.size() == 1) && diff.contains(9))
                 {
@@ -337,9 +374,9 @@ public class CompareToBochs
                         prevInstr += ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[1];
                     if (prevInstr.startsWith("cli") || secondPrevInstr.startsWith("cli"))
                     {
-                         if ((fast[9]^old[9]) == 0x200)
+                         if ((fast[9]^bochsState[9]) == 0x200)
                          {
-                             fast[9] = old[9];
+                             fast[9] = bochsState[9];
                              setState1.invoke(newpc, (int[])fast);
                          }
                     }
@@ -347,20 +384,20 @@ public class CompareToBochs
                     if (previousLss)
                     {
                         previousLss = false;
-                        fast[9] = old[9];
+                        fast[9] = bochsState[9];
                         setState1.invoke(newpc, (int[])fast);
                     }
                     else if (flagIgnores.containsKey(prevInstr))
                     {
                         int mask = flagIgnores.get(prevInstr);
-                        if ((fast[9]& mask) == (old[9] & mask))
+                        if ((fast[9]& mask) == (bochsState[9] & mask))
                         {
-                            fast[9] = old[9];
+                            fast[9] = bochsState[9];
                             setState1.invoke(newpc, (int[])fast);
                         }
-                    } else if ((fast[9]& flagAdoptMask) == (old[9] & flagAdoptMask))
+                    } else if ((fast[9]& flagAdoptMask) == (bochsState[9] & flagAdoptMask))
                     {
-                        fast[9] = old[9];
+                        fast[9] = bochsState[9];
                         setState1.invoke(newpc, (int[])fast);
                     }
                     if (prevInstr.equals("lss"))
@@ -369,10 +406,10 @@ public class CompareToBochs
                 }
                 else if ((diff.size() == 1) && diff.contains(0))
                 {
-                    if ((fast[0]^old[0]) == 0x10)
+                    if ((fast[0]^bochsState[0]) == 0x10)
                     {
                         //often eax is loaded with flags which contain arbitrary AF values, ignore these
-                        fast[0] = old[0];
+                        fast[0] = bochsState[0];
                         setState1.invoke(newpc, (int[])fast);
                     }
                     else if (previousInstruction().startsWith("in ")) // IO port read
@@ -380,42 +417,42 @@ public class CompareToBochs
                         // print before and after state, then adopt reg
                         if (!ignoredIOPorts.contains(fast[2])) // port is in dx
                         {
-                            System.out.printf("IO read difference: port=%08x eax=%08x#%08x from %s\n", fast[2], fast[0], old[0], previousInstruction());
+                            System.out.printf("IO read difference: port=%08x eax=%08x#%08x from %s\n", fast[2], fast[0], bochsState[0], previousInstruction());
                             //printLast2();
                         }
-                        fast[0] = old[0];
+                        fast[0] = bochsState[0];
                         setState1.invoke(newpc, (int[])fast);
                     }
                 }
                 else if ((fast[0] >= 0xa8000) && (fast[0] < 0xb0000) && previousInstruction(1).startsWith("movzx edx,BYTE PTR [eax]")) // see smm_init in rombios32.c
                 {
-                    fast[2] = old[2];
+                    fast[2] = bochsState[2];
                     setState1.invoke(newpc, (int[])fast);
                 }
                 else if ((previousState()[2] == 0xb2) && previousInstruction(2).startsWith("out dx")) // entered SMM
                 {
                     String bochsDisam = nextBochs;
                     String prev = null;
-                    while (fast[8] != old[8])
+                    while (fast[8] != bochsState[8])
                     {
                         prev = bochsDisam;
                         bochsDisam = bochs.executeInstruction();
-                        old = bochs.getState();
+                        bochsState = bochs.getState();
                     }
-                    fast[16] = old[16];
+                    fast[16] = bochsState[16];
                     setState1.invoke(newpc, (int[])fast);
                     System.out.println("Remote returned from SMM with: "+prev + " and ticks: "+fast[16]);
                 }
                 diff.clear();
-                if (!sameStates(fast, old, compareFlags, diff))
+                if (!sameStates(fast, bochsState, compareFlags, diff))
                 {
                     printHistory();
                     for (int diffIndex: diff)
-                        System.out.printf("Difference: %s %08x - %08x : %08x\n", names[diffIndex], fast[diffIndex], old[diffIndex], fast[diffIndex]^old[diffIndex]);
-                        setState1.invoke(newpc, (int[])old);
+                        System.out.printf("Difference: %s %08x - %08x : ^ %08x\n", names[diffIndex], fast[diffIndex], bochsState[diffIndex], fast[diffIndex]^bochsState[diffIndex]);
+                        setState1.invoke(newpc, (int[])bochsState);
                     if (diff.contains(8))
                     {
-                        comparePITS(lastPIT0Count, bochs, newpc, pit1);
+                        printPITs((int[]) pit1.invoke(newpc), bochs.getPit());
                         throw new IllegalStateException("Different EIP!");
                     }
                 }
@@ -509,6 +546,19 @@ public class CompareToBochs
         }
     }
 
+    private static boolean inInt(int[] prev, int[] curr)
+    {
+        int prevESP = prev[4];
+        int ESP = curr[4];
+        int prevEIP = prev[8];
+        int EIP = curr[8];
+//        if (Math.abs(ESP-prevESP) < 4) STI, POP would give =4
+//            return false;
+        if ((EIP == 0xfea5) || (EIP == 0xfea6))
+            return true;
+        return false;
+    }
+
     private static int comparePITS(int lastPIT0Count, EmulatorControl bochs, Object newpc, Method pit1) throws Exception
     {
         int[] jpcPIT = (int[]) pit1.invoke(newpc);
@@ -529,20 +579,25 @@ public class CompareToBochs
             {
                 printLast2();
                 System.out.println("Different PIT");
-                System.out.println("JPC Pit :: Bochs Pit");
-                for (int i=0; i < 3; i++)
-                {
-                    for (int j=0; j < 4; j++)
-                    {
-                        System.out.printf("%08x ", jpcPIT[i*4+j]);
-                        System.out.printf("= ");
-                        System.out.printf("%08x ", bochsPIT[i*4+j]);
-                        System.out.println();
-                    }
-                }
+                printPITs(jpcPIT, bochsPIT);
             }
         }
         return lastPIT0Count;
+    }
+
+    private static void printPITs(int[] jpcPIT, int[] bochsPIT)
+    {
+        System.out.println("JPC Pit :: Bochs Pit");
+        for (int i=0; i < 3; i++)
+        {
+            for (int j=0; j < 4; j++)
+            {
+                System.out.printf("%08x ", jpcPIT[i*4+j]);
+                System.out.printf("= ");
+                System.out.printf("%08x ", bochsPIT[i*4+j]);
+                System.out.println();
+            }
+        }
     }
 
     private static void compareStacks(int espPageIndex, int esp, Method save1, Object newpc, byte[] sdata1, EmulatorControl bochs,byte[] sdata2, boolean pm, Method load1) throws Exception
