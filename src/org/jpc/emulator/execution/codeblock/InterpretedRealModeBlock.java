@@ -51,7 +51,7 @@ public class InterpretedRealModeBlock implements RealModeCodeBlock
                     cpu.eip += current.next.delta - current.delta;
             }
             int endeip = cpu.eip;
-            System.out.printf("RM exception: eip corrected to %08x from %08x\n", endeip, starteip);
+            //System.out.printf("RM exception: eip corrected to %08x from %08x\n", endeip, starteip);
             cpu.handleRealModeException(e);
             return Branch.Exception;
         }

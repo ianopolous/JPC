@@ -196,7 +196,25 @@ public class Bochs implements EmulatorControl
 
     public Integer savePage(Integer page, byte[] data, Boolean linear) throws IOException
     {
-        throw new IllegalStateException("Unimplemented savePage");
+        if (linear)
+            writeCommand("x/4096bx "+page);
+        else
+            writeCommand("x/4096bx "+(page << 12));
+        String line = readLine();
+        while (!line.contains("bogus"))
+            line = readLine();
+        for (int i=0; i < 512; i++)
+        {
+            while (line.contains("MEM"))
+                line = readLine();
+            String[] bytes = line.substring(line.indexOf(":")+1).trim().split("\t");
+            for (int j=0; j < 8; j++)
+                data[8*i+j] = (byte)Integer.parseInt(bytes[j].substring(2), 16);
+            line = readLine();
+        }
+        while (!line.contains("Mouse capture off"))
+            line = readLine();
+        return 4096;
     }
 
     private String readLine() throws IOException

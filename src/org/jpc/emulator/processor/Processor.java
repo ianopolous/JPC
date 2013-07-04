@@ -2903,8 +2903,8 @@ public class Processor implements HardwareComponent
     {
         //System.out.println("Real Mode exception " + Integer.toHexString(vector));
 
-        if (vector == 0)
-            throw new IllegalStateException("INT 0 allowed? 0x" + Integer.toHexString(getInstructionPointer()));
+        //if (vector == 0)
+        //    throw new IllegalStateException("INT 0 allowed? 0x" + Integer.toHexString(getInstructionPointer()));
 
         if (((0xffff & r_sp.get16()) < 6) && (r_sp.get16() != 0)) {
             throw ProcessorException.STACK_SEGMENT_0;//?

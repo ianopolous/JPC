@@ -81,14 +81,20 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
         }
     }
 
+    public long getIPS()
+    {
+        return IPS;
+    }
+
     private long getRealTime()
     {
-        return currentTime;
+        return getEmulatedNanos(); // eliminates rounding errors
+        //return currentTime;
     }
 
     public long getRealMillis()
     {
-        return getRealTime()/1000;
+        return getEmulatedNanos()/1000000;
     }
 
     public long getEmulatedMicros()
@@ -99,7 +105,7 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
 
     public long getEmulatedNanos()
     {
-        return getTime();//getTicks()*NSPI;
+        return (1000*totalTicks)/(IPS/1000000);//getTime();//getTicks()*NSPI;
     }
 
     public long getTickRate()
@@ -187,14 +193,15 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
                 {
                     Logger.getLogger(VirtualClock.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            if ((expiry - ticksOffset - currentTime)/NSPI == 0)
-                totalTicks++;
-            else
-                totalTicks += (expiry - ticksOffset - currentTime)/NSPI;
-            if (expiry > getTime())
-                currentTime = expiry -ticksOffset;
-            else
-                currentTime++;
+            totalTicks += (expiry - getEmulatedNanos()) * IPS / getTickRate();
+//            if ((expiry - ticksOffset - currentTime)/NSPI == 0)
+//                totalTicks++;
+//            else
+//                totalTicks += (expiry - ticksOffset - currentTime)/NSPI;
+//            if (expiry > getTime())
+//                currentTime = expiry -ticksOffset;
+//            else
+//                currentTime++;
             //System.out.println("New time during HALT: " + (expiry - ticksOffset));
             tempTimer.check(getTime());
         }
@@ -209,10 +216,11 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
     public void update(int instructions)
     {
         totalTicks += instructions;
-        if (REALTIME)
-            currentTime = getSystemTimer();
-        else
-            currentTime += instructions * NSPI;
+//        if (REALTIME)
+//            currentTime = getSystemTimer();
+//        else
+//            currentTime += instructions * 1000 / 150; // need to worry about rounding errors
+            //currentTime += instructions * NSPI;
     }
 
     public long nextExpiry()

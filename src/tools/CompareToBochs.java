@@ -193,8 +193,9 @@ public class CompareToBochs
         {
             Exception e1 = null;
             try {
-                execute1.invoke(newpc);
+                // check ints first to mirror bochs' behaviour of checking for an interrupt prior to execution
                 ints1.invoke(newpc);
+                execute1.invoke(newpc);
             } catch (Exception e)
             {
                 printHistory();
@@ -345,6 +346,20 @@ public class CompareToBochs
                 {
                     if (!JPCInt)
                     {
+                        // need to make sure out eip is the correct one (bochs sometimes does the interrupt before the instruction)
+                        int ssBase = fast[35];
+                        int esp = fast[4] + ssBase;
+                        boolean pm = (fast[36] & 1) != 0;
+                        int espPageIndex;
+                        if (pm)
+                            espPageIndex = esp;
+                        else
+                            espPageIndex = esp >>> 12;
+                        bochs.savePage(new Integer(espPageIndex), sdata2, pm);
+                        int eip = (sdata2[esp & 0xfff] & 0xff) | ((sdata2[(esp+1) & 0xfff]& 0xff) << 8); // eip is the last thing pushed onto the stack
+                        fast[8] = eip;
+                        setState1.invoke(newpc, fast); // hope the instruction didn't have side effects
+                        // now cause the interrupt
                         enterInt.invoke(newpc, new Integer(8)); // assume int from PIT for now
                         fast = (int[])state1.invoke(newpc);
                         System.out.println("Forced enter interrupt.");
@@ -569,7 +584,7 @@ public class CompareToBochs
             boolean same = true;
             for (int i=0; i < jpcPIT.length; i++)
             {
-                if (jpcPIT[i] != bochsPIT[i])
+                if ((jpcPIT[i] != bochsPIT[i]) && (i % 4 != 3)) // ignore next_change_time slot
                 {
                     same = false;
                     break;

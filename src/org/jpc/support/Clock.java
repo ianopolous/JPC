@@ -63,6 +63,8 @@ public interface Clock extends HardwareComponent
      */
     public long getTickRate();
 
+    public long getIPS();
+
     /**
      * Constructs a new <code>Timer</code> which will fire <code>callback</code>
      * on the given object when the timer expires.
