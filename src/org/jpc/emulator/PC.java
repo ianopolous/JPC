@@ -760,8 +760,11 @@ public class PC {
         }
     }
 
-    public void checkInterrupts()
+    public void checkInterrupts(Integer cycles)
     {
+        if (!Option.singlesteptime.value())
+            for (int i=0; i < cycles; i++)
+                vmClock.update(1);
         if (processor.isProtectedMode()) {
             if (processor.isVirtual8086Mode()) {
                 processor.processVirtual8086ModeInterrupts(0);
@@ -778,17 +781,17 @@ public class PC {
         try
         {
             int block = physicalAddr.executeReal(processor, processor.getInstructionPointer());
-            staticClockx86Count += block;
-            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
-            {
-                //processor.processRealModeInterrupts(staticClockx86Count);
-                // for multi instruction blocks simulate checking interrupts at each instruction
-                // this ensures timers expire the same as in single stepped execution
-                if (!Option.singlesteptime.value())
-                    for (int i=0; i < staticClockx86Count; i++)
-                        vmClock.update(1);
-                staticClockx86Count = 0;
-            }
+//            staticClockx86Count += block;
+//            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
+//            {
+//                //processor.processRealModeInterrupts(staticClockx86Count);
+//                // for multi instruction blocks simulate checking interrupts at each instruction
+//                // this ensures timers expire the same as in single stepped execution
+//                if (!Option.singlesteptime.value())
+//                    for (int i=0; i < staticClockx86Count; i++)
+//                        vmClock.update(1);
+//                staticClockx86Count = 0;
+//            }
             return block;
         } catch (ProcessorException p) {
             processor.handleRealModeException(p);
@@ -796,12 +799,16 @@ public class PC {
         catch (ModeSwitchException e)
         {
             // uncomment for compare to single stepping or comparing to Bochs...
-            staticClockx86Count += e.getX86Count();
+            staticClockx86Count += e.getX86Count()-1;
             if (Option.singlesteptime.value())
                 vmClock.updateAndProcess(1);
-            else
+            else if (staticClockx86Count >0)
+            {
                 for (int i=0; i < staticClockx86Count; i++)
                     vmClock.updateAndProcess(1);
+            }
+            else
+                vmClock.updateAndProcess(0);
             staticClockx86Count = 0;
             LOGGING.log(Level.FINE, "Mode switch in RM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
@@ -814,16 +821,16 @@ public class PC {
         {
             int block = linearAddr.executeVirtual8086(processor, processor.getInstructionPointer());
             staticClockx86Count += block;
-            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
-            {
-                //processor.processVirtual8086ModeInterrupts(staticClockx86Count);
-                // for multi instruction blocks simulate checking interrupts at each instruction
-                // this ensures timers expire the same as in single stepped execution
-                if (!Option.singlesteptime.value())
-                    for (int i=0; i < staticClockx86Count; i++)
-                        vmClock.update(1);
-                staticClockx86Count = 0;
-            }
+//            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
+//            {
+//                //processor.processVirtual8086ModeInterrupts(staticClockx86Count);
+//                // for multi instruction blocks simulate checking interrupts at each instruction
+//                // this ensures timers expire the same as in single stepped execution
+//                if (!Option.singlesteptime.value())
+//                    for (int i=0; i < staticClockx86Count; i++)
+//                        vmClock.update(1);
+//                staticClockx86Count = 0;
+//            }
             return block;
         } catch (ProcessorException p) {
             processor.handleVirtual8086ModeException(p);
@@ -831,7 +838,7 @@ public class PC {
         catch (ModeSwitchException e)
         {
             // uncomment for compare to single stepping...
-            staticClockx86Count += e.getX86Count();
+            staticClockx86Count += e.getX86Count()-1;
             if (Option.singlesteptime.value())
                 vmClock.updateAndProcess(1);
             else
@@ -849,16 +856,16 @@ public class PC {
         {
             int block = linearAddr.executeProtected(processor, processor.getInstructionPointer());
             staticClockx86Count += block;
-            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
-            {
-                //processor.processProtectedModeInterrupts(staticClockx86Count);
-                // for multi instruction blocks simulate checking interrupts at each instruction
-                // this ensures timers expire the same as in single stepped execution
-                if (!Option.singlesteptime.value())
-                    for (int i=0; i < staticClockx86Count; i++)
-                        vmClock.update(1);
-                staticClockx86Count = 0;
-            }
+//            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
+//            {
+//                //processor.processProtectedModeInterrupts(staticClockx86Count);
+//                // for multi instruction blocks simulate checking interrupts at each instruction
+//                // this ensures timers expire the same as in single stepped execution
+//                if (!Option.singlesteptime.value())
+//                    for (int i=0; i < staticClockx86Count; i++)
+//                        vmClock.update(1);
+//                staticClockx86Count = 0;
+//            }
             return block;
         } catch (ProcessorException p) {
             processor.handleProtectedModeException(p);
@@ -866,12 +873,16 @@ public class PC {
         catch (ModeSwitchException e)
         {
             // uncomment for compare to single stepping...
-            staticClockx86Count += e.getX86Count();
+            staticClockx86Count += e.getX86Count()-1;
             if (Option.singlesteptime.value())
                 vmClock.updateAndProcess(1);
-            else
+            else if (staticClockx86Count >0)
+            {
                 for (int i=0; i < staticClockx86Count; i++)
                     vmClock.updateAndProcess(1);
+            }
+            else
+                vmClock.updateAndProcess(0);
             staticClockx86Count = 0;
             LOGGING.log(Level.FINE, "Mode switch in PM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }

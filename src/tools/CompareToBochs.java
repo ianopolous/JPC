@@ -145,7 +145,7 @@ public class CompareToBochs
         Method m1 = c1.getMethod("hello");
         m1.invoke(newpc);
 
-        Method ints1 = c1.getMethod("checkInterrupts");
+        Method ints1 = c1.getMethod("checkInterrupts", Integer.class);
         Method state1 = c1.getMethod("getState");
         Method cmos1 = c1.getMethod("getCMOS");
         Method pit1 = c1.getMethod("getPit");
@@ -193,9 +193,12 @@ public class CompareToBochs
         {
             Exception e1 = null;
             try {
-                // check ints first to mirror bochs' behaviour of checking for an interrupt prior to execution
-                ints1.invoke(newpc);
-                execute1.invoke(newpc);
+                // increment time and check ints first to mirror bochs' behaviour of checking for an interrupt prior to execution
+                ints1.invoke(newpc, new Integer(1));
+                int blockLength = (Integer)execute1.invoke(newpc);
+                if (blockLength > 1)
+                    for (int i=0; i < blockLength-1; i++)
+                        ints1.invoke(newpc, new Integer(1));
             } catch (Exception e)
             {
                 printHistory();
@@ -214,6 +217,8 @@ public class CompareToBochs
                 throw e;
             }
             fast = (int[])state1.invoke(newpc);
+            if (fast[16] == 0x7dc980)
+                System.out.println("Int coming up!!");
             bochsState = bochs.getState();
             try {
                 line = (String) instructionInfo.invoke(newpc, new Integer(1)) + " == " + nextBochs; // instructions per block

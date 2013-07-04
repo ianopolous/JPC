@@ -231,8 +231,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
 
     private long getTickRate()
     {
-        return 1000000;
-//        return timingSource.getTickRate();
+        return 1000000; // use micro second units to facilitate bochs comparison
     }
 
     private int conversionFactor()
@@ -279,7 +278,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         {
             buf[start] = getCount() % 0x10000;
             buf[start +1] = gate?1:0;
-            buf[start +2] = getOut(getTime());//outPin?1:0;
+            buf[start +2] = getOut(getTime());
             buf[start +3] = 0;
         }
 
@@ -643,7 +642,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             expireTime = ((expireTime * timingSource.getIPS()/timingSource.getTickRate()) * timingSource.getTickRate())/timingSource.getIPS();
             int irqLevel = getOut(currentTime);
             irqDevice.setIRQ(irq, irqLevel);
-            nextTransitionTimeValue = expireTime;
+            nextTransitionTimeValue = expireTime/conversionFactor(); // convert to our units (micro seconds)
             if (expireTime != -1) {
                 irqTimer.setExpiry(expireTime);
             } else {
