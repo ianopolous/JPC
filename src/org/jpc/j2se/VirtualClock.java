@@ -193,7 +193,10 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
                 {
                     Logger.getLogger(VirtualClock.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            totalTicks += (expiry - getEmulatedNanos()) * IPS / getTickRate();
+            // cast time difference to microseconds, then convert to cycles
+            totalTicks = expiry * IPS / getTickRate();//totalTicks += ((expiry - getEmulatedNanos())/1000)*1000 * IPS / getTickRate();
+            if ((expiry * IPS) % getTickRate() != 0)
+                totalTicks++;
 //            if ((expiry - ticksOffset - currentTime)/NSPI == 0)
 //                totalTicks++;
 //            else

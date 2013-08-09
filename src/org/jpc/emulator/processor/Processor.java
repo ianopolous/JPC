@@ -3403,15 +3403,15 @@ public class Processor implements HardwareComponent
             ints++;
         }
         System.out.printf("END HALT %016x, interrupts=%d\n", vmClock.getEmulatedNanos(), ints);
-        if (isProtectedMode()) {
-            if (isVirtual8086Mode()) {
-                processProtectedModeInterrupts(0);
-            } else {
-                processProtectedModeInterrupts(0);
-            }
-        } else {
-            processRealModeInterrupts(0);
-        }
+//        if (isProtectedMode()) {
+//            if (isVirtual8086Mode()) {
+//                processProtectedModeInterrupts(0);
+//            } else {
+//                processProtectedModeInterrupts(0);
+//            }
+//        } else {
+//            processRealModeInterrupts(0);
+//        }
     }
 
     public void requestReset()
@@ -3922,7 +3922,8 @@ public class Processor implements HardwareComponent
         {
             System.out.printf("** PIT int from eip=%08x to eip=%08x, ticks=%08x\n", eip, newEip, vmClock.getTicks());
         }
-
+        if (newEip != 0xfea5)
+            System.out.println("");
         int esp = push16(r_esp.get32(), (short)getEFlags());
         eflagsInterruptEnable = false;
         eflagsTrap = false;

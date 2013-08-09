@@ -24,7 +24,8 @@ public class CompareToBochs
     public static final boolean compareFlags = true;
     public static final boolean compareStack = false;
     public static final boolean compareCMOS = false;
-    public static final boolean comparePIT = true;
+    public static final boolean compareIntState = false;
+    public static final boolean comparePIT = false;
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom10m.img"};
@@ -197,8 +198,18 @@ public class CompareToBochs
                 ints1.invoke(newpc, new Integer(1));
                 int blockLength = (Integer)execute1.invoke(newpc);
                 if (blockLength > 1)
-                    for (int i=0; i < blockLength-1; i++)
-                        ints1.invoke(newpc, new Integer(1));
+                {
+                    if ((blockLength == 2) && (history[historyIndex] != null) && (((String)history[historyIndex][2]).contains("sti")))
+                    {
+                        // don't trigger any interrupts until the next instruction, but still update clock
+                        fast = (int[])state1.invoke(newpc);
+                        fast[16]++;
+                        setState1.invoke(newpc, (int[])fast);
+                    }
+                    else
+                        for (int i=0; i < blockLength-1; i++)
+                            ints1.invoke(newpc, new Integer(1));
+                }
             } catch (Exception e)
             {
                 printHistory();
@@ -248,6 +259,20 @@ public class CompareToBochs
                 fast[16] = bochsState[16];
                 setState1.invoke(newpc, (int[])fast);
             }
+            // adjust ticks elapsed during halts
+            if (fast[16] != bochsState[16])
+            {
+                if (currentInstruction().contains("hlt"))
+                {
+                    fast[16] = bochsState[16];
+                    setState1.invoke(newpc, (int[])fast);
+                }
+                else if (previousInstruction().contains("hlt"))
+                {
+                    fast[16] = bochsState[16] +1;
+                    setState1.invoke(newpc, (int[])fast);
+                }
+            }
             // sometimes JPC does 2 instructions at once for atomicity relative to interrupts
             if (fast[16] == bochsState[16] +1)
             {
@@ -263,31 +288,31 @@ public class CompareToBochs
                 }
             }
             // send input events
-            if (fast[16] > 230000000)
-            {
-                if (fast[16] < 240000000)
-                {
-                    if (!startedRight)
-                    {
-                        startedRight = true;
-                        System.out.println("Started running right...");
-                    }
-                    keysDown1.invoke(newpc, ">");
-                    bochs.keysDown(">");
-                }
-                else
-                {
-                    if (!startedLeft)
-                    {
-                        startedLeft = true;
-                        System.out.println("Started running Left...");
-                        keysUp1.invoke(newpc, ">");
-                        bochs.keysUp(">");
-                    }
-                    keysDown1.invoke(newpc, "<");
-                    bochs.keysDown("<");
-                }
-            }
+//            if (fast[16] > 230000000)
+//            {
+//                if (fast[16] < 240000000)
+//                {
+//                    if (!startedRight)
+//                    {
+//                        startedRight = true;
+//                        System.out.println("Started running right...");
+//                    }
+//                    keysDown1.invoke(newpc, ">");
+//                    bochs.keysDown(">");
+//                }
+//                else
+//                {
+//                    if (!startedLeft)
+//                    {
+//                        startedLeft = true;
+//                        System.out.println("Started running Left...");
+//                        keysUp1.invoke(newpc, ">");
+//                        bochs.keysUp(">");
+//                    }
+//                    keysDown1.invoke(newpc, "<");
+//                    bochs.keysDown("<");
+//                }
+//            }
             if (!keyPresses.isEmpty())
             {
                 KeyBoardEvent k = keyPresses.first();
@@ -323,7 +348,8 @@ public class CompareToBochs
             if (fast[16] > nextMilestone)
             {
                 System.out.printf("Reached %x ticks! Averaging %d IPS\n", fast[16], fast[16]*(long)1000000000/(System.nanoTime()-startTime));
-                nextMilestone += 0x10000;
+                //nextMilestone += 0x10000;
+                nextMilestone = (fast[16] & 0xffff0000) + 0x10000;
             }
             if (history[historyIndex] == null)
                 history[historyIndex] = new Object[3];
@@ -333,50 +359,55 @@ public class CompareToBochs
             historyIndex = (historyIndex+1)%history.length;
             
             // COMPARE INTERRUPT STATE
-            int prevIndex = ((historyIndex-2)%history.length + history.length) % history.length;
-            if (history[prevIndex] != null)
+            if (compareIntState)
             {
-                boolean JPCInt = inInt((int[])(history[prevIndex][0]), fast);
-                boolean BochsInt = inInt((int[])(history[prevIndex][1]), bochsState);
-                if (!BochsInt)
+                int prevIndex = ((historyIndex-2)%history.length + history.length) % history.length;
+                if (history[prevIndex] != null)
                 {
-                    if (JPCInt)
+                    boolean JPCInt = inInt((int[])(history[prevIndex][0]), fast);
+                    boolean BochsInt = inInt((int[])(history[prevIndex][1]), bochsState);
+                    if (JPCInt != BochsInt)
+                        System.out.println("Different interrupt state..");
+                    if (!BochsInt)
                     {
-                        exitInt.invoke(newpc);
-                        fast = (int[])state1.invoke(newpc);
-                        System.out.println("Forced exit interrupt.");
-                    }
-                }
-                else
-                {
-                    if (!JPCInt)
-                    {
-                        // need to make sure out eip is the correct one (bochs sometimes does the interrupt before the instruction)
-                        int ssBase = fast[35];
-                        int esp = fast[4] + ssBase;
-                        boolean pm = (fast[36] & 1) != 0;
-                        int espPageIndex;
-                        if (pm)
-                            espPageIndex = esp;
-                        else
-                            espPageIndex = esp >>> 12;
-                        bochs.savePage(new Integer(espPageIndex), sdata2, pm);
-                        int eip = (sdata2[esp & 0xfff] & 0xff) | ((sdata2[(esp+1) & 0xfff]& 0xff) << 8); // eip is the last thing pushed onto the stack
-                        fast[8] = eip;
-                        setState1.invoke(newpc, fast); // hope the instruction didn't have side effects
-                        // now cause the interrupt
-                        enterInt.invoke(newpc, new Integer(8)); // assume int from PIT for now
-                        fast = (int[])state1.invoke(newpc);
-                        System.out.println("Forced enter interrupt.");
-                        if (bochsState[8] == 0xfea6)
+                        if (JPCInt)
                         {
-                            System.out.println("HACK to follow bizarre Bochs behaviour");
-                            // HACK to follow boch's bizarre (wrong?) behaviour here
-                            execute1.invoke(newpc); // will do STI and following instruction, then take away one tick
-                            ticksDelta.invoke(newpc, new Integer(-1));
+                            exitInt.invoke(newpc);
                             fast = (int[])state1.invoke(newpc);
-                            nextBochs = bochs.executeInstruction(); // will do instruction following STI
-                            bochsState = bochs.getState();
+                            System.out.println("Forced exit interrupt.");
+                        }
+                    }
+                    else
+                    {
+                        if (!JPCInt)
+                        {
+                            // need to make sure our eip is the correct one (bochs does the interrupt before the instruction)
+                            int ssBase = fast[35];
+                            int esp = fast[4] + ssBase;
+                            boolean pm = (fast[36] & 1) != 0;
+                            int espPageIndex;
+                            if (pm)
+                                espPageIndex = esp;
+                            else
+                                espPageIndex = esp >>> 12;
+                            bochs.savePage(new Integer(espPageIndex), sdata2, pm);
+                            int eip = (sdata2[esp & 0xfff] & 0xff) | ((sdata2[(esp+1) & 0xfff]& 0xff) << 8); // eip is the last thing pushed onto the stack
+                            fast[8] = eip;
+                            setState1.invoke(newpc, fast); // hope the instruction didn't have side effects
+                            // now cause the interrupt
+                            enterInt.invoke(newpc, new Integer(8)); // assume int from PIT for now
+                            fast = (int[])state1.invoke(newpc);
+                            System.out.println("Forced enter interrupt.");
+                            if (bochsState[8] == 0xfea6)
+                            {
+                                System.out.println("HACK to follow bizarre Bochs behaviour");
+                                // HACK to follow boch's bizarre (wrong?) behaviour here
+                                execute1.invoke(newpc); // will do STI and following instruction, then take away one tick
+                                ticksDelta.invoke(newpc, new Integer(-1));
+                                fast = (int[])state1.invoke(newpc);
+                                nextBochs = bochs.executeInstruction(); // will do instruction following STI
+                                bochsState = bochs.getState();
+                            }
                         }
                     }
                 }
@@ -574,7 +605,7 @@ public class CompareToBochs
         int EIP = curr[8];
 //        if (Math.abs(ESP-prevESP) < 4) STI, POP would give =4
 //            return false;
-        if ((EIP == 0xfea5) || (EIP == 0xfea6))
+        if ((EIP == 0xfea5) || (EIP == 0xfea6) || (EIP == 0xfea8))
             return true;
         return false;
     }
@@ -589,7 +620,7 @@ public class CompareToBochs
             boolean same = true;
             for (int i=0; i < jpcPIT.length; i++)
             {
-                if ((jpcPIT[i] != bochsPIT[i]) && (i % 4 != 3)) // ignore next_change_time slot
+                if ((jpcPIT[i] != bochsPIT[i]) && (i % 4 != 2) && (i % 4 != 3)) // ignore next_change_time slot, and outPin
                 {
                     same = false;
                     break;

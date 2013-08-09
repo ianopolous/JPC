@@ -454,6 +454,7 @@ public class DecoderGenerator
 
     public static void generate()
     {
+        System.out.println(Opcode.HEADER);
         System.out.println("package org.jpc.emulator.execution.decoder;\n");
         System.out.println("import org.jpc.emulator.execution.*;");
         System.out.println("import org.jpc.emulator.execution.opcodes.rm.*;");

@@ -820,7 +820,7 @@ public class PC {
         try
         {
             int block = linearAddr.executeVirtual8086(processor, processor.getInstructionPointer());
-            staticClockx86Count += block;
+//            staticClockx86Count += block;
 //            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
 //            {
 //                //processor.processVirtual8086ModeInterrupts(staticClockx86Count);
@@ -841,9 +841,13 @@ public class PC {
             staticClockx86Count += e.getX86Count()-1;
             if (Option.singlesteptime.value())
                 vmClock.updateAndProcess(1);
-            else
+            else if (staticClockx86Count > 0)
+            {
                 for (int i=0; i < staticClockx86Count; i++)
                     vmClock.updateAndProcess(1);
+            }
+            else
+                vmClock.updateAndProcess(0);
             staticClockx86Count = 0;
             LOGGING.log(Level.FINE, "Mode switch in VM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
         }
@@ -855,7 +859,7 @@ public class PC {
         try
         {
             int block = linearAddr.executeProtected(processor, processor.getInstructionPointer());
-            staticClockx86Count += block;
+//            staticClockx86Count += block;
 //            if (staticClockx86Count >= INSTRUCTIONS_BETWEEN_INTERRUPTS)
 //            {
 //                //processor.processProtectedModeInterrupts(staticClockx86Count);

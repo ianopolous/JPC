@@ -5,6 +5,21 @@ import java.util.*;
 
 public class Opcode
 {
+    public static String HEADER;
+    static
+    {
+        try {
+            String tmp = "";
+            BufferedReader r = new BufferedReader(new FileReader("HEADER"));
+            String line;
+            while ((line = r.readLine()) != null)
+                tmp += line + "\n";
+            HEADER = tmp + "\n";
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
     public static final boolean DEBUG_SIZE = true;
     final String name;
     final Operand[] operands;
@@ -280,9 +295,14 @@ public class Opcode
         return false;
     }
 
+    private String getCopywriteHeader()
+    {
+        return HEADER;
+    }
+
     private String getPreamble(String mode)
     {
-        return "package org.jpc.emulator.execution.opcodes."+mode+";\n\nimport org.jpc.emulator.execution.*;\nimport org.jpc.emulator.execution.decoder.*;\nimport org.jpc.emulator.processor.*;\nimport org.jpc.emulator.processor.fpu64.*;\nimport static org.jpc.emulator.processor.Processor.*;\n\npublic class "+getName()+" extends Executable\n{\n";
+        return getCopywriteHeader() + "package org.jpc.emulator.execution.opcodes."+mode+";\n\nimport org.jpc.emulator.execution.*;\nimport org.jpc.emulator.execution.decoder.*;\nimport org.jpc.emulator.processor.*;\nimport org.jpc.emulator.processor.fpu64.*;\nimport static org.jpc.emulator.processor.Processor.*;\n\npublic class "+getName()+" extends Executable\n{\n";
     }
 
     private String getBranch()

@@ -642,6 +642,8 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             expireTime = ((expireTime * timingSource.getIPS()/timingSource.getTickRate()) * timingSource.getTickRate())/timingSource.getIPS();
             int irqLevel = getOut(currentTime);
             irqDevice.setIRQ(irq, irqLevel);
+            if (expireTime/conversionFactor() == nextTransitionTimeValue)
+                expireTime += conversionFactor();
             nextTransitionTimeValue = expireTime/conversionFactor(); // convert to our units (micro seconds)
             if (expireTime != -1) {
                 irqTimer.setExpiry(expireTime);
