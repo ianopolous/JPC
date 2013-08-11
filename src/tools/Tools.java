@@ -40,9 +40,13 @@ public class Tools
         }
         else if (args[0].equals("-decoder"))
         {
+            DecoderGenerator.generate();
+        }
+        else if (args[0].equals("-convert"))
+        {
             String[] rest = new String[args.length-1];
             System.arraycopy(args, 1, rest, 0, rest.length);
-            DecoderGenerator.generate();
+            SourceConverter.main(rest);
         }
     }
 }

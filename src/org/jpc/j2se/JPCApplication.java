@@ -70,10 +70,10 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
         "-boot", "fda"
     };
     private static final String ABOUT_US =
-            "JPC: Developed since August 2005 in Oxford University's Subdepartment of Particle Physics.\n\n" +
+            "JPC: Developed since August 2005 in Oxford University's Subdepartment of Particle Physics, and subsequently rewritten by Ian Preston.\n\n" +
             "For more information visit our website at:\n" + JPC_URI.toASCIIString();
     private static final String LICENCE_HTML =
-            "JPC is released under GPL Version 2 and comes with absoutely no warranty<br/><br/>" +
+            "JPC is released under GPL Version 2 and comes with absolutely no warranty<br/><br/>" +
             "See " + JPC_URI.toASCIIString() + " for more details";
     private static JEditorPane LICENCE;
     
