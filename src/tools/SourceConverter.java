@@ -33,7 +33,8 @@ public class SourceConverter
         File outRoot = new File(outputDir);
         File outDir = new File(outRoot, outputPackage.replaceAll("\\.", "/"));
         File inFile = new File(inputFile);
-        File outFile = new File(outDir, inFile.getName().replaceAll("\\.cc", "\\.java"));
+        String name = inFile.getName().replaceAll("\\.cc", "");
+        File outFile = new File(outDir, name + ".java");
         StringBuilder b =new StringBuilder();
         BufferedReader r = new BufferedReader(new FileReader(inFile));
         String line;
@@ -42,9 +43,20 @@ public class SourceConverter
 
         String result = convert(b.toString(), getRegex());
         BufferedWriter w = new BufferedWriter(new FileWriter(outFile));
+        writeHeader(w, outputPackage, name);
         w.write(result.toString());
+        writeFooter(w);
         w.flush();
         w.close();
+    }
+
+    private static void writeHeader(BufferedWriter w, String pack, String name) throws IOException  {
+        w.append("package "+ pack+";\n");
+        w.append("public class "+ name + "\n{\n");
+    }
+
+    private static void writeFooter(BufferedWriter w) throws IOException {
+        w.append("}");
     }
 
     private static Map<String, String> getRegex() throws IOException

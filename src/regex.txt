@@ -1,0 +1,4 @@
+#define ([\w_]+)[\s]+([\w]+)
+public static int $1 = $2;
+\(void\)
+()
