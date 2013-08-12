@@ -1,0 +1,10 @@
+#define BX_FLOPPY_NONE   10 // media not present
+#define BX_FLOPPY_1_2    11 // 1.2M  5.25"
+#define BX_FLOPPY_1_44   12 // 1.44M 3.5"
+#define BX_FLOPPY_2_88   13 // 2.88M 3.5"
+#define BX_FLOPPY_720K   14 // 720K  3.5"
+#define BX_FLOPPY_360K   15 // 360K  5.25"
+#define BX_FLOPPY_160K   16 // 160K  5.25"
+#define BX_FLOPPY_180K   17 // 180K  5.25"
+#define BX_FLOPPY_320K   18 // 320K  5.25"
+#define BX_FLOPPY_LAST   18 // last legal value of floppy type

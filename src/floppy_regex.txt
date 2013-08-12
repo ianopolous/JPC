@@ -1,0 +1,68 @@
+#define ([\w_]+)[ ]+([\w]+)(\n)
+public static int $1 = $2;$3
+#define ([\w_]+)[ ]+([\w]+)( //[\w\s\."]+\n)
+public static int $1 = $2;$3
+#  define BX_FD_SMF
+
+#  define BX_FD_THIS this->
+
+#ifndef BX_IODEV_FLOPPY_H
+
+#define BX_IODEV_FLOPPY_H
+
+\(void\)
+()
+bx_bool
+boolean
+Bit8u
+short
+Bit16u
+int
+unsigned
+int
+Bit32u
+long
+Bit64s
+long
+floppy_t[\s]+([\w]+)\[([\d\+]+)\]
+floppy_t[] $1 = new floppy_t[$2]
+short[\s]+([\w]+)\[([\d\+]+)\]
+short[] $1 = new short[$2]
+int[\s]+([\w]+)\[([\d\+]+)\]
+int[] $1 = new int[$2]
+boolean[\s]+([\w]+)\[([\d\+]+)\]
+boolean[] $1 = new boolean[$2]
+bx_floppy_ctrl_c::
+
+typedef struct (\{[\w\s;/\*]+\}) ([\w]+);
+class $2 $1
+#if BX_USE_FD_SMF[\w\s;/\*#->]+#else([\w\s;/\*#->]+)#endif
+$1
+#if !BX_USE_FD_SMF([\w\s;/\*#->]+)#endif
+$1
+BX_FD_SMF 
+
+device_image_t \*
+BlockDevice 
+BX_FD_THIS s
+this
+class bx_floppy_ctrl_c : public bx_floppy_stub_c \{[\s]+public:[\w\s;\(\)~,#\.\*]+private:[\s]+struct \{([\w\s;:\-/\*\+\[\]\(\)\.#,=->?]+)\} s;  // state information[\s\w\(,\);\*/]+};\n#endif
+$1
+struct \{([\w\s;:\-/\*\+\[\]\(\)\.#,=->?]+)\} s;  // state information
+$1
+BX_DEBUG\(
+if (DEBUG) System.out.printf(
+ printf
+ System.out.printf
+#define BX_PLUGGABLE[\s]*
+
+extern "C" \{[\w\s#<>\./]+\}
+
+#ifdef __linux__[\w\s]+#endif
+
+#ifdef WIN32[\w\s]+#endif
+
+(#include [\w\./"]+)
+// $1
+#define LOG_THIS[\w->\s\*]+;
+
