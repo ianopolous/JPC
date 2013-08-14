@@ -34,8 +34,6 @@ boolean[\s]+([\w]+)\[([\d\+]+)\]
 boolean[] $1 = new boolean[$2]
 bx_floppy_ctrl_c::
 
-typedef struct (\{[\w\s;/\*]+\}) ([\w]+);
-class $2 $1
 #if BX_USE_FD_SMF[\w\s;/\*#->]+#else([\w\s;/\*#->]+)#endif
 $1
 #if !BX_USE_FD_SMF([\w\s;/\*#->]+)#endif
@@ -66,3 +64,7 @@ extern "C" \{[\w\s#<>\./]+\}
 // $1
 #define LOG_THIS[\w->\s\*]+;
 
+floppy_type_t floppy_type[[\d]+] = \{[\s]+\{
+floppy_type_t[] floppy_type = new floppy_type_t[] {
+\{(BX_FLOPPY_[\w\s,])\}
+new floppy_type_t($1)

@@ -3,6 +3,7 @@ package tools;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 
 public class SourceConverter
 {
@@ -82,10 +83,54 @@ public class SourceConverter
         return reg;
     }
 
+    private static String[] complex_types = new String[] {"floppy_t", "floppy_type_t"};
+
     private static String convert(String in, List<Pair> regex)
     {
+        // simple regex
         for (Pair p: regex)
             in = in.replaceAll(p.key, p.value);
+
+        // more complex replacements (single layer structs)
+        for (String type: complex_types)
+        {
+            // definition
+            Pattern def = Pattern.compile("typedef struct \\{([\\w\\s;/\\*]+)\\} "+type+";");
+            Matcher matcher = def.matcher(in);
+            if (matcher.find())
+            {
+                String body = matcher.group(1);
+                String[] lines = body.trim().split("\n");
+                for (int i=0; i < lines.length; i++)
+                {
+                    if (lines[i].length() == 0)
+                        continue;
+                    lines[i] = lines[i].substring(0, lines[i].indexOf(";")); // ignore comments after ;
+                    lines[i] = lines[i].replaceAll("[\\s]+", " "); // contract spaces
+                }
+
+                String args = "";
+                for (String arg: lines)
+                {
+                    if (arg.trim().length() == 0)
+                        continue;
+                    args += arg.trim() + ", ";
+                }
+                args = args.substring(0, args.length()-2);
+                String constructorBody = "";
+                for (String arg: lines)
+                {
+                    if (arg.trim().length() == 0)
+                        continue;
+                    String name = arg.trim().split(" ")[1];
+                    constructorBody += "   this."+name + " = "+name+";\n";
+                }
+                in = in.replaceAll("typedef struct \\{([\\w\\s;/\\*]+)\\} "+type+";", "static class "+type+" {\n   public "+type+"("+args+")\n{\n"+constructorBody+"} $1}");
+            }
+            // uses
+
+        }
+
         return in;
     }
 
