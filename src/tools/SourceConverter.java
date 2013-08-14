@@ -84,6 +84,8 @@ public class SourceConverter
     }
 
     private static String[] complex_types = new String[] {"floppy_t", "floppy_type_t"};
+    private static String[] primitives = new String[] {"int"};
+    private static String[] functionsToDelete = new String[] {"libfloppy_LTX_plugin_init", "libfloppy_LTX_plugin_fini"};
 
     private static String convert(String in, List<Pair> regex)
     {
@@ -127,9 +129,73 @@ public class SourceConverter
                 }
                 in = in.replaceAll("typedef struct \\{([\\w\\s;/\\*]+)\\} "+type+";", "static class "+type+"\n{\n$1\n   public "+type+"("+args+")\n   {\n"+constructorBody+"   }\n}");
             }
-            // uses
 
+            // Array uses of type
+            while (true)
+            {
+                String pat = type + "[\\s]+([\\w]+)\\[[\\d]+\\][\\s]+=[\\s]+\\{([\\w\\s,\\{\\}]+)\\};";
+                Pattern arr = Pattern.compile(pat);
+                Matcher match = arr.matcher(in);
+                if (match.find())
+                {
+                    String name = match.group(1);
+                    String body = match.group(2);
+                    // find array elements
+                    String [] lines = body.trim().split("},");
+                    String newbody = "";
+                    for (int i=0; i < lines.length; i++)
+                    {
+                        if (lines[i].length() == 0)
+                            continue;
+                        lines[i] = lines[i].trim();
+                        lines[i] = lines[i].replaceAll("[\\s]+", " "); // contract spaces
+                        if (lines[i].startsWith("{"))
+                        {
+                            lines[i] = "new "+type+"("+lines[i].substring(1, lines[i].length()-1)+")";
+                        }
+                        newbody += "   "+ lines[i]+", \n";
+                    }
+                    newbody = newbody.substring(0, newbody.length()-3);
+                    String namedPat = type + "[\\s]+" + name + "\\[[\\d]+\\][\\s]+=[\\s]+\\{([\\w\\s,\\{\\}]+)\\};";
+                    in = in.replaceAll(namedPat, type + "[] "+name + " = new "+type+"[] {\n"+newbody+"};");
+                    continue;
+                }
+                break;
+            }
         }
+        // arrays of primitive types
+        for (String type: primitives)
+            while (true)
+            {
+                String pat = type + "[\\s]+([\\w]+)\\[[\\d]+\\][\\s]+=[\\s]+\\{([\\w\\s,\\{\\}]+)\\};";
+                Pattern arr = Pattern.compile(pat);
+                Matcher match = arr.matcher(in);
+                System.out.println(type);
+                if (match.find())
+                {
+                    System.out.println(match.group());
+                    String name = match.group(1);
+                    String body = match.group(2);
+                    // find array elements
+                    String [] lines = body.trim().split(",");
+                    String newbody = "";
+                    for (int i=0; i < lines.length; i++)
+                    {
+                        if (lines[i].length() == 0)
+                            continue;
+                        lines[i] = lines[i].trim();
+                        lines[i] = lines[i].replaceAll("[\\s]+", " "); // contract spaces
+                        newbody += lines[i]+", ";
+                    }
+                    newbody = newbody.substring(0, newbody.length()-2);
+                    String namedPat = type + "[\\s]+" + name + "\\[[\\d]+\\][\\s]+=[\\s]+\\{([\\w\\s,\\{\\}]+)\\};";
+                    in = in.replaceAll(namedPat, type + "[] "+name + " = new "+type+"[] {"+newbody+"};");
+                    continue;
+                }
+                break;
+            }
+
+        // delete unnecessary functions
 
         return in;
     }

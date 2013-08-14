@@ -15,7 +15,7 @@ public static int $1 = $2;$3
 bx_bool
 boolean
 Bit8u
-short
+int
 Bit16u
 int
 unsigned
@@ -24,11 +24,11 @@ Bit32u
 long
 Bit64s
 long
-floppy_t[\s]+([\w]+)\[([\d\+]+)\]
+Dfloppy_t[\s]+([\w]+)\[([\d\+]+)\]
 floppy_t[] $1 = new floppy_t[$2]
 short[\s]+([\w]+)\[([\d\+]+)\]
 short[] $1 = new short[$2]
-int[\s]+([\w]+)\[([\d\+]+)\]
+Dint[\s]+([\w]+)\[([\d\+]+)\]
 int[] $1 = new int[$2]
 boolean[\s]+([\w]+)\[([\d\+]+)\]
 boolean[] $1 = new boolean[$2]
