@@ -24,12 +24,12 @@ Bit32u
 long
 Bit64s
 long
-Dfloppy_t[\s]+([\w]+)\[([\d\+]+)\]
+floppy_t[\s]+([\w]+)\[([\d\+]+)\]
 floppy_t[] $1 = new floppy_t[$2]
 short[\s]+([\w]+)\[([\d\+]+)\]
 short[] $1 = new short[$2]
-Dint[\s]+([\w]+)\[([\d\+]+)\]
-int[] $1 = new int[$2]
+int[\s]+([\w]+)\[([\d\+]+)\];
+int[] $1 = new int[$2];
 boolean[\s]+([\w]+)\[([\d\+]+)\]
 boolean[] $1 = new boolean[$2]
 bx_floppy_ctrl_c::

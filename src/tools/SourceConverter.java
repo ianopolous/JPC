@@ -85,7 +85,12 @@ public class SourceConverter
 
     private static String[] complex_types = new String[] {"floppy_t", "floppy_type_t"};
     private static String[] primitives = new String[] {"int"};
-    private static String[] functionsToDelete = new String[] {"libfloppy_LTX_plugin_init", "libfloppy_LTX_plugin_fini"};
+    private static String[] functionsToDelete = new String[] {"int libfloppy_LTX_plugin_init", "void libfloppy_LTX_plugin_fini", "bx_floppy_ctrl_c", "~bx_floppy_ctrl_c"};
+    private static Map<String, Boolean> macros = new HashMap();
+    static {
+        macros.put("BX_DEBUGGER", false);
+        macros.put("BX_USE_FD_SMF", false);
+    }
 
     private static String convert(String in, List<Pair> regex)
     {
@@ -170,10 +175,8 @@ public class SourceConverter
                 String pat = type + "[\\s]+([\\w]+)\\[[\\d]+\\][\\s]+=[\\s]+\\{([\\w\\s,\\{\\}]+)\\};";
                 Pattern arr = Pattern.compile(pat);
                 Matcher match = arr.matcher(in);
-                System.out.println(type);
                 if (match.find())
                 {
-                    System.out.println(match.group());
                     String name = match.group(1);
                     String body = match.group(2);
                     // find array elements
@@ -196,6 +199,31 @@ public class SourceConverter
             }
 
         // delete unnecessary functions
+        for (String func: functionsToDelete)
+        {
+            while (in.contains(func))
+            {
+                int start = in.indexOf(func);
+                int end = start+func.length();
+                while (in.charAt(end) != ')')
+                    end++;
+                while (in.charAt(end) != '{')
+                    end++;
+                // find matching bracket to opening bracket // assume they match and no comments contain {}'s!
+                int open = 1;
+                end++;
+                while (open > 0)
+                {
+                    if (in.charAt(end) == '{')
+                    {open++;System.out.println("Open: "+open + " " + in.substring(start, end+1));}
+                    else if (in.charAt(end) == '}')
+                    {open--;System.out.println("Open: "+open + " " + in.substring(start, end+1));}
+                    end++;
+                }
+                //System.out.println("Removing: " + in.substring(start, end));
+                in = in.substring(0, start) + in.substring(end);
+            }
+        }
 
         return in;
     }
