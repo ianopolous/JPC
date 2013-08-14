@@ -123,9 +123,9 @@ public class SourceConverter
                     if (arg.trim().length() == 0)
                         continue;
                     String name = arg.trim().split(" ")[1];
-                    constructorBody += "   this."+name + " = "+name+";\n";
+                    constructorBody += "      this."+name + " = "+name+";\n";
                 }
-                in = in.replaceAll("typedef struct \\{([\\w\\s;/\\*]+)\\} "+type+";", "static class "+type+" {\n   public "+type+"("+args+")\n{\n"+constructorBody+"} $1}");
+                in = in.replaceAll("typedef struct \\{([\\w\\s;/\\*]+)\\} "+type+";", "static class "+type+"\n{\n$1\n   public "+type+"("+args+")\n   {\n"+constructorBody+"   }\n}");
             }
             // uses
 
