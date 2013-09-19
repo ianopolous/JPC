@@ -52,7 +52,7 @@ public class CompareToBochs
     public static final boolean compareStack = false;
     public static final boolean compareCMOS = false;
     public static final boolean compareIntState = false;
-    public static final boolean comparePIT = false;
+    public static final boolean comparePIT = true;
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom10m.img"};
@@ -217,6 +217,7 @@ public class CompareToBochs
         int previousStackAddr = 0;
         boolean startedRight = false, startedLeft = false;
         int lastPIT0Count = 0;
+        int lastPITIrq = 0;
         while (true)
         {
             Exception e1 = null;
@@ -571,6 +572,10 @@ public class CompareToBochs
             if (comparePIT)
             {
                 lastPIT0Count = comparePITS(lastPIT0Count, bochs, newpc, pit1);
+                int irq = getPITIrq(bochs);
+                if (irq != lastPITIrq)
+                    System.out.printf("Bochs PIT irq changed to %d cycles=%x\n", irq, bochsState[16]);
+                lastPITIrq = irq;
             }
             if (compareStack)
             {
@@ -635,6 +640,11 @@ public class CompareToBochs
         if ((EIP == 0xfea5) || (EIP == 0xfea6) || (EIP == 0xfea8))
             return true;
         return false;
+    }
+
+    private static int getPITIrq(EmulatorControl bochs) throws Exception
+    {
+        return bochs.getPit()[2];
     }
 
     private static int comparePITS(int lastPIT0Count, EmulatorControl bochs, Object newpc, Method pit1) throws Exception

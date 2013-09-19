@@ -3418,6 +3418,8 @@ public class Processor implements HardwareComponent
     public void waitForInterrupt()
     {
         System.out.printf("*****START HALT %016x\n", vmClock.getEmulatedNanos());
+        if (vmClock.getEmulatedNanos() == 0xd18df6a)
+            System.out.println("Triple int coming up in halt!!!");
         int ints = 0;
         while ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) == 0) {
             vmClock.updateNowAndProcess(!SKIP_SLEEPS);
@@ -3939,12 +3941,15 @@ public class Processor implements HardwareComponent
         vector *= 4;
         int newEip = 0xffff & idtr.getWord(vector);
         int newSelector = 0xffff & idtr.getWord(vector+2);
-        if (vector == 32)
+        if (Option.useBochs.isSet())
         {
-            System.out.printf("** PIT int from eip=%08x to eip=%08x, ticks=%08x\n", eip, newEip, vmClock.getTicks());
+            if (vector == 32)
+            {
+                System.out.printf("** PIT int from eip=%08x to eip=%08x, ticks=%08x\n", eip, newEip, vmClock.getTicks());
+            }
+            if (newEip != 0xfea5)
+                System.out.println("non PIT int vector = "+vector/4);
         }
-        if (newEip != 0xfea5)
-            System.out.println("");
         int esp = push16(r_esp.get32(), (short)getEFlags());
         eflagsInterruptEnable = false;
         eflagsTrap = false;

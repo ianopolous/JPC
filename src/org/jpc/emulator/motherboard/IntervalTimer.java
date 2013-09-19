@@ -34,6 +34,7 @@
 package org.jpc.emulator.motherboard;
 
 import org.jpc.emulator.peripheral.PCSpeaker;
+import org.jpc.j2se.*;
 import org.jpc.support.Clock;
 import org.jpc.emulator.*;
 
@@ -43,7 +44,7 @@ import java.io.*;
  * Emulation of an 8254 Interval Timer.
  * @see <a href="http://bochs.sourceforge.net/techspec/intel-82c54-timer.pdf.gz">
  * 82C54 - Datasheet</a>
- * @author Chris Dennis
+ * @author Chris Dennis, Ian Preston
  */
 public class IntervalTimer extends AbstractHardwareComponent implements IODevice {
 
@@ -58,7 +59,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
     private static final int MODE_SOFTWARE_TRIGGERED_STROBE = 4;
     private static final int MODE_HARDWARE_TRIGGERED_STROBE = 5;
     private static final int CONTROL_ADDRESS = 3;
-    public static final int PIT_FREQ = 1193182;
+    public static final int PIT_FREQ = Option.useBochs.isSet() ? 1193181 : 1193182;
     private TimerChannel[] channels;
     private InterruptController irqDevice;
     private Clock timingSource;
@@ -78,8 +79,6 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
     }
 
     private static final long scale64(long input, int multiply, int divide) {
-        //return (BigInteger.valueOf(input).multiply(BigInteger.valueOf(multiply)).divide(BigInteger.valueOf(divide))).longValue();
-
         long rl = (0xffffffffl & input) * multiply;
         long rh = (input >>> 32) * multiply;
 
@@ -231,7 +230,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
 
     private long getTickRate()
     {
-        return 1000000; // use micro second units to facilitate bochs comparison
+        return 1000000; // use micro second units
     }
 
     private int conversionFactor()
@@ -261,9 +260,9 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         private int mode; // 3 bits from command word register
         private boolean bcd; /* uimplemented */
 
-        private long countStartTime;
+        private long countStartCycles;
         /* irq handling */
-        private long nextTransitionTimeValue;
+        private long nextChangeTime;
         private Timer irqTimer;
         private int irq;
 
@@ -295,8 +294,8 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             output.writeInt(rwMode);
             output.writeInt(mode);
             output.writeInt(bcd ? 1 : 0);
-            output.writeLong(countStartTime);
-            output.writeLong(nextTransitionTimeValue);
+            output.writeLong(countStartCycles);
+            output.writeLong(nextChangeTime);
             if (irqTimer == null) {
                 output.writeInt(0);
             } else {
@@ -320,8 +319,8 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             rwMode = input.readInt();
             mode = input.readInt();
             bcd = input.readInt() != 0;
-            countStartTime = input.readLong();
-            nextTransitionTimeValue = input.readLong();
+            countStartCycles = input.readLong();
+            nextChangeTime = input.readLong();
             int test = input.readInt();
             if (test == 1) {
                 irqTimer = timingSource.newTimer(this);
@@ -491,16 +490,16 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                 case MODE_HARDWARE_TRIGGERED_STROBE:
                     if (!gate && value) {
                         /* restart counting on rising edge */
-                        countStartTime = getTime();
-                        irqTimerUpdate(countStartTime);
+                        countStartCycles = getTime();
+                        irqTimerUpdate(countStartCycles);
                     }
                     break;
                 case MODE_RATE_GENERATOR:
                 case MODE_SQUARE_WAVE:
                     if (!gate && value) {
                         /* restart counting on rising edge */
-                        countStartTime = getTime();
-                        irqTimerUpdate(countStartTime);
+                        countStartCycles = getTime();
+                        irqTimerUpdate(countStartCycles);
                     }
                     /* XXX: disable/enable counting */
                     break;
@@ -509,7 +508,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         }
 
         private int getCount() {
-            long now = scale64(getTime() - countStartTime, PIT_FREQ, (int) getTickRate());
+            long now = scale64(getTime() - countStartCycles, PIT_FREQ, (int) getTickRate());
 
             switch (mode) {
                 case MODE_INTERRUPT_ON_TERMINAL_COUNT:
@@ -526,7 +525,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         }
 
         private int getOut(long currentTime) {
-            long now = scale64(currentTime - countStartTime, PIT_FREQ, (int) getTickRate());
+            long now = scale64(currentTime - countStartCycles, PIT_FREQ, (int) getTickRate());
             switch (mode) {
                 default:
                 case MODE_INTERRUPT_ON_TERMINAL_COUNT:
@@ -542,10 +541,10 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                         return 0;
                     }
                 case MODE_RATE_GENERATOR:
-                    if (((now % countValue) == 0))// && (now != 0)) // Bochs starts out pin high TODO
-                        return 1;
-                    else
+                    if ((now % countValue) == countValue-1)
                         return 0;
+                    else
+                        return 1;
                 case MODE_SQUARE_WAVE:
                     if ((now % countValue) < ((countValue + 1) >>> 1)) {
                         return 1;
@@ -563,64 +562,48 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         }
 
         private long getNextTransitionTime(long currentTime) {
-            long nextTime;
-
-            long now = scale64(currentTime - countStartTime, PIT_FREQ, (int) getTickRate());
             switch (mode) {
                 default:
                 case MODE_INTERRUPT_ON_TERMINAL_COUNT:
                 case MODE_HARDWARE_RETRIGGERABLE_ONE_SHOT:
                      {
-                        if (now < countValue) {
-                            nextTime = countValue;
+                        if (currentTime < countValue) {
+                           return countValue;
                         } else {
                             return -1;
                         }
                     }
-                    break;
                 case MODE_RATE_GENERATOR:
                      {
-                        long base = (now / countValue) * countValue;
-                        if ((now - base) == 0 && now != 0) {
-                            nextTime = base + countValue;
-                        } else {
-                            nextTime = base + countValue + 1;
-                        }
+                         long base = (currentTime / countValue) * countValue;
+                         if ((currentTime == base)) {
+                             return base + countValue-1;
+                         } else {
+                             return base + countValue;
+                         }
                     }
-                    break;
                 case MODE_SQUARE_WAVE:
                      {
-                        long base = (now / countValue) * countValue;
+                        long base = (currentTime / countValue) * countValue;
                         long period2 = ((countValue + 1) >>> 1);
-                        if ((now - base) < period2) {
-                            nextTime = base + period2;
+                        if ((currentTime - base) < period2) {
+                            return base + period2;
                         } else {
-                            nextTime = base + countValue;
+                            return base + countValue;
                         }
                     }
-                    break;
                 case MODE_SOFTWARE_TRIGGERED_STROBE:
                 case MODE_HARDWARE_TRIGGERED_STROBE:
                      {
-                        if (now < countValue) {
-                            nextTime = countValue;
-                        } else if (now == countValue) {
-                            nextTime = countValue + 1;
+                        if (currentTime < countValue) {
+                            return countValue;
+                        } else if (currentTime == countValue) {
+                            return countValue + 1;
                         } else {
                             return -1;
                         }
                     }
-                    break;
             }
-            /* convert to timer units */
-            nextTime = countStartTime*conversionFactor() + scale64(nextTime, ((int) getTickRate())*conversionFactor(), PIT_FREQ);
-
-            /* fix potential rounding problems */
-            /* XXX: better solution: use a clock at PIT_FREQ Hz */
-            if (nextTime <= currentTime) {
-                nextTime = currentTime + 1;
-            }
-            return nextTime;
         }
 
         private void loadCount(int value) {
@@ -628,25 +611,35 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             if (value == 0) {
                 value = 0x10000;
             }
-            countStartTime = getTime();
+            countStartCycles = timingSource.getTicks();
             countValue = value;
-            this.irqTimerUpdate(countStartTime);
+            this.irqTimerUpdate(0);
+        }
+
+        public long convertPitTicksToCycles(long startCycles, long currentPITTicks)
+        {
+            // round up to ensure we are after the given time, and be careful about overflow
+            return startCycles + (scale64(currentPITTicks, 1000000, PIT_FREQ) + 1)*(timingSource.getIPS()/1000)/1000;
+        }
+
+        public long convertCyclesToNanos(long cycles)
+        {
+            return scale64(cycles, 1000000000, (int) timingSource.getIPS());
         }
 
         private void irqTimerUpdate(long currentTime) {
             if (irqTimer == null) {
                 return;
             }
-            long expireTime = getNextTransitionTime(currentTime);
-            // round expiry to nearest cpu cycle
-            expireTime = ((expireTime * timingSource.getIPS()/timingSource.getTickRate()) * timingSource.getTickRate())/timingSource.getIPS();
-            int irqLevel = getOut(currentTime);
-            irqDevice.setIRQ(irq, irqLevel);
-            if (expireTime/conversionFactor() == nextTransitionTimeValue)
-                expireTime += conversionFactor();
-            nextTransitionTimeValue = expireTime/conversionFactor(); // convert to our units (micro seconds)
-            if (expireTime != -1) {
-                irqTimer.setExpiry(expireTime);
+            nextChangeTime = getNextTransitionTime(currentTime);
+
+            int out = getOut(currentTime);
+            irqDevice.setIRQ(irq, out);
+//            System.out.println("set PIT IRQ "+irqLevel);
+            long nanos = convertCyclesToNanos(convertPitTicksToCycles(countStartCycles, nextChangeTime));
+
+            if (nextChangeTime != -1) {
+                irqTimer.setExpiry(nanos);
             } else {
                 irqTimer.disable();
             }
@@ -661,7 +654,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         }
 
         public void callback() {
-            this.irqTimerUpdate(nextTransitionTimeValue);
+            this.irqTimerUpdate(nextChangeTime);
         }
 
         public void setIRQTimer(Timer object) {

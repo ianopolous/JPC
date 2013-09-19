@@ -34,6 +34,7 @@
 package org.jpc.emulator.peripheral;
 
 import org.jpc.emulator.motherboard.*;
+import org.jpc.j2se.*;
 import org.jpc.support.*;
 import org.jpc.emulator.*;
 
@@ -676,7 +677,10 @@ public class FloppyController implements IODevice, DMATransferCapable, HardwareC
                     drive = getCurrentDrive();
                     drive.recalibrate();
                     resetFIFO();
-                    raiseIRQ(0x20);
+                    if (Option.useBochs.isSet())
+                        clock.newTimer(new IRQTimer()).setExpiry(clock.getEmulatedNanos() + 32000000);
+                    else
+                        raiseIRQ(0x20);
                     break;
                 case 0x0f:
                     currentDrive = fifo[1] & 1;
@@ -907,12 +911,13 @@ public class FloppyController implements IODevice, DMATransferCapable, HardwareC
             dmaMode = (dmaMode >>> 2) & 3;
             if (((direction == DIRECTION_SCANE || direction == DIRECTION_SCANL || direction == DIRECTION_SCANH) && dmaMode == 0) ||
                     (direction == DIRECTION_WRITE && dmaMode == 2) || (direction == DIRECTION_READ && dmaMode == 1)) {
-                /* No access is allowed until DMA transfer has completed */
+                // No access is allowed until DMA transfer has completed
                 state |= CONTROL_BUSY;
-                /* Now, we just have to wait for the DMA controller to
-		 * recall us...
-		 */
-                dma.holdDmaRequest(DMA_CHANNEL & 3);
+                // simulate a data transfer rate of a spinning platter at 300 rpm (each sector should take 200,000/sectorPerTrack micro seconds
+                if (Option.useBochs.isSet())
+                    clock.newTimer(new DMATimer()).setExpiry(clock.getEmulatedNanos() + 1000*(200000/drive.sectorCount) + 1000000000/clock.getTickRate()/*make it trigger the instruction after this (round up)*/);
+                else
+                    dma.holdDmaRequest(DMA_CHANNEL & 3);
                 return;
             } else
                 LOGGING.log(Level.INFO, "DMA mode {0,number,integer}, direction {1,number,integer}", new Object[]{Integer.valueOf(dmaMode), Integer.valueOf(direction)});
@@ -1243,6 +1248,35 @@ public class FloppyController implements IODevice, DMATransferCapable, HardwareC
             return (device == null) ? "<none>" : format.toString();
         }
     }
+
+    private class IRQTimer implements TimerResponsive
+    {
+
+        @Override
+        public void callback() {
+            raiseIRQ(0x20);
+        }
+
+        @Override
+        public int getType() {
+            return 0;
+        }
+    }
+
+    private class DMATimer implements TimerResponsive
+    {
+
+        @Override
+        public void callback() {
+            dma.holdDmaRequest(DMA_CHANNEL & 3);
+        }
+
+        @Override
+        public int getType() {
+            return 0;
+        }
+    }
+
     private boolean ioportRegistered;
 
     public void reset()
