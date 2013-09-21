@@ -524,8 +524,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             }
         }
 
-        private int getOut(long currentTime) {
-            long now = scale64(currentTime - countStartCycles, PIT_FREQ, (int) getTickRate());
+        private int getOut(long now) {
             switch (mode) {
                 default:
                 case MODE_INTERRUPT_ON_TERMINAL_COUNT:
