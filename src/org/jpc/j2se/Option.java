@@ -52,6 +52,7 @@ public abstract class Option {
     public static final Switch fullscreen = createSwitch("fullscreen");
     public static final Switch history = createSwitch("history");
     public static final Switch useBochs = createSwitch("bochs");
+    public static final Switch help = createSwitch("help");
     public static final Opt min_addr_watch = opt("min-addr-watch");
     public static final Opt max_addr_watch = opt("max-addr-watch");
 
@@ -90,6 +91,23 @@ public abstract class Option {
     public static final Opt sbtype = opt("sbtype");
     public static final Opt oplemu = opt("oplemu");
     public static final Opt oplrate = opt("oplrate");
+
+    public static void printHelp() {
+        System.out.println("JPC Help");
+        System.out.println("Parameters may be specified on the command line or in a file. ");
+        System.out.println();
+        System.out.println("-help - display this help");
+        System.out.println("-config $file - read parameters from $file, any subsequent commandline parameters override parameters in the file");
+        System.out.println("-boot $device - the device to boot from out of fda (floppy), hda (hard drive 1), cdrom (CDROM drive)");
+        System.out.println("-fda $file - floppy image file");
+        System.out.println("-hda $file - hard disk image file");
+        System.out.println("-hda dir:$dir - directory to mount as a FAT32 hard disk");
+        System.out.println("-ss $file - snapshot file to load");
+        System.out.println("-ram $megabytes - the amount RAM the virtual machine should have");
+        System.out.println("-ips $number - number of emulated instructions per emulated second - a larger value will cause a slower apparent time in the VM");
+        System.out.println();
+        System.out.println("-sound - enable sound");
+    }
 
     public static String[] parse(String[] source) {
         ArrayList<String> tmp = new ArrayList<String>();
@@ -264,7 +282,6 @@ public abstract class Option {
         }
     }
 
-
     public static class OptSet extends Option {
         private Collection<String> values = new LinkedHashSet<String>();
 
@@ -360,12 +377,6 @@ public abstract class Option {
             return value;
         }
 
-        /**
-         * Invoke
-         *
-         * @param type
-         * @return
-         */
         public Object valueOf(Class type, Object defaultValue) {
             if (value == null) return defaultValue;
             Throwable t = null;

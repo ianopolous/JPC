@@ -665,6 +665,11 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
         }
 
         args = Option.parse(args);
+        if (Option.help.isSet())
+        {
+            Option.printHelp();
+            System.exit(0);
+        }
 
         if (args.length == 0)
         {
