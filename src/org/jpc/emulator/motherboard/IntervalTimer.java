@@ -637,10 +637,18 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
 //            System.out.println("set PIT IRQ "+irqLevel);
             long nanos = convertCyclesToNanos(convertPitTicksToCycles(countStartCycles, nextChangeTime));
 
-            if (nextChangeTime != -1) {
+            if (irqTimer.getExpiry() == nanos) // we need to trigger the next int now
+            {
                 irqTimer.setExpiry(nanos);
-            } else {
-                irqTimer.disable();
+                timingSource.updateAndProcess(0);
+            }
+            else
+            {
+                if (nextChangeTime != -1) {
+                    irqTimer.setExpiry(nanos);
+                } else {
+                    irqTimer.disable();
+                }
             }
         }
 
