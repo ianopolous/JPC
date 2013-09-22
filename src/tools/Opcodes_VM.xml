@@ -97,6 +97,13 @@
     <args size="8">Ib</args>
   </opcode>
 
+  <opcode mnemonic="int3">
+    <return>Branch.Jmp_Unknown</return>
+    <snippet>        cpu.eip += blockLength;
+        cpu.handleSoftProtectedModeInterrupt(3, instructionLength);</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="iretw">
     <return>Branch.Ret</return>
     <snippet>        cpu.eip +=  blockLength;

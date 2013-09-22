@@ -15,6 +15,7 @@ public class SBlaster extends AbstractHardwareComponent implements IODevice
     private static Clock timeSource;
     private static DMAController dma;
     private static boolean ioportRegistered = false;
+    public static final String BLASTER = "SET BLASTER=A220 I7 D1 T3";
     public static final int BASE = 0x220;
     public static final int IRQ = 7;
     public static final int DMA = 1;

@@ -480,6 +480,23 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="ftst">
+    <return>Branch.None</return>
+    <snippet>                            int newcode = 0xd;
+        double freg0 = cpu.fpu.ST(0);
+        double freg1 = 0.0;
+        if (Double.isNaN(freg0))
+            cpu.fpu.setInvalidOperation();
+        else {
+            if (freg0 > freg1) newcode = 0;
+            else if (freg0 &lt; freg1) newcode = 1;
+            else newcode = 8;
+        }
+        cpu.fpu.conditionCode &amp;= 2;
+        cpu.fpu.conditionCode |= newcode;</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="fcos">
     <return>Branch.None</return>
     <snippet>        double freg0 = cpu.fpu.ST(0);

@@ -3418,8 +3418,6 @@ public class Processor implements HardwareComponent
     public void waitForInterrupt()
     {
         System.out.printf("*****START HALT %016x\n", vmClock.getEmulatedNanos());
-        if (vmClock.getEmulatedNanos() == 0xd18df6a)
-            System.out.println("Triple int coming up in halt!!!");
         int ints = 0;
         while ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) == 0) {
             vmClock.updateNowAndProcess(!SKIP_SLEEPS);

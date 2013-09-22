@@ -52,7 +52,7 @@ public class CompareToBochs
     public static final boolean compareStack = false;
     public static final boolean compareCMOS = false;
     public static final boolean compareIntState = false;
-    public static final boolean comparePIT = true;
+    public static final boolean comparePIT = false;
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom10m.img"};
