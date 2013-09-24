@@ -69,7 +69,7 @@ public class CompareToBochs
     public static final String[] dslCD = {"-cdrom", "../../tmpdrives/dsl-n-01RC4.iso", "-boot", "cdrom"};
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
-    public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
+    public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1000000"};
 
     public static String[] pcargs = prince1;
 
@@ -314,6 +314,20 @@ public class CompareToBochs
                     System.out.println("Exception during Bochs execution... look above");
                     throw e;
                 }
+            }
+            if (fast[16] == bochsState[16] + 2) // probably a mov ss, X then sti then Y which must not have interrupts checked between them
+            {
+                for (int i=0; i < 2; i++)
+                    try {
+                        bochs.executeInstruction();
+                        bochsState = bochs.getState();
+                    } catch (Exception e)
+                    {
+                        printHistory();
+                        e.printStackTrace();
+                        System.out.println("Exception during Bochs execution... look above");
+                        throw e;
+                    }
             }
             // send input events
 //            if (fast[16] > 230000000)
