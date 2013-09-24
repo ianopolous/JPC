@@ -53,12 +53,12 @@ public class Bochs implements EmulatorControl
 
     public Bochs() throws IOException
     {
-        this(EXE, "prince.cfg");
+        this("prince.cfg");
     }
 
-    public Bochs(String exepath, String config) throws IOException
+    public Bochs(String config) throws IOException
     {
-        ProcessBuilder pb =  new ProcessBuilder(exepath, "-q", "-f", config);
+        ProcessBuilder pb =  new ProcessBuilder(EXE, "-q", "-f", config);
         Map<String, String> env = pb.environment();
         // force path to /home/ian/java/jni/bochs
         pb.directory(new File("/home/ian/jpc/bochs"));

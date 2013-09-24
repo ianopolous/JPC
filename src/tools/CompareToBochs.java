@@ -71,7 +71,8 @@ public class CompareToBochs
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1000000"};
 
-    public static String[] pcargs = prince1;
+    public static String[] pcargs = win311;
+    public static String CONFIG = "win311.config";
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -168,7 +169,7 @@ public class CompareToBochs
         Constructor ctor = c1.getConstructor(String[].class, Calendar.class);
         Object newpc = ctor.newInstance((Object)pcargs, start1);
 
-        EmulatorControl bochs = new Bochs();
+        EmulatorControl bochs = new Bochs(CONFIG);
 
         Method m1 = c1.getMethod("hello");
         m1.invoke(newpc);
