@@ -52,6 +52,7 @@ public class CompareToBochs
     public static final boolean compareStack = false;
     public static final boolean compareCMOS = false;
     public static final boolean compareIntState = false;
+    public static final boolean followBochsInts = true;
     public static final boolean comparePIT = false;
     public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
@@ -69,10 +70,10 @@ public class CompareToBochs
     public static final String[] dslCD = {"-cdrom", "../../tmpdrives/dsl-n-01RC4.iso", "-boot", "cdrom"};
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
-    public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1000000"};
+    public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1193181"};
 
     public static String[] pcargs = win311;
-    public static String CONFIG = "win311.config";
+    public static String CONFIG = "win311.cfg";
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -121,9 +122,6 @@ public class CompareToBochs
     public static final long START_KEYS = 380000000L;
     static
     {
-        //keyboardInput.add(new KeyBoardEvent(0x2000000L, "cd windows\n"));
-        //keyboardInput.add(new KeyBoardEvent(0x2000100L, "win\n"));
-        //keyboardInput.add(new KeyBoardEvent(0x7000000L, "./test-i386\n"));
         // prince
 //        keyPresses.add(new KeyBoardEvent(200000000L, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
 //        keyPresses.add(new KeyBoardEvent(250000000L, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
@@ -160,7 +158,10 @@ public class CompareToBochs
 
         Class opts = cl1.loadClass("org.jpc.j2se.Option");
         Method parse = opts.getMethod("parse", String[].class);
-        parse.invoke(opts, (Object)args);
+        String[] tmp = new String[args.length + pcargs.length];
+        System.arraycopy(args, 0, tmp, 0, args.length);
+        System.arraycopy(pcargs, 0, tmp, args.length, pcargs.length);
+        parse.invoke(opts, (Object)tmp);
 
         Calendar start1 = Calendar.getInstance();
         start1.setTimeInMillis(1370072774000L); // hard coded into bochssrc
@@ -177,7 +178,7 @@ public class CompareToBochs
         Method ints1 = c1.getMethod("checkInterrupts", Integer.class);
         Method state1 = c1.getMethod("getState");
         Method cmos1 = c1.getMethod("getCMOS");
-        Method pit1 = c1.getMethod("getPit");
+        Method getPIT1 = c1.getMethod("getPit");
         Method enterInt = c1.getMethod("forceEnterInterrupt", Integer.class);
         Method exitInt = c1.getMethod("forceExitInterrupt");
         Method ticksDelta = c1.getMethod("addToTicks", Integer.class);
@@ -187,6 +188,7 @@ public class CompareToBochs
         Method dirty1 = c1.getMethod("getDirtyPages", Set.class);
         Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
         Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
+        Method pitExpiry1 = c1.getMethod("setNextPITExpiry", Long.class);
         Method startClock1 = c1.getMethod("start");
         startClock1.invoke(newpc);
         Method break1 = c1.getMethod("eipBreak", Integer.class);
@@ -213,40 +215,15 @@ public class CompareToBochs
         String line;
         byte[] sdata1 = new byte[4096];
         byte[] sdata2 = new byte[4096];
-        int[] fast = null, bochsState=null;
+        int[] fast, bochsState;
         boolean previousLss = false;
         int previousStackAddr = 0;
-        boolean startedRight = false, startedLeft = false;
         int lastPIT0Count = 0;
         int lastPITIrq = 0;
         while (true)
         {
             Exception e1 = null;
-            try {
-                // increment time and check ints first to mirror bochs' behaviour of checking for an interrupt prior to execution
-                ints1.invoke(newpc, new Integer(1));
-                int blockLength = (Integer)execute1.invoke(newpc);
-                if (blockLength > 1)
-                {
-                    if ((blockLength == 2) && (history[historyIndex] != null) && (((String)history[historyIndex][2]).contains("sti")))
-                    {
-                        // don't trigger any interrupts until the next instruction, but still update clock
-                        fast = (int[])state1.invoke(newpc);
-                        fast[16]++;
-                        setState1.invoke(newpc, (int[])fast);
-                    }
-                    else
-                        for (int i=0; i < blockLength-1; i++)
-                            ints1.invoke(newpc, new Integer(1));
-                }
-            } catch (Exception e)
-            {
-                printHistory();
-                e.printStackTrace();
-                System.out.println("Exception during new JPC execution... look above");
-                e1 = e;
-            }
-            String nextBochs = null;
+            String nextBochs;
             try {
                 nextBochs = bochs.executeInstruction();
             } catch (Exception e)
@@ -256,10 +233,60 @@ public class CompareToBochs
                 System.out.println("Exception during Bochs execution... look above");
                 throw e;
             }
-            fast = (int[])state1.invoke(newpc);
-            if (fast[16] == 0x7dc980)
-                System.out.println("Int coming up!!");
             bochsState = bochs.getState();
+            if (followBochsInts)
+            {
+                int PITEip = bochs.getPITIntTargetEIP();
+                // if Bochs has gone into an interrupt from the PIT force JPC to trigger one at the same time
+                if ((bochsState[8] == PITEip) || (bochsState[8] == PITEip +1))
+                {
+                    pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
+                    // triggger PIT irq lower
+                    ints1.invoke(newpc, new Integer(0));
+                    pitExpiry1.invoke(newpc, new Long(bochsState[16]));
+                }
+                else if (currentInstruction().contains("hlt"))
+                {
+                    // assume PIT caused timeout
+                    pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
+                    // triggger PIT irq lower
+                    ints1.invoke(newpc, new Integer(0));
+                    pitExpiry1.invoke(newpc, new Long(bochsState[16]+1));
+                }
+            }
+            try {
+                // increment time and check ints first to mirror bochs' behaviour of checking for an interrupt prior to execution
+                ints1.invoke(newpc, new Integer(1));
+                int blockLength = (Integer)execute1.invoke(newpc);
+                if (blockLength > 1)
+                {
+                    int index = (historyIndex-1+history.length) % history.length;
+                    if ((blockLength == 2) && (history[index] != null) && (((String)history[index][2]).contains("sti")))
+                    {
+                        // don't trigger any interrupts until the next instruction, but still update clock
+                        fast = (int[])state1.invoke(newpc);
+                        fast[16]++;
+                        setState1.invoke(newpc, (int[])fast);
+                    }
+                    else
+                        for (int i=0; i < blockLength-1; i++)
+                        {
+                            fast = (int[])state1.invoke(newpc);
+                            fast[16]++;
+                            setState1.invoke(newpc, (int[])fast);
+                            //ints1.invoke(newpc, new Integer(1));
+                        }
+                }
+            } catch (Exception e)
+            {
+                printHistory();
+                e.printStackTrace();
+                System.out.println("Exception during new JPC execution... look above");
+                e1 = e;
+            }
+
+            fast = (int[])state1.invoke(newpc);
+
             try {
                 line = (String) instructionInfo.invoke(newpc, new Integer(1)) + " == " + nextBochs; // instructions per block
             } catch (Exception e)
@@ -546,7 +573,7 @@ public class CompareToBochs
                         setState1.invoke(newpc, (int[])bochsState);
                     if (diff.contains(8))
                     {
-                        printPITs((int[]) pit1.invoke(newpc), bochs.getPit());
+                        printPITs((int[]) getPIT1.invoke(newpc), bochs.getPit());
                         throw new IllegalStateException("Different EIP!");
                     }
                 }
@@ -586,7 +613,7 @@ public class CompareToBochs
             }
             if (comparePIT)
             {
-                lastPIT0Count = comparePITS(lastPIT0Count, bochs, newpc, pit1);
+                lastPIT0Count = comparePITS(lastPIT0Count, bochs, newpc, getPIT1);
                 int irq = getPITIrq(bochs);
                 if (irq != lastPITIrq)
                     System.out.printf("Bochs PIT irq changed to %d cycles=%x\n", irq, bochsState[16]);

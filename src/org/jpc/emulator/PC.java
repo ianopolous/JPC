@@ -277,6 +277,11 @@ public class PC {
         processor.fpu.setStack(newFPUStack);
     }
 
+    public void setNextPITExpiry(Long ticks)
+    {
+        ((VirtualClock)vmClock).setNextPitExpiry(ticks);
+    }
+
     public void setCode(byte[] code)
     {
         if (processor.isProtectedMode())

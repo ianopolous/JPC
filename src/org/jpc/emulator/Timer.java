@@ -45,7 +45,7 @@ import org.jpc.support.Clock;
 public class Timer implements Comparable, Hibernatable
 {
     private long expireTime;
-    private TimerResponsive callback;
+    public final TimerResponsive callback;
     private boolean enabled;
     private Clock myOwner;
 

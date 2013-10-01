@@ -28,6 +28,7 @@
 package org.jpc.j2se;
 
 import org.jpc.emulator.*;
+import org.jpc.emulator.motherboard.*;
 import org.jpc.support.Clock;
 import java.io.*;
 import java.util.LinkedList;
@@ -126,13 +127,12 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
 
     public long getEmulatedMicros()
     {
-        return totalTicks/(IPS/1000000);
-        //return getEmulatedNanos()/1000;
+        return getEmulatedNanos()/1000;
     }
 
     public long getEmulatedNanos()
     {
-        return (1000*totalTicks)/(IPS/1000000);//getTime();//getTicks()*NSPI;
+        return (long)(((double)totalTicks)*1000000000/IPS);//getTime();//getTicks()*NSPI;
     }
 
     public long getTickRate()
@@ -262,5 +262,27 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
         if (tempTimer == null)
             return Long.MAX_VALUE;
         return tempTimer.getExpiry();
+    }
+
+    public long ticksToNanos(long ticks)
+    {
+        return (long)((double)ticks*1000000000/getIPS());
+    }
+
+    // Only used to force interupts at certain times
+    public void setNextPitExpiry(long ticks)
+    {
+        Timer pit = timers.poll();
+        PriorityQueue<Timer> tmp = new PriorityQueue<Timer>(timers.size());
+        while (!(pit.callback instanceof IntervalTimer.TimerChannel))
+        {
+            tmp.add(pit);
+            if (timers.isEmpty())
+                throw new IllegalStateException("PIT timer not set!");
+            pit = timers.poll();
+        }
+        pit.setExpiry(ticksToNanos(ticks));
+        timers.add(pit);
+        timers.addAll(tmp);
     }
 }

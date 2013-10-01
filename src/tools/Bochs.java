@@ -181,6 +181,32 @@ public class Bochs implements EmulatorControl
         return state;
     }
 
+    @Override
+    public int getPITIntTargetEIP() throws IOException {
+        writeCommand("info ivt 8");
+        String line =readLine();
+        try {
+            while (!line.contains("INT# 08"))
+            {
+                if (line.contains("protected"))
+                {
+                    //need to lookup idt
+
+                    return 0;
+                }
+                line = readLine();
+            }
+        } finally {
+            String end = readLine();
+            while (!end.contains("Mouse capture off"))
+                end = readLine();
+        }
+        int start = line.indexOf(":", line.indexOf("INT"))+1;
+        int last = line.indexOf(" ", start);
+
+        return Integer.parseInt(line.substring(start, last), 16);
+    }
+
     private void getPit(int[] state, int channel) throws IOException
     {
         writeCommand("info device 'pit' 'counter="+channel+"'");
@@ -294,5 +320,7 @@ public class Bochs implements EmulatorControl
     {
         Bochs b = new Bochs();
         print(b.getState());
+        while (true)
+            b.executeInstruction();
     }
 }
