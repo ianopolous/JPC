@@ -282,7 +282,6 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
             pit = timers.poll();
         }
         pit.setExpiry(ticksToNanos(ticks));
-        timers.add(pit);
         timers.addAll(tmp);
     }
 }

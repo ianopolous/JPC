@@ -189,6 +189,7 @@ public class CompareToBochs
         Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
         Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
         Method pitExpiry1 = c1.getMethod("setNextPITExpiry", Long.class);
+        Method pitIrq1 = c1.getMethod("getPITIrqLevel");
         Method startClock1 = c1.getMethod("start");
         startClock1.invoke(newpc);
         Method break1 = c1.getMethod("eipBreak", Integer.class);
@@ -248,10 +249,14 @@ public class CompareToBochs
                 else if (currentInstruction().contains("hlt"))
                 {
                     // assume PIT caused timeout
-                    pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
-                    // triggger PIT irq lower
-                    ints1.invoke(newpc, new Integer(0));
-                    pitExpiry1.invoke(newpc, new Long(bochsState[16]+1));
+                    boolean irq = (Boolean)pitIrq1.invoke(newpc);
+                    if (irq) // need to lower first
+                    {
+                        pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
+                        // triggger PIT irq lower
+                        ints1.invoke(newpc, new Integer(0));
+                    }
+                    pitExpiry1.invoke(newpc, new Long(bochsState[16]+10));
                 }
             }
             try {
@@ -484,7 +489,9 @@ public class CompareToBochs
             }
 
             Set<Integer> diff = new HashSet<Integer>();
-            if (!sameStates(fast, bochsState, compareFlags, diff))
+            int[] prevBochs = previousBochsState();
+            int[] prevFast = previousState();
+            if (!sameStates(fast, bochsState, prevFast, prevBochs, compareFlags, diff))
             {
                 if ((diff.size() == 1) && diff.contains(9))
                 {
@@ -565,7 +572,7 @@ public class CompareToBochs
                     System.out.println("Remote returned from SMM with: "+prev + " and ticks: "+fast[16]);
                 }
                 diff.clear();
-                if (!sameStates(fast, bochsState, compareFlags, diff))
+                if (!sameStates(fast, bochsState, prevFast, prevBochs, compareFlags, diff))
                 {
                     printHistory();
                     for (int diffIndex: diff)
@@ -783,6 +790,14 @@ public class CompareToBochs
         return (int[])prev[0];
     }
 
+    private static int[] previousBochsState()
+    {
+        Object[] prev = history[(((historyIndex-2)%history.length) + history.length) % history.length];
+        if (prev == null)
+            return null;
+        return (int[])prev[1];
+    }
+
     static Object[][] history = new Object[10][];
     static int historyIndex=0;
 
@@ -897,7 +912,7 @@ public class CompareToBochs
         return true;
     }
 
-    public static boolean sameStates(int[] fast, int[] old, boolean compareFlags, Set<Integer> diff)
+    public static boolean sameStates(int[] fast, int[] old, int[] prevFast, int[] prevOld, boolean compareFlags, Set<Integer> diff)
     {
         if (fast.length != names.length)
             throw new IllegalArgumentException(String.format("new state length: %d != %d",fast.length, names.length));
@@ -907,7 +922,7 @@ public class CompareToBochs
         for (int i=0; i < fast.length; i++)
             if (i != 9)
             {
-                if (fast[i] != old[i])
+                if ((fast[i] != old[i]) && ((old[i] != prevOld[i]) || (prevFast[i] != fast[i]))) // don't keep reporting the same thing
                 {
                     diff.add(i);
                     same = false;

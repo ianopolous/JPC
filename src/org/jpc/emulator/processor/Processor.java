@@ -3417,13 +3417,13 @@ public class Processor implements HardwareComponent
 
     public void waitForInterrupt()
     {
-        System.out.printf("*****START HALT %016x\n", vmClock.getEmulatedNanos());
+        System.out.printf("*****START HALT ticks=%016x\n", vmClock.getTicks());
         int ints = 0;
         while ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) == 0) {
             vmClock.updateNowAndProcess(!SKIP_SLEEPS);
             ints++;
         }
-        System.out.printf("END HALT %016x, interrupts=%d\n", vmClock.getEmulatedNanos(), ints);
+        System.out.printf("END HALT ticks=%016x, interrupts=%d\n", vmClock.getTicks(), ints);
 //        if (isProtectedMode()) {
 //            if (isVirtual8086Mode()) {
 //                processProtectedModeInterrupts(0);

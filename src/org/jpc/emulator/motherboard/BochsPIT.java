@@ -11,6 +11,7 @@ public class BochsPIT
     }
     private final long[] cycles;
     private int index=0;
+    private static BochsPIT instance =null;
 
     public BochsPIT(int ips)
     {
@@ -21,6 +22,12 @@ public class BochsPIT
         }
         else
             cycles = timings.get(ips);
+        instance=this;
+    }
+
+    public static boolean getIrqLevel()
+    {
+        return instance.getOut() == 1;
     }
 
     // must be called after getNextExpiry()

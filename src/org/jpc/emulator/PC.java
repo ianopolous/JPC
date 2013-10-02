@@ -282,6 +282,11 @@ public class PC {
         ((VirtualClock)vmClock).setNextPitExpiry(ticks);
     }
 
+    public Boolean getPITIrqLevel()
+    {
+        return BochsPIT.getIrqLevel();
+    }
+
     public void setCode(byte[] code)
     {
         if (processor.isProtectedMode())
