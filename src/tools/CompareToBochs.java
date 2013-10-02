@@ -98,7 +98,7 @@ public class CompareToBochs
         flagIgnores.put("mul", ~0xd4); // not defined in spec
         flagIgnores.put("imul", ~0xd4); // not defined in spec
         flagIgnores.put("popfw", ~0x895);
-        //flagIgnores.put("shl", ~0x810);
+        flagIgnores.put("shl", ~0x810);
         //flagIgnores.put("bt", ~0x894);
 
         // not sure

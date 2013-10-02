@@ -36,9 +36,6 @@ import org.w3c.dom.*;
 import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
 
-/**
- * User: Ian Preston
- */
 public class Fuzzer
 {
     static String newJar = "JPCApplication.jar";
@@ -136,7 +133,7 @@ public class Fuzzer
         return true;
     }
 
-    public static String[] names = Comparison.names;
+    public static String[] names = CompareToBochs.names;
 
     public static void printState(int[] state)
     {
