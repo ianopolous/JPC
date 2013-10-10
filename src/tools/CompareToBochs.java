@@ -27,6 +27,8 @@
 
 package tools;
 
+import org.jpc.emulator.processor.*;
+
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
@@ -98,7 +100,7 @@ public class CompareToBochs
         flagIgnores.put("mul", ~0xd4); // not defined in spec
         flagIgnores.put("imul", ~0xd4); // not defined in spec
         flagIgnores.put("popfw", ~0x895);
-        flagIgnores.put("shl", ~0x810);
+        //flagIgnores.put("shl", ~0x810);
         //flagIgnores.put("bt", ~0x894);
 
         // not sure
@@ -237,16 +239,22 @@ public class CompareToBochs
             bochsState = bochs.getState();
             if (followBochsInts)
             {
-                int PITEip = bochs.getPITIntTargetEIP();
+                if (bochsState[16] >= 0x313B41C)
+                    System.out.printf("");
                 // if Bochs has gone into an interrupt from the PIT force JPC to trigger one at the same time
-                if ((bochsState[8] == PITEip) || (bochsState[8] == PITEip +1))
+                if (nextBochs.contains("vector=0x8") || nextBochs.contains("vector=0x50")) // relies on patch to exception.cc
+                // Win 3.11 appears to use 0x50 for the PIT int in protected mode
+                // bochs does an extra instruction after an int, which can end up more than byte further into the int handler
                 {
-                    pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
-                    // triggger PIT irq lower
-                    ints1.invoke(newpc, new Integer(0));
+                    boolean irq = (Boolean)pitIrq1.invoke(newpc);
+                    if (irq) // need to lower first
+                    {
+                        pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
+                        // triggger PIT irq lower
+                        ints1.invoke(newpc, new Integer(0));
+                    }
                     pitExpiry1.invoke(newpc, new Long(bochsState[16]));
-                }
-                else if (currentInstruction().contains("hlt"))
+                } else if (currentInstruction().contains("hlt"))
                 {
                     // assume PIT caused timeout
                     boolean irq = (Boolean)pitIrq1.invoke(newpc);
@@ -282,7 +290,11 @@ public class CompareToBochs
                             //ints1.invoke(newpc, new Integer(1));
                         }
                 }
-            } catch (Exception e)
+            } catch (ModeSwitchException e)
+            {
+                System.out.println("How did we get here? These should be caught.");
+            }
+            catch (Exception e)
             {
                 printHistory();
                 e.printStackTrace();
@@ -293,7 +305,7 @@ public class CompareToBochs
             fast = (int[])state1.invoke(newpc);
 
             try {
-                line = (String) instructionInfo.invoke(newpc, new Integer(1)) + " == " + nextBochs; // instructions per block
+                line = instructionInfo.invoke(newpc, new Integer(1)) + " == " + nextBochs; // instructions per block
             } catch (Exception e)
             {
                 if (!e.toString().contains("PAGE_FAULT"))
@@ -338,7 +350,7 @@ public class CompareToBochs
             if (fast[16] == bochsState[16] +1)
             {
                 try {
-                    bochs.executeInstruction();
+                    line += bochs.executeInstruction();
                     bochsState = bochs.getState();
                 } catch (Exception e)
                 {
@@ -352,7 +364,7 @@ public class CompareToBochs
             {
                 for (int i=0; i < 2; i++)
                     try {
-                        bochs.executeInstruction();
+                        line += bochs.executeInstruction();
                         bochsState = bochs.getState();
                     } catch (Exception e)
                     {
@@ -362,32 +374,7 @@ public class CompareToBochs
                         throw e;
                     }
             }
-            // send input events
-//            if (fast[16] > 230000000)
-//            {
-//                if (fast[16] < 240000000)
-//                {
-//                    if (!startedRight)
-//                    {
-//                        startedRight = true;
-//                        System.out.println("Started running right...");
-//                    }
-//                    keysDown1.invoke(newpc, ">");
-//                    bochs.keysDown(">");
-//                }
-//                else
-//                {
-//                    if (!startedLeft)
-//                    {
-//                        startedLeft = true;
-//                        System.out.println("Started running Left...");
-//                        keysUp1.invoke(newpc, ">");
-//                        bochs.keysUp(">");
-//                    }
-//                    keysDown1.invoke(newpc, "<");
-//                    bochs.keysDown("<");
-//                }
-//            }
+
             if (!keyPresses.isEmpty())
             {
                 KeyBoardEvent k = keyPresses.first();
@@ -433,61 +420,6 @@ public class CompareToBochs
             history[historyIndex][2] = line;
             historyIndex = (historyIndex+1)%history.length;
             
-            // COMPARE INTERRUPT STATE
-            if (compareIntState)
-            {
-                int prevIndex = ((historyIndex-2)%history.length + history.length) % history.length;
-                if (history[prevIndex] != null)
-                {
-                    boolean JPCInt = inInt((int[])(history[prevIndex][0]), fast);
-                    boolean BochsInt = inInt((int[])(history[prevIndex][1]), bochsState);
-                    if (JPCInt != BochsInt)
-                        System.out.println("Different interrupt state..");
-                    if (!BochsInt)
-                    {
-                        if (JPCInt)
-                        {
-                            exitInt.invoke(newpc);
-                            fast = (int[])state1.invoke(newpc);
-                            System.out.println("Forced exit interrupt.");
-                        }
-                    }
-                    else
-                    {
-                        if (!JPCInt)
-                        {
-                            // need to make sure our eip is the correct one (bochs does the interrupt before the instruction)
-                            int ssBase = fast[35];
-                            int esp = fast[4] + ssBase;
-                            boolean pm = (fast[36] & 1) != 0;
-                            int espPageIndex;
-                            if (pm)
-                                espPageIndex = esp;
-                            else
-                                espPageIndex = esp >>> 12;
-                            bochs.savePage(new Integer(espPageIndex), sdata2, pm);
-                            int eip = (sdata2[esp & 0xfff] & 0xff) | ((sdata2[(esp+1) & 0xfff]& 0xff) << 8); // eip is the last thing pushed onto the stack
-                            fast[8] = eip;
-                            setState1.invoke(newpc, fast); // hope the instruction didn't have side effects
-                            // now cause the interrupt
-                            enterInt.invoke(newpc, new Integer(8)); // assume int from PIT for now
-                            fast = (int[])state1.invoke(newpc);
-                            System.out.println("Forced enter interrupt.");
-                            if (bochsState[8] == 0xfea6)
-                            {
-                                System.out.println("HACK to follow bizarre Bochs behaviour");
-                                // HACK to follow boch's bizarre (wrong?) behaviour here
-                                execute1.invoke(newpc); // will do STI and following instruction, then take away one tick
-                                ticksDelta.invoke(newpc, new Integer(-1));
-                                fast = (int[])state1.invoke(newpc);
-                                nextBochs = bochs.executeInstruction(); // will do instruction following STI
-                                bochsState = bochs.getState();
-                            }
-                        }
-                    }
-                }
-            }
-
             Set<Integer> diff = new HashSet<Integer>();
             int[] prevBochs = previousBochsState();
             int[] prevFast = previousState();
@@ -580,7 +512,11 @@ public class CompareToBochs
                         setState1.invoke(newpc, (int[])bochsState);
                     if (diff.contains(8))
                     {
-                        printPITs((int[]) getPIT1.invoke(newpc), bochs.getPit());
+                        System.out.println("going to STOP!!");
+                    }
+                    if (diff.contains(8))
+                    {
+                        //printPITs((int[]) getPIT1.invoke(newpc), bochs.getPit());
                         throw new IllegalStateException("Different EIP!");
                     }
                 }

@@ -643,17 +643,18 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             }
             if (Option.useBochs.isSet())
             {
-                long expiryTicks = bochs.getNextExpiry();
+                long expiryTicks = bochs.getNextExpiry(); // necessary to increment index counter
                 int out = bochs.getOut();
                 irqDevice.setIRQ(irq, out);
-                irqTimer.setExpiry(convertCyclesToNanos(expiryTicks));
-                if ((nextChangeTime == expiryTicks) && (nextChangeTime != (long)Integer.MAX_VALUE))
-                {
-                    irqTimer.setExpiry(convertCyclesToNanos(expiryTicks));
-                    timingSource.updateAndProcess(0);
-                }
-                else
-                    nextChangeTime = expiryTicks;
+//                irqTimer.setExpiry(convertCyclesToNanos(expiryTicks));
+                irqTimer.setExpiry(Long.MAX_VALUE); // avoid any overflow issues, we manually set expire times anyway
+//                if ((nextChangeTime == expiryTicks) && (nextChangeTime != (long)Integer.MAX_VALUE))
+//                {
+//                    irqTimer.setExpiry(convertCyclesToNanos(expiryTicks));
+//                    timingSource.updateAndProcess(0);
+//                }
+//                else
+//                    nextChangeTime = expiryTicks;
                 return;
             }
             nextChangeTime = getNextTransitionTime(currentTime);

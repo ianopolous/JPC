@@ -775,14 +775,19 @@ public class PC {
         if (!Option.singlesteptime.value())
             for (int i=0; i < cycles; i++)
                 vmClock.update(1);
-        if (processor.isProtectedMode()) {
-            if (processor.isVirtual8086Mode()) {
-                processor.processVirtual8086ModeInterrupts(0);
+        try {
+            if (processor.isProtectedMode()) {
+                if (processor.isVirtual8086Mode()) {
+                    processor.processVirtual8086ModeInterrupts(0);
+                } else {
+                    processor.processProtectedModeInterrupts(0);
+                }
             } else {
-                processor.processProtectedModeInterrupts(0);
+                processor.processRealModeInterrupts(0);
             }
-        } else {
-            processor.processRealModeInterrupts(0);
+        } catch (ModeSwitchException e)
+        {
+            System.out.println("Switched mode: "+e.getMessage());
         }
     }
 
@@ -803,7 +808,8 @@ public class PC {
 //                staticClockx86Count = 0;
 //            }
             return block;
-        } catch (ProcessorException p) {
+        } catch (ProcessorException p)
+        {
             processor.handleRealModeException(p);
         }
         catch (ModeSwitchException e)
@@ -842,7 +848,8 @@ public class PC {
 //                staticClockx86Count = 0;
 //            }
             return block;
-        } catch (ProcessorException p) {
+        } catch (ProcessorException p)
+        {
             processor.handleVirtual8086ModeException(p);
         }
         catch (ModeSwitchException e)
@@ -881,7 +888,8 @@ public class PC {
 //                staticClockx86Count = 0;
 //            }
             return block;
-        } catch (ProcessorException p) {
+        } catch (ProcessorException p)
+        {
             processor.handleProtectedModeException(p);
         }
         catch (ModeSwitchException e)

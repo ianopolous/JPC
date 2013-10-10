@@ -76,17 +76,17 @@ public class Bochs implements EmulatorControl
     public String executeInstruction() throws IOException
     {
         writeCommand("s");
-        readLine();
+        String pream = readLine();
         String next = readLine(); // normally cs:eip, disam of next instruction, raw bytes (very useful)
         String end = readLine();
         if (next.contains("Next at"))
-            next = end;
+            next = end + next;
         while (!end.contains("Mouse capture off"))
         {
             next += end;
             end = readLine();
         }
-        return next;
+        return next + pream;
     }
 
     public int[] getState() throws IOException
