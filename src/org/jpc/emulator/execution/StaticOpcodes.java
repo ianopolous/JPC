@@ -1514,13 +1514,27 @@ public class StaticOpcodes
         int port = cpu.r_dx.get16() & 0xffff;
         int addr = cpu.r_si.get16() & 0xffff;
 
-        cpu.ioports.ioPortWrite32(port, 0xffff & seg.getDoubleWord(addr));
+        cpu.ioports.ioPortWrite32(port, seg.getDoubleWord(addr));
         if (cpu.df) {
             addr -= 4;
         } else {
             addr += 4;
         }
         cpu.r_si.set16(addr);
+    }
+
+    public static void outsd_a32(Processor cpu, Segment seg)
+    {
+        int port = cpu.r_dx.get16() & 0xffff;
+        int addr = cpu.r_esi.get32();
+
+        cpu.ioports.ioPortWrite32(port, seg.getDoubleWord(addr));
+        if (cpu.df) {
+            addr -= 4;
+        } else {
+            addr += 4;
+        }
+        cpu.r_esi.set32(addr);
     }
 
     public static void rep_outsb_a16(Processor cpu, Segment seg)
