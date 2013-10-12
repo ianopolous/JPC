@@ -116,6 +116,7 @@ public class CompareToBochs
         flagIgnores.put("lss", ~0x200);
         //flagIgnores.put("iret", ~0x10); // who cares about before the interrupt
         //flagIgnores.put("iretw", ~0x810); // who cares about before the interrupt
+        flagIgnores.put("iretd", ~0x10000); // not sure where the resume flag is turned on in bochs, but don't care for now
 
     }
 
@@ -371,38 +372,38 @@ public class CompareToBochs
                     }
             }
 
-            if (!keyPresses.isEmpty())
-            {
-                KeyBoardEvent k = keyPresses.first();
-                if (fast[16] > k.time)
-                {
-                    keysDown1.invoke(newpc, k.text);
-                    bochs.keysDown(k.text);
-                    System.out.println("Sent key presses: "+k.text);
-                    keyPresses.remove(k);
-                }
-            }
-            if (!keyReleases.isEmpty())
-            {
-                KeyBoardEvent k = keyReleases.first();
-                if (fast[16] > k.time)
-                {
-                    keysUp1.invoke(newpc, k.text);
-                    bochs.keysUp(k.text);
-                    System.out.println("Sent key releases: "+k.text);
-                    keyReleases.remove(k);
-                }
-            }
-            if (!mouseInput.isEmpty())
-            {
-                MouseEvent k = mouseInput.first();
-                if (fast[16] > k.time)
-                {
-                    minput1.invoke(newpc, k.dx, k.dy, k.dz, k.buttons);
-                    bochs.sendMouse(k.dx, k.dy, k.dz, k.buttons);
-                    mouseInput.remove(k);
-                }
-            }
+//            if (!keyPresses.isEmpty())
+//            {
+//                KeyBoardEvent k = keyPresses.first();
+//                if (fast[16] > k.time)
+//                {
+//                    keysDown1.invoke(newpc, k.text);
+//                    bochs.keysDown(k.text);
+//                    System.out.println("Sent key presses: "+k.text);
+//                    keyPresses.remove(k);
+//                }
+//            }
+//            if (!keyReleases.isEmpty())
+//            {
+//                KeyBoardEvent k = keyReleases.first();
+//                if (fast[16] > k.time)
+//                {
+//                    keysUp1.invoke(newpc, k.text);
+//                    bochs.keysUp(k.text);
+//                    System.out.println("Sent key releases: "+k.text);
+//                    keyReleases.remove(k);
+//                }
+//            }
+//            if (!mouseInput.isEmpty())
+//            {
+//                MouseEvent k = mouseInput.first();
+//                if (fast[16] > k.time)
+//                {
+//                    minput1.invoke(newpc, k.dx, k.dy, k.dz, k.buttons);
+//                    bochs.sendMouse(k.dx, k.dy, k.dz, k.buttons);
+//                    mouseInput.remove(k);
+//                }
+//            }
             if (fast[16] > nextMilestone)
             {
                 System.out.printf("Reached %x ticks! Averaging %d IPS\n", fast[16], fast[16]*(long)1000000000/(System.nanoTime()-startTime));

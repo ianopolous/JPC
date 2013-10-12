@@ -1081,6 +1081,11 @@ public class Processor implements HardwareComponent
         flagStatus &= ~CF;
     }
 
+    public void rf(boolean val)
+    {
+        eflagsResume = val;
+    }
+
     public final void cpuid()
     {
         switch (r_eax.get32()) {
@@ -3974,6 +3979,9 @@ public class Processor implements HardwareComponent
         int savedEIP = eip;
         Segment savedCS = cs;
         Segment savedSS = ss;
+        // if it is a fault, then RF is set on the eflags image on stack (excpet for debug exception)
+        if (pe.isFault() && (pe.getType() != ProcessorException.Type.DEBUG))
+            rf(true);
 
         try {
             followProtectedModeException(pe.getType().vector(), pe.hasErrorCode(), pe.getErrorCode(), false, false);
