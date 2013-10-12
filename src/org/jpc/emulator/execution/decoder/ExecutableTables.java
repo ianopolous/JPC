@@ -22302,7 +22302,7 @@ ops[0x25] = new OpcodeDecoder() {
 ops[0x26] = null;
 ops[0x27] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
-        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.vm.daa(blockStart, eip, prefices, input);
     }
 };
 ops[0x28] = new OpcodeDecoder() {
@@ -22350,7 +22350,7 @@ ops[0x2d] = new OpcodeDecoder() {
 ops[0x2e] = null;
 ops[0x2f] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
-        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.vm.das(blockStart, eip, prefices, input);
     }
 };
 ops[0x30] = new OpcodeDecoder() {

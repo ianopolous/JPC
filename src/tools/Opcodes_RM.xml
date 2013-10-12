@@ -121,18 +121,6 @@
     <args size="0"></args>
   </opcode>
 
-  <opcode mnemonic="daa">
-    <return>Branch.None</return>
-    <snippet>        StaticOpcodes.daa(cpu);</snippet>
-    <args size="0"></args>
-  </opcode>
-
-  <opcode mnemonic="das">
-    <return>Branch.None</return>
-    <snippet>        StaticOpcodes.das(cpu);</snippet>
-    <args size="0"></args>
-  </opcode>
-
   <opcode mnemonic="hlt">
     <return>Branch.Jmp_Unknown</return>
     <snippet>            cpu.eip += blockLength;
