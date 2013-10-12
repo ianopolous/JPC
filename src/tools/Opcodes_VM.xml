@@ -153,6 +153,15 @@
     <args size="32">DX;eAX</args>
   </opcode>
 
+  <opcode mnemonic="outsd_a16" segment="true">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions16(0xffff &amp; cpu.r_dx.get16()))
+            StaticOpcodes.outsd_a16(cpu, seg);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="rep_outsw_a16">
     <return>Branch.None</return>
     <snippet>        if (cpu.checkIOPermissions16(0xffff &amp; cpu.r_dx.get16()))

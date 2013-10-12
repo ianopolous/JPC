@@ -26932,7 +26932,7 @@ ops[0x26f] = new OpcodeDecoder() {
         {
         return new org.jpc.emulator.execution.opcodes.vm.rep_outsd_a16(blockStart, eip, prefices, input);
         }
-        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.vm.outsd_a16(blockStart, eip, prefices, input);
     }
 };
 ops[0x270] = ops[0x70];
