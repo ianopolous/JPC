@@ -59,6 +59,7 @@ public abstract class Option {
     public static final Opt ss = opt("ss");
     public static final Opt ram = opt("ram");
     public static final Opt ips = opt("ips");
+    public static final Opt cpulevel = opt("cpulevel");
     public static final Opt timeslowdown = opt("time-slowdown");
     public static final Switch singlesteptime = createSwitch("single-step-time");
     public static final Opt max_instructions_per_block = opt("max-block-size");

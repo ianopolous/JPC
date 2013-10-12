@@ -127,6 +127,7 @@ public class Processor implements HardwareComponent
 
     private static boolean SKIP_SLEEPS = Option.max_instructions_per_block.intValue(1000) == 1;
 
+    public static final int cpuLevel = Option.cpulevel.intValue(6);
     public int eip;
     public Segment cs, ds, ss, es, fs, gs;
     public Segment idtr, gdtr, ldtr, tss;
@@ -1088,54 +1089,118 @@ public class Processor implements HardwareComponent
 
     public final void cpuid()
     {
-        switch (r_eax.get32()) {
-            case 0x00:
-                r_eax.set32(0x02);
-                r_ebx.set32(0x756e6547); /* "Genu", with G in the low nibble of BL */
-                r_edx.set32(0x49656e69); /* "ineI", with i in the low nibble of DL */
-                r_ecx.set32(0x6c65746e); /* "ntel", with n in the low nibble of CL */
-                return;
-            case 0x01:
-                //r_eax.set32(0x00000633); // Pentium II Model 8 Stepping 3
-                r_eax.set32(0x00000533); // Pentium MMX Model 8 Stepping 3
-                r_ebx.set32(8 << 8); //not implemented (should be brand index)
-                r_ecx.set32(0);
+        if (cpuLevel == 4) // Intel 486 DX/2 stepping 03
+        {
+            switch (r_eax.get32()) {
+                case 0x00:
+                    r_eax.set32(0x02);
+                    r_ebx.set32(0x756e6547); /* "Genu", with G in the low nibble of BL */
+                    r_edx.set32(0x49656e69); /* "ineI", with i in the low nibble of DL */
+                    r_ecx.set32(0x6c65746e); /* "ntel", with n in the low nibble of CL */
+                    return;
+                case 0x01:
+                    r_eax.set32(0x433);
+                    r_ebx.set32(1 << 16);
+                    r_ecx.set32(0);
 
-                int features = 0;
-                features |= 1; //Have an FPU;
-                //features |= (1<< 1);  // VME - Virtual 8086 mode enhancements, CR4.VME and eflags.VIP and VIF
-                features |= (1<< 2); // Debugging extensions CR4.DE and DR4 and DR5
-                features |= (1<< 3);  // Support Page-Size Extension (4M pages)
+                    int features = 0;
+                    features |= 1; //Have an FPU;
 
-                features |= (1<< 4);  // implement TSC
-                features |= (1<< 5);  // support RDMSR/WRMSR
-                //features |= (1<< 6);  // Support PAE.
-                features |= (1<< 7);  // Machine Check exception
+                    features |= (1<<31);  // Pending break enable
+                    r_edx.set32(features);
+                    return;
+                default:
+                case 0x02:
+                    r_eax.set32(0x410601);
+                    r_ebx.set32(0);
+                    r_ecx.set32(0);
+                    r_edx.set32(0);
+                    return;
+            }
+        }
+        else if (cpuLevel == 5) // Intel Pentium MMX
+        {
+            switch (r_eax.get32()) {
+                case 0x00:
+                    r_eax.set32(0x02);
+                    r_ebx.set32(0x756e6547); /* "Genu", with G in the low nibble of BL */
+                    r_edx.set32(0x49656e69); /* "ineI", with i in the low nibble of DL */
+                    r_ecx.set32(0x6c65746e); /* "ntel", with n in the low nibble of CL */
+                    return;
+                case 0x01:
+                    r_eax.set32(0x00000543);
+                    r_ebx.set32(1 << 16);
+                    r_ecx.set32(0);
 
-                features |= (1<< 8);  // Support CMPXCHG8B instruction - Bochs doesn't have this!
-                //features |= (1<< 9);   // APIC on chip
-                // (1<<12) is reserved
-                //features |= (1<<11);  // SYSENTER/SYSEXIT
+                    int features = 0;
+                    features |= 1; //Have an FPU;
+                    features |= (1<< 1);  // VME - Virtual 8086 mode enhancements, CR4.VME and eflags.VIP and VIF
+                    features |= (1<< 2); // Debugging extensions CR4.DE and DR4 and DR5
+                    features |= (1<< 3);  // Support Page-Size Extension (4M pages)
 
-                //features |= (1<<12);  // Memory type range registers
-                features |= (1<<13);  // Support Global pages.
-                features |= (1<<14);  //
-                features |= (1<<15);  // Implement CMOV instructions.
+                    features |= (1<< 4);  // implement TSC
+                    features |= (1<< 5);  // support RDMSR/WRMSR
+                    features |= (1<< 7);  // Machine Check exception
+                    features |= (1<< 8);  // Support CMPXCHG8B instruction - Bochs doesn't have this!
 
-                //features |= (1<<23);  // support MMX
-                //features |= (1<<24);  // Implement FSAVE/FXRSTOR instructions.
-                //features |= (1<<25);  // support SSE
-                //features |= (1<<26);  // support SSE2
-                //features |= (1<<28);  // Max APIC ids reserved field is valid
-                r_edx.set32(features);
-                return;
-            default:
-            case 0x02:
-                r_eax.set32(0x410601);
-                r_ebx.set32(0);
-                r_ecx.set32(0);
-                r_edx.set32(0);
-                return;
+                    features |= (1<<23);  // support MMX
+                    r_edx.set32(features);
+                    return;
+                default:
+                case 0x02:
+                    r_eax.set32(0x410601);
+                    r_ebx.set32(0);
+                    r_ecx.set32(0);
+                    r_edx.set32(0);
+                    return;
+            }
+        }
+        else if (cpuLevel == 6) // Intel Pentium II stepping 4
+        {
+            switch (r_eax.get32()) {
+                case 0x00:
+                    r_eax.set32(0x02);
+                    r_ebx.set32(0x756e6547); /* "Genu", with G in the low nibble of BL */
+                    r_edx.set32(0x49656e69); /* "ineI", with i in the low nibble of DL */
+                    r_ecx.set32(0x6c65746e); /* "ntel", with n in the low nibble of CL */
+                    return;
+                case 0x01:
+                    r_eax.set32(0x634);
+                    r_ebx.set32(0);
+                    r_ecx.set32(0);
+
+                    int features = 0;
+                    features |= 1; //Have an FPU;
+                    features |= (1<< 1);  // VME - Virtual 8086 mode enhancements, CR4.VME and eflags.VIP and VIF
+                    features |= (1<< 2); // Debugging extensions CR4.DE and DR4 and DR5
+                    features |= (1<< 3);  // Support Page-Size Extension (4M pages)
+
+                    features |= (1<< 4);  // implement TSC
+                    features |= (1<< 5);  // support RDMSR/WRMSR
+                    features |= (1<< 6);  // Support PAE.
+                    features |= (1<< 7);  // Machine Check exception
+
+                    features |= (1<< 8);  // Support CMPXCHG8B instruction - Bochs doesn't have this!
+                    //features |= (1<< 9);   // APIC on chip
+                    // (1<<10) is reserved
+                    features |= (1<<11);  // SYSENTER/SYSEXIT
+
+                    features |= (1<<12);  // Memory type range registers
+                    features |= (1<<13);  // Support Global pages.
+                    features |= (1<<14);  // Machine check architecture
+                    features |= (1<<15);  // Implement CMOV instructions.
+
+                    features |= (1<<23);  // support MMX
+                    r_edx.set32(features);
+                    return;
+                default:
+                case 0x02:
+                    r_eax.set32(0x3020101);
+                    r_ebx.set32(0);
+                    r_ecx.set32(0);
+                    r_edx.set32(0xc040843);
+                    return;
+            }
         }
     }
 

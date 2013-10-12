@@ -22723,7 +22723,7 @@ ops[0x6f] = new OpcodeDecoder() {
         {
         return new org.jpc.emulator.execution.opcodes.vm.rep_outsw_a16(blockStart, eip, prefices, input);
         }
-        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.vm.outsw_a16(blockStart, eip, prefices, input);
     }
 };
 ops[0x70] = new OpcodeDecoder() {
@@ -30510,7 +30510,15 @@ ops[0x66e] = ops[0x6e];
 
 ops[0x66f] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Prefices.isRepne(prefices))
+        {
         return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        }
+        if (Prefices.isRep(prefices))
+        {
+        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        }
+        return new org.jpc.emulator.execution.opcodes.vm.outsd_a32(blockStart, eip, prefices, input);
     }
 };
 ops[0x670] = ops[0x70];

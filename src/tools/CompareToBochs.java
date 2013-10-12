@@ -103,7 +103,7 @@ public class CompareToBochs
         flagIgnores.put("bsf", ~0x4); // not defined in spec
         flagIgnores.put("mul", ~0x80); // not defined in spec
         flagIgnores.put("ror", ~0x800); // not defined in spec for shifts != 1
-        flagIgnores.put("shl", ~0x810);
+        flagIgnores.put("shl", ~0x810); // not defined in spec for shifts != 1
         //flagIgnores.put("bt", ~0x894);
 
         // not sure
