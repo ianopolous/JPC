@@ -1302,9 +1302,9 @@ public class StaticOpcodes
 
         seg.setByte(addr, (byte)cpu.ioports.ioPortRead8(port));
         if (cpu.df) {
-            addr -= 2;
+            addr -= 1;
         } else {
-            addr += 2;
+            addr += 1;
         }
         cpu.r_di.set16(addr);
     }
@@ -1316,9 +1316,9 @@ public class StaticOpcodes
 
         seg.setByte(addr, (byte)cpu.ioports.ioPortRead8(port));
         if (cpu.df) {
-            addr -= 2;
+            addr -= 1;
         } else {
-            addr += 2;
+            addr += 1;
         }
         cpu.r_edi.set32(addr);
     }
@@ -1681,13 +1681,13 @@ public class StaticOpcodes
         try {
             if (cpu.df) {
                 while (count != 0) {
-                    cpu.es.setByte(tAddr, data);
+                    cpu.es.setByte(tAddr & 0xffff, data);
                     count--;
                     tAddr -= 1;
                 }
             } else {
                 while (count != 0) {
-                    cpu.es.setByte(tAddr, data);
+                    cpu.es.setByte(tAddr & 0xffff, data);
                     count--;
                     tAddr += 1;
                 }
