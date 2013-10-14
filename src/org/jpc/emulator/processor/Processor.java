@@ -1088,6 +1088,11 @@ public class Processor implements HardwareComponent
         eflagsResume = val;
     }
 
+    public void setIF(boolean val)
+    {
+        eflagsInterruptEnable = val;
+    }
+
     public final void cpuid()
     {
         if (cpuLevel == 4) // Intel 486 DX/2 stepping 03
@@ -4218,1022 +4223,221 @@ public class Processor implements HardwareComponent
         checkGate(gate, selector, software);
 
         switch (gate.getType()) {
-        default:
-            LOGGING.log(Level.INFO, "Invalid gate type for throwing interrupt: 0x{0}", Integer.toHexString(gate.getType()));
-            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2 + EXT, true);
-        case 0x05: //Interrupt Handler: Task Gate
-            throw new IllegalStateException("Unimplemented Interrupt Handler: Task Gate");
-        case 0x06: //Interrupt Handler: 16-bit Interrupt Gate
+            default:
+                LOGGING.log(Level.INFO, "Invalid gate type for throwing interrupt: 0x{0}", Integer.toHexString(gate.getType()));
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2 + EXT, true);
+            case 0x05: //Interrupt Handler: Task Gate
+                throw new IllegalStateException("Unimplemented Interrupt Handler: Task Gate");
+            case 0x06: //Interrupt Handler: 16-bit Interrupt Gate
+            case 0x07: //Interrupt Handler: 16-bit Trap Gate
+            case 0x0e: //Interrupt Handler: 32-bit Interrupt Gate
+            case 0x0f: //Interrupt Handler: 32-bit Trap Gate
             {
-                ProtectedModeSegment.InterruptGate16Bit interruptGate = ((ProtectedModeSegment.InterruptGate16Bit)gate);
+                // NEW START
+                ProtectedModeSegment.GateSegment theGate = (ProtectedModeSegment.GateSegment) gate;
+                int targetSegmentSelector = theGate.getTargetSegment();
 
-                int targetSegmentSelector = interruptGate.getTargetSegment();
+                if ((targetSegmentSelector & 0xfffc) == 0)
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, EXT, true);
 
-                Segment targetSegment;
+                ProtectedModeSegment targetSegment;
                 try {
-                    targetSegment = getSegment(targetSegmentSelector);
+                    targetSegment = (ProtectedModeSegment) getSegment(targetSegmentSelector);
                 } catch (ProcessorException e) {
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector & 0xfffc + EXT, true);
                 }
 
-                if (targetSegment.getDPL() > currentPrivilegeLevel)
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-                //		System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
-                switch(targetSegment.getType()) {
-                default:
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
+                if (!targetSegment.isCode() || targetSegment.getDPL() > currentPrivilegeLevel)
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector & 0xfffc + EXT, true);
 
-                case 0x18: //Code, Execute-Only
-                case 0x19: //Code, Execute-Only, Accessed
-                case 0x1a: //Code, Execute/Read
-                case 0x1b: //Code, Execute/Read, Accessed
+                if (!targetSegment.isPresent())
+                    throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector & 0xfffc, true);
+
+                if (!targetSegment.isConforming() && targetSegment.getDPL() < currentPrivilegeLevel)
+                {
+                    // Interrupt to inner privilege level
+                    int newStackSelector = 0;
+                    int newESP = 0;
+                    if ((tss.getType() == 0x9) || (tss.getType() == 0xb)) // 32-bit TSS
                     {
-                        if (!targetSegment.isPresent())
-                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector + EXT, true);
-                        //			System.out.println("Target DPL = " + targetSegment.getDPL() + ", CPL = " + currentPrivilegeLevel);
-                        if (targetSegment.getDPL() < currentPrivilegeLevel) {
-                            //INTER-PRIVILEGE-LEVEL
-                            int newStackSelector = 0;
-                            int newESP = 0;
-                            if ((tss.getType() & 0x8) != 0) {
-                                int tssStackAddress = (targetSegment.getDPL() * 8) + 4;
-                                if ((tssStackAddress + 7) > tss.getLimit())
-                                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector(), true);
+                        int tssStackAddress = (targetSegment.getDPL() * 8) + 4;
+                        if ((tssStackAddress + 7) > tss.getLimit())
+                            throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector() & 0xfffc, true);
 
-                                isSup = linearMemory.isSupervisor();
-                                try
-                                {
-                                    linearMemory.setSupervisor(true);
-                                    newStackSelector = 0xffff & tss.getWord(tssStackAddress + 4);
-                                    newESP = tss.getDoubleWord(tssStackAddress);
-                                }
-                                finally
-                                {
-                                    linearMemory.setSupervisor(isSup);
-                                }
-                            } else {
-                                int tssStackAddress = (targetSegment.getDPL() * 4) + 2;
-                                if ((tssStackAddress + 4) > tss.getLimit())
-                                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector(), true);
-                                newStackSelector = 0xffff & tss.getWord(tssStackAddress + 2);
-                                newESP = 0xffff & tss.getWord(tssStackAddress);
-                            }
-
-                            Segment newStackSegment;
-                            try {
-                                newStackSegment = getSegment(newStackSelector);
-                            } catch (ProcessorException e) {
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-                            }
-
-                            if (newStackSegment.getRPL() != targetSegment.getDPL())
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-
-                            if ((newStackSegment.getDPL() !=  targetSegment.getDPL()) || ((newStackSegment.getType() & 0x1a) != 0x12))
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-
-                            if (!(newStackSegment.isPresent()))
-                                throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, newStackSelector, true);
-
-                            if (hasErrorCode) {
-                                if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 12))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            } else {
-                                if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 10) && (r_esp.get32() > 0)) ||
-                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 10))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            }
-
-                            int targetOffset = interruptGate.getTargetOffset();
-                            targetSegment.checkAddress(targetOffset);
-
-                            int oldSS = ss.getSelector();
-                            int oldESP = r_esp.get32();
-                            int oldCS = cs.getSelector();
-                            int oldEIP = eip;
-                            ss(newStackSegment);
-                            r_esp.set32(newESP);
-                            ss.setRPL(targetSegment.getDPL());
-
-                            cs(targetSegment);
-                            eip = targetOffset;
-                            setCPL(cs.getDPL());
-                            //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
-                            if (ss.getDefaultSizeFlag()) {
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)oldSS);
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)oldESP);
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)getEFlags());
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)oldCS);
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)oldEIP);
-                                if (hasErrorCode) {
-                                    r_esp.set32(r_esp.get32()-2);
-                                    ss.setWord(r_esp.get32(), (short)errorCode);
-                                }
-                            } else {
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)oldSS);
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)oldESP);
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)getEFlags());
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)oldCS);
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)oldEIP);
-                                if (hasErrorCode) {
-                                    r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                    ss.setWord(r_esp.get16() & 0xffff, (short)errorCode);
-                                }
-                            }
-
-
-                            eflagsInterruptEnable = false;
-
-                            eflagsTrap = false;
-                            eflagsNestedTask = false;
-                            eflagsVirtual8086Mode = false;
-                            eflagsResume = false;
-                        } else if (targetSegment.getDPL() == currentPrivilegeLevel) {
-                            //INTRA-PRIVILEGE-LEVEL-INTERRUPT
-                            //check there is room on stack
-                            if (hasErrorCode) {
-                                if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 8) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 8 ))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            } else {
-                                if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 6) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            }
-
-                            int targetOffset = interruptGate.getTargetOffset();
-                            targetSegment.checkAddress(targetOffset);
-
-                            //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
-                            if (ss.getDefaultSizeFlag()) {
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)getEFlags());
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)cs.getSelector());
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)eip);
-                                if (hasErrorCode) {
-                                    r_esp.set32(r_esp.get32()-2);
-                                    ss.setWord(r_esp.get32(), (short)errorCode);
-                                }
-                            } else {
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)getEFlags());
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)cs.getSelector());
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)eip);
-                                if (hasErrorCode) {
-                                    r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                    ss.setWord(r_esp.get16() & 0xffff, (short)errorCode);
-                                }
-                            }
-
-                            cs(targetSegment);
-                            eip = targetOffset;
-
-                            cs.setRPL(currentPrivilegeLevel);
-                            eflagsInterruptEnable = false;
-
-                            eflagsTrap = false;
-                            eflagsNestedTask = false;
-                            eflagsVirtual8086Mode = false;
-                            eflagsResume = false;
-                        } else {
-                            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
+                        isSup = linearMemory.isSupervisor();
+                        try
+                        {
+                            linearMemory.setSupervisor(true);
+                            newStackSelector = 0xffff & tss.getWord(tssStackAddress + 4);
+                            newESP = tss.getDoubleWord(tssStackAddress);
+                        }
+                        finally
+                        {
+                            linearMemory.setSupervisor(isSup);
                         }
                     }
-                    break;
-                case 0x1c: //Code: Execute-Only, Conforming
-                case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                case 0x1e: //Code: Execute/Read, Conforming
-                case 0x1f: //Code: Execute/Read, Conforming, Accessed
+                    else if ((tss.getType() == 0x1) || (tss.getType() == 0x3)) // 16-bit TSS
                     {
-                        if (!targetSegment.isPresent())
-                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
+                        int tssStackAddress = (targetSegment.getDPL() * 4) + 2;
+                        if ((tssStackAddress + 3) > tss.getLimit())
+                            throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector() & 0xfffc, true);
 
-                        //SAME-PRIVILEGE
-                        //check there is room on stack
-                        if (hasErrorCode) {
-                            if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 8) && (r_esp.get32() > 0)) ||
-                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 8))
-                                throw ProcessorException.STACK_SEGMENT_0;
-                        } else {
-                            if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 6) && (r_esp.get32() > 0)) ||
-                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
-                                throw ProcessorException.STACK_SEGMENT_0;
+                        isSup = linearMemory.isSupervisor();
+                        try
+                        {
+                            linearMemory.setSupervisor(true);
+                            newStackSelector = 0xffff & tss.getWord(tssStackAddress + 2);
+                            newESP = tss.getWord(tssStackAddress);
                         }
-
-                        int targetOffset = interruptGate.getTargetOffset();
-
-                        targetSegment.checkAddress(targetOffset);
-                        //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
-                        if (ss.getDefaultSizeFlag()) {
-                            r_esp.set32(r_esp.get32()-2);
-                            ss.setWord(r_esp.get32(), (short)getEFlags());
-                            r_esp.set32(r_esp.get32()-2);
-                            ss.setWord(r_esp.get32(), (short)cs.getSelector());
-                            r_esp.set32(r_esp.get32()-2);
-                            ss.setWord(r_esp.get32(), (short)eip);
-                            if (hasErrorCode) {
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)errorCode);
-                            }
-                        } else {
-                            r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                            ss.setWord(r_esp.get16() & 0xffff, (short)getEFlags());
-                            r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                            ss.setWord(r_esp.get16() & 0xffff, (short)cs.getSelector());
-                            r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                            ss.setWord(r_esp.get16() & 0xffff, (short)eip);
-                            if (hasErrorCode) {
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)errorCode);
-                            }
+                        finally
+                        {
+                            linearMemory.setSupervisor(isSup);
                         }
-
-                        cs(targetSegment);
-                        eip = targetOffset;
-
-                        cs.setRPL(currentPrivilegeLevel);
-
-                        eflagsInterruptEnable = false;
-                        eflagsTrap = false;
-                        eflagsNestedTask = false;
-                        eflagsVirtual8086Mode = false;
-                        eflagsResume = false;
                     }
-                    break;
+                    else
+                        throw new IllegalStateException("Illegal TSS type");
+
+                    if ((newStackSelector & 0xfffc) == 0)
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, EXT, true);
+
+                    ProtectedModeSegment newStackSegment;
+                    try {
+                        newStackSegment = (ProtectedModeSegment) getSegment(newStackSelector);
+                    } catch (ProcessorException e) {
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector & 0xfffc, true);
+                    }
+
+                    if (newStackSegment.getRPL() != targetSegment.getDPL())
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector & 0xfffc + EXT, true);
+
+                    if (newStackSegment.isCode() || !newStackSegment.isDataWritable())
+                        throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector & 0xfffc + EXT, true);
+
+                    if (!newStackSegment.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, newStackSelector & 0xfffc + EXT, true);
+
+                    int targetOffset = theGate.getTargetOffset();
+                    targetSegment.checkAddress(targetOffset);
+
+                    int oldSS = ss.getSelector();
+                    int oldESP = r_esp.get32();
+                    int oldCS = cs.getSelector();
+                    int oldEIP = eip;
+
+                    isSup = linearMemory.isSupervisor();
+                    try
+                    {
+                        if (newStackSegment.getDefaultSizeFlag())
+                        {
+                            int tmpESP = newESP;
+                            if (theGate.getType() >= 0xe) // 32-bit int/trap gate
+                            {
+                                newStackSegment.setDoubleWord(tmpESP-4, oldSS);
+                                newStackSegment.setDoubleWord(tmpESP-8, oldESP);
+                                newStackSegment.setDoubleWord(tmpESP-12, getEFlags());
+                                newStackSegment.setDoubleWord(tmpESP-16, oldCS);
+                                newStackSegment.setDoubleWord(tmpESP-20, oldEIP);
+                                tmpESP -= 20;
+                                if (hasErrorCode)
+                                {
+                                    tmpESP -= 4;
+                                    newStackSegment.setDoubleWord(tmpESP, errorCode);
+                                }
+                            }
+                            else // 16-bit int/trap gate
+                            {
+                                newStackSegment.setWord(tmpESP-2, (short)oldSS);
+                                newStackSegment.setWord(tmpESP-4, (short)oldESP);
+                                newStackSegment.setWord(tmpESP-6, (short)getEFlags());
+                                newStackSegment.setWord(tmpESP-8, (short)oldCS);
+                                newStackSegment.setWord(tmpESP-10, (short)oldEIP);
+                                tmpESP -= 10;
+                                if (hasErrorCode)
+                                {
+                                    tmpESP -= 2;
+                                    newStackSegment.setWord(tmpESP, (short)errorCode);
+                                }
+                            }
+                            r_esp.set32(tmpESP);
+                        }
+                        else
+                        {
+                            int tmpSP = 0xffff & newESP;
+                            if (theGate.getType() >= 0xe) // 32-bit int/trap gate
+                            {
+                                newStackSegment.setDoubleWord(0xffff & (tmpSP-4), oldSS);
+                                newStackSegment.setDoubleWord(0xffff & (tmpSP-8), oldESP);
+                                newStackSegment.setDoubleWord(0xffff & (tmpSP-12), getEFlags());
+                                newStackSegment.setDoubleWord(0xffff & (tmpSP-16), oldCS);
+                                newStackSegment.setDoubleWord(0xffff & (tmpSP-20), oldEIP);
+                                tmpSP -= 20;
+                                if (hasErrorCode)
+                                {
+                                    tmpSP -= 4;
+                                    newStackSegment.setDoubleWord(0xffff & tmpSP, errorCode);
+                                }
+                            }
+                            else // 16-bit int/trap gate
+                            {
+                                newStackSegment.setWord(0xffff & (tmpSP-2), (short)oldSS);
+                                newStackSegment.setWord(0xffff & (tmpSP-4), (short)oldESP);
+                                newStackSegment.setWord(0xffff & (tmpSP-6), (short)getEFlags());
+                                newStackSegment.setWord(0xffff & (tmpSP-8), (short)oldCS);
+                                newStackSegment.setWord(0xffff & (tmpSP-10), (short)oldEIP);
+                                tmpSP -= 10;
+                                if (hasErrorCode)
+                                {
+                                    tmpSP -= 2;
+                                    newStackSegment.setWord(0xffff & tmpSP, (short)errorCode);
+                                }
+                            }
+                            r_esp.set16(tmpSP);
+                        }
+                    }
+                    finally
+                    {
+                        linearMemory.setSupervisor(isSup);
+                    }
+                    cs(targetSegment);
+                    cs.setRPL(currentPrivilegeLevel);
+                    ss(newStackSegment);
+                    ss.setRPL(targetSegment.getDPL());
                 }
+                else
+                {
+                    // interrupt to same privilege level
+                    int targetOffset = theGate.getTargetOffset();
+                    targetSegment.checkAddress(targetOffset);
+                    if (theGate.getType() >= 0xe) // 32-bit gate
+                    {
+                        push32(getEFlags());
+                        push32(cs.getSelector());
+                        push32(eip);
+                        if (hasErrorCode)
+                            push32(errorCode);
+                    }
+                    else // 16-bit gate
+                    {
+                        push16((short)getEFlags());
+                        push16((short)cs.getSelector());
+                        push16((short)eip);
+                        if (hasErrorCode)
+                            push16((short)errorCode);
+                    }
+                    cs(targetSegment);
+                    cs.setRPL(currentPrivilegeLevel);
+                }
+
+                eip = theGate.getTargetOffset();
+                setCPL(cs.getDPL());
+
+                if ((theGate.getType() & 1) == 0) // int gate
+                    setIF(false);
+                eflagsTrap = false;
+                eflagsNestedTask = false;
+                eflagsVirtual8086Mode = false;
+                rf(false);
             }
-            break;
-        case 0x07: //Interrupt Handler: 16-bit Trap Gate
-            {
-                ProtectedModeSegment.TrapGate16Bit trapGate = ((ProtectedModeSegment.TrapGate16Bit)gate);
-
-                int targetSegmentSelector = trapGate.getTargetSegment();
-
-                Segment targetSegment;
-                try {
-                    targetSegment = getSegment(targetSegmentSelector);
-                } catch (ProcessorException e) {
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-                }
-
-                if (targetSegment.getDPL() > currentPrivilegeLevel)
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-                //		System.out.println("Target segment type = " + Integer.toHexString(targetSegment.getType()));
-                switch(targetSegment.getType()) {
-                default:
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-
-                case 0x18: //Code, Execute-Only
-                case 0x19: //Code, Execute-Only, Accessed
-                case 0x1a: //Code, Execute/Read
-                case 0x1b: //Code, Execute/Read, Accessed
-                    {
-                        if (!targetSegment.isPresent())
-                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector + EXT, true);
-                        //System.out.println("Target DPL = " + targetSegment.getDPL() + ", CPL = " + currentPrivilegeLevel);
-                        if (targetSegment.getDPL() < currentPrivilegeLevel) {
-                            //INTER-PRIVILEGE-LEVEL
-                            int newStackSelector = 0;
-                            int newESP = 0;
-                            if ((tss.getType() & 0x8) != 0) {
-                                int tssStackAddress = (targetSegment.getDPL() * 8) + 4;
-                                if ((tssStackAddress + 7) > tss.getLimit())
-                                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector(), true);
-
-                                isSup = linearMemory.isSupervisor();
-                                try
-                                {
-                                    linearMemory.setSupervisor(true);
-                                    newStackSelector = 0xffff & tss.getWord(tssStackAddress + 4);
-                                    newESP = tss.getDoubleWord(tssStackAddress);
-                                }
-                                finally
-                                {
-                                    linearMemory.setSupervisor(isSup);
-                                }
-                            } else {
-                                int tssStackAddress = (targetSegment.getDPL() * 4) + 2;
-                                if ((tssStackAddress + 4) > tss.getLimit())
-                                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector(), true);
-                                newStackSelector = 0xffff & tss.getWord(tssStackAddress + 2);
-                                newESP = 0xffff & tss.getWord(tssStackAddress);
-                            }
-
-                            Segment newStackSegment;
-                            try {
-                                newStackSegment = getSegment(newStackSelector);
-                            } catch (ProcessorException e) {
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-                            }
-
-                            if (newStackSegment.getRPL() != targetSegment.getDPL())
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-
-                            if ((newStackSegment.getDPL() !=  targetSegment.getDPL()) || ((newStackSegment.getType() & 0x1a) != 0x12))
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-
-                            if (!(newStackSegment.isPresent()))
-                                throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, newStackSelector, true);
-
-                            if (hasErrorCode) {
-                                if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 12))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            } else {
-                                if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 10) && (r_esp.get32() > 0)) ||
-                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 10))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            }
-
-                            int targetOffset = trapGate.getTargetOffset();
-                            targetSegment.checkAddress(targetOffset);
-
-                            int oldSS = ss.getSelector();
-                            int oldESP = r_esp.get32();
-                            int oldCS = cs.getSelector();
-                            int oldEIP = eip;
-                            ss(newStackSegment);
-                            r_esp.set32(newESP);
-                            ss.setRPL(targetSegment.getDPL());
-
-                            cs(targetSegment);
-                            eip = targetOffset;
-                            setCPL(cs.getDPL());
-                            //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
-                            if (ss.getDefaultSizeFlag()) {
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)oldSS);
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)oldESP);
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)getEFlags());
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)oldCS);
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)oldEIP);
-                                if (hasErrorCode) {
-                                    r_esp.set32(r_esp.get32()-2);
-                                    ss.setWord(r_esp.get32(), (short)errorCode);
-                                }
-                            } else {
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)oldSS);
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)oldESP);
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)getEFlags());
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)oldCS);
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)oldEIP);
-                                if (hasErrorCode) {
-                                    r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                    ss.setWord(r_esp.get16() & 0xffff, (short)errorCode);
-                                }
-                            }
-
-
-                            eflagsTrap = false;
-                            eflagsNestedTask = false;
-                            eflagsVirtual8086Mode = false;
-                            eflagsResume = false;
-                        } else if (targetSegment.getDPL() == currentPrivilegeLevel) {
-                            //INTRA-PRIVILEGE-LEVEL-INTERRUPT
-                            //check there is room on stack
-                            if (hasErrorCode) {
-                                if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 8) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 8))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            } else {
-                                if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 6) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            }
-
-                            int targetOffset = trapGate.getTargetOffset();
-                            targetSegment.checkAddress(targetOffset);
-
-                            //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
-                            if (ss.getDefaultSizeFlag()) {
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)getEFlags());
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)cs.getSelector());
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)eip);
-                                if (hasErrorCode) {
-                                    r_esp.set32(r_esp.get32()-2);
-                                    ss.setWord(r_esp.get32(), (short)errorCode);
-                                }
-                            } else {
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)getEFlags());
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)cs.getSelector());
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)eip);
-                                if (hasErrorCode) {
-                                    r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                    ss.setWord(r_esp.get16() & 0xffff, (short)errorCode);
-                                }
-                            }
-
-                            cs(targetSegment);
-                            eip = targetOffset;
-
-                            cs.setRPL(currentPrivilegeLevel);
-
-                            eflagsTrap = false;
-                            eflagsNestedTask = false;
-                            eflagsVirtual8086Mode = false;
-                            eflagsResume = false;
-                        } else {
-                            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-                        }
-                    }
-                    break;
-                case 0x1c: //Code: Execute-Only, Conforming
-                case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                case 0x1e: //Code: Execute/Read, Conforming
-                case 0x1f: //Code: Execute/Read, Conforming, Accessed
-                    {
-                        if (!targetSegment.isPresent())
-                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
-
-                        //SAME-PRIVILEGE
-                        //check there is room on stack
-                        if (hasErrorCode) {
-                            if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 8) && (r_esp.get32() > 0)) ||
-                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 8))
-                                throw ProcessorException.STACK_SEGMENT_0;
-                        } else {
-                            if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 6) && (r_esp.get32() > 0)) ||
-                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 6))
-                                throw ProcessorException.STACK_SEGMENT_0;
-                        }
-
-                        int targetOffset = trapGate.getTargetOffset();
-
-                        targetSegment.checkAddress(targetOffset);
-                        //System.out.println("SS default size flag = " + ss.getDefaultSizeFlag());
-                        if (ss.getDefaultSizeFlag()) {
-                            r_esp.set32(r_esp.get32()-2);
-                            ss.setWord(r_esp.get32(), (short)getEFlags());
-                            r_esp.set32(r_esp.get32()-2);
-                            ss.setWord(r_esp.get32(), (short)cs.getSelector());
-                            r_esp.set32(r_esp.get32()-2);
-                            ss.setWord(r_esp.get32(), (short)eip);
-                            if (hasErrorCode) {
-                                r_esp.set32(r_esp.get32()-2);
-                                ss.setWord(r_esp.get32(), (short)errorCode);
-                            }
-                        } else {
-                            r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                            ss.setWord(r_esp.get16() & 0xffff, (short)getEFlags());
-                            r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                            ss.setWord(r_esp.get16() & 0xffff, (short)cs.getSelector());
-                            r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                            ss.setWord(r_esp.get16() & 0xffff, (short)eip);
-                            if (hasErrorCode) {
-                                r_esp.set16((r_esp.get16() - 2) & 0xffff);
-                                ss.setWord(r_esp.get16() & 0xffff, (short)errorCode);
-                            }
-                        }
-
-                        cs(targetSegment);
-                        eip = targetOffset;
-
-                        cs.setRPL(currentPrivilegeLevel);
-
-                        eflagsTrap = false;
-                        eflagsNestedTask = false;
-                        eflagsVirtual8086Mode = false;
-                        eflagsResume = false;
-                    }
-                    break;
-                }
-            }
-            break;
-        case 0x0e: //Interrupt Handler: 32-bit Interrupt Gate
-            {
-                ProtectedModeSegment.InterruptGate32Bit interruptGate = ((ProtectedModeSegment.InterruptGate32Bit)gate);
-
-                int targetSegmentSelector = interruptGate.getTargetSegment();
-
-                Segment targetSegment;
-                try {
-                    targetSegment = getSegment(targetSegmentSelector);
-                } catch (ProcessorException e) {
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-                }
-
-                if (targetSegment.getDPL() > currentPrivilegeLevel)
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-
-                switch(targetSegment.getType()) {
-                default:
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-
-                case 0x18: //Code, Execute-Only
-                case 0x19: //Code, Execute-Only, Accessed
-                case 0x1a: //Code, Execute/Read
-                case 0x1b: //Code, Execute/Read, Accessed
-                    {
-                        if (!targetSegment.isPresent())
-                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector + EXT, true);
-
-                        if (targetSegment.getDPL() < currentPrivilegeLevel) {
-                            //INTER-PRIVILEGE-LEVEL
-                            int newStackSelector = 0;
-                            int newESP = 0;
-                            if ((tss.getType() & 0x8) != 0) {
-                                int tssStackAddress = (targetSegment.getDPL() * 8) + 4;
-                                if ((tssStackAddress + 7) > tss.getLimit())
-                                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector(), true);
-
-                                isSup = linearMemory.isSupervisor();
-                                try
-                                {
-                                    linearMemory.setSupervisor(true);
-                                    newStackSelector = 0xffff & tss.getWord(tssStackAddress + 4);
-                                    newESP = tss.getDoubleWord(tssStackAddress);
-                                }
-                                finally
-                                {
-                                    linearMemory.setSupervisor(isSup);
-                                }
-                            } else {
-                                int tssStackAddress = (targetSegment.getDPL() * 4) + 2;
-                                if ((tssStackAddress + 4) > tss.getLimit())
-                                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector(), true);
-                                newStackSelector = 0xffff & tss.getWord(tssStackAddress + 2);
-                                newESP = 0xffff & tss.getWord(tssStackAddress);
-                            }
-
-                            Segment newStackSegment;
-                            try {
-                                newStackSegment = getSegment(newStackSelector);
-                            } catch (ProcessorException e) {
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-                            }
-
-                            if (newStackSegment.getRPL() != targetSegment.getDPL())
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-
-                            if ((newStackSegment.getDPL() !=  targetSegment.getDPL()) || ((newStackSegment.getType() & 0x1a) != 0x12))
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-
-                            if (!(newStackSegment.isPresent()))
-                                throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, newStackSelector, true);
-
-                            if (hasErrorCode) {
-                                if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 24) && (r_esp.get32() > 0)) ||
-                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 24))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            } else {
-                                if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 20) && (r_esp.get32() > 0)) ||
-                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 20))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            }
-
-                            int targetOffset = interruptGate.getTargetOffset();
-                            targetSegment.checkAddress(targetOffset);
-
-                            int oldSS = ss.getSelector();
-                            int oldESP = r_esp.get32();
-                            int oldCS = cs.getSelector();
-                            int oldEIP = eip;
-                            ss(newStackSegment);
-                            r_esp.set32(newESP);
-                            ss.setRPL(targetSegment.getDPL());
-
-                            cs(targetSegment);
-                            eip = targetOffset;
-                            setCPL(cs.getDPL());
-
-                            if (ss.getDefaultSizeFlag()) {
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), oldSS);
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), oldESP);
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), getEFlags());
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), oldCS);
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), oldEIP);
-                                if (hasErrorCode) {
-                                    r_esp.set32(r_esp.get32() - 4);
-                                    ss.setDoubleWord(r_esp.get32(), errorCode);
-                                }
-                            } else {
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, oldSS);
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, oldESP);
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, getEFlags());
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, oldCS);
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, oldEIP);
-                                if (hasErrorCode) {
-                                    r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                    ss.setDoubleWord(r_esp.get16() & 0xffff, errorCode);
-                                }
-                            }
-
-
-                            eflagsInterruptEnable = false;
-
-                            eflagsTrap = false;
-                            eflagsNestedTask = false;
-                            eflagsVirtual8086Mode = false;
-                            eflagsResume = false;
-                        } else if (targetSegment.getDPL() == currentPrivilegeLevel) {
-                            //SAME-PRIVILEGE
-                            //check there is room on stack
-                            if (hasErrorCode) {
-                                if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 16) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            } else {
-                                if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
-                                    throw ProcessorException.STACK_SEGMENT_0;
-                            }
-
-                            int targetOffset = interruptGate.getTargetOffset();
-                            targetSegment.checkAddress(targetOffset);
-
-
-                            if (ss.getDefaultSizeFlag()) {
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), getEFlags());
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), cs.getSelector());
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), eip);
-                                if (hasErrorCode) {
-                                    r_esp.set32(r_esp.get32() - 4);
-                                    ss.setDoubleWord(r_esp.get32(), errorCode);
-                                }
-                            } else {
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, getEFlags());
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, cs.getSelector());
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, eip);
-                                if (hasErrorCode) {
-                                    r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                    ss.setDoubleWord(r_esp.get16() & 0xffff, errorCode);
-                                }
-                            }
-
-                            cs(targetSegment);
-                            eip = targetOffset;
-
-                            cs.setRPL(currentPrivilegeLevel);
-                            eflagsInterruptEnable = false;
-
-                            eflagsTrap = false;
-                            eflagsNestedTask = false;
-                            eflagsVirtual8086Mode = false;
-                            eflagsResume = false;
-                        } else {
-                            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-                        }
-                    }
-                    break;
-                case 0x1c: //Code: Execute-Only, Conforming
-                case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                case 0x1e: //Code: Execute/Read, Conforming
-                case 0x1f: //Code: Execute/Read, Conforming, Accessed
-                    {
-                        if (!targetSegment.isPresent())
-                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
-
-                        //SAME-PRIVILEGE
-                        //check there is room on stack
-                        if (hasErrorCode) {
-                            if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 16) && (r_esp.get32() > 0)) ||
-                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
-                            {System.out.println("******** Warning: possible mask missing 1");throw ProcessorException.STACK_SEGMENT_0;}
-                        } else {
-                            if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
-                            {System.out.println("******** Warning: possible mask missing 2");throw ProcessorException.STACK_SEGMENT_0;}
-                        }
-
-                        int targetOffset = interruptGate.getTargetOffset();
-
-                        targetSegment.checkAddress(targetOffset);
-
-                        if (ss.getDefaultSizeFlag()) {
-                            r_esp.set32(r_esp.get32() - 4);
-                            ss.setDoubleWord(r_esp.get32(), getEFlags());
-                            r_esp.set32(r_esp.get32() - 4);
-                            ss.setDoubleWord(r_esp.get32(), cs.getSelector());
-                            r_esp.set32(r_esp.get32() - 4);
-                            ss.setDoubleWord(r_esp.get32(), eip);
-                            if (hasErrorCode) {
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), errorCode);
-                            }
-                        } else {
-                            r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                            ss.setDoubleWord(r_esp.get16() & 0xffff, getEFlags());
-                            r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                            ss.setDoubleWord(r_esp.get16() & 0xffff, cs.getSelector());
-                            r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                            ss.setDoubleWord(r_esp.get16() & 0xffff, eip);
-                            if (hasErrorCode) {
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, errorCode);
-                            }
-                        }
-
-                        cs(targetSegment);
-                        eip = targetOffset;
-
-                        cs.setRPL(currentPrivilegeLevel);
-
-                        eflagsInterruptEnable = false;
-                        eflagsTrap = false;
-                        eflagsNestedTask = false;
-                        eflagsVirtual8086Mode = false;
-                        eflagsResume = false;
-                    }
-                    break;
-                }
-            }
-            break;
-        case 0x0f: //Interrupt Handler: 32-bit Trap Gate
-            {
-                ProtectedModeSegment.TrapGate32Bit trapGate = ((ProtectedModeSegment.TrapGate32Bit)gate);
-
-                int targetSegmentSelector = trapGate.getTargetSegment();
-
-                Segment targetSegment;
-                try {
-                    targetSegment = getSegment(targetSegmentSelector);
-                } catch (ProcessorException e) {
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-                }
-
-                if (targetSegment.getDPL() > currentPrivilegeLevel)
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-
-                switch(targetSegment.getType()) {
-                default:
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-
-                case 0x18: //Code, Execute-Only
-                case 0x19: //Code, Execute-Only, Accessed
-                case 0x1a: //Code, Execute/Read
-                case 0x1b: //Code, Execute/Read, Accessed
-                    {
-                        if (!targetSegment.isPresent())
-                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, targetSegmentSelector + EXT, true);
-
-                        if (targetSegment.getDPL() < currentPrivilegeLevel) {
-                            //INTER-PRIVILEGE-LEVEL
-                            int newStackSelector = 0;
-                            int newESP = 0;
-                            if ((tss.getType() & 0x8) != 0) {
-                                int tssStackAddress = (targetSegment.getDPL() * 8) + 4;
-                                if ((tssStackAddress + 7) > tss.getLimit())
-                                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector(), true);
-
-                                isSup = linearMemory.isSupervisor();
-                                try
-                                {
-                                    linearMemory.setSupervisor(true);
-                                    newStackSelector = 0xffff & tss.getWord(tssStackAddress + 4);
-                                    newESP = tss.getDoubleWord(tssStackAddress);
-                                }
-                                finally
-                                {
-                                    linearMemory.setSupervisor(isSup);
-                                }
-                            } else {
-                                int tssStackAddress = (targetSegment.getDPL() * 4) + 2;
-                                if ((tssStackAddress + 4) > tss.getLimit())
-                                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tss.getSelector(), true);
-                                newStackSelector = 0xffff & tss.getWord(tssStackAddress + 2);
-                                newESP = 0xffff & tss.getWord(tssStackAddress);
-                            }
-
-                            Segment newStackSegment;
-                            try {
-                                newStackSegment = getSegment(newStackSelector);
-                            } catch (ProcessorException e) {
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-                            }
-
-                            if (newStackSegment.getRPL() != targetSegment.getDPL())
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-
-                            if ((newStackSegment.getDPL() !=  targetSegment.getDPL()) || ((newStackSegment.getType() & 0x1a) != 0x12))
-                                throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
-
-                            if (!(newStackSegment.isPresent()))
-                                throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, newStackSelector, true);
-
-                            if (hasErrorCode) {
-                                if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 24) && (r_esp.get32() > 0)) ||
-                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 24))
-                                {System.out.println("******** Warning: possible mask missing 3");throw ProcessorException.STACK_SEGMENT_0;}
-                            } else {
-                                if ((newStackSegment.getDefaultSizeFlag() && (r_esp.get32() < 20) && (r_esp.get32() > 0)) ||
-                                    !newStackSegment.getDefaultSizeFlag() && (r_esp.get16() < 20))
-                                {System.out.println("******** Warning: possible mask missing 4");throw ProcessorException.STACK_SEGMENT_0;}
-                            }
-
-                            int targetOffset = trapGate.getTargetOffset();
-                            targetSegment.checkAddress(targetOffset);
-
-                            int oldSS = ss.getSelector();
-                            int oldESP = r_esp.get32();
-                            int oldCS = cs.getSelector();
-                            int oldEIP = eip;
-
-                            ss(newStackSegment);
-                            r_esp.set32(newESP);
-                            ss.setRPL(targetSegment.getDPL());
-
-                            cs(targetSegment);
-                            eip = targetOffset;
-                            setCPL(cs.getDPL());
-
-                            if (ss.getDefaultSizeFlag()) {
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), oldSS);
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), oldESP);
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), getEFlags());
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), oldCS);
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), oldEIP);
-                                if (hasErrorCode) {
-                                    r_esp.set32(r_esp.get32() - 4);
-                                    ss.setDoubleWord(r_esp.get32(), errorCode);
-                                }
-                            } else {
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, oldSS);
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, oldESP);
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, getEFlags());
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, oldCS);
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, oldEIP);
-                                if (hasErrorCode) {
-                                    r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                    ss.setDoubleWord(r_esp.get16() & 0xffff, errorCode);
-                                }
-                            }
-
-                            eflagsTrap = false;
-                            eflagsNestedTask = false;
-                            eflagsVirtual8086Mode = false;
-                            eflagsResume = false;
-                        } else if (targetSegment.getDPL() == currentPrivilegeLevel) {
-                            //SAME-PRIVILEGE
-                            //check there is room on stack
-                            if (hasErrorCode) {
-                                if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 16) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
-                                {System.out.println("******** Warning: possible mask missing 5");throw ProcessorException.STACK_SEGMENT_0;}
-                            } else {
-                                if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                    !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
-                                {System.out.println("******** Warning: possible mask missing 6");throw ProcessorException.STACK_SEGMENT_0;}
-                            }
-
-                            int targetOffset = trapGate.getTargetOffset();
-
-                            targetSegment.checkAddress(targetOffset);
-
-                            if (ss.getDefaultSizeFlag()) {
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), getEFlags());
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), cs.getSelector());
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), eip);
-                                if (hasErrorCode) {
-                                    r_esp.set32(r_esp.get32() - 4);
-                                    ss.setDoubleWord(r_esp.get32(), errorCode);
-                                }
-                            } else {
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, getEFlags());
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, cs.getSelector());
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, eip);
-                                if (hasErrorCode) {
-                                    r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                    ss.setDoubleWord(r_esp.get16() & 0xffff, errorCode);
-                                }
-                            }
-
-                            cs(targetSegment);
-                            eip = targetOffset;
-
-                            cs.setRPL(currentPrivilegeLevel);
-
-                            eflagsTrap = false;
-                            eflagsNestedTask = false;
-                            eflagsVirtual8086Mode = false;
-                            eflagsResume = false;
-                        } else {
-                            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector + EXT, true);
-                        }
-                    }
-                    break;
-                case 0x1c: //Code: Execute-Only, Conforming
-                case 0x1d: //Code: Execute-Only, Conforming, Accessed
-                case 0x1e: //Code: Execute/Read, Conforming
-                case 0x1f: //Code: Execute/Read, Conforming, Accessed
-                    {
-                        if (!targetSegment.isPresent())
-                            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
-
-                        //SAME-PRIVILEGE
-                        //check there is room on stack
-                        if (hasErrorCode) {
-                            if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 16) && (r_esp.get32() > 0)) ||
-                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 16))
-                            {System.out.println("******** Warning: possible mask missing 7");throw ProcessorException.STACK_SEGMENT_0;}
-                        } else {
-                            if ((ss.getDefaultSizeFlag() && (r_esp.get32() < 12) && (r_esp.get32() > 0)) ||
-                                !ss.getDefaultSizeFlag() && (r_esp.get16() < 12))
-                            {System.out.println("******** Warning: possible mask missing 8");throw ProcessorException.STACK_SEGMENT_0;}
-                        }
-
-                        int targetOffset = trapGate.getTargetOffset();
-
-                        targetSegment.checkAddress(targetOffset);
-
-                        if (ss.getDefaultSizeFlag()) {
-                            r_esp.set32(r_esp.get32() - 4);
-                            ss.setDoubleWord(r_esp.get32(), getEFlags());
-                            r_esp.set32(r_esp.get32() - 4);
-                            ss.setDoubleWord(r_esp.get32(), cs.getSelector());
-                            r_esp.set32(r_esp.get32() - 4);
-                            ss.setDoubleWord(r_esp.get32(), eip);
-                            if (hasErrorCode) {
-                                r_esp.set32(r_esp.get32() - 4);
-                                ss.setDoubleWord(r_esp.get32(), errorCode);
-                            }
-                        } else {
-                            r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                            ss.setDoubleWord(r_esp.get16() & 0xffff, getEFlags());
-                            r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                            ss.setDoubleWord(r_esp.get16() & 0xffff, cs.getSelector());
-                            r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                            ss.setDoubleWord(r_esp.get16() & 0xffff, eip);
-                            if (hasErrorCode) {
-                                r_esp.set16((r_esp.get16() - 4) & 0xffff);
-                                ss.setDoubleWord(r_esp.get16() & 0xffff, errorCode);
-                            }
-                        }
-
-                        cs(targetSegment);
-                        eip = targetOffset;
-                        cs.setRPL(currentPrivilegeLevel);
-
-                        eflagsTrap = false;
-                        eflagsNestedTask = false;
-                        eflagsVirtual8086Mode = false;
-                        eflagsResume = false;
-                    }
-                    break;
-                }
-            }
-            break;
         }
     }
 
