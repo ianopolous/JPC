@@ -40,6 +40,7 @@ import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.memory.*;
 import org.jpc.emulator.processor.Processor;
 import org.jpc.emulator.*;
+import org.jpc.j2se.*;
 
 /**
  * 
@@ -48,7 +49,7 @@ import org.jpc.emulator.*;
 public class Keyboard extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(Keyboard.class.getName());
-    private static final boolean LOG_ACCESS = false;
+    private static final boolean LOG_ACCESS = true;
     
     /* Keyboard Controller Commands */
     private static final byte KBD_CCMD_READ_MODE = (byte)0x20; /* Read mode bits */
@@ -133,7 +134,7 @@ public class Keyboard extends AbstractHardwareComponent implements IODevice
     private static final int KBD_QUEUE_SIZE = 256;
 
     //Instance Variables
-    private KeyboardQueue queue;
+    private final KeyboardQueue queue;
 
     private byte commandWrite;
     private byte status;
@@ -228,8 +229,8 @@ public class Keyboard extends AbstractHardwareComponent implements IODevice
                     System.out.printf("Keyboard read address=%02x, result=%02x status=%02x\n", address, res, status);
                 return res;
             case 0x64:
-                if (LOG_ACCESS)
-                    System.out.printf("Keyboard read address=%02x, result=%02x\n", address, status);
+//                if (LOG_ACCESS)
+//                    System.out.printf("Keyboard read address=%02x, result=%02x\n", address, status);
                 return 0xff & status;
             default:
                 return 0xffffffff;
@@ -246,7 +247,6 @@ public class Keyboard extends AbstractHardwareComponent implements IODevice
 
     public void ioPortWrite8(int address, int data)
     {
-
         switch (address) {
             case 0x60:
                 writeData((byte)data);
@@ -652,7 +652,8 @@ public class Keyboard extends AbstractHardwareComponent implements IODevice
                 if (0 != queue.getAux()) {
                     status = (byte) (status | KBD_STAT_MOUSE_OBF);
                     if (0 != (mode & KBD_MODE_MOUSE_INT))
-                        irq12Level = 1;
+                        if (!Option.useBochs.isSet())
+                            irq12Level = 1;
                 } else
                 if ((0 != (mode & KBD_MODE_KBD_INT)) &&
                         (0 == (mode & KBD_MODE_DISABLE_KBD)))

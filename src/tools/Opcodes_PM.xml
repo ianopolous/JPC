@@ -2083,14 +2083,22 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="sti">
     <return>Branch.None</return>
-    <snippet>        if (cpu.getIOPrivilegeLevel() >= cpu.getCPL()) {
-                        cpu.eflagsInterruptEnable = true;
-                    } else {
-                        if ((cpu.getIOPrivilegeLevel() &lt; cpu.getCPL()) &amp;&amp; (cpu.getCPL() == 3) &amp;&amp; ((cpu.getEFlags() &amp; (1 &lt;&lt; 20)) == 0)) {
-                            cpu.eflagsVirtualInterrupt = true;
-                        } else
-                            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
-                    }</snippet>
+    <snippet>        if (Processor.cpuLevel >= 5)
+        {
+            if ((cpu.getCR4() &amp; 2) != 0) // Protected mode Virtual Interrupts enabled
+            {
+                if ((cpu.getCPL() == 3) &amp;&amp; (cpu.getIOPrivilegeLevel() &lt; 3))
+                {
+                    if (cpu.getVIP())
+                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
+                    cpu.eflagsVirtualInterrupt = true;
+                    return Branch.None;
+                }
+            }
+        }
+        if (cpu.getCPL() > cpu.getIOPrivilegeLevel())
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
+        cpu.eflagsInterruptEnable = true;</snippet>
     <args size="0"></args>
   </opcode>
 

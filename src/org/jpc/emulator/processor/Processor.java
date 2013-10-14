@@ -3355,6 +3355,11 @@ public class Processor implements HardwareComponent
         return eflagsIOPrivilegeLevel;
     }
 
+    public boolean getVIP()
+    {
+        return (getEFlags() & (1 << 20)) == 0;
+    }
+
     public int getEFlags()
     {
         int result = 0x2;

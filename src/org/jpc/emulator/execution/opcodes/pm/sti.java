@@ -43,14 +43,22 @@ public class sti extends Executable
 
     public Branch execute(Processor cpu)
     {
-        if (cpu.getIOPrivilegeLevel() >= cpu.getCPL()) {
-                        cpu.eflagsInterruptEnable = true;
-                    } else {
-                        if ((cpu.getIOPrivilegeLevel() < cpu.getCPL()) && (cpu.getCPL() == 3) && ((cpu.getEFlags() & (1 << 20)) == 0)) {
-                            cpu.eflagsVirtualInterrupt = true;
-                        } else
-                            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
-                    }
+        if (Processor.cpuLevel >= 5)
+        {
+            if ((cpu.getCR4() & 2) != 0) // Protected mode Virtual Interrupts enabled
+            {
+                if ((cpu.getCPL() == 3) && (cpu.getIOPrivilegeLevel() < 3))
+                {
+                    if (cpu.getVIP())
+                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
+                    cpu.eflagsVirtualInterrupt = true;
+                    return Branch.None;
+                }
+            }
+        }
+        if (cpu.getCPL() > cpu.getIOPrivilegeLevel())
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
+        cpu.eflagsInterruptEnable = true;
         return Branch.None;
     }
 
