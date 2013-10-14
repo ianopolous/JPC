@@ -53,6 +53,7 @@ public final class ProcessorException extends RuntimeException
     public static enum Type {
         DIVIDE_ERROR(0x00),
         DEBUG(0x01),
+        NMI(0x02),
         BREAKPOINT(0x03),
         OVERFLOW(0x04),
         BOUND_RANGE(0x05),
@@ -65,6 +66,7 @@ public final class ProcessorException extends RuntimeException
         STACK_SEGMENT(0x0c),
         GENERAL_PROTECTION(0x0d),
         PAGE_FAULT(0x0e),
+        RESERVED(0x0f),
         FLOATING_POINT(0x10),
         ALIGNMENT_CHECK(0x11),
         MACHINE_CHECK(0x12),
@@ -94,6 +96,11 @@ public final class ProcessorException extends RuntimeException
         {
             return vector;
         }
+    }
+
+    public static boolean isFault(int vector)
+    {
+        return !Type.values()[vector].isTrap();
     }
     
     private final Type type;

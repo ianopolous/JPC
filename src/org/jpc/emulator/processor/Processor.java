@@ -4049,9 +4049,6 @@ public class Processor implements HardwareComponent
         int savedEIP = eip;
         Segment savedCS = cs;
         Segment savedSS = ss;
-        // if it is a fault, then RF is set on the eflags image on stack (excpet for debug exception)
-        if (pe.isFault() && (pe.getType() != ProcessorException.Type.DEBUG))
-            rf(true);
 
         try {
             followProtectedModeException(pe.getType().vector(), pe.hasErrorCode(), pe.getErrorCode(), false, false);
@@ -4198,6 +4195,9 @@ public class Processor implements HardwareComponent
             setCR2(linearMemory.getLastWalkedAddress());
         }
 
+        // if it is a fault, then RF is set on the eflags image on stack (excpet for debug exception)
+        if (ProcessorException.isFault(vector) && (vector != ProcessorException.Type.DEBUG.vector()))
+            rf(true);
         int selector = vector << 3; //multiply by 8 to get offset into idt
         int EXT = hardware ? 1 : 0;
 
