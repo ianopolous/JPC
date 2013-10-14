@@ -4327,6 +4327,7 @@ public class Processor implements HardwareComponent
                     isSup = linearMemory.isSupervisor();
                     try
                     {
+                        linearMemory.setSupervisor(true);
                         if (newStackSegment.getDefaultSizeFlag())
                         {
                             int tmpESP = newESP;
