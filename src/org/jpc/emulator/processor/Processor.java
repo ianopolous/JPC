@@ -4215,7 +4215,8 @@ public class Processor implements HardwareComponent
             linearMemory.setSupervisor(isSup);
         }
 
-        //        System.out.println("Gate type = " + Integer.toHexString(gate.getType()));
+        checkGate(gate, selector, software);
+
         switch (gate.getType()) {
         default:
             LOGGING.log(Level.INFO, "Invalid gate type for throwing interrupt: 0x{0}", Integer.toHexString(gate.getType()));
@@ -4225,8 +4226,6 @@ public class Processor implements HardwareComponent
         case 0x06: //Interrupt Handler: 16-bit Interrupt Gate
             {
                 ProtectedModeSegment.InterruptGate16Bit interruptGate = ((ProtectedModeSegment.InterruptGate16Bit)gate);
-
-                checkGate(interruptGate, selector, software);
 
                 int targetSegmentSelector = interruptGate.getTargetSegment();
 
@@ -4483,8 +4482,6 @@ public class Processor implements HardwareComponent
             {
                 ProtectedModeSegment.TrapGate16Bit trapGate = ((ProtectedModeSegment.TrapGate16Bit)gate);
 
-                checkGate(trapGate, selector, software);
-
                 int targetSegmentSelector = trapGate.getTargetSegment();
 
                 Segment targetSegment;
@@ -4735,8 +4732,6 @@ public class Processor implements HardwareComponent
         case 0x0e: //Interrupt Handler: 32-bit Interrupt Gate
             {
                 ProtectedModeSegment.InterruptGate32Bit interruptGate = ((ProtectedModeSegment.InterruptGate32Bit)gate);
-
-                checkGate(gate, selector, software);
 
                 int targetSegmentSelector = interruptGate.getTargetSegment();
 
@@ -4992,8 +4987,6 @@ public class Processor implements HardwareComponent
         case 0x0f: //Interrupt Handler: 32-bit Trap Gate
             {
                 ProtectedModeSegment.TrapGate32Bit trapGate = ((ProtectedModeSegment.TrapGate32Bit)gate);
-
-                checkGate(gate, selector, software);
 
                 int targetSegmentSelector = trapGate.getTargetSegment();
 

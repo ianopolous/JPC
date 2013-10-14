@@ -49,7 +49,7 @@ import org.jpc.j2se.*;
 public class Keyboard extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(Keyboard.class.getName());
-    private static final boolean LOG_ACCESS = true;
+    private static final boolean LOG_ACCESS = false;
     
     /* Keyboard Controller Commands */
     private static final byte KBD_CCMD_READ_MODE = (byte)0x20; /* Read mode bits */
