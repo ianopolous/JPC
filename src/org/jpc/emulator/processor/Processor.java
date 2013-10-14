@@ -917,6 +917,7 @@ public class Processor implements HardwareComponent
             throw ProcessorException.GENERAL_PROTECTION_0;
         cs = seg;
         segs[CS_INDEX] = seg;
+        setCPL(seg.getRPL());
     }
 
     public int ds()
@@ -4196,7 +4197,7 @@ public class Processor implements HardwareComponent
         }
 
         // if it is a fault, then RF is set on the eflags image on stack (excpet for debug exception)
-        if (ProcessorException.isFault(vector) && (vector != ProcessorException.Type.DEBUG.vector()))
+        if ((vector < 32) && ProcessorException.isFault(vector) && (vector != ProcessorException.Type.DEBUG.vector()))
             rf(true);
         int selector = vector << 3; //multiply by 8 to get offset into idt
         int EXT = hardware ? 1 : 0;

@@ -243,7 +243,7 @@ public class CompareToBochs
             bochsState = bochs.getState();
             if (followBochsInts)
             {
-                if (bochsState[16] >= 0x320F7F8)
+                if (bochsState[16] >= 0x3473fcf)
                     System.out.printf("");
                 // if Bochs has gone into an interrupt from the PIT force JPC to trigger one at the same time
                 if (nextBochs.contains("vector=0x8") || nextBochs.contains("vector=0x50")) // relies on patch to exception.cc

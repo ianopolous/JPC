@@ -43,19 +43,23 @@ public class cli extends Executable
 
     public Branch execute(Processor cpu)
     {
-        if (cpu.getIOPrivilegeLevel() >= cpu.getCPL())
+        if (Processor.cpuLevel >= 5)
         {
-            cpu.eflagsInterruptEnable = false;
+            if (((cpu.getCR4() & 2) != 0) && (cpu.getCPL() == 3)) // Protected mode Virtual Interrupts enabled
+            {
+                if (cpu.getIOPrivilegeLevel() < 3)
+                {
+                    cpu.eflagsVirtualInterrupt = false;
+                    return Branch.None;
+                }
+            }
         }
-        //support VME
-        else if ((cpu.getCPL() == 3) && ((cpu.getCR4() & 2) != 0))
+        else
         {
-            cpu.eflagsVirtualInterrupt = false;
-        } else
-        {
-            System.out.println("IOPL=" + cpu.getIOPrivilegeLevel() + ", CPL=" + cpu.getCPL() + "CR4=0x" + Integer.toHexString(cpu.getCR4()));
-            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
+            if (cpu.getIOPrivilegeLevel() < cpu.getCPL())
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
         }
+        cpu.eflagsInterruptEnable = false;
         return Branch.None;
     }
 

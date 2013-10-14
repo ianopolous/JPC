@@ -315,19 +315,23 @@
 
   <opcode mnemonic="cli">
     <return>Branch.None</return>
-    <snippet>        if (cpu.getIOPrivilegeLevel() >= cpu.getCPL())
+    <snippet>        if (Processor.cpuLevel >= 5)
         {
-            cpu.eflagsInterruptEnable = false;
+            if (((cpu.getCR4() &amp; 2) != 0) &amp;&amp; (cpu.getCPL() == 3)) // Protected mode Virtual Interrupts enabled
+            {
+                if (cpu.getIOPrivilegeLevel() &lt; 3)
+                {
+                    cpu.eflagsVirtualInterrupt = false;
+                    return Branch.None;
+                }
+            }
         }
-        //support VME
-        else if ((cpu.getCPL() == 3) &amp;&amp; ((cpu.getCR4() &amp; 2) != 0))
+        else
         {
-            cpu.eflagsVirtualInterrupt = false;
-        } else
-        {
-            System.out.println("IOPL=" + cpu.getIOPrivilegeLevel() + ", CPL=" + cpu.getCPL() + "CR4=0x" + Integer.toHexString(cpu.getCR4()));
-            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
-        }</snippet>
+            if (cpu.getIOPrivilegeLevel() &lt; cpu.getCPL())
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
+        }
+        cpu.eflagsInterruptEnable = false;</snippet>
     <args size="0"></args>
   </opcode>
 
