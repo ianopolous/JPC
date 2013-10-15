@@ -1,0 +1,27 @@
+JPC TODO (In rough order of desirability)
+
+* boot Windows 3.11
+* auto resize JFrame in application
+* Soundblaster - fix PCM sound
+* boot windows 95
+* boot windows 98
+* boot windows XP
+* boot Ubuntu
+* userspace ethernet router + dhcp server (slirp port)
+* Universal launcher (Application, Debugger, Disam, Ethernet hub)
+* Make cpulevel decided the decoder (as well as implementation)
+* APIC for >= windows 2000
+* CPU instruction tests
+* boot tests for various OSs
+* USB port + USB fat32 drive for host directories mounted at runtime
+* VDI format
+* VDI/VMDK runtime use
+* Voodoo graphics card
+* compiler (fun)
+* Keyboard panel (and multilanguage)
+* Live migrate VM between hosts
+* SVGA (cirrus)
+* VBE (Vesa)
+* USB mouse with wheel
+* VNC server for screen (+ Javascript client)
+* boot Windows 7
