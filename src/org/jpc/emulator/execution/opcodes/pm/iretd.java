@@ -50,7 +50,7 @@ public class iretd extends Executable
         if (cpu.ss.getDefaultSizeFlag())
             cpu.iret_pm_o32_a32();
         else
-            cpu.iret_pm_o32_a16();
+            cpu.setEFlags(cpu.iret_pm_o32_a16(), Processor.EFLAGS_VALID_MASK);
         return Branch.Ret;
     }
 
