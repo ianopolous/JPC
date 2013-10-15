@@ -2005,17 +2005,18 @@ public class Processor implements HardwareComponent
         int fsSelector = 0xffff & ss.getDoubleWord(tmpESP + 28);
         int gsSelector = 0xffff & ss.getDoubleWord(tmpESP + 32);
 
-        setEFlags(newEFlags, EFLAGS_VALID_MASK);
         cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true));
         eip = newEIP & 0xffff;
 
-        es(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
-        ds(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
-        fs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
-        gs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
+        es(SegmentFactory.createVirtual8086ModeSegment(linearMemory, esSelector, false));
+        ds(SegmentFactory.createVirtual8086ModeSegment(linearMemory, dsSelector, false));
+        fs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, fsSelector, false));
+        gs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, gsSelector, false));
         ss(SegmentFactory.createVirtual8086ModeSegment(linearMemory, ssSelector, false));
         r_esp.set32(newESP);
-        setCPL(3);
+        // throws ModeSwitchException
+        setEFlags(newEFlags, EFLAGS_VALID_MASK);
+        //setCPL(3);
     }
 
     private final void iret32ProtectedMode32BitAddressing(int newCS, int newEIP, int newEFlags, int tmpESP)

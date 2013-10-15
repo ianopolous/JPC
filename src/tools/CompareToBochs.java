@@ -483,6 +483,11 @@ public class CompareToBochs
                         fast[0] = bochsState[0];
                         setState1.invoke(newpc, (int[])fast);
                     }
+                    else if (previousInstruction().contains("ds:0x46c")) // a read from a CMOS counter to eax
+                    {
+                        fast[0] = bochsState[0];
+                        setState1.invoke(newpc, (int[])fast);
+                    }
                 }
                 else if ((fast[0] >= 0xa8000) && (fast[0] < 0xb0000) && previousInstruction(1).startsWith("movzx edx,BYTE PTR [eax]")) // see smm_init in rombios32.c
                 {
