@@ -100,6 +100,8 @@ public final class ProcessorException extends RuntimeException
 
     public static boolean isFault(int vector)
     {
+        if (vector >= Type.values().length)
+            return false;
         return !Type.values()[vector].isTrap();
     }
     

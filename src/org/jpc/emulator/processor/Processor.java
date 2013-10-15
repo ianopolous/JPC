@@ -4561,8 +4561,8 @@ public class Processor implements HardwareComponent
             linearMemory.setSupervisor(isSup);
         }
 
-//        if (!gate.isSystem())
-//            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2, true);
+        if (!gate.isSystem())
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2, true);
 
         checkGate(gate, selector, software);
 
@@ -4590,7 +4590,7 @@ public class Processor implements HardwareComponent
                     throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector & 0xfffc + EXT, true);
                 }
 
-                if (!targetSegment.isCode() || targetSegment.getDPL() > currentPrivilegeLevel)
+                if (!targetSegment.isCode() || (targetSegment.getDPL() > currentPrivilegeLevel))
                     throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, targetSegmentSelector & 0xfffc + EXT, true);
 
                 if (!targetSegment.isPresent())
@@ -4665,9 +4665,9 @@ public class Processor implements HardwareComponent
                     int targetOffset = theGate.getTargetOffset();
                     targetSegment.checkAddress(targetOffset);
 
-                    int oldSS = ss.getSelector();
+                    int oldSS = ss.getSelector() & 0xffff;
                     int oldESP = r_esp.get32();
-                    int oldCS = cs.getSelector();
+                    int oldCS = cs.getSelector() & 0xffff;
                     int oldEIP = eip;
 
                     isSup = linearMemory.isSupervisor();
@@ -4811,6 +4811,7 @@ public class Processor implements HardwareComponent
                 eflagsNestedTask = false;
                 eflagsVirtual8086Mode = false;
                 rf(false);
+                throw ModeSwitchException.PROTECTED_MODE_EXCEPTION;
             }
         }
     }
