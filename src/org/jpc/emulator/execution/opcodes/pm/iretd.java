@@ -48,9 +48,9 @@ public class iretd extends Executable
     public Branch execute(Processor cpu)
     {
         if (cpu.ss.getDefaultSizeFlag())
-            cpu.setEFlags(cpu.iret_pm_o32_a32());
+            cpu.iret_pm_o32_a32();
         else
-            cpu.setEFlags(cpu.iret_pm_o32_a16());
+            cpu.iret_pm_o32_a16();
         return Branch.Ret;
     }
 

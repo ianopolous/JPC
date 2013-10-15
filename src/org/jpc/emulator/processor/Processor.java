@@ -115,6 +115,42 @@ public class Processor implements HardwareComponent
     public static final int FS_INDEX = 4;
     public static final int GS_INDEX = 5;
 
+    public static final int EFLAGS_VALID_MASK = 0x3f7fd5; // supported bits
+    public static final int EFLAGS_CF_BIT = 0;
+    public static final int EFLAGS_PF_BIT = 2;
+    public static final int EFLAGS_AF_BIT = 4;
+    public static final int EFLAGS_ZF_BIT = 6;
+    public static final int EFLAGS_SF_BIT = 7;
+    public static final int EFLAGS_TF_BIT = 8;
+    public static final int EFLAGS_IF_BIT = 9;
+    public static final int EFLAGS_DF_BIT = 10;
+    public static final int EFLAGS_OF_BIT = 11;
+    public static final int EFLAGS_NT_BIT = 14;
+    public static final int EFLAGS_RF_BIT = 16;
+    public static final int EFLAGS_VM_BIT = 17;
+    public static final int EFLAGS_AC_BIT = 18;
+    public static final int EFLAGS_VIF_BIT = 19;
+    public static final int EFLAGS_VIP_BIT = 20;
+    public static final int EFLAGS_ID_BIT = 21;
+    public static final int EFLAGS_CF_MASK = 1 << EFLAGS_CF_BIT;
+    public static final int EFLAGS_PF_MASK = 1 << EFLAGS_PF_BIT;
+    public static final int EFLAGS_AF_MASK = 1 << EFLAGS_AF_BIT;
+    public static final int EFLAGS_ZF_MASK = 1 << EFLAGS_ZF_BIT;
+    public static final int EFLAGS_SF_MASK = 1 << EFLAGS_SF_BIT;
+    public static final int EFLAGS_OF_MASK = 1 << EFLAGS_OF_BIT;
+    public static final int EFLAGS_OSZAPC_MASK = EFLAGS_OF_MASK | EFLAGS_SF_MASK | EFLAGS_ZF_MASK | EFLAGS_AF_MASK | EFLAGS_PF_MASK | EFLAGS_CF_MASK;
+    public static final int EFLAGS_IOPL_MASK = 3 << 12;
+    public static final int EFLAGS_TF_MASK = 1 << EFLAGS_TF_BIT;
+    public static final int EFLAGS_IF_MASK = 1 << EFLAGS_IF_BIT;
+    public static final int EFLAGS_DF_MASK = 1 << EFLAGS_DF_BIT;
+    public static final int EFLAGS_NT_MASK = 1 << EFLAGS_NT_BIT;
+    public static final int EFLAGS_RF_MASK = 1 << EFLAGS_RF_BIT;
+    public static final int EFLAGS_VM_MASK = 1 << EFLAGS_VM_BIT;
+    public static final int EFLAGS_AC_MASK = 1 << EFLAGS_AC_BIT;
+    public static final int EFLAGS_VIF_MASK = 1 << EFLAGS_VIF_BIT;
+    public static final int EFLAGS_VIP_MASK = 1 << EFLAGS_VIP_BIT;
+    public static final int EFLAGS_ID_MASK = 1 << EFLAGS_ID_BIT;
+
 
     private static final boolean[] parityMap;
 
@@ -488,8 +524,8 @@ public class Processor implements HardwareComponent
         }
 
         //it seems that it checks at every push (we will simulate this)
-        if ((offset < 16) && ((offset & 0x1) == 0x1)) {
-            if (offset < 6)
+        if (((offset & 0xffffffffL) < 16) && ((offset & 0x1) == 0x1)) {
+            if ((offset & 0xffffffffL) < 6)
                 System.err.println("Emulated: Should shutdown machine (PUSHA with small ESP).");
             throw ProcessorException.GENERAL_PROTECTION_0;
         }
@@ -583,7 +619,10 @@ public class Processor implements HardwareComponent
     public final int iret_pm_o16_a16()
     {
         if (eflagsNestedTask)
-            return iretFromTask();
+        {
+            iretFromTask();
+            throw new IllegalStateException("Unimplemented");
+        }
         else {
             try {
                 ss.checkAddress((r_esp.get32() + 5) & 0xffff);
@@ -1713,7 +1752,10 @@ public class Processor implements HardwareComponent
     public int iret_pm_o32_a16()
     {
         if (eflagsNestedTask)
-            return iretFromTask();
+        {
+            iretFromTask();
+            throw new IllegalStateException("Unimplemented");
+        }
         else {
             try {
                 ss.checkAddress((r_esp.get16() + 11) & 0xffff);
@@ -1909,231 +1951,220 @@ public class Processor implements HardwareComponent
         }
     }
 
-    public int iret_pm_o32_a32()
+    public void iret_pm_o32_a32()
     {
         if (eflagsNestedTask)
-            return iretFromTask();
+            iretFromTask();
         else {
             try {
                 ss.checkAddress(r_esp.get32() + 11);
             } catch (ProcessorException e) {
                 throw ProcessorException.STACK_SEGMENT_0;
             }
-            int tempEIP = pop32();
-            int tempCS = 0xffff & pop32();
-            int tempEFlags = pop32();
+            int tmpESP = r_esp.get32();
+            int tempEIP = ss.getDoubleWord(tmpESP);
+            int tempCS = 0xffff & ss.getDoubleWord(tmpESP+4);
+            int tempEFlags = ss.getDoubleWord(tmpESP+8);
 
-            if (((tempEFlags & (1 << 17)) != 0) && (getCPL() == 0)) {
-                //System.out.println("Iret o32 a32 to VM8086 mode");
-                return iretToVirtual8086Mode32BitAddressing(tempCS, tempEIP, tempEFlags);
+            if ((tempEFlags & (1 << 17)) != 0)
+            {
+                if (getCPL() != 0)
+                    throw new IllegalStateException("Iret: VM set on stack CPL != 0!!");
+
+                iretToVirtual8086Mode32BitAddressing(tempCS, tempEIP, tempEFlags);
             } else {
-                //System.out.println("Iret o32 a32 to PM");
-                return iret32ProtectedMode32BitAddressing(tempCS, tempEIP, tempEFlags);
+                iret32ProtectedMode32BitAddressing(tempCS, tempEIP, tempEFlags, tmpESP);
             }
         }
     }
 
-    private final int iretFromTask()
+    private final void iretFromTask()
     {
-        throw new IllegalStateException("Execute Failed");
+        throw new IllegalStateException("Unimplemented iret from task");
     }
 
-    private final int iretToVirtual8086Mode32BitAddressing(int newCS, int newEIP, int newEFlags)
+    private final void iretToVirtual8086Mode32BitAddressing(int newCS, int newEIP, int newEFlags)
     {
+        int tmpESP;
+        if (ss.getDefaultSizeFlag())
+            tmpESP = r_esp.get32();
+        else
+            tmpESP = 0xffff & r_sp.get16();
+
         try {
-            ss.checkAddress(r_esp.get32() + 23);
+            ss.checkAddress(tmpESP + 31);
         } catch (ProcessorException e) {
             throw ProcessorException.STACK_SEGMENT_0;
         }
-        if (newEIP > 0xfffff)
-            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION,0,true);//ProcessorException.GENERAL_PROTECTION_0;
 
+        int newESP = ss.getDoubleWord(tmpESP + 12);
+        int ssSelector = 0xffff & ss.getDoubleWord(tmpESP + 16);
+
+        int esSelector = 0xffff & ss.getDoubleWord(tmpESP + 20);
+        int dsSelector = 0xffff & ss.getDoubleWord(tmpESP + 24);
+        int fsSelector = 0xffff & ss.getDoubleWord(tmpESP + 28);
+        int gsSelector = 0xffff & ss.getDoubleWord(tmpESP + 32);
+
+        setEFlags(newEFlags, EFLAGS_VALID_MASK);
         cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true));
         eip = newEIP & 0xffff;
-        int newESP = pop32();
-        int newSS = 0xffff & pop32();
+
         es(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
         ds(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
         fs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
         gs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
-        ss(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newSS, false));
+        ss(SegmentFactory.createVirtual8086ModeSegment(linearMemory, ssSelector, false));
         r_esp.set32(newESP);
         setCPL(3);
-
-        return newEFlags;
     }
 
-    private final int iret32ProtectedMode32BitAddressing(int newCS, int newEIP, int newEFlags)
+    private final void iret32ProtectedMode32BitAddressing(int newCS, int newEIP, int newEFlags, int tmpESP)
     {
-        Segment returnSegment = getSegment(newCS);
+        ProtectedModeSegment returnSegment = (ProtectedModeSegment) getSegment(newCS);
 
         if (returnSegment == SegmentFactory.NULL_SEGMENT)
             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);//ProcessorException.GENERAL_PROTECTION_0;
 
-        switch (returnSegment.getType()) {
-            default:
-                LOGGING.log(Level.WARNING, "Invalid segment type {0,number,integer}", Integer.valueOf(returnSegment.getType()));
-                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newCS, true);
+        if (returnSegment.getRPL() < getCPL())
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newCS & 0xfffc, true);
 
-            case 0x18:   //Code, Execute-Only
-            case 0x19:   //Code, Execute-Only, Accessed
-            case 0x1a:   //Code, Execute/Read
-            case 0x1b: { //Code, Execute/Read, Accessed
-                if (returnSegment.getRPL() < getCPL())
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newCS, true);
+        checkCS(returnSegment, 0, returnSegment.getRPL());
 
-                if (!(returnSegment.isPresent()))
-                    throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, newCS, true);
+        if (returnSegment.getRPL() == currentPrivilegeLevel)
+        {
+            // IRET to same level
 
-                if (returnSegment.getRPL() > getCPL()) {
-                    //OUTER PRIVILEGE-LEVEL
-                    try {
-                        ss.checkAddress(r_esp.get32() + 7);
-                    } catch (ProcessorException e) {
-                        throw ProcessorException.STACK_SEGMENT_0;
-                    }
+            returnSegment.checkAddress(newEIP);
+            cs(returnSegment);
+            eip = newEIP;
+            int changeMask = EFLAGS_OSZAPC_MASK | EFLAGS_TF_MASK | EFLAGS_DF_MASK | EFLAGS_NT_MASK | EFLAGS_RF_MASK;
+            if (cpuLevel >= 4)
+                changeMask |= EFLAGS_ID_MASK | EFLAGS_AC_MASK;
 
-                    int returnESP = pop32();
-                    int tempSS = 0xffff & pop32();
+            if (currentPrivilegeLevel <= getIOPrivilegeLevel())
+                changeMask |= EFLAGS_IF_MASK;
 
-                    Segment returnStackSegment = getSegment(tempSS);
+            if (currentPrivilegeLevel == 0)
+                changeMask |= EFLAGS_VIP_MASK | EFLAGS_VIF_MASK | EFLAGS_IOPL_MASK;
+            setEFlags(newEFlags, changeMask);
 
-                    if ((returnStackSegment.getRPL() != returnSegment.getRPL()) || ((returnStackSegment.getType() & 0x12) != 0x12) ||
-                            (returnStackSegment.getDPL() != returnSegment.getRPL()))
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, tempSS, true);
+            if (ss.getDefaultSizeFlag())
+                r_esp.set32(tmpESP + 12);
+            else
+                r_sp.set16(tmpESP + 12);
+        }
+        else
+        {
+            // IRET to outer level
 
-                    if (!returnStackSegment.isPresent())
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, tempSS, true);
+            /* 16-bit opsize  |   32-bit opsize
+            * ==============================
+            * SS     eSP+8  |   SS     eSP+16
+            * SP     eSP+6  |   ESP    eSP+12
+            * FLAGS  eSP+4  |   EFLAGS eSP+8
+            * CS     eSP+2  |   CS     eSP+4
+            * IP     eSP+0  |   EIP    eSP+0
+            */
 
-                    returnSegment.checkAddress(newEIP);
+            int ssSelector = 0xffff & ss.getWord(tmpESP+16);
+            if ((ssSelector & 0xfffc) == 0)
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
 
-                    //esp += 20; //includes the 12 from earlier
-                    eip = newEIP;
-                    cs(returnSegment);
+            ProtectedModeSegment returnStackSegment = (ProtectedModeSegment) getSegment(ssSelector);
 
-                    ss(returnStackSegment);
-                    r_esp.set32(returnESP);
+            if (returnStackSegment.getRPL() != returnSegment.getRPL())
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, ssSelector & 0xfffc, true);
 
-                    int eflags = getEFlags();
-                    eflags &= ~0x254dd5;
-                    eflags |= (0x254dd5 & newEFlags);
-                    //overwrite: all; preserve: if, iopl, vm, vif, vip
+            if (returnStackSegment.isCode() || !returnStackSegment.isDataWritable())
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, ssSelector & 0xfffc, true);
 
-                    if (getCPL() <= eflagsIOPrivilegeLevel) {
-                        eflags &= ~0x200;
-                        eflags |= (0x200 & newEFlags);
-                        //overwrite: all; preserve: iopl, vm, vif, vip
-                    }
-                    if (getCPL() == 0) {
-                        eflags &= ~0x1a3000;
-                        eflags |= (0x1a3000 & newEFlags);
-                        //overwrite: all;
-                    }
-                    // 			setEFlags(eflags);
+            if (returnStackSegment.getDPL() != returnSegment.getRPL())
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, ssSelector & 0xfffc, true);
 
-                    setCPL(cs.getRPL());
+            if (!returnStackSegment.isPresent())
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, ssSelector & 0xfffc, true);
 
-                    try {
-                        if ((((es.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((es.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > es.getDPL()))
-                            es(SegmentFactory.NULL_SEGMENT);
-                    } catch (ProcessorException e) {
-                    } catch (Exception e) {
-                    }
+            int newESP = ss.getDoubleWord(tmpESP+12);
 
-                    try {
-                        if ((((ds.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((ds.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > ds.getDPL()))
-                            ds(SegmentFactory.NULL_SEGMENT);
-                    } catch (ProcessorException e) {
-                    } catch (Exception e) {
-                    }
+            int changeMask = EFLAGS_OSZAPC_MASK | EFLAGS_TF_MASK | EFLAGS_DF_MASK | EFLAGS_NT_MASK | EFLAGS_RF_MASK;
+            if (cpuLevel >= 4)
+                changeMask |= EFLAGS_ID_MASK | EFLAGS_AC_MASK;
 
-                    try {
-                        if ((((fs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((fs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > fs.getDPL()))
-                            fs(SegmentFactory.NULL_SEGMENT);
-                    } catch (ProcessorException e) {
-                    } catch (Exception e) {
-                    }
+            if (currentPrivilegeLevel <= getIOPrivilegeLevel())
+                changeMask |= EFLAGS_IF_MASK;
 
-                    try {
-                        if ((((gs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((gs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > gs.getDPL()))
-                            gs(SegmentFactory.NULL_SEGMENT);
-                    } catch (ProcessorException e) {
-                    } catch (Exception e) {
-                    }
+            if (currentPrivilegeLevel == 0)
+                changeMask |= EFLAGS_VIP_MASK | EFLAGS_VIF_MASK | EFLAGS_IOPL_MASK;
 
-                    return eflags;
-                } else {
-                    //SAME PRIVILEGE-LEVEL
-                    returnSegment.checkAddress(newEIP);
+            cs(returnSegment);
+            eip = newEIP;
+            setEFlags(newEFlags, changeMask);
 
-                    cs(returnSegment);
-                    eip = newEIP;
+            ss(returnStackSegment);
+            if (ss.getDefaultSizeFlag())
+                r_esp.set32(newESP);
+            else
+                r_sp.set16(newESP);
 
-                    //Set EFlags
-                    int eflags = getEFlags();
-
-                    eflags &= ~0x254dd5;
-                    eflags |= (0x254dd5 & newEFlags);
-
-                    if (getCPL() <= eflagsIOPrivilegeLevel) {
-                        eflags &= ~0x200;
-                        eflags |= (0x200 & newEFlags);
-                    }
-
-                    if (getCPL() == 0) {
-                        eflags &= ~0x1a3000;
-                        eflags |= (0x1a3000 & newEFlags);
-                    }
-                    //  			setEFlags(eflags);
-                    return eflags;
-                }
+            try {
+                ProtectedModeSegment seg = (ProtectedModeSegment) es;
+                if (getCPL() > seg.getDPL())
+                    if (seg.isDataWritable() || (seg.isCode() && !seg.isConforming()))
+                        es(SegmentFactory.NULL_SEGMENT);
+            } catch (ProcessorException e) {
+            } catch (Exception e) {
             }
-            case 0x1c: //Code: Execute-Only, Conforming
-            case 0x1d: //Code: Execute-Only, Conforming, Accessed
-            case 0x1e: //Code: Execute/Read, Conforming
-            case 0x1f: { //Code: Execute/Read, Conforming, Accessed
-                if (returnSegment.getRPL() < getCPL())
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newCS, true);
 
-                if (returnSegment.getDPL() > returnSegment.getRPL())
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newCS, true);
+            try {
+                ProtectedModeSegment seg = (ProtectedModeSegment) ds;
+                if (getCPL() > seg.getDPL())
+                    if (seg.isDataWritable() || (seg.isCode() && !seg.isConforming()))
+                        ds(SegmentFactory.NULL_SEGMENT);
+            } catch (ProcessorException e) {
+            } catch (Exception e) {
+            }
 
-                if (!(returnSegment.isPresent()))
-                    throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, newCS, true);
+            try {
+                ProtectedModeSegment seg = (ProtectedModeSegment) fs;
+                if (getCPL() > seg.getDPL())
+                    if (seg.isDataWritable() || (seg.isCode() && !seg.isConforming()))
+                        fs(SegmentFactory.NULL_SEGMENT);
+            } catch (ProcessorException e) {
+            } catch (Exception e) {
+            }
 
-                if (returnSegment.getRPL() > getCPL()) {
-                    //OUTER PRIVILEGE-LEVEL
-                    LOGGING.log(Level.WARNING, "Conforming outer privilege level not implemented");
-                    throw new IllegalStateException("Execute Failed");
-                } else {
-                    //SAME PRIVILEGE-LEVEL
-                    returnSegment.checkAddress(newEIP);
-                    eip = newEIP;
-                    cs(returnSegment); //do descriptor as well
-                    cf((newEFlags & 1) != 0);
-                    pf((newEFlags & (1 << 2)) != 0);
-                    af((newEFlags & (1 << 4)) != 0);
-                    zf((newEFlags & (1 << 6)) != 0);
-                    sf((newEFlags & (1 <<  7)) != 0);
-                    eflagsTrap = ((newEFlags & (1 <<  8)) != 0);
-                    df = ((newEFlags & (1 << 10)) != 0);
-                    of((newEFlags & (1 << 11)) != 0);
-                    eflagsNestedTask = ((newEFlags & (1 << 14)) != 0);
-                    eflagsResume = ((newEFlags & (1 << 16)) != 0);
-                    eflagsAlignmentCheck = ((newEFlags & (1 << 18)) != 0); //do we need to call checkAlignmentChecking()?
-                    eflagsID = ((newEFlags & (1 << 21)) != 0);
-                    if (getCPL() <= eflagsIOPrivilegeLevel)
-                        eflagsInterruptEnable = ((newEFlags & (1 <<  9)) != 0);
-                    if (getCPL() == 0) {
-                        eflagsIOPrivilegeLevel = ((newEFlags >> 12) & 3);
-                        eflagsVirtual8086Mode = ((newEFlags & (1 << 17)) != 0);
-                        eflagsVirtualInterrupt = ((newEFlags & (1 << 19)) != 0);
-                        eflagsVirtualInterruptPending = ((newEFlags & (1 << 20)) != 0);
-                    }
-                    return newEFlags;
-                }
+            try {
+                ProtectedModeSegment seg = (ProtectedModeSegment) gs;
+                if (getCPL() > seg.getDPL())
+                    if (seg.isDataWritable() || (seg.isCode() && !seg.isConforming()))
+                        gs(SegmentFactory.NULL_SEGMENT);
+            } catch (ProcessorException e) {
+            } catch (Exception e) {
             }
         }
+    }
+
+    private void checkCS(ProtectedModeSegment newcs, int checkRPL, int checkCPL)
+    {
+        if (!newcs.isCode())
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newcs.getSelector() & 0xfffc, true);
+
+        if (!newcs.isConforming())
+        {
+            if (newcs.getDPL() != checkCPL)
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newcs.getSelector() & 0xfffc, true);
+
+            if (checkRPL > checkCPL)
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newcs.getSelector() & 0xfffc, true);
+        }
+        else
+        {
+            if (newcs.getDPL() > checkCPL)
+                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newcs.getSelector() & 0xfffc, true);
+        }
+
+        if (!newcs.isPresent())
+            throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, newcs.getSelector() & 0xfffc, true);
     }
 
     public void jumpFar_pm(int targetSelector, int targetEIP)
@@ -3430,31 +3461,31 @@ public class Processor implements HardwareComponent
     public void setEFlags(int eflags)
     {
         flagStatus = 0;
-        cf = ((eflags & 1 ) != 0);
-        pf = ((eflags & (1 << 2)) != 0);
-        af = ((eflags & (1 << 4)) != 0);
-        zf = ((eflags & (1 << 6)) != 0);
-        sf = ((eflags & (1 <<  7)) != 0);
-        eflagsTrap                    = ((eflags & (1 <<  8)) != 0);
+        cf = ((eflags & EFLAGS_CF_MASK ) != 0);
+        pf = ((eflags & EFLAGS_PF_MASK) != 0);
+        af = ((eflags & EFLAGS_AF_MASK) != 0);
+        zf = ((eflags & EFLAGS_ZF_MASK) != 0);
+        sf = ((eflags & EFLAGS_SF_MASK) != 0);
+        eflagsTrap                    = ((eflags & EFLAGS_TF_MASK) != 0);
 
-        eflagsInterruptEnable   = ((eflags & (1 <<  9)) != 0);
-        df                            = ((eflags & (1 << 10)) != 0);
-        of = ((eflags & (1 << 11)) != 0);
+        eflagsInterruptEnable   = ((eflags & EFLAGS_IF_MASK) != 0);
+        df                            = ((eflags & EFLAGS_DF_MASK) != 0);
+        of = ((eflags & EFLAGS_OF_MASK) != 0);
         eflagsIOPrivilegeLevel        = ((eflags >> 12) & 3);
-        eflagsNestedTask              = ((eflags & (1 << 14)) != 0);
-        eflagsResume                  = ((eflags & (1 << 16)) != 0);
+        eflagsNestedTask              = ((eflags & EFLAGS_NT_MASK) != 0);
+        eflagsResume                  = ((eflags & EFLAGS_RF_MASK) != 0);
 
-        eflagsVirtualInterrupt        = ((eflags & (1 << 19)) != 0);
-        eflagsVirtualInterruptPending = ((eflags & (1 << 20)) != 0);
+        eflagsVirtualInterrupt        = ((eflags & EFLAGS_VIF_MASK) != 0);
+        eflagsVirtualInterruptPending = ((eflags & EFLAGS_VIP_MASK) != 0);
         eflagsID                      = ((eflags & (1 << 21)) != 0);
 
-        if (eflagsAlignmentCheck != ((eflags & (1 << 18)) != 0)) {
-            eflagsAlignmentCheck = ((eflags & (1 << 18)) != 0);
+        if (eflagsAlignmentCheck != ((eflags & EFLAGS_AC_MASK) != 0)) {
+            eflagsAlignmentCheck = ((eflags & EFLAGS_AC_MASK) != 0);
             checkAlignmentChecking();
         }
 
-        if (eflagsVirtual8086Mode != ((eflags & (1 << 17)) != 0)) {
-            eflagsVirtual8086Mode = ((eflags & (1 << 17)) != 0);
+        if (eflagsVirtual8086Mode != ((eflags & EFLAGS_VM_MASK) != 0)) {
+            eflagsVirtual8086Mode = ((eflags & EFLAGS_VM_MASK) != 0);
             if (eflagsVirtual8086Mode) {
                 throw ModeSwitchException.VIRTUAL8086_MODE_EXCEPTION;
             } else {
