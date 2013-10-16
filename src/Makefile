@@ -106,7 +106,7 @@ application: build_core
 	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> application.manifest
 	echo "" >> application.manifest
 
-	jar -cfm JPCApplication.jar application.manifest \
+	jar -cfm JPCApplication2.jar application.manifest \
 	    resources/bios/vgabios.bin \
 	    resources/bios/bios.bin resources/images/dosgames.img \
 	    resources/images/floppy.img resources/icon.png \

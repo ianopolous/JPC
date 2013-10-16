@@ -428,8 +428,8 @@ public class CompareToBochs
                 if ((diff.size() == 1) && diff.contains(9))
                 {
                     // adopt flags
-                    String prevInstr = ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[0];
-                    String secondPrevInstr = ((String)(history[(historyIndex-3)&(history.length-1)][2])).split(" ")[0];
+                    String prevInstr = previousInstruction().split(" ")[0];
+                    String secondPrevInstr = previousInstruction(2).split(" ")[0];
                     if (prevInstr.startsWith("rep"))
                         prevInstr += ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[1];
                     if (prevInstr.startsWith("cli") || secondPrevInstr.startsWith("cli"))

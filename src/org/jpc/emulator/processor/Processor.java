@@ -1230,7 +1230,7 @@ public class Processor implements HardwareComponent
                     // (1<<10) is reserved
                     features |= (1<<11);  // SYSENTER/SYSEXIT
 
-                    features |= (1<<12);  // Memory type range registers
+                    //features |= (1<<12);  // Memory type range registers (MSR)
                     features |= (1<<13);  // Support Global pages.
                     features |= (1<<14);  // Machine check architecture
                     features |= (1<<15);  // Implement CMOV instructions.
@@ -1749,204 +1749,29 @@ public class Processor implements HardwareComponent
         }
     }
 
-    public int iret_pm_o32_a16()
+    public void iret_pm_o32_a16()
     {
         if (eflagsNestedTask)
-        {
             iretFromTask();
-            throw new IllegalStateException("Unimplemented");
-        }
         else {
             try {
-                ss.checkAddress((r_esp.get16() + 11) & 0xffff);
+                ss.checkAddress(r_esp.get16() + 11);
             } catch (ProcessorException e) {
                 throw ProcessorException.STACK_SEGMENT_0;
             }
-            int tempEIP = pop32();
-            int tempCS = 0xffff & pop32();
-            int tempEFlags = pop32();
+            int tmpESP = 0xffff & r_esp.get32();
+            int tempEIP = ss.getDoubleWord(tmpESP);
+            int tempCS = 0xffff & ss.getDoubleWord(tmpESP+4);
+            int tempEFlags = ss.getDoubleWord(tmpESP+8);
 
-            if (((tempEFlags & (1 << 17)) != 0) && (getCPL() == 0)) {
-                return iretToVirtual8086Mode16BitAddressing(tempCS, tempEIP, tempEFlags);
+            if ((tempEFlags & (1 << 17)) != 0)
+            {
+                if (getCPL() != 0)
+                    throw new IllegalStateException("Iret: VM set on stack CPL != 0!!");
+
+                iretToVirtual8086Mode(tempCS, tempEIP, tempEFlags);
             } else {
-                return iret32ProtectedMode16BitAddressing(tempCS, tempEIP, tempEFlags);
-            }
-        }
-    }
-
-    private final int iretToVirtual8086Mode16BitAddressing(int newCS, int newEIP, int newEFlags)
-    {
-        try {
-            ss.checkAddress((r_esp.get16() + 23) & 0xffff);
-        } catch (ProcessorException e) {
-            throw ProcessorException.STACK_SEGMENT_0;
-        }
-        cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true));
-        eip = newEIP & 0xffff;
-        int newESP = pop32();
-        int newSS = 0xffff & pop32();
-        es(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
-        ds(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
-        fs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
-        gs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, 0xffff & pop32(), false));
-        ss(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newSS, false));
-        r_esp.set32(newESP);
-        setCPL(3);
-
-        return newEFlags;
-    }
-
-    private final int iret32ProtectedMode16BitAddressing(int newCS, int newEIP, int newEFlags)
-    {
-        Segment returnSegment = getSegment(newCS);
-
-        if (returnSegment == SegmentFactory.NULL_SEGMENT)
-            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);//ProcessorException.GENERAL_PROTECTION_0;
-
-        switch (returnSegment.getType()) {
-            default:
-                LOGGING.log(Level.WARNING, "Invalid segment type {0,number,integer}", Integer.valueOf(returnSegment.getType()));
-                throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newCS, true);
-
-            case 0x18: //Code, Execute-Only
-            case 0x19: //Code, Execute-Only, Accessed
-            case 0x1a: //Code, Execute/Read
-            case 0x1b: //Code, Execute/Read, Accessed
-            {
-                if (returnSegment.getRPL() < getCPL())
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newCS, true);
-
-                if (!(returnSegment.isPresent()))
-                    throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, newCS, true);
-
-                if (returnSegment.getRPL() > getCPL()) {
-                    //OUTER PRIVILEGE-LEVEL
-                    try {
-                        ss.checkAddress((r_esp.get16() + 7) & 0xFFFF);
-                    } catch (ProcessorException e) {
-                        throw ProcessorException.STACK_SEGMENT_0;
-                    }
-
-                    int returnESP = pop32();
-                    int newSS = 0xffff & pop32();
-
-                    Segment returnStackSegment = getSegment(newSS);
-
-                    if ((returnStackSegment.getRPL() != returnSegment.getRPL()) || ((returnStackSegment.getType() & 0x12) != 0x12) ||
-                            (returnStackSegment.getDPL() != returnSegment.getRPL()))
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newSS, true);
-
-                    if (!returnStackSegment.isPresent())
-                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newSS, true);
-
-                    returnSegment.checkAddress(newEIP);
-
-                    //esp += 20; //includes the 12 from earlier
-                    eip = newEIP;
-                    cs(returnSegment);
-
-                    ss(returnStackSegment);
-                    r_esp.set32(returnESP);
-
-                    int eflags = getEFlags();
-                    eflags &= ~0x254dd5;
-                    eflags |= (0x254dd5 & newEFlags);
-                    //overwrite: all; preserve: if, iopl, vm, vif, vip
-
-                    if (getCPL() <= eflagsIOPrivilegeLevel) {
-                        eflags &= ~0x200;
-                        eflags |= (0x200 & newEFlags);
-                        //overwrite: all; preserve: iopl, vm, vif, vip
-                    }
-                    if (getCPL() == 0) {
-                        eflags &= ~0x1a3000;
-                        eflags |= (0x1a3000 & newEFlags);
-                        //overwrite: all;
-                    }
-                    // 			setEFlags(eflags);
-
-                    setCPL(cs.getRPL());
-
-                    try {
-                        if ((((es.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((es.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > es.getDPL()))
-                            es(SegmentFactory.NULL_SEGMENT);
-                    } catch (ProcessorException e) {
-                    } catch (Exception e) {
-                    }
-
-                    try {
-                        if ((((ds.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((ds.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > ds.getDPL()))
-                            ds(SegmentFactory.NULL_SEGMENT);
-                    } catch (ProcessorException e) {
-                    } catch (Exception e) {
-                    }
-
-                    try {
-                        if ((((fs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((fs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > fs.getDPL()))
-                            fs(SegmentFactory.NULL_SEGMENT);
-                    } catch (ProcessorException e) {
-                    } catch (Exception e) {
-                    }
-
-                    try {
-                        if ((((gs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((gs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > gs.getDPL()))
-                            gs(SegmentFactory.NULL_SEGMENT);
-                    } catch (ProcessorException e) {
-                    } catch (Exception e) {
-                    }
-
-                    return eflags;
-                } else {
-                    //SAME PRIVILEGE-LEVEL
-                    returnSegment.checkAddress(newEIP);
-
-// 		    esp = (esp & ~0xFFFF) | ((esp+12)&0xFFFF);
-                    cs(returnSegment);
-                    eip = newEIP;
-
-                    //Set EFlags
-                    int eflags = getEFlags();
-
-                    eflags &= ~0x254dd5;
-                    eflags |= (0x254dd5 & newEFlags);
-
-                    if (getCPL() <= eflagsIOPrivilegeLevel) {
-                        eflags &= ~0x200;
-                        eflags |= (0x200 & newEFlags);
-                    }
-
-                    if (getCPL() == 0) {
-                        eflags &= ~0x1a3000;
-                        eflags |= (0x1a3000 & newEFlags);
-
-                    }
-                    //  			setEFlags(eflags);
-                    return eflags;
-                }
-            }
-            case 0x1c: //Code: Execute-Only, Conforming
-            case 0x1d: //Code: Execute-Only, Conforming, Accessed
-            case 0x1e: //Code: Execute/Read, Conforming
-            case 0x1f: //Code: Execute/Read, Conforming, Accessed
-            {
-                if (returnSegment.getRPL() < getCPL())
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newCS, true);
-
-                if (returnSegment.getDPL() > returnSegment.getRPL())
-                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, newCS, true);
-
-                if (!(returnSegment.isPresent()))
-                    throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, newCS, true);
-
-                if (returnSegment.getRPL() > getCPL()) {
-                    //OUTER PRIVILEGE-LEVEL
-                    LOGGING.log(Level.WARNING, "Conforming outer privilege level not implemented");
-                    throw new IllegalStateException("Execute Failed");
-                } else {
-                    //SAME PRIVILEGE-LEVEL
-                    LOGGING.log(Level.WARNING, "Conforming same privilege level not implemented");
-                    throw new IllegalStateException("Execute Failed");
-                }
+                iret32ProtectedMode(tempCS, tempEIP, tempEFlags, tmpESP);
             }
         }
     }
@@ -1971,9 +1796,9 @@ public class Processor implements HardwareComponent
                 if (getCPL() != 0)
                     throw new IllegalStateException("Iret: VM set on stack CPL != 0!!");
 
-                iretToVirtual8086Mode32BitAddressing(tempCS, tempEIP, tempEFlags);
+                iretToVirtual8086Mode(tempCS, tempEIP, tempEFlags);
             } else {
-                iret32ProtectedMode32BitAddressing(tempCS, tempEIP, tempEFlags, tmpESP);
+                iret32ProtectedMode(tempCS, tempEIP, tempEFlags, tmpESP);
             }
         }
     }
@@ -1983,7 +1808,7 @@ public class Processor implements HardwareComponent
         throw new IllegalStateException("Unimplemented iret from task");
     }
 
-    private final void iretToVirtual8086Mode32BitAddressing(int newCS, int newEIP, int newEFlags)
+    private final void iretToVirtual8086Mode(int newCS, int newEIP, int newEFlags)
     {
         int tmpESP;
         if (ss.getDefaultSizeFlag())
@@ -2019,7 +1844,7 @@ public class Processor implements HardwareComponent
         //setCPL(3);
     }
 
-    private final void iret32ProtectedMode32BitAddressing(int newCS, int newEIP, int newEFlags, int tmpESP)
+    private final void iret32ProtectedMode(int newCS, int newEIP, int newEFlags, int tmpESP)
     {
         ProtectedModeSegment returnSegment = (ProtectedModeSegment) getSegment(newCS);
 

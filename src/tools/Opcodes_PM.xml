@@ -872,9 +872,9 @@
   <opcode mnemonic="iretd">
     <return>Branch.Ret</return>
     <snippet>        if (cpu.ss.getDefaultSizeFlag())
-            cpu.setEFlags(cpu.iret_pm_o32_a32());
+            cpu.iret_pm_o32_a32();
         else
-            cpu.setEFlags(cpu.iret_pm_o32_a16());</snippet>
+            cpu.iret_pm_o32_a16();</snippet>
     <args size="0"></args>
   </opcode>
 
