@@ -48,7 +48,7 @@ public class iretw extends Executable
     public Branch execute(Processor cpu)
     {
         cpu.eip +=  blockLength;
-        cpu.iret_vm_o16_a16();
+        cpu.iret_vm_o16();
         return Branch.Ret;
     }
 

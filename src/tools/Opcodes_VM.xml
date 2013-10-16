@@ -110,7 +110,7 @@
   <opcode mnemonic="iretw">
     <return>Branch.Ret</return>
     <snippet>        cpu.eip +=  blockLength;
-        cpu.iret_vm_o16_a16();</snippet>
+        cpu.iret_vm_o16();</snippet>
     <args size="0"></args>
   </opcode>
 

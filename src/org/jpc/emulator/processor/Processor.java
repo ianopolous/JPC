@@ -813,31 +813,38 @@ public class Processor implements HardwareComponent
         setEFlags(tmpflags, 0x257fd5); // VIF, VIP, VM unchanged
     }
 
-    public void iret_vm_o16_a16()
+    public void iret_vm_o16()
     {
-        if (eflagsIOPrivilegeLevel == 3) {
-       	    try {
-                ss.checkAddress((r_esp.get32() + 5) & 0xffff);
-            } catch (ProcessorException e) {
-                throw ProcessorException.STACK_SEGMENT_0;
-            }
-            int newEIP = 0xffff & ss.getWord(r_sp.get16() & 0xffff);
-            if (newEIP > 0xffff)
-                throw ProcessorException.GENERAL_PROTECTION_0;
-
-            int newCS = 0xffff & ss.getWord((r_sp.get16() + 2) & 0xffff);
-            eip = newEIP;
-            cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true));
-            int newFlags = 0xffff & ss.getWord((r_sp.get16() + 4) & 0xffff);
-            r_sp.set16(r_sp.get16()+6);
-
-            //don't modify the IOPL
-            int iopl = (getEFlags() >> 12) & 3;
-            newFlags = newFlags & ~Processor.IFLAGS_IOPL_MASK;
-            newFlags |= (iopl << 12);
-            setFlags((short) newFlags);
-        } else
+        if ((eflagsIOPrivilegeLevel < 3) && ((getCR4() & CR4_VIRTUAL8086_MODE_EXTENSIONS) == 0))
             throw ProcessorException.GENERAL_PROTECTION_0;
+        try {
+            ss.checkAddress((r_esp.get32() + 5) & 0xffff);
+        } catch (ProcessorException e) {
+            throw ProcessorException.STACK_SEGMENT_0;
+        }
+        int tmpIP = 0xffff & pop16();
+        int tmpCS = 0xffff & pop16();
+        int tmpFlags = 0xffff & pop16();
+        if (cpuLevel >= 5)
+        {
+            if (((getCR4() & CR4_VIRTUAL8086_MODE_EXTENSIONS) != 0) && eflagsIOPrivilegeLevel < 3)
+            {
+                if ((((tmpFlags & EFLAGS_IF_MASK) != 0) && (eflagsVirtualInterruptPending)) || (eflagsTrap))
+                    throw ProcessorException.GENERAL_PROTECTION_0;
+                cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, tmpCS, true));
+                eip = tmpIP;
+                // IF, IOPL unchanged, EFLAGS.VIF = tmpFlags.IF
+                int changeMask = EFLAGS_OSZAPC_MASK | EFLAGS_TF_MASK | EFLAGS_DF_MASK | EFLAGS_NT_MASK | EFLAGS_VIF_MASK;
+                if ((tmpFlags & EFLAGS_IF_MASK) != 0)
+                    tmpFlags |= EFLAGS_VIF_MASK;
+                setEFlags(tmpFlags, changeMask);
+                return;
+            }
+        }
+        cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, tmpCS, true));
+        eip = tmpIP;
+        int changeMask = EFLAGS_OSZAPC_MASK | EFLAGS_TF_MASK | EFLAGS_DF_MASK | EFLAGS_NT_MASK | EFLAGS_IF_MASK;
+        setEFlags(tmpFlags, changeMask);
     }
 
     public void setSeg(int index, int value)
