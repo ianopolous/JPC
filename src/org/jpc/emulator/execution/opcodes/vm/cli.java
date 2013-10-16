@@ -47,11 +47,14 @@ public class cli extends Executable
         {
             cpu.eflagsInterruptEnable = false;
         }
-	else
+        else
         {
-	    if ((cpu.getCR4() & Processor.CR4_VIRTUAL8086_MODE_EXTENSIONS) != 0)
-	        cpu.eflagsVirtualInterrupt = false;
-	    else
+            if (Processor.cpuLevel >= 5)
+                if ((cpu.getCR4() & Processor.CR4_VIRTUAL8086_MODE_EXTENSIONS) != 0)
+                {
+                    cpu.eflagsVirtualInterrupt = false;
+                    return Branch.None;
+                }
 	        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION,0,true);//ProcessorException.GENERAL_PROTECTION_0;
         }
         return Branch.None;

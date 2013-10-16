@@ -54,7 +54,7 @@ public class cli extends Executable
                 }
             }
         }
-        else
+        if ((Processor.cpuLevel < 5) || (!(((cpu.getCR4() & 2) != 0) && (cpu.getCPL() == 3))))
         {
             if (cpu.getIOPrivilegeLevel() < cpu.getCPL())
                 throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);

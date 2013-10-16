@@ -326,7 +326,7 @@
                 }
             }
         }
-        else
+        if ((Processor.cpuLevel &lt; 5) || (!(((cpu.getCR4() &amp; 2) != 0) &amp;&amp; (cpu.getCPL() == 3))))
         {
             if (cpu.getIOPrivilegeLevel() &lt; cpu.getCPL())
                 throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
