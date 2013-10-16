@@ -24,7 +24,8 @@ public class InvalidOpcode extends Executable
 
     public Branch execute(Processor cpu)
     {
-        if (true) throw new IllegalStateException("Invalid opcode: "+error);
+        System.out.println("Invalid opcode executed: "+error);
+        if (true) throw ProcessorException.UNDEFINED;
         return Branch.Jmp_Unknown;
     }
 

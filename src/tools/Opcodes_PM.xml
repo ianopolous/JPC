@@ -1079,10 +1079,17 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   <opcode mnemonic="jmp">
     <return>Branch.T1</return>
     <snippet>        cpu.eip += blockLength;
-        int tmpEip = cpu.eip + jmp;
+        int tmpEip = cpu.eip + jmp &amp; 0xffff;
         cpu.cs.checkAddress(tmpEip);
         cpu.eip = tmpEip;</snippet>
     <args size="16">Jw</args>
+  </opcode>
+  <opcode mnemonic="jmp">
+    <return>Branch.T1</return>
+    <snippet>        cpu.eip += blockLength;
+        int tmpEip = cpu.eip + jmp;
+        cpu.cs.checkAddress(tmpEip);
+        cpu.eip = tmpEip;</snippet>
     <args size="32">Jd</args>
   </opcode>
   <opcode mnemonic="jmp">
