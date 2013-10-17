@@ -56,14 +56,14 @@ public abstract class ProtectedModeSegment extends Segment
 
     public static final int DESCRIPTOR_TYPE_CODE_DATA = 0x10;
 
-    private final boolean defaultSize;
+    protected final boolean defaultSize;
     private final boolean granularity;
     private final boolean present;
     private final boolean system;
     private int selector;
-    private final int base;
+    protected final int base;
     private final int dpl;
-    private final long limit;
+    protected final long limit;
     private final long descriptor;
     private int rpl;
 

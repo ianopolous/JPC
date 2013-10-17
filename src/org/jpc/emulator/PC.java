@@ -395,16 +395,6 @@ public class PC {
         return 0;
     }
 
-    public void addToTicks(Integer delta)
-    {
-        for (HardwareComponent c: parts)
-            if (c instanceof Clock)
-            {
-                ((VirtualClock) c).update(delta);
-                return;
-            }
-    }
-
     public byte[] getCMOS()
     {
         RTC rtc = (RTC)getComponent(RTC.class);
@@ -739,22 +729,6 @@ public class PC {
     public void getDirtyPages(Set<Integer> res)
     {
         physicalAddr.getDirtyPages(res);
-    }
-
-    public void forceEnterInterrupt(Integer vector)
-    {
-        if (!processor.isProtectedMode())
-            processor.handleRealModeInterrupt(vector);
-        else
-            throw new IllegalStateException("Implement PM force interrupt..");
-    }
-
-    public void forceExitInterrupt()
-    {
-        if (!processor.isProtectedMode())
-            processor.iret_o16_a16();
-        else
-            throw new IllegalStateException("Implement PM force interrupt exit..");
     }
 
     public int executeBlock()

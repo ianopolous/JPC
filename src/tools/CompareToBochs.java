@@ -73,9 +73,13 @@ public class CompareToBochs
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1193181"};
+    public static final String[] win95 = {"-hda", "win95harddisk.img", "-boot", "hda", "-ips", "1193181"};
 
-    public static String[] pcargs = win311;
-    public static String CONFIG = "win311.cfg";
+    public static final Map<String, String[]> possibleArgs = new HashMap();
+    static {
+        possibleArgs.put("win311", win311);
+        possibleArgs.put("win95", win95);
+    }
 
     public static final int flagMask = ~0x000; // OF IF
     public static final int flagAdoptMask = ~0x10; // OF AF
@@ -125,34 +129,8 @@ public class CompareToBochs
 
     public static TreeSet<KeyBoardEvent> keyPresses = new TreeSet<KeyBoardEvent>();
     public static TreeSet<KeyBoardEvent> keyReleases = new TreeSet<KeyBoardEvent>();
-    public static final long START_KEYS = 380000000L;
-    static
-    {
-        // prince
-//        keyPresses.add(new KeyBoardEvent(200000000L, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(250000000L, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 10, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 20, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 30, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 40, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 50, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 60, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 70, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 80, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 90, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 100, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 110, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-    }
 
     public static TreeSet<MouseEvent> mouseInput = new TreeSet<MouseEvent>();
-    static
-    {
-        //mouseInput.add(new MouseEvent(0x42bb000L, 0, 0, 0, true, false, false));
-        //mouseInput.add(new MouseEvent(0x42bb010L, 0, 0, 0, false, false, false));
-        //mouseInput.add(new MouseEvent(0x6000000L, 0, 0, 0, false, false, true));
-        //mouseInput.add(new MouseEvent(0x6000100L, 0, 0, 0, false, false, false));
-    }
 
     public static void main(String[] args) throws Exception
     {
@@ -164,8 +142,9 @@ public class CompareToBochs
 
         Class opts = cl1.loadClass("org.jpc.j2se.Option");
         Method parse = opts.getMethod("parse", String[].class);
-        String[] tmp = new String[args.length + pcargs.length];
-        System.arraycopy(args, 0, tmp, 0, args.length);
+        String[] pcargs = possibleArgs.get(args[0]);
+        String[] tmp = new String[args.length -1 + pcargs.length];
+        System.arraycopy(args, 1, tmp, 0, args.length);
         System.arraycopy(pcargs, 0, tmp, args.length, pcargs.length);
         parse.invoke(opts, (Object)tmp);
 
@@ -176,7 +155,7 @@ public class CompareToBochs
         Constructor ctor = c1.getConstructor(String[].class, Calendar.class);
         Object newpc = ctor.newInstance((Object)pcargs, start1);
 
-        EmulatorControl bochs = new Bochs(CONFIG);
+        EmulatorControl bochs = new Bochs(args[0]+".cfg");
 
         Method m1 = c1.getMethod("hello");
         m1.invoke(newpc);
@@ -185,9 +164,6 @@ public class CompareToBochs
         Method state1 = c1.getMethod("getState");
         Method cmos1 = c1.getMethod("getCMOS");
         Method getPIT1 = c1.getMethod("getPit");
-        Method enterInt = c1.getMethod("forceEnterInterrupt", Integer.class);
-        Method exitInt = c1.getMethod("forceExitInterrupt");
-        Method ticksDelta = c1.getMethod("addToTicks", Integer.class);
 
         Method setState1 = c1.getMethod("setState", int[].class);
         Method execute1 = c1.getMethod("executeBlock");
@@ -373,6 +349,12 @@ public class CompareToBochs
                         System.out.println("Exception during Bochs execution... look above");
                         throw e;
                     }
+            }
+            // after an exception bochs does 1 more instruction, like with interrupts, need to catch JPC up
+            if ((fast[8] != bochsState[8]) && nextBochs.contains("PMvector=0xd"))
+            {
+                execute1.invoke(newpc);
+                // don't update ticks, as bochs doesn't
             }
 
 //            if (!keyPresses.isEmpty())

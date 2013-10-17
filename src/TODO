@@ -2,6 +2,7 @@ JPC TODO (In rough order of desirability)
 
 * boot Windows 3.11
 * auto resize JFrame in application
+* allow scaling of screen to window
 * Soundblaster - fix PCM sound
 * boot windows 95
 * boot windows 98
