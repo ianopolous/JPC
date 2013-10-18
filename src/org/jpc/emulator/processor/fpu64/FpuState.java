@@ -111,6 +111,7 @@ public abstract class FpuState implements Hibernatable
     public int lastOpcode; // 11 bits
 
     // x87 access
+    public abstract void prepareFPU(Processor cpu, boolean checkExceptions);
     public abstract void init();
     public abstract void push(double x) throws ProcessorException;
     public abstract double pop() throws ProcessorException;

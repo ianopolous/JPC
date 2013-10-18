@@ -34,15 +34,10 @@
 
 package org.jpc.emulator.processor.fpu64;
 
-// import java.math.BigDecimal;
 import org.jpc.emulator.processor.*;
 import java.io.*;
 import java.util.logging.*;
 
-/**
- * 
- * @author Jeff Tseng
- */
 public class FpuState64 extends FpuState
 {
     private static final Logger LOGGING = Logger.getLogger(FpuState64.class.getName());
@@ -140,6 +135,16 @@ public class FpuState64 extends FpuState
     public void setUnderflow() {statusWord |= 0x10;}
     public void setPrecision() { statusWord |= 0x20;}
     public void setStackFault() { statusWord |= 0x40;}
+    private static final boolean checkPendingExceptions = true;
+
+    public void prepareFPU(Processor cpu, boolean checkExceptions)
+    {
+        if (((cpu.getCR0() & Processor.CR0_FPU_EMULATION) != 0) || ((cpu.getCR0() & Processor.CR0_TASK_SWITCHED) != 0))
+            throw ProcessorException.NO_FPU;
+
+        if (checkExceptions)
+            checkExceptions();
+    }
 
     public void setC0(boolean val)
     {
@@ -262,12 +267,12 @@ public class FpuState64 extends FpuState
         data = new double[STACK_DEPTH];
         tag = new int[STACK_DEPTH];
         specialTag = new int[STACK_DEPTH];
-        init();
     }
 
     public void init()
     {
         // tag word (and non-x87 special tags)
+        prepareFPU(cpu, !checkPendingExceptions);
         for (int i = 0; i < tag.length; ++i)
             tag[i] = FPU_TAG_EMPTY;
         for (int i = 0; i < specialTag.length; ++i)
@@ -279,8 +284,7 @@ public class FpuState64 extends FpuState
         // control word
         setAllMasks(true);
         infinityControl = false;
-        setPrecisionControl(FPU_PRECISION_CONTROL_DOUBLE); // 64 bits default
-            // (x87 uses 80-bit precision as default!)
+        setPrecisionControl(FPU_PRECISION_CONTROL_EXTENDED);
         setRoundingControl(FPU_ROUNDING_CONTROL_EVEN); // default
         lastIP = lastData = lastOpcode = 0;
     }

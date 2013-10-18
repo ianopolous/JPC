@@ -49,7 +49,8 @@ public final class ProcessorException extends RuntimeException
     public static final ProcessorException GENERAL_PROTECTION_0 = new ProcessorException(Type.GENERAL_PROTECTION, 0, true);
     public static final ProcessorException FLOATING_POINT = new ProcessorException(Type.FLOATING_POINT, true);
     public static final ProcessorException ALIGNMENT_CHECK_0 = new ProcessorException(Type.ALIGNMENT_CHECK, 0, true);
-    
+    public static final ProcessorException NO_FPU = new ProcessorException(Type.NO_FPU, 0, true);
+
     public static enum Type {
         DIVIDE_ERROR(0x00),
         DEBUG(0x01),
