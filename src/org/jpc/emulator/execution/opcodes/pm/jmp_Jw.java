@@ -50,7 +50,7 @@ public class jmp_Jw extends Executable
     public Branch execute(Processor cpu)
     {
         cpu.eip += blockLength;
-        int tmpEip = cpu.eip + jmp&0xffff;
+        int tmpEip = cpu.eip + jmp & 0xffff;
         cpu.cs.checkAddress(tmpEip);
         cpu.eip = tmpEip;
         return Branch.T1;

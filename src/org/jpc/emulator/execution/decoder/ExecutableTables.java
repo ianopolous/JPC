@@ -15868,7 +15868,15 @@ ops[0x26e] = ops[0x6e];
 
 ops[0x26f] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Prefices.isRepne(prefices))
+        {
         return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        }
+        if (Prefices.isRep(prefices))
+        {
+        return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        }
+        return new org.jpc.emulator.execution.opcodes.pm.outsd_a16(blockStart, eip, prefices, input);
     }
 };
 ops[0x270] = ops[0x70];
