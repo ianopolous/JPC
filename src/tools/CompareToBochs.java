@@ -143,8 +143,9 @@ public class CompareToBochs
         Class opts = cl1.loadClass("org.jpc.j2se.Option");
         Method parse = opts.getMethod("parse", String[].class);
         String[] pcargs = possibleArgs.get(args[0]);
-        String[] tmp = new String[args.length -1 + pcargs.length];
-        System.arraycopy(args, 1, tmp, 0, args.length);
+        String[] tmp = new String[args.length + pcargs.length];
+        tmp[0] = "-bochs";
+        System.arraycopy(args, 1, tmp, 1, args.length-1);
         System.arraycopy(pcargs, 0, tmp, args.length, pcargs.length);
         parse.invoke(opts, (Object)tmp);
 
@@ -219,7 +220,7 @@ public class CompareToBochs
             bochsState = bochs.getState();
             if (followBochsInts)
             {
-                if (bochsState[16] >= 0x3473fcf)
+                if ((bochsState[16] >= 0x3473fcf) && (bochsState[16] < 0x3473fff))
                     System.out.printf("");
                 // if Bochs has gone into an interrupt from the PIT force JPC to trigger one at the same time
                 if (nextBochs.contains("vector=0x8") || nextBochs.contains("vector=0x50")) // relies on patch to exception.cc
@@ -355,6 +356,7 @@ public class CompareToBochs
             {
                 execute1.invoke(newpc);
                 // don't update ticks, as bochs doesn't
+                fast = (int[])state1.invoke(newpc);
             }
 
 //            if (!keyPresses.isEmpty())

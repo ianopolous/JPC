@@ -1307,15 +1307,21 @@ public class Processor implements HardwareComponent
         updateSegmentArray();
     }
 
-    public final boolean checkIOPermissions8(int ioportAddress)
+    public final boolean checkIOPermissions8(int port)
     {
         if ((getCPL() <= eflagsIOPrivilegeLevel) && !isVirtual8086Mode())
             return true;
 
+        if ((tss.getType() != ProtectedModeSegment.TYPE_AVAILABLE_32_TSS) && (tss.getType() != ProtectedModeSegment.TYPE_BUSY_32_TSS))
+            return false;
+        if (tss.getLimit() < 103)
+            return false;
         int ioPermMapBaseAddress = 0xffff & tss.getWord(102);
+        if (ioPermMapBaseAddress + port/8 >= tss.getLimit())
+            return false;
         try {
-            byte ioPermMapByte = tss.getByte(ioPermMapBaseAddress + (ioportAddress >>> 3));
-            return (ioPermMapByte & (0x1 << (ioportAddress & 0x7))) == 0;
+            byte ioPermMapByte = tss.getByte(ioPermMapBaseAddress + (port >>> 3));
+            return (ioPermMapByte & (1 << (port & 0x7))) == 0;
         } catch (ProcessorException p) {
             if (p.getType() == ProcessorException.Type.GENERAL_PROTECTION)
                 return false;
@@ -1466,7 +1472,7 @@ public class Processor implements HardwareComponent
                     //SAME PRIVILEGE-LEVEL
                     returnSegment.checkAddress(tempEIP);
 
-                    r_esp.set16(((r_esp.get32() + 4 + stackdelta) &0xFFFF));
+                    r_esp.set16(((r_esp.get32() + 4 + stackdelta) & 0xFFFF));
                     eip = tempEIP;
                     cs(returnSegment);
                 }
@@ -1492,7 +1498,7 @@ public class Processor implements HardwareComponent
                     //SAME PRIVILEGE-LEVEL
                     returnSegment.checkAddress(tempEIP);
 
-                    r_esp.set16(((r_esp.get32() + 4 + stackdelta) &0xFFFF));
+                    r_esp.set16(((r_esp.get32() + 4 + stackdelta) & 0xFFFF));
                     eip = tempEIP;
                     cs(returnSegment);
                 }
@@ -1617,7 +1623,7 @@ public class Processor implements HardwareComponent
                     //SAME PRIVILEGE-LEVEL
                     returnSegment.checkAddress(tempEIP);
 
-                    r_esp.set16(((r_esp.get32() + 8 + stackdelta) &0xFFFF));
+                    r_esp.set16(((r_esp.get32() + 8 + stackdelta) & 0xFFFF));
                     eip = tempEIP;
                     cs(returnSegment);
                 }
@@ -1646,7 +1652,7 @@ public class Processor implements HardwareComponent
                     //SAME PRIVILEGE-LEVEL
                     returnSegment.checkAddress(tempEIP);
 
-                    r_esp.set16(((r_esp.get32() + 8 + stackdelta) &0xFFFF));
+                    r_esp.set16(((r_esp.get32() + 8 + stackdelta) & 0xFFFF));
                     eip = tempEIP;
                     cs(returnSegment);
                 }

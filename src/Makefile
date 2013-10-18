@@ -76,28 +76,6 @@ cleanse: clean
 	rm -f `find . -iname \*.class`
 	rm -f `find . -name \*~ -o -name \*#`
 
-.PHONY: core
-core: build_core
-	echo "Name: JPC Core" > core.manifest
-	echo "Build-Date:" `date` >> core.manifest
-	echo "" >> core.manifest
-	jar -cf jpc_core.jar resources/bios/bios.bin resources/bios/vgabios.bin \
-	    -C build org/jpc/classfile -C build org/jpc/emulator \
-	    -C build org/jpc/support -C build org/jpc/j2se \
-		resources/smallpause.png \
-		resources/smallplay.png
-	rm -f core.manifest
-
-.PHONY: jpc
-jpc: core
-	echo "Name: JPC" > jpc.manifest
-	echo "Main-Class: org.jpc.j2se.PCMonitorFrame" >> jpc.manifest
-	echo "Class-Path: jpc_core.jar" >> jpc.manifest
-	echo "Build-Date: " `date` >> jpc.manifest
-	echo "" >> jpc.manifest
-	jar -cfm jpc.jar jpc.manifest resources/images/floppy.img resources/images/dosgames.img
-	rm -f jpc.manifest
-
 .PHONY: application
 application: build_core
 	echo "Name: JPC Application" > application.manifest
@@ -118,41 +96,3 @@ application: build_core
 	    -C build org/jpc/classfile -C build org/jpc/emulator \
 	    -C build org/jpc/support -C build org/jpc/j2se -C build org/jpc/debugger
 	rm -f application.manifest
-
-.PHONY: compare
-compare: build_core
-	echo "Name: JPC Application" > application.manifest
-	echo "Main-Class: org.jpc.j2se.Comparison" >> application.manifest
-	echo "Build-Date: " `date` >> application.manifest
-	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> application.manifest
-	echo "" >> application.manifest
-
-	jar -cfm Compare.jar application.manifest \
-	    resources/bios/vgabios.bin \
-	    resources/bios/bios.bin resources/images/dosgames.img \
-	    resources/images/floppy.img resources/icon.png \
-	    resources/licence.html resources/jpc.png \
-	    resources/smallpause.png \
-	    resources/smallplay.png \
-	    resources/tick.png \
-	    -C build org/jpc/classfile -C build org/jpc/emulator \
-	    -C build org/jpc/support -C build org/jpc/j2se
-	rm -f application.manifest
-
-.PHONY: linuxapplication
-linuxapplication: core
-	echo "Name: JPC Linux Application" > linuxapplication.manifest
-	echo "Main-Class: org.jpc.j2se.JPCApplication" >> linuxapplication.manifest
-	echo "Class-Path: jpc_core.jar" >> linuxapplication.manifest
-	echo "Build-Date: " `date` >> linuxapplication.manifest
-	echo "Default-Args: -hda mem:resources/images/linux.img -boot hda" >> linuxapplication.manifest
-	echo "" >> linuxapplication.manifest
-
-	jar -cfm linuxapplication.jar linuxapplication.manifest \
-	    resources/bios/vgabios.bin \
-	    resources/bios/bios.bin resources/images/linux.img \
-	    resources/icon.png resources/licence.html resources/jpc.png
-	    resources/smallpause.png \
-	    resources/smallplay.png \
-	    resources/tick.png
-	rm -f linuxapplication.manifest

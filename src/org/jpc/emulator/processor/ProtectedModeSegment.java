@@ -39,10 +39,6 @@ import java.util.logging.*;
 import org.jpc.emulator.memory.AddressSpace;
 import org.jpc.emulator.memory.LinearAddressSpace;
 
-/**
- *
- * @author Chris Dennis
- */
 public abstract class ProtectedModeSegment extends Segment
 {
     private static final Logger LOGGING = Logger.getLogger(ProtectedModeSegment.class.getName());
@@ -53,8 +49,10 @@ public abstract class ProtectedModeSegment extends Segment
     public static final int TYPE_DATA_EXPAND_DOWN = 0x4;
     public static final int TYPE_CODE_READABLE = 0x2;
     public static final int TYPE_CODE_CONFORMING = 0x4;
-
     public static final int DESCRIPTOR_TYPE_CODE_DATA = 0x10;
+
+    public static final int TYPE_AVAILABLE_32_TSS = 0x9;
+    public static final int TYPE_BUSY_32_TSS = 0xb;
 
     protected final boolean defaultSize;
     private final boolean granularity;
@@ -497,7 +495,7 @@ public abstract class ProtectedModeSegment extends Segment
 
         public int getType()
         {
-            return 0x09;
+            return TYPE_AVAILABLE_32_TSS;
         }
     }
 
@@ -510,7 +508,7 @@ public abstract class ProtectedModeSegment extends Segment
 
         public int getType()
         {
-            return 0x0b;
+            return TYPE_BUSY_32_TSS;
         }
     }
 

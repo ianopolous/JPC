@@ -36,6 +36,7 @@ package org.jpc.emulator.processor;
 import org.jpc.emulator.memory.*;
 
 import java.io.*;
+import static org.jpc.emulator.processor.ProtectedModeSegment.*;
 
 /**
  * 
@@ -109,9 +110,9 @@ public class SegmentFactory
                 return new ProtectedModeSegment.InterruptGate16Bit(memory, selector, descriptor);
             case 0x07: //System Segment: 16-bit Trap Gate
                 return new ProtectedModeSegment.TrapGate16Bit(memory, selector, descriptor);
-            case 0x09: //System Segment: 32-bit TSS (Available)
+            case TYPE_AVAILABLE_32_TSS: //System Segment: 32-bit TSS (Available)
                 return new ProtectedModeSegment.Available32BitTSS(memory, selector, descriptor);
-            case 0x0b: //System Segment: 32-bit TSS (Busy)
+            case TYPE_BUSY_32_TSS: //System Segment: 32-bit TSS (Busy)
                 return new ProtectedModeSegment.Busy32BitTSS(memory, selector, descriptor);
             case 0x0c: //System Segment: 32-bit Call Gate
                 return new ProtectedModeSegment.CallGate32Bit(memory, selector, descriptor);
