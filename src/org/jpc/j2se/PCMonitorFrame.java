@@ -63,10 +63,9 @@ public class PCMonitorFrame extends JFrame implements Runnable
     
     private JScrollPane monitorPane;
     private final JProgressBar speedDisplay;
-    private final int nativeClockSpeed;
     private JFileChooser configFileChooser;
 
-    private static final boolean updateMHz = false;
+    private static final boolean updateMHz = true;
     private volatile boolean running;
     private Thread runner;
 
@@ -84,20 +83,6 @@ public class PCMonitorFrame extends JFrame implements Runnable
         
         this.pc = pc;
    
-        String mhzArg = ArgProcessor.findVariable(args, "mhz", null);
-        if (mhzArg != null) {
-            int cs;
-            try {
-                cs = Integer.parseInt(mhzArg);
-            } catch (NumberFormatException e) {
-                cs = 3000;
-            }
-            nativeClockSpeed = cs;
-        } else {
-            nativeClockSpeed = 3000;
-        }
-        
-        
 
         JMenuBar bar = new JMenuBar();
 
@@ -150,7 +135,7 @@ public class PCMonitorFrame extends JFrame implements Runnable
 
         setJMenuBar(bar);
         
-        //getContentPane().add("South", speedDisplay);
+        getContentPane().add("South", speedDisplay);
 
         try
         {
@@ -176,12 +161,10 @@ public class PCMonitorFrame extends JFrame implements Runnable
         //count = COUNTDOWN - count;
         float mhz = count * 1000.0F / (t2 - time) / 1000000;
 
-        float clockSpeed = 17.25F / 770 * mhz / 7.5F * 2.790F;
-        int percent = (int) (clockSpeed / nativeClockSpeed * 1000 * 100 * 10);
-        speedDisplay.setValue(percent);
+        speedDisplay.setValue((int)(mhz/1000));
         synchronized (TWO_DP) 
         {
-            speedDisplay.setString(TWO_DP.format(mhz) + " MHz or " + THREE_DP.format(clockSpeed) + " GHz Clock");
+            speedDisplay.setString(TWO_DP.format(mhz) + " MHz or " + THREE_DP.format(mhz/1000) + " GHz Clock");
         }
         return true;
     }
@@ -298,6 +281,7 @@ public class PCMonitorFrame extends JFrame implements Runnable
     public static void main(String[] args) throws Exception
     {
         //JPCStatisticsMonitor.install();
+        Option.parse(args);
 
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 

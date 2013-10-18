@@ -1,6 +1,7 @@
 JPC TODO (In rough order of desirability)
 
 * boot Windows 3.11
+* fix bug leading to top ~1/3 of screen being redrawn at the bottom third (e.g. dsl and kolibri)
 * auto resize JFrame in application
 * allow scaling of screen to window
 * Soundblaster - fix PCM sound
