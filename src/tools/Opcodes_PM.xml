@@ -1532,7 +1532,7 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="out">
     <return>Branch.None</return>
-    <snippet>        if (cpu.checkIOPermissions8($mask2$op2.get))
+    <snippet>        if (cpu.checkIOPermissions8($mask1$op1.get))
             cpu.ioports.ioPortWrite8($mask1$op1.get, $mask2$op2.get);
         else
             throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
@@ -1541,7 +1541,7 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   </opcode>
   <opcode mnemonic="out_o16">
     <return>Branch.None</return>
-    <snippet>        if (cpu.checkIOPermissions16($mask2$op2.get))
+    <snippet>        if (cpu.checkIOPermissions16($mask2$op1.get))
             cpu.ioports.ioPortWrite16($mask1$op1.get, $mask2$op2.get);
         else
             throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
@@ -1549,7 +1549,7 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   </opcode>
   <opcode mnemonic="out_o32">
     <return>Branch.None</return>
-    <snippet>        if (cpu.checkIOPermissions32($mask2$op2.get))
+    <snippet>        if (cpu.checkIOPermissions32($mask1$op1.get))
             cpu.ioports.ioPortWrite32($mask1$op1.get, $op2.get);
         else
             throw ProcessorException.GENERAL_PROTECTION_0;</snippet>

@@ -139,7 +139,7 @@ public class FpuState64 extends FpuState
 
     public void prepareFPU(Processor cpu, boolean checkExceptions)
     {
-        if (((cpu.getCR0() & Processor.CR0_FPU_EMULATION) != 0) || ((cpu.getCR0() & Processor.CR0_TASK_SWITCHED) != 0))
+        if (((cpu.getCR0() & Processor.CR0_FPU_EMULATION) != 0) || (((cpu.getCR0() & Processor.CR0_MONITOR_COPROCESSOR) != 0) && ((cpu.getCR0() & Processor.CR0_TASK_SWITCHED) != 0)))
             throw ProcessorException.NO_FPU;
 
         if (checkExceptions)

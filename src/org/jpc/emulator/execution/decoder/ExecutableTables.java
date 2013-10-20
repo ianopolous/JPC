@@ -19780,7 +19780,15 @@ ops[0x66e] = new OpcodeDecoder() {
 };
 ops[0x66f] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Prefices.isRepne(prefices))
+        {
         return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        }
+        if (Prefices.isRep(prefices))
+        {
+        return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        }
+        return new org.jpc.emulator.execution.opcodes.pm.outsd_a32(blockStart, eip, prefices, input);
     }
 };
 ops[0x670] = ops[0x70];
