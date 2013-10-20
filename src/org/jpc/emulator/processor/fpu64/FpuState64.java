@@ -271,8 +271,9 @@ public class FpuState64 extends FpuState
 
     public void init()
     {
-        // tag word (and non-x87 special tags)
-        prepareFPU(cpu, !checkPendingExceptions);
+        //Bochs does these check, but they stop many things booting!
+        //prepareFPU(cpu, !checkPendingExceptions);
+
         for (int i = 0; i < tag.length; ++i)
             tag[i] = FPU_TAG_EMPTY;
         for (int i = 0; i < specialTag.length; ++i)

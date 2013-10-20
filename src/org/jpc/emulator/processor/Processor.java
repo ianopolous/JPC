@@ -3850,7 +3850,7 @@ public class Processor implements HardwareComponent
             if ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) != 0) {
                 interruptFlags &= ~IFLAGS_HARDWARE_INTERRUPT;
                 int vec = interruptController.cpuGetInterrupt();
-                System.out.printf("JPC handling interrupt 0x%x\n", vec);
+                //System.out.printf("JPC handling interrupt 0x%x\n", vec);
                 handleHardProtectedModeInterrupt(vec);
             }
         }
