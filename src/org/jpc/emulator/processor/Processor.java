@@ -44,6 +44,7 @@ import static org.jpc.emulator.execution.UCodes.*;
 public class Processor implements HardwareComponent
 {
     private static final Logger LOGGING = Logger.getLogger(Processor.class.getName());
+    private static final boolean DELAY = Option.useBochs.isSet();
 
     public static final int STATE_VERSION = 1;
     public static final int STATE_MINOR_VERSION = 0;
@@ -3837,6 +3838,8 @@ public class Processor implements HardwareComponent
         //eflagsInterruptEnable = eflagsInterruptEnableSoon;
     }
 
+    private int lastPMVector = -1;
+
     public final void processProtectedModeInterrupts(int instructions)
     {
         vmClock.updateAndProcess(instructions);
@@ -3847,11 +3850,20 @@ public class Processor implements HardwareComponent
                 return;
             }
 
+            if (lastPMVector != -1)
+            {
+                handleHardProtectedModeInterrupt(lastPMVector);
+                lastPMVector = -1;
+                return;
+            }
             if ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) != 0) {
                 interruptFlags &= ~IFLAGS_HARDWARE_INTERRUPT;
                 int vec = interruptController.cpuGetInterrupt();
                 //System.out.printf("JPC handling interrupt 0x%x\n", vec);
-                handleHardProtectedModeInterrupt(vec);
+                if (DELAY && vec != interruptController.getIRQ0Vector())
+                    lastPMVector = vec;
+                else
+                    handleHardProtectedModeInterrupt(vec);
             }
         }
         //eflagsInterruptEnable = eflagsInterruptEnableSoon;

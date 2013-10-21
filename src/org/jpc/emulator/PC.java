@@ -88,6 +88,7 @@ public class PC {
     private final PhysicalAddressSpace physicalAddr;
     private final LinearAddressSpace linearAddr;
     private final Clock vmClock;
+    private final InterruptController pic;
     private final List<HardwareComponent> parts;
     private final CodeBlockManager manager;
     private final EthernetCard ethernet;
@@ -138,7 +139,8 @@ public class PC {
         //Motherboard
 
         parts.add(new IOPortHandler());
-        parts.add(new InterruptController());
+        pic = new InterruptController();
+        parts.add(pic);
 
         parts.add(new DMAController(false, true));
         parts.add(new DMAController(false, false));

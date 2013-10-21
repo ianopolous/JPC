@@ -35,6 +35,7 @@ package org.jpc.emulator.motherboard;
 
 import org.jpc.emulator.*;
 import org.jpc.emulator.processor.Processor;
+import org.jpc.j2se.*;
 
 import java.io.*;
 import java.util.logging.*;
@@ -50,7 +51,7 @@ import java.util.logging.*;
 public class InterruptController extends AbstractHardwareComponent implements IODevice
 {
     private static final Logger LOGGING = Logger.getLogger(InterruptController.class.getName());
-    
+
     private InterruptControllerElement master;
     private InterruptControllerElement slave;
 
@@ -78,6 +79,11 @@ public class InterruptController extends AbstractHardwareComponent implements IO
         ioportRegistered = false;
         master.loadState(input);
         slave.loadState(input);
+    }
+
+    public int getIRQ0Vector()
+    {
+        return master.irqBase;
     }
 
     private void updateIRQ()
