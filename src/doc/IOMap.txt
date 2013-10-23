@@ -1,0 +1,33 @@
+All in hex.
+JPC IOPorts
+SystemBIOS  400-403, 8900
+
+InterruptController (PIC) 20,  21, A0, A1, 4D0, 4D1
+
+RTC 70, 71
+
+IntervalTimer (PIT) 40-43
+
+Keyboard 60, 64
+
+FloppyController 3F1-3F5, 3F7
+
+VGACard 3B4, 3B5, 3BA, 3D4, 3D5, 3DA, 3C0-3CF, 1CE, 1CF, FF80, FF81
+
+VGABIOS 500-503
+
+PCIHostBridge CF8-CFF
+
+GateA20Handler 92
+
+SerialPort 3F8-3FF
+
+PCSpeaker 61
+
+IDEChannel 170-177, 376
+
+BMDMAIORegion C000-C00F
+
+DMAController C0, C2, C4, C6, C8, CA, CC, CE
+              81, 81, 83, 87, 89, 8A, 8B, 8F
+              D0, D2, D4, D6, D8, DA, DC, DE
