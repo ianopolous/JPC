@@ -677,7 +677,7 @@ public class FloppyController implements IODevice, DMATransferCapable, HardwareC
                     drive = getCurrentDrive();
                     drive.recalibrate();
                     resetFIFO();
-                    if (Option.useBochs.isSet())
+                    if (Option.useBochs.isSet()) // time to read one sector at 300RPM, T = 200_000_000/sectorsPerTrack nS - only works with 150M Mhz IPS (32 milli S)
                         clock.newTimer(new IRQTimer()).setExpiry(clock.getEmulatedNanos() + 32000000);
                     else
                         raiseIRQ(0x20);

@@ -35,6 +35,8 @@
 package org.jpc.emulator.processor.fpu64;
 
 import org.jpc.emulator.processor.*;
+import org.jpc.j2se.*;
+
 import java.io.*;
 import java.util.logging.*;
 
@@ -271,8 +273,9 @@ public class FpuState64 extends FpuState
 
     public void init()
     {
-        //Bochs does these check, but they stop many things booting!
-        //prepareFPU(cpu, !checkPendingExceptions);
+        //Bochs does these checks, but they stop many things booting!
+        if (Option.useBochs.isSet())
+            prepareFPU(cpu, !checkPendingExceptions);
 
         for (int i = 0; i < tag.length; ++i)
             tag[i] = FPU_TAG_EMPTY;
