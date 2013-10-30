@@ -35,6 +35,7 @@ import static org.jpc.emulator.execution.Executable.*;
 public class InterpretedRealModeBlock implements RealModeCodeBlock
 {
     public final BasicBlock b;
+    private boolean valid = true;
 
     public InterpretedRealModeBlock(BasicBlock b)
     {
@@ -60,6 +61,8 @@ public class InterpretedRealModeBlock implements RealModeCodeBlock
             while ((ret = current.execute(cpu)) == Executable.Branch.None)
             {
                 b.postInstruction(cpu, current);
+                if (!valid)
+                    throw new SelfModifyingCodeException("Block modified itself!");
                 current = current.next;
             }
             b.postInstruction(cpu, current);
@@ -94,6 +97,11 @@ public class InterpretedRealModeBlock implements RealModeCodeBlock
             e.setX86Count(count);
             throw e;
         }
+        catch (SelfModifyingCodeException e)
+        {
+            cpu.eip += current.next.delta;
+            return Branch.Exception;
+        }
         finally
         {
             b.postBlock(cpu);
@@ -109,7 +117,8 @@ public class InterpretedRealModeBlock implements RealModeCodeBlock
     }
 
     public boolean handleMemoryRegionChange(int startAddress, int endAddress) {
-        return b.handleMemoryRegionChange(startAddress, endAddress);
+        valid = b.handleMemoryRegionChange(startAddress, endAddress);
+        return valid;
     }
 
 

@@ -35,6 +35,7 @@ import static org.jpc.emulator.execution.Executable.*;
 public class InterpretedVM86ModeBlock implements Virtual8086ModeCodeBlock
 {
     private final BasicBlock b;
+    private boolean valid = true;
 
     public InterpretedVM86ModeBlock(BasicBlock b)
     {
@@ -60,6 +61,8 @@ public class InterpretedVM86ModeBlock implements Virtual8086ModeCodeBlock
             while ((ret = current.execute(cpu)) == Executable.Branch.None)
             {
                 b.postInstruction(cpu, current);
+                if (!valid)
+                    throw new SelfModifyingCodeException("Block modified itself!");
                 current = current.next;
             }
             b.postInstruction(cpu, current);
@@ -92,6 +95,11 @@ public class InterpretedVM86ModeBlock implements Virtual8086ModeCodeBlock
             e.setX86Count(count);
             throw e;
         }
+        catch (SelfModifyingCodeException e)
+        {
+            cpu.eip += current.next.delta;
+            return Branch.Exception;
+        }
         finally
         {
             b.postBlock(cpu);
@@ -107,7 +115,8 @@ public class InterpretedVM86ModeBlock implements Virtual8086ModeCodeBlock
     }
 
     public boolean handleMemoryRegionChange(int startAddress, int endAddress) {
-        return b.handleMemoryRegionChange(startAddress, endAddress);
+        valid =  b.handleMemoryRegionChange(startAddress, endAddress);
+        return valid;
     }
 
 
