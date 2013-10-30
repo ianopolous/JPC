@@ -74,7 +74,7 @@ public class CompareToBochs
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1193181"};
     public static final String[] win95 = {"-hda", "win95harddisk.img", "-boot", "hda", "-ips", "1193181"};
-    public static final String[] dosPascal = {"-hda", "tests/CRASHES.img", "-boot", "fda", "-fda", "floppy.img", "-ips", "150000000"};
+    public static final String[] dosPascal = {"-hda", "freedos.img", "-boot", "hda", "-fda", "floppy.img", "-ips", "1193181"};
 
     public static final Map<String, String[]> possibleArgs = new HashMap();
     static {

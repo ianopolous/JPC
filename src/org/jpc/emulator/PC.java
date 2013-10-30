@@ -791,18 +791,19 @@ public class PC {
         catch (ModeSwitchException e)
         {
             // uncomment for compare to single stepping or comparing to Bochs...
-            staticClockx86Count += e.getX86Count()-1;
-            if (Option.singlesteptime.value())
-                vmClock.updateAndProcess(1);
-            else if (staticClockx86Count >0)
-            {
-                for (int i=0; i < staticClockx86Count; i++)
-                    vmClock.updateAndProcess(1);
-            }
-            else
-                vmClock.updateAndProcess(0);
-            staticClockx86Count = 0;
+//            staticClockx86Count += e.getX86Count();
+//            if (Option.singlesteptime.value())
+//                vmClock.updateAndProcess(1);
+//            else if (staticClockx86Count >0)
+//            {
+//                for (int i=0; i < staticClockx86Count; i++)
+//                    vmClock.updateAndProcess(1);
+//            }
+//            else
+//                vmClock.updateAndProcess(0);
+//            staticClockx86Count = 0;
             LOGGING.log(Level.FINE, "Mode switch in RM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
+            return e.getX86Count();
         }
         return 0;
     }
@@ -831,18 +832,19 @@ public class PC {
         catch (ModeSwitchException e)
         {
             // uncomment for compare to single stepping...
-            staticClockx86Count += e.getX86Count()-1;
-            if (Option.singlesteptime.value())
-                vmClock.updateAndProcess(1);
-            else if (staticClockx86Count > 0)
-            {
-                for (int i=0; i < staticClockx86Count; i++)
-                    vmClock.updateAndProcess(1);
-            }
-            else
-                vmClock.updateAndProcess(0);
-            staticClockx86Count = 0;
+//            staticClockx86Count += e.getX86Count();
+//            if (Option.singlesteptime.value())
+//                vmClock.updateAndProcess(1);
+//            else if (staticClockx86Count > 0)
+//            {
+//                for (int i=0; i < staticClockx86Count; i++)
+//                    vmClock.updateAndProcess(1);
+//            }
+//            else
+//                vmClock.updateAndProcess(0);
+//            staticClockx86Count = 0;
             LOGGING.log(Level.FINE, "Mode switch in VM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
+            return e.getX86Count();
         }
         return 0;
     }
@@ -871,18 +873,19 @@ public class PC {
         catch (ModeSwitchException e)
         {
             // uncomment for compare to single stepping...
-            staticClockx86Count += e.getX86Count()-1;
-            if (Option.singlesteptime.value())
-                vmClock.updateAndProcess(1);
-            else if (staticClockx86Count >0)
-            {
-                for (int i=0; i < staticClockx86Count; i++)
-                    vmClock.updateAndProcess(1);
-            }
-            else
-                vmClock.updateAndProcess(0);
-            staticClockx86Count = 0;
+//            staticClockx86Count += e.getX86Count();
+//            if (Option.singlesteptime.value())
+//                vmClock.updateAndProcess(1);
+//            else if (staticClockx86Count >0)
+//            {
+//                for (int i=0; i < staticClockx86Count; i++)
+//                    vmClock.updateAndProcess(1);
+//            }
+//            else
+//                vmClock.updateAndProcess(0);
+//            staticClockx86Count = 0;
             LOGGING.log(Level.FINE, "Mode switch in PM @ cs:eip " + Integer.toHexString(processor.cs.getBase()) + ":" + Integer.toHexString(processor.eip));
+            return e.getX86Count();
         }
         return 0;
     }

@@ -46,7 +46,7 @@ public class ComparisonToSingleStep
 
     public static void main(String[] args) throws Exception
     {
-        String[] pcargs = Comparison.pcargs;
+        String[] pcargs = CompareToBochs.possibleArgs.get("dosPascal");
         boolean mem = false;
         if ((args.length >0) && args[0].equals("-mem"))
             mem = true;
@@ -57,11 +57,16 @@ public class ComparisonToSingleStep
 
         Class opts = cl1.loadClass("org.jpc.j2se.Option");
         Method parse = opts.getMethod("parse", String[].class);
-        parse.invoke(opts, (Object)args);
+        String[] tmp = new String[pcargs.length +2];
+        System.arraycopy(pcargs, 0, tmp, 2, pcargs.length);
+        tmp[0] = "-max-block-size";
+        tmp[1] = "1";
+        parse.invoke(opts, (Object)tmp);
 
         Class opts2 = cl2.loadClass("org.jpc.j2se.Option");
         Method parse2 = opts2.getMethod("parse", String[].class);
         parse2.invoke(opts2, (Object)new String[] {"-max-block-size", ""+M, "-singlestep-time"});
+        parse2.invoke(opts2, (Object)pcargs);
 
         Calendar start = Calendar.getInstance();
         Class c1 = cl1.loadClass("org.jpc.emulator.PC");
@@ -77,8 +82,8 @@ public class ComparisonToSingleStep
         Method m2 = c2.getMethod("hello");
         m2.invoke(oldpc);
 
-        Method ints1 = c1.getMethod("checkInterrupts");
-        Method ints2 = c2.getMethod("checkInterrupts");
+        Method ints1 = c1.getMethod("checkInterrupts", Integer.class);
+        Method ints2 = c2.getMethod("checkInterrupts", Integer.class);
 
         Method state1 = c1.getMethod("getState");
         Method setState1 = c1.getMethod("setState", int[].class);
@@ -89,12 +94,6 @@ public class ComparisonToSingleStep
         Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
         Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
         Method save2 = c2.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
-        Method startClock1 = c1.getMethod("start");
-        Method startClock2 = c2.getMethod("start");
-        startClock1.invoke(singleStepPC);
-        startClock2.invoke(oldpc);
-        Method break1 = c1.getMethod("eipBreak", Integer.class);
-        Method break2 = c2.getMethod("eipBreak", Integer.class);
         Method instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
 
         Method keysDown1 = c1.getMethod("sendKeysDown", String.class);
@@ -103,6 +102,11 @@ public class ComparisonToSingleStep
         Method keysUp2 = c2.getMethod("sendKeysUp", String.class);
         Method minput1 = c1.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
         Method minput2 = c2.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
+
+        Method startClock1 = c1.getMethod("start");
+        startClock1.invoke(singleStepPC);
+        Method startClock2 = c2.getMethod("start");
+        startClock2.invoke(oldpc);
 
         // setup screen from new JPC
         JPanel screen = (JPanel)c1.getMethod("getNewMonitor").invoke(singleStepPC);
@@ -124,61 +128,34 @@ public class ComparisonToSingleStep
         int ticksDelta = 0;
         while (true)
         {
+            int fullBlockSize;
             try {
-                execute2.invoke(oldpc);
+                fullBlockSize = (Integer)execute2.invoke(oldpc);
+                ints2.invoke(oldpc, new Integer(fullBlockSize));
             } catch (Exception e)
             {
-                System.err.println("Error excuting normal blocks..");
+                System.err.println("Error executing normal blocks..");
                 e.printStackTrace();
                 printHistory();
                 throw e;
             }
-            ints2.invoke(oldpc);
-            execute1.invoke(singleStepPC);
-            int[] fast = (int[])state1.invoke(singleStepPC);
-            int[] old = (int[])state2.invoke(oldpc);
-            old[16] += ticksDelta;
-            int count = 1;
-            if (old[16] >= 0x7BD1647)
-                System.out.println("here");
-            while (fast[16] < old[16])
+
+            int[] oldState = (int[])state2.invoke(oldpc);
+
+            int count = 0;
+            for (;count < fullBlockSize;)
             {
-                execute1.invoke(singleStepPC);
-                count++;
-                fast = (int[])state1.invoke(singleStepPC);
-                if (count > M)
-                {
-                    System.out.println("Never reached same ticks as block at a time");
-                    printHistory();
-                    System.exit(0);
-                }
+                int blockLength = (Integer)execute1.invoke(singleStepPC); // may be 2 after a CLI, STI, mov ss,X etc.
+                count += blockLength;
             }
-            if (fast[16] > old[16])
-            {
-                while (fast[8] != old[8])
-                {
-                    execute1.invoke(singleStepPC);
-                    count++;
-                    fast = (int[])state1.invoke(singleStepPC);
-                    if (count > M)
-                    {
-                        System.out.println("Never reached same eip as block at a time");
-                        printHistory();
-                        System.exit(0);
-                    }
-                }
-                //fix ticks difference after mode switch - NOT NEEDED ANYMORE
-                ticksDelta += fast[16] - old[16];
-                fast[16] = old[16];
-            }
-            ints1.invoke(singleStepPC);
-            fast = (int[])state1.invoke(singleStepPC);
+            ints1.invoke(singleStepPC, new Integer(count));
+            int[] singleStepState = (int[])state1.invoke(singleStepPC);
             try {
-                line = (String) instructionInfo.invoke(singleStepPC, new Integer(1)); // instructions per block
+                line = (String) instructionInfo.invoke(singleStepPC, new Integer(fullBlockSize)); // instructions per block
             } catch (Exception e)
             {
                 e.printStackTrace();
-                System.out.printf("Error getting instruction info.. at cs:eip = %08x\n", fast[8]+(fast[10]<<4));
+                System.out.printf("Error getting instruction info.. at cs:eip = %08x\n", singleStepState[8]+(singleStepState[10]<<4));
                 line = "Instruction decode error";
                 printHistory();
                 continueExecution("after Invalid decode at cs:eip");
@@ -187,7 +164,7 @@ public class ComparisonToSingleStep
             if (!Comparison.keyPresses.isEmpty())
             {
                 Comparison.KeyBoardEvent k = Comparison.keyPresses.first();
-                if (fast[16] > k.time)
+                if (singleStepState[16] > k.time)
                 {
                     keysDown1.invoke(singleStepPC, k.text);
                     keysDown2.invoke(oldpc, k.text);
@@ -198,7 +175,7 @@ public class ComparisonToSingleStep
             if (!Comparison.keyReleases.isEmpty())
             {
                 Comparison.KeyBoardEvent k = Comparison.keyReleases.first();
-                if (fast[16] > k.time)
+                if (singleStepState[16] > k.time)
                 {
                     keysUp1.invoke(singleStepPC, k.text);
                     keysUp2.invoke(oldpc, k.text);
@@ -208,7 +185,7 @@ public class ComparisonToSingleStep
             }if (!Comparison.mouseInput.isEmpty())
             {
                 Comparison.MouseEvent k = Comparison.mouseInput.first();
-                if (fast[16] > k.time)
+                if (singleStepState[16] > k.time)
                 {
                     minput1.invoke(singleStepPC, k.dx, k.dy, k.dz, k.buttons);
                     minput2.invoke(oldpc, k.dx, k.dy, k.dz, k.buttons);
@@ -217,36 +194,36 @@ public class ComparisonToSingleStep
             }
             if (history[historyIndex] == null)
                 history[historyIndex] = new Object[3];
-            history[historyIndex][0] = fast;
-            history[historyIndex][1] = old;
+            history[historyIndex][0] = singleStepState;
+            history[historyIndex][1] = oldState;
             history[historyIndex][2] = line;
             historyIndex = (historyIndex+1)%history.length;
             Set<Integer> diff = new HashSet<Integer>();
-            if (!Comparison.sameStates(fast, old, compareFlags, diff))
+            if (!Comparison.sameStates(singleStepState, oldState, compareFlags, diff))
             {
                 if ((diff.size() == 1) && diff.contains(9))
                 {
                     // adopt flags
-                    fast[9] = old[9];
-                    setState1.invoke(singleStepPC, (int[])fast);
+                    singleStepState[9] = oldState[9];
+                    setState1.invoke(singleStepPC, (int[])singleStepState);
                 }
                 diff.clear();
-                if (!Comparison.sameStates(fast, old, compareFlags, diff))
+                if (!Comparison.sameStates(singleStepState, oldState, compareFlags, diff))
                 {
                     printHistory();
                     for (int diffIndex: diff)
-                        System.out.printf("Difference: %s %08x - %08x\n", names[diffIndex], fast[diffIndex], old[diffIndex]);
+                        System.out.printf("Difference: %s %08x - %08x\n", names[diffIndex], singleStepState[diffIndex], oldState[diffIndex]);
                     if (continueExecution("registers"))
-                        setState1.invoke(singleStepPC, (int[])old);
+                        setState1.invoke(singleStepPC, (int[])oldState);
                     else
                         System.exit(0);
                 }
             }
             if (compareStack)
             {
-                boolean pm = (fast[36] & 1) != 0;
-                int ssBase = fast[35];
-                int esp = fast[6] + ssBase;
+                boolean pm = (singleStepState[36] & 1) != 0;
+                int ssBase = singleStepState[35];
+                int esp = singleStepState[6] + ssBase;
                 int espPageIndex;
                 if (pm)
                     espPageIndex = esp;
@@ -267,7 +244,8 @@ public class ComparisonToSingleStep
                             System.exit(0);
                     }
             }
-
+            if (singleStepState[16] == 0x1021dd6)
+                System.out.printf("");
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();
@@ -328,9 +306,9 @@ public class ComparisonToSingleStep
         int[] fast = (int[]) sarr[0];
         int[] old = (int[]) sarr[1];
         String line = (String) sarr[2];
-        System.out.println("New JPC:");
+        System.out.println("Single step JPC:");
         Fuzzer.printState(fast);
-        System.out.println("Old JPC:");
+        System.out.println("Block by block JPC:");
         Fuzzer.printState(old);
         System.out.println(line);
     }
