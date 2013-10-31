@@ -573,6 +573,8 @@ public class CompareToBochs
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, bochs, sdata2, pm, load1);
             }
+            if (bochsState[16] == 0x38d8bf3)
+                System.out.printf("");
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();
