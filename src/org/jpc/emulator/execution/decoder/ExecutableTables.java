@@ -23438,7 +23438,7 @@ ops[0xc0] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_Ib_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Eb_Ib_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_Ib_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Eb_Ib_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -23451,7 +23451,7 @@ ops[0xc0] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_Ib(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Eb_Ib(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_Ib(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Eb_Ib(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -23471,7 +23471,7 @@ ops[0xc1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_Ib_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ew_Ib_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -23484,7 +23484,7 @@ ops[0xc1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_Ib(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ew_Ib(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_Ib(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ew_Ib(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -23686,7 +23686,7 @@ ops[0xd0] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_I1_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Eb_I1_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_I1_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Eb_I1_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -23699,7 +23699,7 @@ ops[0xd0] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_I1(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Eb_I1(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_I1(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Eb_I1(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -23719,7 +23719,7 @@ ops[0xd1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_I1_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ew_I1_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_I1_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ew_I1_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -23732,7 +23732,7 @@ ops[0xd1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_I1(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ew_I1(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_I1(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ew_I1(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -23752,7 +23752,7 @@ ops[0xd2] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_CL_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Eb_CL_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_CL_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Eb_CL_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -23765,7 +23765,7 @@ ops[0xd2] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_CL(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Eb_CL(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Eb_CL(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Eb_CL(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -23785,7 +23785,7 @@ ops[0xd3] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_CL_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ew_CL_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_CL_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ew_CL_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -23798,7 +23798,7 @@ ops[0xd3] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_CL(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ew_CL(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_CL(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ew_CL(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -27408,7 +27408,7 @@ ops[0x2c1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_Ib_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_Ib_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_Ib_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_Ib_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -27421,7 +27421,7 @@ ops[0x2c1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_Ib(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_Ib(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_Ib(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_Ib(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -27576,7 +27576,7 @@ ops[0x2d1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_I1_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_I1_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_I1_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_I1_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -27589,7 +27589,7 @@ ops[0x2d1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_I1(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_I1(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_I1(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_I1(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -27611,7 +27611,7 @@ ops[0x2d3] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_CL_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_CL_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_CL_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_CL_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -27624,7 +27624,7 @@ ops[0x2d3] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_CL(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_CL(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_CL(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_CL(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -31049,7 +31049,7 @@ ops[0x6c1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_Ib_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_Ib_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_Ib_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_Ib_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -31062,7 +31062,7 @@ ops[0x6c1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_Ib(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_Ib(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_Ib(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_Ib(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -31217,7 +31217,7 @@ ops[0x6d1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_I1_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_I1_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_I1_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_I1_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -31230,7 +31230,7 @@ ops[0x6d1] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_I1(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_I1(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_I1(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_I1(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -31252,7 +31252,7 @@ ops[0x6d3] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_CL_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_CL_mem(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_CL_mem(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_CL_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -31265,7 +31265,7 @@ ops[0x6d3] = new OpcodeDecoder() {
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_CL(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ed_CL(blockStart, eip, prefices, input);
             case 0x06: return new org.jpc.emulator.execution.opcodes.vm.shl_Ed_CL(blockStart, eip, prefices, input);
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.sar_Ed_CL(blockStart, eip, prefices, input);
             }
         }
         return null;

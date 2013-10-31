@@ -2123,6 +2123,33 @@
     <args size="32">Ed;CL</args>
   </opcode>
 
+  <opcode mnemonic="sar">
+    <return>Branch.None</return>
+    <snippet>        if($op2.get != 0)
+        {
+            boolean inOF = cpu.of();
+            cpu.flagOp1 = $op1.get;
+            cpu.flagOp2 = $op2.get;
+            cpu.flagResult = $cast(cpu.flagOp1 &gt;&gt; cpu.flagOp2);
+            $op1.set$castcpu.flagResult);
+            cpu.flagIns = UCodes.SAR$size;
+            cpu.flagStatus = OSZAPC;
+            if (cpu.flagOp2 == 1)
+                cpu.of(false);
+            else
+                cpu.of(inOF);
+        }</snippet>
+    <args size="8">Eb;I1</args>
+    <args size="8">Eb;Ib</args>
+    <args size="8">Eb;CL</args>
+    <args size="16">Ew;I1</args>
+    <args size="16">Ew;Ib</args>
+    <args size="16">Ew;CL</args>
+    <args size="32">Ed;I1</args>
+    <args size="32">Ed;Ib</args>
+    <args size="32">Ed;CL</args>
+  </opcode>
+
   <opcode mnemonic="sbb">
     <return>Branch.None</return>
     <snippet>        int add = (cpu.cf()? 1: 0);
