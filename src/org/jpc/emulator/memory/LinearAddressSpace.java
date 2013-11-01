@@ -57,7 +57,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
     private static final byte FOUR_M = (byte) 0x01;
     private static final byte FOUR_K = (byte) 0x00;
 
-    private boolean isSupervisor, globalPagesEnabled, pagingDisabled, pageCacheEnabled, writeProtectUserPages, pageSizeExtensions;
+    private boolean isSupervisor, globalPagesEnabled, pagingDisabled, pageCacheEnabled, writeProtectPages, pageSizeExtensions;
     private int baseAddress, lastAddress;
     private PhysicalAddressSpace target;
 
@@ -76,7 +76,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         lastAddress = 0;
         pagingDisabled = true;
         globalPagesEnabled = false;
-        writeProtectUserPages = false;
+        writeProtectPages = false;
         pageSizeExtensions = false;
 
         nonGlobalPages = new HashSet<Integer>();
@@ -92,7 +92,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         output.writeBoolean(globalPagesEnabled);
         output.writeBoolean(pagingDisabled);
         output.writeBoolean(pageCacheEnabled);
-        output.writeBoolean(writeProtectUserPages);
+        output.writeBoolean(writeProtectPages);
         output.writeBoolean(pageSizeExtensions);
         output.writeInt(baseAddress);
         output.writeInt(lastAddress);
@@ -110,7 +110,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         globalPagesEnabled  = input.readBoolean();
         pagingDisabled  = input.readBoolean();
         pageCacheEnabled  = input.readBoolean();
-        writeProtectUserPages  = input.readBoolean();
+        writeProtectPages = input.readBoolean();
         pageSizeExtensions  = input.readBoolean();
         baseAddress = input.readInt();
         lastAddress = input.readInt();
@@ -295,7 +295,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
      * protected user pages, which is not allowed if this option is enabled.
      * @param value <code>true</code> to prevent writing to RO user pages.
      */
-    public void setWriteProtectUserPages(boolean value)
+    public void setWriteProtectPages(boolean value)
     {
 	if (value) {
             if (writeSupervisorIndex != null)
@@ -303,7 +303,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
                     nullIndex(writeSupervisorIndex, i);
 	}
 	    
-        writeProtectUserPages = value;
+        writeProtectPages = value;
     }
 
     /**
@@ -534,7 +534,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
                 {
                     if (isSupervisor)
                     {
-                        if (writeProtectUserPages)
+                        if (writeProtectPages)
                             return PF_PROTECTION_VIOLATION_WS;
                     }
                     else
@@ -611,14 +611,14 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
             boolean pageIsReadWrite = tableReadWrite || directoryReadWrite;
             if (pageIsUser)
                 pageIsReadWrite = tableReadWrite && directoryReadWrite;
-            
+
             if (pageIsUser)
             {
                 if (!pageIsReadWrite) // if readWrite then all access is OK
                 {
                     if (isSupervisor)
                     {
-                        if (writeProtectUserPages)
+                        if (writeProtectPages)
                             return PF_PROTECTION_VIOLATION_WS;
                     }
                     else
@@ -635,7 +635,10 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
                 else
                 {
                     if (isSupervisor)
-                        return PF_PROTECTION_VIOLATION_WS;
+                    {
+                        if (writeProtectPages)
+                            return PF_PROTECTION_VIOLATION_WS;
+                    }
                     else
                         return PF_PROTECTION_VIOLATION_WU;
                 }
@@ -1071,7 +1074,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         lastAddress = 0;
         pagingDisabled = true;
         globalPagesEnabled = false;
-        writeProtectUserPages = false;
+        writeProtectPages = false;
         pageSizeExtensions = false;
 
 	readUserIndex = null;

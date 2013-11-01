@@ -75,12 +75,14 @@ public class CompareToBochs
     public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1193181"};
     public static final String[] win95 = {"-hda", "win95harddisk.img", "-boot", "hda", "-ips", "1193181"};
     public static final String[] dosPascal = {"-hda", "freedos.img", "-boot", "hda", "-fda", "floppy.img", "-ips", "1193181"};
+    public static final String[] sf2turbo = {"-hda", "sf2turbo.img", "-boot", "hda", "-fda", "floppy.img", "-ips", "1193181"};
 
     public static final Map<String, String[]> possibleArgs = new HashMap();
     static {
         possibleArgs.put("win311", win311);
         possibleArgs.put("win95", win95);
         possibleArgs.put("dosPascal", dosPascal);
+        possibleArgs.put("sf2turbo", sf2turbo);
     }
 
     public static final int flagMask = ~0x000; // OF IF
@@ -573,7 +575,7 @@ public class CompareToBochs
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, bochs, sdata2, pm, load1);
             }
-            if (bochsState[16] == 0x38d8bf3)
+            if (bochsState[16] == 0x102500e)
                 System.out.printf("");
             if (!mem)
                 continue;

@@ -32,7 +32,6 @@ import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.memory.*;
 import org.jpc.emulator.processor.fpu64.*;
 import org.jpc.j2se.Option;
-import org.jpc.j2se.VirtualClock;
 import org.jpc.support.*;
 
 import java.io.*;
@@ -3436,7 +3435,7 @@ public class Processor implements HardwareComponent
         }
 
         if (wpUserPagesChanged)
-            linearMemory.setWriteProtectUserPages((value & CR0_WRITE_PROTECT) != 0);
+            linearMemory.setWriteProtectPages((value & CR0_WRITE_PROTECT) != 0);
 
         if (modeSwitch) {
             if ((value & CR0_PROTECTION_ENABLE) != 0) {
@@ -3893,6 +3892,7 @@ public class Processor implements HardwareComponent
 
     public final void handleRealModeException(ProcessorException e)
     {
+        System.out.printf("RM Exception vector=%x\n", e.getType().vector());
         handleRealModeInterrupt(e.getType().vector());
     }
 
@@ -4079,13 +4079,13 @@ public class Processor implements HardwareComponent
     {
         //        System.out.println();
         //	System.out.println("protected Mode PF exception " + Integer.toHexString(vector) + (hasErrorCode ? "errorCode = " + errorCode:"") + ", hardware = " + hardware + ", software = " + software);
-        //	System.out.println("CS:EIP " + Integer.toHexString(cs.getBase()) +":" +Integer.toHexString(eip));
+        System.out.printf("PM Exception vector=%x hw=%d sw=%d\n",vector, hardware?1:0, software?1:0);
         if (vector == ProcessorException.Type.PAGE_FAULT.vector())
         {
             setCR2(linearMemory.getLastWalkedAddress());
         }
 
-        // if it is a fault, then RF is set on the eflags image on stack (excpet for debug exception)
+        // if it is a fault, then RF is set on the eflags image on stack (except for debug exception)
         if ((vector < 32) && ProcessorException.isFault(vector) && (vector != ProcessorException.Type.DEBUG.vector()))
             rf(true);
         int selector = vector << 3; //multiply by 8 to get offset into idt
