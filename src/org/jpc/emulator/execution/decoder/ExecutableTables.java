@@ -13558,7 +13558,7 @@ ops[0x100] = new OpcodeDecoder() {
         if (modrm < 0xC0)
         {
             switch (reg) {
-            case 0x00: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x00: return new org.jpc.emulator.execution.opcodes.pm.sldt_Ew_mem(blockStart, eip, prefices, input);
             case 0x01: return new org.jpc.emulator.execution.opcodes.pm.str_Ew_mem(blockStart, eip, prefices, input);
             case 0x02: return new org.jpc.emulator.execution.opcodes.pm.lldt_Ew_mem(blockStart, eip, prefices, input);
             case 0x03: return new org.jpc.emulator.execution.opcodes.pm.ltr_Ew_mem(blockStart, eip, prefices, input);
@@ -13571,7 +13571,7 @@ ops[0x100] = new OpcodeDecoder() {
         else
         {
             switch (reg) {
-            case 0x00: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x00: return new org.jpc.emulator.execution.opcodes.pm.sldt_Ew(blockStart, eip, prefices, input);
             case 0x01: return new org.jpc.emulator.execution.opcodes.pm.str_Ew(blockStart, eip, prefices, input);
             case 0x02: return new org.jpc.emulator.execution.opcodes.pm.lldt_Ew(blockStart, eip, prefices, input);
             case 0x03: return new org.jpc.emulator.execution.opcodes.pm.ltr_Ew(blockStart, eip, prefices, input);
