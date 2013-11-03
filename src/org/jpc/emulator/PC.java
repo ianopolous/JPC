@@ -72,6 +72,7 @@ public class PC {
     public static int SYS_RAM_SIZE;
     public static final int DEFAULT_RAM_SIZE = Option.ram.intValue(16) * 1024 * 1024;
     public static final int INSTRUCTIONS_BETWEEN_INTERRUPTS = 1; 
+    public static final boolean ETHERNET = Option.ethernet.isSet();
 
     public static volatile boolean compile = Option.compile.isSet();
 
@@ -91,7 +92,7 @@ public class PC {
     private final InterruptController pic;
     private final List<HardwareComponent> parts;
     private final CodeBlockManager manager;
-    private final EthernetCard ethernet;
+    private EthernetCard ethernet;
     private final Keyboard keyboard;
 
     /**
@@ -151,7 +152,8 @@ public class PC {
 
         //Peripherals
         parts.add(new PIIX3IDEInterface());
-        parts.add(ethernet = new EthernetCard());
+        if (Option.ethernet.isSet())
+            parts.add(ethernet = new EthernetCard());
         parts.add(new DefaultVGACard());
 
         parts.add(new SerialPort(0));
@@ -993,7 +995,8 @@ public class PC {
         {
             for (int i = 0; i < 100; i++)
             {
-                ethernet.checkForPackets();
+                if (ETHERNET)
+                    ethernet.checkForPackets();
 //                if (!princeAddrs.contains(processor.getInstructionPointer()))
 //                    throw new IllegalStateException("new address reached "+Integer.toHexString(processor.getInstructionPointer()));
                 int block = physicalAddr.executeReal(processor, processor.getInstructionPointer());
@@ -1033,7 +1036,8 @@ public class PC {
                 if (x86Count > nextClockCheck)
                 {
                     nextClockCheck = x86Count + INSTRUCTIONS_BETWEEN_INTERRUPTS;
-                    ethernet.checkForPackets();
+                    if (ETHERNET)
+                        ethernet.checkForPackets();
                     processor.processProtectedModeInterrupts(clockx86Count);
                     clockx86Count = 0;
                 }
@@ -1062,7 +1066,8 @@ public class PC {
                 if (x86Count > nextClockCheck)
                 {
                     nextClockCheck = x86Count + INSTRUCTIONS_BETWEEN_INTERRUPTS;
-                    ethernet.checkForPackets();
+                    if (ETHERNET)
+                        ethernet.checkForPackets();
                     processor.processVirtual8086ModeInterrupts(clockx86Count);
                     clockx86Count = 0;
                 }

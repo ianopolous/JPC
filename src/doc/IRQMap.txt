@@ -1,0 +1,18 @@
+All in hex.
+JPC IOPorts
+
+IntervalTimer (PIT) 0
+
+Keyboard 1, C
+
+SerialPort 3, 4
+
+FloppyController 6
+
+SoundBlaster 7
+
+RTC 8
+
+MPU401/EthernetCard 9
+
+IDEChannel E, F

@@ -71,6 +71,7 @@ public abstract class Option {
     public static final Opt hdc = opt("hdc");
     public static final Opt hdd = opt("hdd");
     public static final Opt cdrom = opt("cdrom");
+    public static final Switch ethernet = createSwitch("ethernet");
 
     public static final Switch sound = createSwitch("sound");
     public static final Opt sounddevice = opt("sounddevice");

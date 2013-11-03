@@ -575,7 +575,7 @@ public class CompareToBochs
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, bochs, sdata2, pm, load1);
             }
-            if (bochsState[16] == 0x102500e)
+            if (bochsState[16] == 0x102f5ac)
                 System.out.printf("");
             if (!mem)
                 continue;
