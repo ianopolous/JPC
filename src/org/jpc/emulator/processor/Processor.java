@@ -3841,6 +3841,11 @@ public class Processor implements HardwareComponent
 
     public final void processProtectedModeInterrupts(int instructions)
     {
+        processProtectedModeInterrupts(instructions, false);
+    }
+
+    public final void processProtectedModeInterrupts(int instructions, boolean bochsInPitInt)
+    {
         vmClock.updateAndProcess(instructions);
         if (eflagsInterruptEnable) {
 
@@ -3858,6 +3863,11 @@ public class Processor implements HardwareComponent
             if ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) != 0) {
                 interruptFlags &= ~IFLAGS_HARDWARE_INTERRUPT;
                 int vec = interruptController.cpuGetInterrupt();
+                if (Option.useBochs.isSet())
+                    if (!bochsInPitInt && (vec == 8))
+                    {
+                        return;
+                    }
                 //System.out.printf("JPC handling interrupt 0x%x\n", vec);
                 if (DELAY && vec != interruptController.getIRQ0Vector())
                     lastPMVector = vec;
@@ -3865,7 +3875,6 @@ public class Processor implements HardwareComponent
                     handleHardProtectedModeInterrupt(vec);
             }
         }
-        //eflagsInterruptEnable = eflagsInterruptEnableSoon;
     }
 
     public final void processVirtual8086ModeInterrupts(int instructions)

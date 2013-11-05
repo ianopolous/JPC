@@ -1399,7 +1399,6 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="32">rBPr13;Id</args>
     <args size="32">rSIr14;Id</args>
     <args size="32">rDIr15;Id</args>
-    <args size="32">R;C</args>
     <args size="32">R;D</args>
     <args size="32">D;R</args>
   </opcode>
@@ -1411,6 +1410,14 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
         $op1.set$cast$op2.get);</snippet>
     <args size="16">S;Ew</args>
     <args size="16">S;Ed</args>
+  </opcode>
+
+  <opcode mnemonic="mov">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.getCPL() != 0)
+         throw ProcessorException.GENERAL_PROTECTION_0;
+      $op1.set$cast$op2.get);</snippet>
+    <args size="32">R;C</args>
   </opcode>
 
   <opcode mnemonic="mov">

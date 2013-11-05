@@ -49,7 +49,9 @@ public class mov_R_C extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        op1.set32(cpu.getCR(op2Index));
+        if (cpu.getCPL() != 0)
+         throw ProcessorException.GENERAL_PROTECTION_0;
+      op1.set32(cpu.getCR(op2Index));
         return Branch.None;
     }
 

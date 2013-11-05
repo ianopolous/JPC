@@ -755,6 +755,13 @@
     <args size="32">rSIr14;Id</args>
     <args size="16">rDIr15;Iw</args>
     <args size="32">rDIr15;Id</args>
+  </opcode>
+
+  <opcode mnemonic="mov">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.getCPL() != 0)
+         throw ProcessorException.GENERAL_PROTECTION_0;
+      $op1.set$cast$op2.get);</snippet>
     <args size="32">R;C</args>
   </opcode>
 

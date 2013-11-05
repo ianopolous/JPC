@@ -748,7 +748,7 @@ public class PC {
         }
     }
 
-    public void checkInterrupts(Integer cycles)
+    public void checkInterrupts(Integer cycles, Boolean bochsinPitInt)
     {
         if (!Option.singlesteptime.value())
             for (int i=0; i < cycles; i++)
@@ -758,7 +758,7 @@ public class PC {
                 if (processor.isVirtual8086Mode()) {
                     processor.processVirtual8086ModeInterrupts(0);
                 } else {
-                    processor.processProtectedModeInterrupts(0);
+                    processor.processProtectedModeInterrupts(0, bochsinPitInt);
                 }
             } else {
                 processor.processRealModeInterrupts(0);

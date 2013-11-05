@@ -165,7 +165,7 @@ public class CompareToBochs
         Method m1 = c1.getMethod("hello");
         m1.invoke(newpc);
 
-        Method ints1 = c1.getMethod("checkInterrupts", Integer.class);
+        Method ints1 = c1.getMethod("checkInterrupts", Integer.class, Boolean.class);
         Method state1 = c1.getMethod("getState");
         Method cmos1 = c1.getMethod("getCMOS");
         Method getPIT1 = c1.getMethod("getPit");
@@ -222,10 +222,9 @@ public class CompareToBochs
                 throw e;
             }
             bochsState = bochs.getState();
+            boolean bochsEnteredPitInt = false;
             if (followBochsInts)
             {
-                if ((bochsState[16] >= 0x3473fcf) && (bochsState[16] < 0x3473fff))
-                    System.out.printf("");
                 // if Bochs has gone into an interrupt from the PIT force JPC to trigger one at the same time
                 if (nextBochs.contains("vector=0x8") || nextBochs.contains("vector=0x50")) // relies on patch to exception.cc
                 // Win 3.11 appears to use 0x50 for the PIT int in protected mode
@@ -236,9 +235,10 @@ public class CompareToBochs
                     {
                         pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
                         // triggger PIT irq lower
-                        ints1.invoke(newpc, new Integer(0));
+                        ints1.invoke(newpc, new Integer(0), new Boolean(false));
                     }
                     pitExpiry1.invoke(newpc, new Long(bochsState[16]));
+                    bochsEnteredPitInt = true;
                 } else if (currentInstruction().contains("hlt"))
                 {
                     // assume PIT caused timeout
@@ -247,14 +247,14 @@ public class CompareToBochs
                     {
                         pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
                         // triggger PIT irq lower
-                        ints1.invoke(newpc, new Integer(0));
+                        ints1.invoke(newpc, new Integer(0), new Boolean(false));
                     }
                     pitExpiry1.invoke(newpc, new Long(bochsState[16]+10));
                 }
             }
             try {
                 // increment time and check ints first to mirror bochs' behaviour of checking for an interrupt prior to execution
-                ints1.invoke(newpc, new Integer(1));
+                ints1.invoke(newpc, new Integer(1), new Boolean(bochsEnteredPitInt));
                 int blockLength = (Integer)execute1.invoke(newpc);
                 if (blockLength > 1)
                 {
@@ -575,7 +575,7 @@ public class CompareToBochs
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, bochs, sdata2, pm, load1);
             }
-            if (bochsState[16] == 0x102f5ac)
+            if (bochsState[16] == 0x103b202) // set interrupt flags = 0
                 System.out.printf("");
             if (!mem)
                 continue;
