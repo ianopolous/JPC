@@ -54,7 +54,9 @@ public class mov_C_R_mem extends Executable
     {
         Reg op2 = cpu.regs[op2Index];
         cpu.eip += blockLength;
-        cpu.setCR(op1Index, op2.get32());
+        if (cpu.getCPL() != 0)
+         throw ProcessorException.GENERAL_PROTECTION_0;
+      cpu.setCR(op1Index, op2.get32());
         return Branch.T1;
     }
 

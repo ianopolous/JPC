@@ -1423,7 +1423,9 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   <opcode mnemonic="mov">
     <return>Branch.T1</return>
     <snippet>        cpu.eip += blockLength;
-        $op1.set$cast$op2.get);</snippet>
+        if (cpu.getCPL() != 0)
+         throw ProcessorException.GENERAL_PROTECTION_0;
+      $op1.set$cast$op2.get);</snippet>
     <args size="32">C;R</args>
   </opcode>
 
