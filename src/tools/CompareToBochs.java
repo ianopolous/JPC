@@ -254,7 +254,19 @@ public class CompareToBochs
             }
             try {
                 // increment time and check ints first to mirror bochs' behaviour of checking for an interrupt prior to execution
-                ints1.invoke(newpc, new Integer(1), new Boolean(bochsEnteredPitInt));
+                boolean jpcInInt = (Boolean)ints1.invoke(newpc, new Integer(1), new Boolean(bochsEnteredPitInt));
+                while ((!jpcInInt && bochsEnteredPitInt) && !previousInstruction().contains("hlt"))
+                {
+                    boolean irq = (Boolean)pitIrq1.invoke(newpc);
+                    if (irq) // need to lower first
+                    {
+                        pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
+                        // triggger PIT irq lower
+                        ints1.invoke(newpc, new Integer(0), new Boolean(false));
+                    }
+                    pitExpiry1.invoke(newpc, new Long(bochsState[16]));
+                    jpcInInt = (Boolean)ints1.invoke(newpc, new Integer(1), new Boolean(bochsEnteredPitInt));
+                }
                 int blockLength = (Integer)execute1.invoke(newpc);
                 if (blockLength > 1)
                 {
@@ -575,7 +587,7 @@ public class CompareToBochs
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, bochs, sdata2, pm, load1);
             }
-            if (bochsState[16] == 0x103b202) // set interrupt flags = 0
+            if (bochsState[16] == 0x145E37C) // set interrupt flags = 0
                 System.out.printf("");
             if (!mem)
                 continue;

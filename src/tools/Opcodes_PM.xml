@@ -705,7 +705,7 @@
         if (cpu.ss.getDefaultSizeFlag())
             cpu.enter_o32_a32(frameSize, nestingLevel);
         else
-            throw new IllegalStateException("PM enter o32 a16 unimplemented");</snippet>
+            cpu.enter_o32_a16(frameSize, nestingLevel);</snippet>
     <args size="16">Iw;Ib</args>
   </opcode>
 

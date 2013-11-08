@@ -86,6 +86,11 @@ public class InterruptController extends AbstractHardwareComponent implements IO
         return master.irqBase;
     }
 
+    public int getMasterIRR()
+    {
+        return master.interruptRequestRegister;
+    }
+
     private void updateIRQ()
     {
         int slaveIRQ, masterIRQ;

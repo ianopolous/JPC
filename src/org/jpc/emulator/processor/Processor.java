@@ -2966,6 +2966,40 @@ public class Processor implements HardwareComponent
         r_esp.set32(frameTemp - frameSize - 4*nestingLevel);
     }
 
+    public final void enter_o32_a16(int frameSize, int nestingLevel)
+    {
+        nestingLevel %= 32;
+
+        int frameTemp = r_esp.get32();
+        int tempESP = frameTemp & 0xffff;
+        int tempEBP = r_ebp.get32() & 0xffff;
+
+        if (nestingLevel == 0) {
+            if ((tempESP < (4 + frameSize)) && (tempESP > 0))
+                throw ProcessorException.STACK_SEGMENT_0;
+        } else {
+            if ((tempESP < (4 + frameSize + 4 * nestingLevel)) && (tempESP > 0))
+                throw ProcessorException.STACK_SEGMENT_0;
+        }
+
+        tempESP -= 4;
+        ss.setDoubleWord(tempESP, tempEBP);
+
+        int tmplevel = nestingLevel;
+        if (nestingLevel != 0) {
+            while (--tmplevel != 0) {
+                tempEBP -= 4;
+                tempESP -= 4;
+                ss.setDoubleWord(tempESP, ss.getDoubleWord(tempEBP));
+            }
+            tempESP -= 4;
+            ss.setDoubleWord(tempESP, frameTemp);
+        }
+
+        r_ebp.set32(frameTemp);
+        r_esp.set32(frameTemp - frameSize - 4*nestingLevel);
+    }
+
     public void printState()
     {
         System.out.println("********************************");
@@ -3817,7 +3851,12 @@ public class Processor implements HardwareComponent
         return cs.translateAddressRead(eip);
     }
 
-    public final void processRealModeInterrupts(int instructions)
+    public final boolean processRealModeInterrupts(int instructions)
+    {
+        return processRealModeInterrupts(instructions, false);
+    }
+
+    public final boolean processRealModeInterrupts(int instructions, boolean bochsInPitInt)
     {
         //Note only hardware interrupts go here, software interrupts are handled in the codeblock
         vmClock.updateAndProcess(instructions);
@@ -3825,16 +3864,18 @@ public class Processor implements HardwareComponent
 
             if ((interruptFlags & IFLAGS_RESET_REQUEST) != 0) {
                 reset();
-                return;
+                return true;
             }
 
+            if (!Option.useBochs.isSet() || bochsInPitInt || (interruptController.getMasterIRR() != 1))
             if ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) != 0) {
                 interruptFlags &= ~IFLAGS_HARDWARE_INTERRUPT;
                 int vector = interruptController.cpuGetInterrupt();
                 handleRealModeInterrupt(vector);
+                return true;
             }
         }
-        //eflagsInterruptEnable = eflagsInterruptEnableSoon;
+        return false;
     }
 
     private int lastPMVector = -1;
@@ -3844,47 +3885,47 @@ public class Processor implements HardwareComponent
         processProtectedModeInterrupts(instructions, false);
     }
 
-    public final void processProtectedModeInterrupts(int instructions, boolean bochsInPitInt)
+    public final boolean processProtectedModeInterrupts(int instructions, boolean bochsInPitInt)
     {
         vmClock.updateAndProcess(instructions);
         if (eflagsInterruptEnable) {
 
             if ((interruptFlags & IFLAGS_RESET_REQUEST) != 0) {
                 reset();
-                return;
+                return true;
             }
 
             if (lastPMVector != -1)
             {
                 handleHardProtectedModeInterrupt(lastPMVector);
                 lastPMVector = -1;
-                return;
+                return true;
             }
-            if ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) != 0) {
-                interruptFlags &= ~IFLAGS_HARDWARE_INTERRUPT;
-                int vec = interruptController.cpuGetInterrupt();
-                if (Option.useBochs.isSet())
-                    if (!bochsInPitInt && (vec == 8))
+            if (!Option.useBochs.isSet() || bochsInPitInt || (interruptController.getMasterIRR() != 1))
+                if ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) != 0) {
+                    interruptFlags &= ~IFLAGS_HARDWARE_INTERRUPT;
+                    int vec = interruptController.cpuGetInterrupt();
+                    //System.out.printf("JPC handling interrupt 0x%x\n", vec);
+                    if (DELAY && vec != interruptController.getIRQ0Vector())
+                        lastPMVector = vec;
+                    else
                     {
-                        return;
+                        handleHardProtectedModeInterrupt(vec);
+                        return true;
                     }
-                //System.out.printf("JPC handling interrupt 0x%x\n", vec);
-                if (DELAY && vec != interruptController.getIRQ0Vector())
-                    lastPMVector = vec;
-                else
-                    handleHardProtectedModeInterrupt(vec);
-            }
+                }
         }
+        return false;
     }
 
-    public final void processVirtual8086ModeInterrupts(int instructions)
+    public final boolean processVirtual8086ModeInterrupts(int instructions)
     {
         vmClock.updateAndProcess(instructions);
         if (eflagsInterruptEnable) {
 
             if ((interruptFlags & IFLAGS_RESET_REQUEST) != 0) {
                 reset();
-                return;
+                return true;
             }
 
             if ((interruptFlags & IFLAGS_HARDWARE_INTERRUPT) != 0) {
@@ -3893,10 +3934,10 @@ public class Processor implements HardwareComponent
                     throw new IllegalStateException();
                 else
                     handleHardVirtual8086ModeInterrupt(interruptController.cpuGetInterrupt());
-
+                return true;
             }
         }
-        //eflagsInterruptEnable = eflagsInterruptEnableSoon;
+        return false;
     }
 
     public final void handleRealModeException(ProcessorException e)

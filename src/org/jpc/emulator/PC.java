@@ -748,7 +748,8 @@ public class PC {
         }
     }
 
-    public void checkInterrupts(Integer cycles, Boolean bochsinPitInt)
+    // returns whether an interrupt was entered
+    public boolean checkInterrupts(Integer cycles, Boolean bochsinPitInt)
     {
         if (!Option.singlesteptime.value())
             for (int i=0; i < cycles; i++)
@@ -756,16 +757,17 @@ public class PC {
         try {
             if (processor.isProtectedMode()) {
                 if (processor.isVirtual8086Mode()) {
-                    processor.processVirtual8086ModeInterrupts(0);
+                    return processor.processVirtual8086ModeInterrupts(0);
                 } else {
-                    processor.processProtectedModeInterrupts(0, bochsinPitInt);
+                    return processor.processProtectedModeInterrupts(0, bochsinPitInt);
                 }
             } else {
-                processor.processRealModeInterrupts(0);
+                return processor.processRealModeInterrupts(0, bochsinPitInt);
             }
         } catch (ModeSwitchException e)
         {
             System.out.println("Switched mode: "+e.getMessage());
+            return false;
         }
     }
 

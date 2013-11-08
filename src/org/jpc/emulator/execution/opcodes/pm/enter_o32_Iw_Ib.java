@@ -53,7 +53,7 @@ public class enter_o32_Iw_Ib extends Executable
         if (cpu.ss.getDefaultSizeFlag())
             cpu.enter_o32_a32(frameSize, nestingLevel);
         else
-            throw new IllegalStateException("PM enter o32 a16 unimplemented");
+            cpu.enter_o32_a16(frameSize, nestingLevel);
         return Branch.None;
     }
 
