@@ -62,7 +62,7 @@ public class CompareToBochs
     public static final String[] doom2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom2.img"};
     public static final String[] prince1 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/prince1.img"};
     public static final String[] pascalcrash = {"-fda", "floppy.img", "-boot", "fda", "-hda", "tests/CRASHES.img"};
-    public static final String[] sodium_fat12 = {"-fda", "sodium_fat12.img", "-boot", "fda", "-ips", "1193181"};
+    public static final String[] sodium_fat12 = {"-fda", "sodium_fat12.img", "-boot", "fda", "-ips", "150000000"};
     public static final String[] worms = {"-fda", "floppy.img", "-boot", "fda", "-hda", "worms.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
     public static final String[] linux = {"-hda", "../../tmpdrives/linux.img", "-boot", "hda"};
