@@ -43,7 +43,7 @@ import static org.jpc.emulator.execution.UCodes.*;
 public class Processor implements HardwareComponent
 {
     private static final Logger LOGGING = Logger.getLogger(Processor.class.getName());
-    private static final boolean DELAY = Option.useBochs.isSet();
+    private static final boolean USEBOCHS = Option.useBochs.isSet();
 
     public static final int STATE_VERSION = 1;
     public static final int STATE_MINOR_VERSION = 0;
@@ -3906,7 +3906,7 @@ public class Processor implements HardwareComponent
                     interruptFlags &= ~IFLAGS_HARDWARE_INTERRUPT;
                     int vec = interruptController.cpuGetInterrupt();
                     //System.out.printf("JPC handling interrupt 0x%x\n", vec);
-                    if (DELAY && vec != interruptController.getIRQ0Vector())
+                    if (USEBOCHS && vec != interruptController.getIRQ0Vector())
                         lastPMVector = vec;
                     else
                     {
@@ -4129,7 +4129,8 @@ public class Processor implements HardwareComponent
     {
         //        System.out.println();
         //	System.out.println("protected Mode PF exception " + Integer.toHexString(vector) + (hasErrorCode ? "errorCode = " + errorCode:"") + ", hardware = " + hardware + ", software = " + software);
-        System.out.printf("PM Exception vector=%x hw=%d sw=%d\n",vector, hardware?1:0, software?1:0);
+        if (USEBOCHS)
+            System.out.printf("PM Exception vector=%x hw=%d sw=%d\n",vector, hardware?1:0, software?1:0);
         if (vector == ProcessorException.Type.PAGE_FAULT.vector())
         {
             setCR2(linearMemory.getLastWalkedAddress());

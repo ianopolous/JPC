@@ -695,6 +695,24 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="loop_a16">
+      <return></return>
+      <snippet>        cpu.r_cx.set16(cpu.r_cx.get16()-1);
+        if (cpu.r_cx.get16() != 0)
+</snippet>
+<jcc/>
+    <args size="8">Jb</args>
+  </opcode>
+
+  <opcode mnemonic="loop_a32">
+      <return></return>
+      <snippet>        cpu.r_ecx.set32(cpu.r_ecx.get32()-1);
+        if (cpu.r_ecx.get32() != 0)
+</snippet>
+<jcc/>
+    <args size="8">Jb</args>
+  </opcode>
+
   <opcode mnemonic="lss_o16">
       <return>Branch.None</return>
       <snippet>        int addr = $op2.get + op2.getBase(cpu);

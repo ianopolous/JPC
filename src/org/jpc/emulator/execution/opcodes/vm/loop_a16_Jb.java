@@ -50,7 +50,8 @@ public class loop_a16_Jb extends Executable
     public Branch execute(Processor cpu)
     {
         cpu.r_cx.set16(cpu.r_cx.get16()-1);
-        if (cpu.r_cx.get16() != 0)        {
+        if (cpu.r_cx.get16() != 0)
+        {
             cpu.eip += jmp+blockLength;
             return Branch.T1;
         }

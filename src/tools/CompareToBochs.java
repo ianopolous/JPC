@@ -62,6 +62,7 @@ public class CompareToBochs
     public static final String[] doom2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom2.img"};
     public static final String[] prince1 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/prince1.img"};
     public static final String[] pascalcrash = {"-fda", "floppy.img", "-boot", "fda", "-hda", "tests/CRASHES.img"};
+    public static final String[] sodium_fat12 = {"-fda", "sodium_fat12.img", "-boot", "fda", "-ips", "1193181"};
     public static final String[] worms = {"-fda", "floppy.img", "-boot", "fda", "-hda", "worms.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
     public static final String[] linux = {"-hda", "../../tmpdrives/linux.img", "-boot", "hda"};
@@ -83,6 +84,7 @@ public class CompareToBochs
         possibleArgs.put("win95", win95);
         possibleArgs.put("dosPascal", dosPascal);
         possibleArgs.put("sf2turbo", sf2turbo);
+        possibleArgs.put("sodium_fat12", sodium_fat12);
     }
 
     public static final int flagMask = ~0x000; // OF IF
@@ -255,8 +257,9 @@ public class CompareToBochs
             try {
                 // increment time and check ints first to mirror bochs' behaviour of checking for an interrupt prior to execution
                 boolean jpcInInt = (Boolean)ints1.invoke(newpc, new Integer(1), new Boolean(bochsEnteredPitInt));
-                while ((!jpcInInt && bochsEnteredPitInt) && !previousInstruction().contains("hlt"))
+                if ((!jpcInInt && bochsEnteredPitInt) && !previousInstruction().contains("hlt"))
                 {
+                    System.out.println("Failed to force JPC to enter PIT interrupt!");
                     boolean irq = (Boolean)pitIrq1.invoke(newpc);
                     if (irq) // need to lower first
                     {
