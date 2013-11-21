@@ -89,6 +89,7 @@ public class BasicBlock implements CodeBlock
         }
         if ((SINGLE_STEP_TIME) && !last.toString().contains("eip"))
             cpu.vmClock.update(1);
+        cpu.rf(false);
     }
 
     public Branch execute(Processor cpu)

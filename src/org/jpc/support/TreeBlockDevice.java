@@ -1241,6 +1241,8 @@ public class TreeBlockDevice implements BlockDevice
 
         protected long buildTree(Map<Long, FatEntry> fat) throws IOException
         {
+            if (!getFile().exists())
+                throw new IllegalStateException("Directory for virtual FAT32 drive doesn't exist! "+ getFile().getName());
             File[] contents = getFile().listFiles();
 
             //figure out size of directory entry

@@ -663,7 +663,7 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         }
 
         public int getDoubleWord(int offset) {
-            return -1;
+            return 0xff;
         }
 
         public long getQuadWord(int offset) {

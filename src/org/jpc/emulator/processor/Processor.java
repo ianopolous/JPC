@@ -1180,22 +1180,22 @@ public class Processor implements HardwareComponent
                     r_ecx.set32(0x6c65746e); /* "ntel", with n in the low nibble of CL */
                     return;
                 case 0x01:
-                    r_eax.set32(0x00000543);
+                    r_eax.set32(0x00000533);
                     r_ebx.set32(1 << 16);
                     r_ecx.set32(0);
-
                     int features = 0;
                     features |= 1; //Have an FPU;
                     features |= (1<< 1);  // VME - Virtual 8086 mode enhancements, CR4.VME and eflags.VIP and VIF
                     features |= (1<< 2); // Debugging extensions CR4.DE and DR4 and DR5
                     features |= (1<< 3);  // Support Page-Size Extension (4M pages)
-
                     features |= (1<< 4);  // implement TSC
                     features |= (1<< 5);  // support RDMSR/WRMSR
                     features |= (1<< 7);  // Machine Check exception
-                    features |= (1<< 8);  // Support CMPXCHG8B instruction - Bochs doesn't have this!
-
+                    features |= (1<< 8);  // Support CMPXCHG8B instruction
+                    //features |= (1<< 9);   // APIC on chip
+                    features |= (1<<14);  // Machine check architecture
                     features |= (1<<23);  // support MMX
+                    features |= (1<<28);  // max APIC ID (cpuid.1.ebx[23-16]) is valid
                     r_edx.set32(features);
                     return;
                 default:
@@ -1218,7 +1218,7 @@ public class Processor implements HardwareComponent
                     return;
                 case 0x01:
                     r_eax.set32(0x634);
-                    r_ebx.set32(0);
+                    r_ebx.set32(1 << 16);
                     r_ecx.set32(0);
 
                     int features = 0;
@@ -1228,7 +1228,7 @@ public class Processor implements HardwareComponent
                     features |= (1<< 3);  // Support Page-Size Extension (4M pages)
 
                     features |= (1<< 4);  // implement TSC
-                    features |= (1<< 5);  // support RDMSR/WRMSR
+                    //features |= (1<< 5);  // support RDMSR/WRMSR
                     features |= (1<< 6);  // Support PAE.
                     features |= (1<< 7);  // Machine Check exception
 
@@ -1243,6 +1243,7 @@ public class Processor implements HardwareComponent
                     features |= (1<<15);  // Implement CMOV instructions.
 
                     features |= (1<<23);  // support MMX
+                    features |= (1<<28);  // max APIC ID (cpuid.1.ebx[23-16]) is valid
                     r_edx.set32(features);
                     return;
                 default:
@@ -3811,7 +3812,7 @@ public class Processor implements HardwareComponent
 
         dr0 = dr1 = dr2 = dr3 = 0x0;
         dr6 = 0xffff0ff0;
-        dr7 = 0x00000700;
+        dr7 = 0x00000400;
 
         flagStatus = 0;
         of = sf = zf = af = pf =cf = false;

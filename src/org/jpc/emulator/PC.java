@@ -370,7 +370,7 @@ public class PC {
         for (int i=0; i < 8; i++)
         {
             res[2*i+37] = (int)Double.doubleToRawLongBits(fpuStack[i]);
-            res[2*i+38] = (int)(Double.doubleToRawLongBits(fpuStack[i])>>32);
+            res[2*i+38] = (int)(Double.doubleToRawLongBits(fpuStack[i])>>>32);
         }
         return res;
     }
@@ -767,7 +767,7 @@ public class PC {
         } catch (ModeSwitchException e)
         {
             System.out.println("Switched mode: "+e.getMessage());
-            return false;
+            return true; // must have been triggered by the interrupt handler
         }
     }
 

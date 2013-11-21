@@ -29,5 +29,5 @@ IDEChannel 170-177, 376
 BMDMAIORegion C000-C00F
 
 DMAController C0, C2, C4, C6, C8, CA, CC, CE
-              81, 81, 83, 87, 89, 8A, 8B, 8F
+              80, 81, 83, 87, 89, 8A, 8B, 8F
               D0, D2, D4, D6, D8, DA, DC, DE

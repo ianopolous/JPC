@@ -63,6 +63,7 @@ public class CompareToBochs
     public static final String[] prince1 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/prince1.img"};
     public static final String[] pascalcrash = {"-fda", "floppy.img", "-boot", "fda", "-hda", "tests/CRASHES.img"};
     public static final String[] sodium_fat12 = {"-fda", "sodium_fat12.img", "-boot", "fda", "-ips", "150000000"};
+    public static final String[] sodium_fat16 = {"-hda", "caching:sodium_fat16.img", "-boot", "hda", "-ips", "1193181"};
     public static final String[] worms = {"-fda", "floppy.img", "-boot", "fda", "-hda", "worms.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
     public static final String[] linux = {"-hda", "../../tmpdrives/linux.img", "-boot", "hda"};
@@ -73,18 +74,23 @@ public class CompareToBochs
     public static final String[] dslCD = {"-cdrom", "../../tmpdrives/dsl-n-01RC4.iso", "-boot", "cdrom"};
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
-    public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1193181"};
+    public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1193181", "-ram", "2"};
+    public static final String[] win311_crash = {"-hda", "caching:64MBDOS5WFW311.img", "-boot", "hda", "-ips", "1193181", "-ram", "2", "-cpulevel", "5"};
     public static final String[] win95 = {"-hda", "win95harddisk.img", "-boot", "hda", "-ips", "1193181"};
     public static final String[] dosPascal = {"-hda", "freedos.img", "-boot", "hda", "-fda", "floppy.img", "-ips", "1193181"};
     public static final String[] sf2turbo = {"-hda", "sf2turbo.img", "-boot", "hda", "-fda", "floppy.img", "-ips", "1193181"};
+    public static final String[] wolf3d = {"-hda", "WOLF3D.img", "-boot", "hda", "-fda", "floppy.img", "-ips", "1193181"};
 
     public static final Map<String, String[]> possibleArgs = new HashMap();
     static {
         possibleArgs.put("win311", win311);
+        possibleArgs.put("win311_crash", win311_crash);
         possibleArgs.put("win95", win95);
         possibleArgs.put("dosPascal", dosPascal);
         possibleArgs.put("sf2turbo", sf2turbo);
         possibleArgs.put("sodium_fat12", sodium_fat12);
+        possibleArgs.put("sodium_fat16", sodium_fat16);
+        possibleArgs.put("wolf3d", wolf3d);
     }
 
     public static final int flagMask = ~0x000; // OF IF
@@ -110,7 +116,8 @@ public class CompareToBochs
         flagIgnores.put("mul", ~0xd4); // not defined in spec
         flagIgnores.put("imul", ~0xd4); // not defined in spec
         flagIgnores.put("popfw", ~0x895);
-        flagIgnores.put("bsf", ~0x4); // not defined in spec
+        flagIgnores.put("bsf", ~0x40); // not defined in spec
+        flagIgnores.put("bsr", ~0x40); // not defined in spec
         flagIgnores.put("mul", ~0x80); // not defined in spec
         flagIgnores.put("ror", ~0x800); // not defined in spec for shifts != 1
         flagIgnores.put("shl", ~0x810); // not defined in spec for shifts != 1
@@ -120,7 +127,6 @@ public class CompareToBochs
         //flagIgnores.put("bts", ~0x1);
 
         // errors with the old JPC
-        //flagIgnores.put("add", ~0x800)
         //flagIgnores.put("btr", ~0x1);
         flagIgnores.put("rcl", ~0x800);
         flagIgnores.put("shr", ~0x810);
@@ -129,7 +135,7 @@ public class CompareToBochs
         flagIgnores.put("lss", ~0x200);
         //flagIgnores.put("iret", ~0x10); // who cares about before the interrupt
         //flagIgnores.put("iretw", ~0x810); // who cares about before the interrupt
-        flagIgnores.put("iretd", ~0x10000); // not sure where the resume flag is turned on in bochs, but don't care for now
+        flagIgnores.put("iretd", ~0x10000); // RF flag
 
     }
 
@@ -142,7 +148,13 @@ public class CompareToBochs
     {
         boolean mem = false;
         if ((args.length >0) && args[0].equals("-mem"))
+        {
             mem = true;
+            String[] temp = new String[args.length];
+            System.arraycopy(args, 1, temp, 0, temp.length-1);
+            temp[temp.length-1] = "-track-writes"; // Force JPC Physical memory to track dirty pages
+            args = temp;
+        }
         URL[] urls1 = new URL[]{new File(newJar).toURL()};
         ClassLoader cl1 = new URLClassLoader(urls1, Comparison.class.getClassLoader());
 
@@ -225,6 +237,7 @@ public class CompareToBochs
             }
             bochsState = bochs.getState();
             boolean bochsEnteredPitInt = false;
+            boolean bochsEnteredNonPitInt = false;
             if (followBochsInts)
             {
                 // if Bochs has gone into an interrupt from the PIT force JPC to trigger one at the same time
@@ -235,11 +248,11 @@ public class CompareToBochs
                     boolean irq = (Boolean)pitIrq1.invoke(newpc);
                     if (irq) // need to lower first
                     {
-                        pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
+                        pitExpiry1.invoke(newpc, new Long(bochsState[16]-10));
                         // triggger PIT irq lower
                         ints1.invoke(newpc, new Integer(0), new Boolean(false));
                     }
-                    pitExpiry1.invoke(newpc, new Long(bochsState[16]));
+                    pitExpiry1.invoke(newpc, new Long(bochsState[16]-10));
                     bochsEnteredPitInt = true;
                 } else if (currentInstruction().contains("hlt"))
                 {
@@ -247,27 +260,33 @@ public class CompareToBochs
                     boolean irq = (Boolean)pitIrq1.invoke(newpc);
                     if (irq) // need to lower first
                     {
-                        pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
+                        pitExpiry1.invoke(newpc, new Long(bochsState[16]-10));
                         // triggger PIT irq lower
                         ints1.invoke(newpc, new Integer(0), new Boolean(false));
                     }
                     pitExpiry1.invoke(newpc, new Long(bochsState[16]+10));
                 }
+                else if (nextBochs.contains("vector="))
+                {
+                    bochsEnteredNonPitInt = true;
+                }
             }
             try {
                 // increment time and check ints first to mirror bochs' behaviour of checking for an interrupt prior to execution
                 boolean jpcInInt = (Boolean)ints1.invoke(newpc, new Integer(1), new Boolean(bochsEnteredPitInt));
+                if (bochsEnteredNonPitInt && !jpcInInt && !currentInstruction().contains("int_Ib"))
+                    System.out.println("Missed a spurious interrupt?");
                 if ((!jpcInInt && bochsEnteredPitInt) && !previousInstruction().contains("hlt"))
                 {
                     System.out.println("Failed to force JPC to enter PIT interrupt!");
                     boolean irq = (Boolean)pitIrq1.invoke(newpc);
                     if (irq) // need to lower first
                     {
-                        pitExpiry1.invoke(newpc, new Long(bochsState[16]-1));
+                        pitExpiry1.invoke(newpc, new Long(bochsState[16]-10));
                         // triggger PIT irq lower
                         ints1.invoke(newpc, new Integer(0), new Boolean(false));
                     }
-                    pitExpiry1.invoke(newpc, new Long(bochsState[16]));
+                    pitExpiry1.invoke(newpc, new Long(bochsState[16]-10));
                     jpcInInt = (Boolean)ints1.invoke(newpc, new Integer(1), new Boolean(bochsEnteredPitInt));
                 }
                 int blockLength = (Integer)execute1.invoke(newpc);
@@ -480,7 +499,7 @@ public class CompareToBochs
                         // print before and after state, then adopt reg
                         if (!ignoredIOPorts.contains(fast[2])) // port is in dx
                         {
-                            System.out.printf("IO read difference: port=%08x eax=%08x#%08x from %s\n", fast[2], fast[0], bochsState[0], previousInstruction());
+                            System.out.printf("IO read discrepancy: port=%08x eax=%08x#%08x from %s\n", fast[2], fast[0], bochsState[0], previousInstruction());
                             //printLast2();
                         }
                         fast[0] = bochsState[0];
@@ -590,36 +609,42 @@ public class CompareToBochs
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, bochs, sdata2, pm, load1);
             }
-            if (bochsState[16] == 0x145E37C) // set interrupt flags = 0
+            if (bochsState[16] == 0xBA3FD)
                 System.out.printf("");
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();
             dirty1.invoke(newpc, dirtyPages);
-            //for (int i=0; i < 2*1024; i++)
-            //    dirtyPages.add(i);
-            if (dirtyPages.size() > 0)
-            {
-                System.out.printf("Comparing");
-                for (int i: dirtyPages)
-                    System.out.printf(" %08x", i << 12);
-                System.out.println(" after " + previousInstruction());
-            }
+            // check all first 2MB
+//            for (int i=0; i < 512; i++)
+//                dirtyPages.add(i);
             for (int i : dirtyPages)
             {
                 Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1, false);
                 Integer l2 = bochs.savePage(new Integer(i<<12), sdata2, false);
                 if (l2 > 0)
-                    if (!samePage(i, sdata1, sdata2, null))
+                {
+                    List<Integer> addrs = new ArrayList<Integer>();
+                    if (!samePage(i, sdata1, sdata2, addrs))
                     {
-                        printHistory();
-                        System.out.println("Error here... look above");
-                        printPage(sdata1, sdata2, i << 12);
-                        if (continueExecution("memory"))
-                            load1.invoke(newpc, new Integer(i), sdata2, false);
+                        System.out.printf("Comparing");
+                        for (int j: dirtyPages)
+                            System.out.printf(" %08x", j << 12);
+                        System.out.println(" after " + previousInstruction());
+                        if ((addrs.size() != 1) || !addrs.contains(0x46c))
+                        {
+                            printHistory();
+                            System.out.println("Error here... look above");
+                            printPage(sdata1, sdata2, i << 12);
+                            if (continueExecution("memory"))
+                                load1.invoke(newpc, new Integer(i), sdata2, false);
+                            else
+                                System.exit(0);
+                        }
                         else
-                            System.exit(0);
+                            load1.invoke(newpc, new Integer(i), sdata2, false);
                     }
+                }
             }
         }
     }

@@ -260,6 +260,8 @@ public class Bochs implements EmulatorControl
         {
             while (line.contains("MEM"))
                 line = readLine();
+            if (line.contains("read error"))
+                return 0;
             String[] bytes = line.substring(line.indexOf(":")+1).trim().split("\t");
             for (int j=0; j < 8; j++)
                 data[8*i+j] = (byte)Integer.parseInt(bytes[j].substring(2), 16);
