@@ -48,6 +48,7 @@ public abstract class Option {
     public static final Switch log_disam_addresses = createSwitch("log-disam-addresses");
     public static final Switch log_state = createSwitch("log-state");
     public static final Switch log_blockentry = createSwitch("log-block-entry");
+    public static final Switch log_memory_maps = createSwitch("log-memory-maps");
     public static final Switch compile = createSwitch("compile");
     public static final Switch fullscreen = createSwitch("fullscreen");
     public static final Switch history = createSwitch("history");

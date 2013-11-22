@@ -249,10 +249,7 @@ public class Bochs implements EmulatorControl
 
     public Integer savePage(Integer page, byte[] data, Boolean linear) throws IOException
     {
-        if (linear)
-            writeCommand("x/4096bx "+page);
-        else
-            writeCommand("x/4096bx "+(page << 12));
+        writeCommand("x/4096bx "+page);
         String line = readLine();
         while (!line.contains("bogus"))
             line = readLine();

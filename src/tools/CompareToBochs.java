@@ -609,12 +609,13 @@ public class CompareToBochs
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, bochs, sdata2, pm, load1);
             }
-            if (bochsState[16] == 0xBA3FD)
+            if (bochsState[16] == 0xED8DA9)
                 System.out.printf("");
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();
             dirty1.invoke(newpc, dirtyPages);
+            dirtyPages.add(0xf2ce4 >> 12);
             // check all first 2MB
 //            for (int i=0; i < 512; i++)
 //                dirtyPages.add(i);

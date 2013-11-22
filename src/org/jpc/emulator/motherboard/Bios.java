@@ -12,6 +12,7 @@ public abstract class Bios extends AbstractHardwareComponent {
     private boolean loaded;
     private final Logger biosOutput;
     private final StringBuilder biosOutputBuffer = new StringBuilder();
+    private static final int BIOS_ROM_SPACE_SIZE = 2*1024*1024;
 
     public Bios(byte[] image)
     {
@@ -50,7 +51,7 @@ public abstract class Bios extends AbstractHardwareComponent {
         int nextBlockStart = (loadAddress & AddressSpace.INDEX_MASK) + AddressSpace.BLOCK_SIZE;
 
         //repeat and load the system bios a second time at the end of the memory
-        int endLoadAddress = (int) (0x100000000l - imageData.length);
+        int endLoadAddress = -imageData.length;
         EPROMMemory ep = new EPROMMemory(AddressSpace.BLOCK_SIZE, loadAddress & AddressSpace.BLOCK_MASK, imageData, 0, nextBlockStart - loadAddress, addressSpace.getCodeBlockManager());
         addressSpace.mapMemory(loadAddress & AddressSpace.INDEX_MASK, ep);
         if (this instanceof SystemBIOS) {

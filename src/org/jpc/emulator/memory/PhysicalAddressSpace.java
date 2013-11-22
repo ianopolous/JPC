@@ -597,6 +597,9 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
             throw new IllegalStateException("Cannot map memory in partial blocks: " + length + " is not a multiple of " + BLOCK_SIZE);
         }
         unmap(start, length);
+        if (Option.log_memory_maps.isSet())
+            if (((start & 0xffffffffL) > PC.SYS_RAM_SIZE) || !(underlying instanceof LazyCodeBlockMemory))
+                System.out.printf("Mapping %s into memory from %x to %x\n", underlying, start, start+length);
 
         long s = 0xFFFFFFFFl & start;
         for (long i = s; i < s + length; i += BLOCK_SIZE) {
@@ -623,6 +626,9 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
             throw new IllegalStateException("Can only allocate memory in blocks of " + BLOCK_SIZE);
         }
         unmap(start, BLOCK_SIZE);
+        if (Option.log_memory_maps.isSet())
+            if (((start & 0xffffffffL) > PC.SYS_RAM_SIZE) || !(block instanceof LazyCodeBlockMemory))
+                System.out.printf("Mapping %s into memory from %x to %x\n", block, start, start+BLOCK_SIZE);
 
         long s = 0xFFFFFFFFl & start;
         setMemoryBlockAt((int) s, block);
@@ -737,48 +743,22 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         return "Physical Pointer Bus";
     }
 
-    public Integer getPage(Integer pageNum, byte[] page)
+    public Integer getPage(Integer addr, byte[] page)
     {
-        int i=pageNum*4096;
-        try {
-            Memory block = quickIndex[i >>> INDEX_SHIFT];
-            if (block instanceof MapWrapper)
-                return 0;
-            block.copyContentsIntoArray(0, page, 0, 4096);
-            return 4096;
-        } catch (ArrayIndexOutOfBoundsException e) {
-            try {
-                Memory block = index[i >>> TOP_INDEX_SHIFT][(i >>> BOTTOM_INDEX_SHIFT) & BOTTOM_INDEX_MASK];
-                if (block instanceof MapWrapper)
-                    return 0;
-                block.copyContentsIntoArray(0, page, 0, 4096);
-                return 4096;
-            } catch (NullPointerException n) {
-                return 0;
-            }
-        }
+        Memory block = getMemoryBlockAt(addr);
+        if (block instanceof MapWrapper)
+            return 0;
+        block.copyContentsIntoArray(0, page, 0, 4096);
+        return 4096;
     }
 
-    public Integer setPage(Integer pageNum, byte[] page)
+    public Integer setPage(Integer addr, byte[] page)
     {
-        int i=pageNum*4096;
-        try {
-            Memory block = quickIndex[i >>> INDEX_SHIFT];
-            if (block instanceof MapWrapper)
-                return 0;
-            block.copyArrayIntoContents(0, page, 0, 4096);
-            return 4096;
-        } catch (ArrayIndexOutOfBoundsException e) {
-            try {
-                Memory block = index[i >>> TOP_INDEX_SHIFT][(i >>> BOTTOM_INDEX_SHIFT) & BOTTOM_INDEX_MASK];
-                if (block instanceof MapWrapper)
-                    return 0;
-                block.copyArrayIntoContents(0, page, 0, 4096);
-                return 4096;
-            } catch (NullPointerException n) {
-                return 0;
-            }
-        }
+        Memory block = getMemoryBlockAt(addr);
+        if (block instanceof MapWrapper)
+            return 0;
+        block.copyArrayIntoContents(0, page, 0, 4096);
+        return 4096;
     }
 
     private Memory getMemoryBlockAt(int i) {
@@ -809,6 +789,7 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
                 nonA20MaskedIndex[i >>> TOP_INDEX_SHIFT][(i >>> BOTTOM_INDEX_SHIFT) & BOTTOM_INDEX_MASK] = b;
             }
 
+            i &= GATEA20_MASK;
             if ((i & GATEA20_MASK) == i) {
                 try {
                     a20MaskedIndex[i >>> TOP_INDEX_SHIFT][(i >>> BOTTOM_INDEX_SHIFT) & BOTTOM_INDEX_MASK] = b;
