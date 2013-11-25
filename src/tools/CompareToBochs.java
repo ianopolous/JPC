@@ -615,7 +615,7 @@ public class CompareToBochs
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();
             dirty1.invoke(newpc, dirtyPages);
-            dirtyPages.add(0xf2ce4 >> 12);
+//            dirtyPages.add(0);
             // check all first 2MB
 //            for (int i=0; i < 512; i++)
 //                dirtyPages.add(i);
@@ -623,7 +623,7 @@ public class CompareToBochs
             {
                 Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1, false);
                 Integer l2 = bochs.savePage(new Integer(i<<12), sdata2, false);
-                if (l2 > 0)
+                if ((l2 > 0) && (l1 > 0))
                 {
                     List<Integer> addrs = new ArrayList<Integer>();
                     if (!samePage(i, sdata1, sdata2, addrs))
@@ -638,12 +638,12 @@ public class CompareToBochs
                             System.out.println("Error here... look above");
                             printPage(sdata1, sdata2, i << 12);
                             if (continueExecution("memory"))
-                                load1.invoke(newpc, new Integer(i), sdata2, false);
+                                load1.invoke(newpc, new Integer(i<<12), sdata2, false);
                             else
                                 System.exit(0);
                         }
                         else
-                            load1.invoke(newpc, new Integer(i), sdata2, false);
+                            load1.invoke(newpc, new Integer(i<<12), sdata2, false);
                     }
                 }
             }
@@ -853,13 +853,13 @@ public class CompareToBochs
 
     public static int getInt(byte[] data, int offset)
     {
-        return data[offset] & 0xff | ((data[offset+1] & 0xff) << 8)  | ((data[offset+2] & 0xff) << 16)  | ((data[offset+3] & 0xff) << 24);
+        return ((data[offset] & 0xff) << 24) | ((data[offset+1] & 0xff) << 16)  | ((data[offset+2] & 0xff) << 8)  | ((data[offset+3] & 0xff) << 0);
     }
 
     public static void printIntChars(int i, int c)
     {
-        int[] ia = new int[] {(i & 0xFF), ((i >> 8) & 0xFF), ((i >> 16) & 0xFF), ((i >> 24) & 0xFF)};
-        int[] ca = new int[] {(c & 0xFF), ((c >> 8) & 0xFF), ((c >> 16) & 0xFF), ((c >> 24) & 0xFF)};
+        int[] ia = new int[] {((i >> 24) & 0xFF), ((i >> 16) & 0xFF), ((i >> 8) & 0xFF), ((i >> 0) & 0xFF)};
+        int[] ca = new int[] {((c >> 24) & 0xFF), ((c >> 16) & 0xFF), ((c >> 8) & 0xFF), ((c >> 0) & 0xFF)};
 
         for (int a = 0; a < 4; a++)
             if (ia[a] == ca[a])
@@ -916,6 +916,8 @@ public class CompareToBochs
 
     public static boolean continueExecution(String state)
     {
+        if (true)
+            return true;
         System.out.println("Adopt "+state+"? (y/n)");
         String line = null;
         try {

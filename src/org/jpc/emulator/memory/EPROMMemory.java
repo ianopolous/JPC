@@ -48,6 +48,8 @@ public class EPROMMemory extends LazyCodeBlockMemory
 {
     private static final Logger LOGGING = Logger.getLogger(EPROMMemory.class.getName());
 
+    private boolean writable = false;
+
     /**
      * Constructs an instance with contents equal to a 
      * fragment of the supplied array.
@@ -75,42 +77,47 @@ public class EPROMMemory extends LazyCodeBlockMemory
         super.copyArrayIntoContents(base, data, offset, Math.min(size - base, Math.min(length, data.length - offset)));
     }
 
-    // EEPROM can be written to! There are data tables in the bios...
-//    /**
-//     * Silently returns as this is a read-only instance.
-//     */
-//    public void setByte(int offset, byte data)
-//    {
-//        //writeAttempted(offset, 1);
-//    }
-//
-//    /**
-//     * Silently returns as this is a read-only instance.
-//     */
-//    public void setWord(int offset, short data)
-//    {
-//        //writeAttempted(offset, 2);
-//    }
-//
-//    /**
-//     * Silently returns as this is a read-only instance.
-//     */
-//    public void setDoubleWord(int offset, int data)
-//    {
-//        writeAttempted(offset, 4);
-//    }
+    public void setWritable(boolean rw)
+    {
+        writable = rw;
+    }
 
-    /**
-     * Silently returns as this is a read-only instance.
-     */
+    // EEPROM can be written to! The ability is controlled through the PCIHostBridge
+    public void setByte(int offset, byte data)
+    {
+        if (writable)
+            super.setByte(offset, data);
+        else
+            writeAttempted(offset, 1);
+    }
+
+    public void setWord(int offset, short data)
+    {
+        if (writable)
+            super.setWord(offset, data);
+        else
+            writeAttempted(offset, 2);
+    }
+
+    public void setDoubleWord(int offset, int data)
+    {
+        if (writable)
+            super.setDoubleWord(offset, data);
+        else
+            writeAttempted(offset, 4);
+    }
+
     public void copyArrayIntoContents(int address, byte[] buf, int off, int len)
     {
-        writeAttempted(address, len);
+//        if (writable)
+            super.copyArrayIntoContents(address, buf, off, len);
+//        else
+//            writeAttempted(address, len);
     }
 
     public void clear()
     {
-	constructCodeBlocksArray();
+        constructCodeBlocksArray();
     }
     
     public String toString()

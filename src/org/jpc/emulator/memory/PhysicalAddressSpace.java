@@ -277,6 +277,17 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
     
     public void loadState(DataInput in) {}
 
+    public void setEpromWritable(int address, boolean rw)
+    {
+        Memory m = getMemoryBlockAt(address);
+        if (m instanceof EPROMMemory)
+        {
+            ((EPROMMemory) m).setWritable(rw);
+        }
+        else
+            System.out.printf("Tried to set non bios eprom writable at %x\n", address);
+    }
+
     public CodeBlockManager getCodeBlockManager()
     {
         return manager;
@@ -757,8 +768,14 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         Memory block = getMemoryBlockAt(addr);
         if (block instanceof MapWrapper)
             return 0;
-        block.copyArrayIntoContents(0, page, 0, 4096);
-        return 4096;
+        try {
+            block.copyArrayIntoContents(0, page, 0, 4096);
+            return 4096;
+        } catch (IllegalStateException e)
+        {
+            System.out.printf("Tried to write to unconnected memory at %x.\n", addr);
+            return 0;
+        }
     }
 
     private Memory getMemoryBlockAt(int i) {

@@ -179,7 +179,7 @@ public abstract class AbstractPCIDevice extends AbstractHardwareComponent implem
         }
     }
 
-    public final boolean configWriteByte(int address, byte data) //returns true if device needs remapping
+    public boolean configWriteByte(int address, byte data) //returns true if device needs remapping
 
     {
         if (checkConfigWrite(address))

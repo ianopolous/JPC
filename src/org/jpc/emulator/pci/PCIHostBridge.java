@@ -33,6 +33,7 @@
 
 package org.jpc.emulator.pci;
 
+import org.jpc.emulator.memory.PhysicalAddressSpace;
 import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.HardwareComponent;
 
@@ -51,6 +52,7 @@ public class PCIHostBridge extends AbstractPCIDevice implements IODevice
     private static final Logger LOGGING = Logger.getLogger(PCIHostBridge.class.getName());
     
     private PCIBus attachedBus;
+    private PhysicalAddressSpace memory;
 
     private int configRegister;    
 
@@ -214,12 +216,41 @@ public class PCIHostBridge extends AbstractPCIDevice implements IODevice
 
     /* END IODevice Methods */
 
+    public boolean configWriteByte(int address, byte data)
+    {
+        byte prior = super.configReadByte(address);
+        boolean res = super.configWriteByte(address, data);
+        if (data != prior)
+        {
+            if (address == 0x59)
+            {
+                boolean rw = (data & (1<< 5)) != 0;
+                for (int page = 0xF0000; page < 0x100000; page += 0x1000)
+                    memory.setEpromWritable(page, rw);
+            }
+            else if ((address > 0x59) && (address <= 0x5F))
+            {
+                boolean rw1 = (data & (1<< 1)) != 0;
+                int page = (address - 0x5a)*2*0x4000 + 0xC0000;
+                for (int pa = page; pa < page + 0x4000; pa += 0x1000)
+                    memory.setEpromWritable(pa, rw1);
+                boolean rw2 = (data & (1<< 5)) != 0;
+                page += 0x4000;
+                for (int pa = page; pa < page + 0x4000; pa += 0x1000)
+                    memory.setEpromWritable(pa, rw2);
+            }
+            else
+                System.out.println("SMM RAM control needs to be implemented..");
+        }
+        return res;
+    }
+
     private boolean ioportRegistered;
     private boolean pciRegistered;
 
     public boolean initialised()
     {
-	return ioportRegistered && pciRegistered;
+        return ioportRegistered && pciRegistered && (memory != null);
     }
 
     public void reset()
@@ -239,16 +270,19 @@ public class PCIHostBridge extends AbstractPCIDevice implements IODevice
 
     public void acceptComponent(HardwareComponent component)
     {
-	if ((component instanceof PCIBus) && component.initialised() && !pciRegistered) {
-	    attachedBus = (PCIBus)component;
-	    pciRegistered = attachedBus.registerDevice(this);
-	}
+        if ((component instanceof PCIBus) && component.initialised() && !pciRegistered) {
+            attachedBus = (PCIBus)component;
+            pciRegistered = attachedBus.registerDevice(this);
+        }
 
-	if ((component instanceof IOPortHandler)
-	    && component.initialised()) {
-	    ((IOPortHandler)component).registerIOPortCapable(this);
-	    ioportRegistered = true;
-	}
+        if ((component instanceof IOPortHandler)
+                && component.initialised()) {
+            ((IOPortHandler)component).registerIOPortCapable(this);
+            ioportRegistered = true;
+        }
+
+        if ((component instanceof PhysicalAddressSpace) && component.initialised())
+            memory = (PhysicalAddressSpace) component;
     }
 
     public boolean updated()
@@ -258,21 +292,21 @@ public class PCIHostBridge extends AbstractPCIDevice implements IODevice
 
     public void updateComponent(HardwareComponent component)
     {
-	if ((component instanceof PCIBus) && component.updated() && !pciRegistered) 
+        if ((component instanceof PCIBus) && component.updated() && !pciRegistered)
         {
             //	    attachedBus = (PCIBus)component;
-	    pciRegistered = attachedBus.registerDevice(this);
-	}
+            pciRegistered = attachedBus.registerDevice(this);
+        }
 
-	if ((component instanceof IOPortHandler) && component.updated()) 
+        if ((component instanceof IOPortHandler) && component.updated())
         {
-	    ((IOPortHandler)component).registerIOPortCapable(this);
-	    ioportRegistered = true;
-	}
+            ((IOPortHandler)component).registerIOPortCapable(this);
+            ioportRegistered = true;
+        }
     }
 
     public String toString()
     {
-	return "Intel i440FX PCI-Host Bridge";
+        return "Intel i440FX PCI-Host Bridge";
     }
 }
