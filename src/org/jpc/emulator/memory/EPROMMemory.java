@@ -47,8 +47,10 @@ import org.jpc.emulator.execution.codeblock.CodeBlockManager;
 public class EPROMMemory extends LazyCodeBlockMemory
 {
     private static final Logger LOGGING = Logger.getLogger(EPROMMemory.class.getName());
+    private static final byte[] ZERO = new byte[4096];
 
     private boolean writable = false;
+    private byte[] rom = new byte[4096];
 
     /**
      * Constructs an instance with contents equal to a 
@@ -75,10 +77,18 @@ public class EPROMMemory extends LazyCodeBlockMemory
     {
         super(size, manager);
         super.copyArrayIntoContents(base, data, offset, Math.min(size - base, Math.min(length, data.length - offset)));
+        System.arraycopy(data, offset, rom, 0, Math.min(size - base, Math.min(length, data.length - offset)));
     }
 
     public void setWritable(boolean rw)
     {
+        if (writable != rw)
+        {
+            if (rw)
+                super.copyArrayIntoContents(0, ZERO, 0, ZERO.length);
+            else
+                super.copyArrayIntoContents(0, rom, 0, rom.length);
+        }
         writable = rw;
     }
 

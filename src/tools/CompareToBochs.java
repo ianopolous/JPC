@@ -186,6 +186,7 @@ public class CompareToBochs
 
         Method setState1 = c1.getMethod("setState", int[].class);
         Method execute1 = c1.getMethod("executeBlock");
+        Method spurious1 = c1.getMethod("triggerSpuriousInterrupt");
         Method dirty1 = c1.getMethod("getDirtyPages", Set.class);
         Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
         Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
@@ -266,6 +267,10 @@ public class CompareToBochs
                     }
                     pitExpiry1.invoke(newpc, new Long(bochsState[16]+10));
                 }
+                else if (nextBochs.contains("spurious interrupt"))
+                {
+                    spurious1.invoke(newpc);bochsEnteredNonPitInt = true;
+                }
                 else if (nextBochs.contains("vector="))
                 {
                     bochsEnteredNonPitInt = true;
@@ -340,7 +345,7 @@ public class CompareToBochs
             {
                 while (fast[8] != bochsState[8])
                 {
-                    bochs.executeInstruction();
+                    String bnext = bochs.executeInstruction(); if (bnext.contains("vector=")) System.out.println("***** Missed interrupt during rep X: "+bnext);
                     bochsState = bochs.getState();
                 }
                 // now update ticks
@@ -635,7 +640,7 @@ public class CompareToBochs
                         if ((addrs.size() != 1) || !addrs.contains(0x46c))
                         {
                             printHistory();
-                            System.out.println("Error here... look above");
+                            System.out.println("Error here... look above for instruction causing diff");
                             printPage(sdata1, sdata2, i << 12);
                             if (continueExecution("memory"))
                                 load1.invoke(newpc, new Integer(i<<12), sdata2, false);
@@ -839,6 +844,7 @@ public class CompareToBochs
             System.out.println();
         }
 
+        System.out.println("Memory differences:");
         // print differences
         for (int i =0; i < 1<< 12; i++)
         {
@@ -846,7 +852,7 @@ public class CompareToBochs
             byte b2 = old[i];
             if (b1 != b2)
             {
-                System.out.println("Memory difference at 0x" + Integer.toHexString(address+i) + ", values: " + Integer.toHexString(b1 & 0xff) + " " + Integer.toHexString(b2 & 0xff));
+                System.out.println("Memory not the same at 0x" + Integer.toHexString(address+i) + ", values: " + Integer.toHexString(b1 & 0xff) + " " + Integer.toHexString(b2 & 0xff));
             }
         }
     }
@@ -878,7 +884,7 @@ public class CompareToBochs
             {
                 if (addrs!= null)
                     addrs.add(i);
-                System.out.printf("Difference in memory state: %08x=> %02x - %02x\n", index*4096+i, fast[i], old[i]);
+                System.out.printf("Memory not the same: %08x=> %02x - %02x\n", index*4096+i, fast[i], old[i]);
                 return false;
             }
         return true;

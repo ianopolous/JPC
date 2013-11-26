@@ -53,8 +53,11 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
     private int ioBase,  ioBaseTwo,  irq;
     private InterruptController irqDevice;
     private int nextDriveSerial;
+    private int channel;
     public static final String CDLABEL = "Generic 1234  ";/*"JPC CD-ROM";*/
     public static final String HDLABEL = "Generic 1234  ";//"JPC HARDDISK";
+    public static final String HD_VERSION = "0.01";
+    public static final String CD_VERSION = "ALPHA1  ";
 
     public void saveState(DataOutput output) throws IOException {
         output.writeInt(ioBase);
@@ -136,12 +139,13 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
         }
     }
 
-    public IDEChannel(int irq, InterruptController irqDevice, int ioBase, int ioBaseTwo, BlockDevice[] drives, BMDMAIORegion bmdma) {
+    public IDEChannel(int channel, int irq, InterruptController irqDevice, int ioBase, int ioBaseTwo, BlockDevice[] drives, BMDMAIORegion bmdma) {
         this.irq = irq;
         this.irqDevice = irqDevice;
         this.ioBase = ioBase;
         this.ioBaseTwo = ioBaseTwo;
         this.nextDriveSerial = 1;
+        this.channel = channel;
 
         devices = new IDEState[2];
         devices[0] = new IDEState(drives[0]); // master
@@ -1128,7 +1132,6 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
         public static final int IDF_WRITE_DMA_CB = 1;
         public static final int IDF_READ_DMA_CB = 2;
         public static final int IDF_ATAPI_READ_DMA_CB = 3;
-        public static final String HD_VERSION = "0.01";
         private int cylinders,  heads,  sectors;
         public byte status,  command,  error,  feature,  select; // head = select & 0xf, lba_mode = select & 0x40
         public byte hcyl,  lcyl;
@@ -1338,14 +1341,15 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                 ioBuffer[i] = (byte) 0;
             }
             putLE16InByte(ioBuffer, 0, (2 << 14) | (5 << 8) | (1 << 7) | (2 << 5) | (0 << 0));
-            stringToBytes("JPC" + driveSerial, ioBuffer, 20, 20);
-            putLE16InByte(ioBuffer, 40, 3);
-            putLE16InByte(ioBuffer, 42, 512); /* cache size in sectors */
-            putLE16InByte(ioBuffer, 44, 4); /* ecc bytes */
-            stringToBytes(HD_VERSION, ioBuffer, 46, 8);
+            stringToBytes("BXCD00000           ", ioBuffer, 20, 20);
+            ioBuffer[28] = (byte) (0x30 + driveSerial);
+//            putLE16InByte(ioBuffer, 40, 3);
+//            putLE16InByte(ioBuffer, 42, 512); /* cache size in sectors */
+//            putLE16InByte(ioBuffer, 44, 4); /* ecc bytes */
+            stringToBytes(CD_VERSION, ioBuffer, 46, 8);
             stringToBytes(CDLABEL, ioBuffer, 54, 40);
             putLE16InByte(ioBuffer, 96, 1); /* dword I/O */
-            putLE16InByte(ioBuffer, 98, (1 << 9)); /* DMA and LBA supported */
+            putLE16InByte(ioBuffer, 98, (1 << 9)|(1 << 8)); /* DMA and LBA supported */
             putLE16InByte(ioBuffer, 106, 3); /* words 54-58, 64-70 are valid */
             putLE16InByte(ioBuffer, 126, 0x103);
             putLE16InByte(ioBuffer, 128, 1);
@@ -1465,15 +1469,15 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
             putLE16InByte(ioBuffer, 12, sectors);
             try {
                 byte[] serial = "BXHD00000           ".getBytes("UTF-8");
-                serial[7] = (byte)(49 + driveSerial);
-                serial[8] = (byte)(49 + driveSerial);
+                serial[7] = (byte)(49 + channel);
+                serial[8] = (byte)(49 + channel);
             stringToBytes(new String(serial), ioBuffer, 20, 20);
             } catch (UnsupportedEncodingException e) {}
             // buffer type dual ported mutli-sector_no buffer capable of simultaneous data transfers with a read caching capability.
             putLE16InByte(ioBuffer, 40, 3);
             putLE16InByte(ioBuffer, 42, 512); // cache size in sectors - 512 Sectors = 256kB cache
             putLE16InByte(ioBuffer, 44, 4); // ECC bytes available on read/write long commands
-            stringToBytes(HD_VERSION, ioBuffer, 46, 8);
+//            stringToBytes(HD_VERSION, ioBuffer, 46, 8);
             stringToBytes(HDLABEL, ioBuffer, 54, 40); //TODO revert to "JPC HARDDISK"
             putLE16InByte(ioBuffer, 94, MAX_MULT_SECTORS);
             putLE16InByte(ioBuffer, 96, 1); // can perform DWORD IO

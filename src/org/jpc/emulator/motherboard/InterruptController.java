@@ -86,6 +86,17 @@ public class InterruptController extends AbstractHardwareComponent implements IO
         return master.irqBase;
     }
 
+    public int getSpuriousVector()
+    {
+        return slave.irqBase + 7;
+    }
+
+    public void triggerSpuriousInterrupt()
+    {
+        setIRQ(2, 0);
+        setIRQ(2, 1);
+    }
+
     public int getMasterIRR()
     {
         return master.interruptRequestRegister;
@@ -131,7 +142,7 @@ public class InterruptController extends AbstractHardwareComponent implements IO
     /**
      * Return the highest priority interrupt request currently awaiting service
      * on this interrupt controller.  This is called by the processor emulation
-     * once its <code>raiseInterrupt</code> method has been called to get the
+     * once its <code>raiseInterrupt</code> method has been called, to get the
      * correct interrupt vector value.
      * @return highest priority interrupt vector.
      */

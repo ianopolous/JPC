@@ -231,8 +231,8 @@ public class PIIX3IDEInterface extends AbstractPCIDevice
         if ((component instanceof IOPortHandler) && component.initialised()
             && (irqDevice != null) && (drives != null)) {
             //Run IDEChannel Constructors
-            channels[0] = new IDEChannel(14, irqDevice, 0x1f0, 0x3f6, new BlockDevice[]{drives[0], drives[1]}, bmdmaRegions[0]);
-            channels[1] = new IDEChannel(15, irqDevice, 0x170, 0x376, new BlockDevice[]{drives[2], drives[3]}, bmdmaRegions[1]);
+            channels[0] = new IDEChannel(0, 14, irqDevice, 0x1f0, 0x3f6, new BlockDevice[]{drives[0], drives[1]}, bmdmaRegions[0]);
+            channels[1] = new IDEChannel(1, 15, irqDevice, 0x170, 0x376, new BlockDevice[]{drives[2], drives[3]}, bmdmaRegions[1]);
             ((IOPortHandler)component).registerIOPortCapable(channels[0]);
             ((IOPortHandler)component).registerIOPortCapable(channels[1]);
             ioportRegistered = true;

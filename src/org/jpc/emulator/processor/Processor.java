@@ -3907,7 +3907,7 @@ public class Processor implements HardwareComponent
                     interruptFlags &= ~IFLAGS_HARDWARE_INTERRUPT;
                     int vec = interruptController.cpuGetInterrupt();
                     //System.out.printf("JPC handling interrupt 0x%x\n", vec);
-                    if (USEBOCHS && vec != interruptController.getIRQ0Vector())
+                    if (USEBOCHS && (vec != interruptController.getIRQ0Vector()) && (vec != interruptController.getSpuriousVector()))
                         lastPMVector = vec;
                     else
                     {

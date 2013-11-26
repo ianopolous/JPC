@@ -433,6 +433,11 @@ public class PC {
             physicalAddr.setPage(LinearMemoryViewer.translateLinearAddressToInt(physicalAddr, processor, page), data);
     }
 
+    public void triggerSpuriousInterrupt()
+    {
+        pic.triggerSpuriousInterrupt();
+    }
+
     /**
      * Starts this PC's attached clock instance.
      */
