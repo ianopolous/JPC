@@ -47,30 +47,51 @@ public abstract class Bios extends AbstractHardwareComponent {
 
     private void load(PhysicalAddressSpace addressSpace)
     {
-        int loadAddress = loadAddress();
-        int nextBlockStart = (loadAddress & AddressSpace.INDEX_MASK) + AddressSpace.BLOCK_SIZE;
 
-        //repeat and load the system bios a second time at the end of the memory
-        int endLoadAddress = -imageData.length;
-        EPROMMemory ep = new EPROMMemory(AddressSpace.BLOCK_SIZE, loadAddress & AddressSpace.BLOCK_MASK, imageData, 0, nextBlockStart - loadAddress, addressSpace.getCodeBlockManager());
-        addressSpace.mapMemory(loadAddress & AddressSpace.INDEX_MASK, ep);
-        if (this instanceof SystemBIOS) {
-            //only copy the bios in the end of memory, don't make it an eeprom there
-            addressSpace.copyArrayIntoContents(endLoadAddress, imageData, 0, imageData.length);
+        if (this instanceof SystemBIOS)
+        {
+            if ((imageData.length & (~(1 << (31 -Integer.numberOfLeadingZeros(imageData.length))))) != 0)
+                throw new IllegalStateException("BIOS image size is not a power of 2: "+imageData.length);
+            int lowAddress = 0x100000 - AddressSpace.BLOCK_SIZE;
+            int endAddress = -AddressSpace.BLOCK_SIZE;
+            int imageOffset = imageData.length - AddressSpace.BLOCK_SIZE;
+            for (; endAddress >= -imageData.length; endAddress -= AddressSpace.BLOCK_SIZE, imageOffset -= AddressSpace.BLOCK_SIZE, lowAddress -= AddressSpace.BLOCK_SIZE)
+            {
+                EPROMMemory eprom = new EPROMMemory(AddressSpace.BLOCK_SIZE, 0, imageData, imageOffset, AddressSpace.BLOCK_SIZE, addressSpace.getCodeBlockManager());
+                addressSpace.mapMemory(endAddress, eprom);
+                // now map the shadow copy from E0000 to 0x100000 (up to last 128K of image only)
+                if ((lowAddress >= 0xE0000) && (0x100000 - lowAddress <= imageData.length))
+                {
+                    ShadowEPROMMemory shadow = new ShadowEPROMMemory(AddressSpace.BLOCK_SIZE, eprom, addressSpace.getCodeBlockManager());
+                    addressSpace.mapMemory(lowAddress, shadow);
+                }
+            }
         }
+        else
+        {
+            // other ROMs may not be a power of 2 in size
+            int loadAddress = loadAddress();
+            int nextBlockStart = (loadAddress & AddressSpace.INDEX_MASK) + AddressSpace.BLOCK_SIZE;
 
-        int imageOffset = nextBlockStart - loadAddress;
-        int epromOffset = nextBlockStart;        
-        while ((imageOffset + AddressSpace.BLOCK_SIZE) <= imageData.length) {
-            ep = new EPROMMemory(imageData, imageOffset, AddressSpace.BLOCK_SIZE, addressSpace.getCodeBlockManager());
-            addressSpace.mapMemory(epromOffset, ep);
-            epromOffset += AddressSpace.BLOCK_SIZE;
-            imageOffset += AddressSpace.BLOCK_SIZE;
-        }
+            EPROMMemory ep = new EPROMMemory(AddressSpace.BLOCK_SIZE, loadAddress & AddressSpace.BLOCK_MASK, imageData, 0, nextBlockStart - loadAddress, addressSpace.getCodeBlockManager());
+            ShadowEPROMMemory shadow = new ShadowEPROMMemory(AddressSpace.BLOCK_SIZE, ep, addressSpace.getCodeBlockManager());
+            addressSpace.mapMemory(loadAddress & AddressSpace.INDEX_MASK, shadow);
 
-        if (imageOffset < imageData.length) {
-            ep = new EPROMMemory(AddressSpace.BLOCK_SIZE, 0, imageData, imageOffset, imageData.length - imageOffset, addressSpace.getCodeBlockManager());
-            addressSpace.mapMemory(epromOffset, ep);
+            int imageOffset = nextBlockStart - loadAddress;
+            int epromOffset = nextBlockStart;
+            while ((imageOffset + AddressSpace.BLOCK_SIZE) <= imageData.length) {
+                ep = new EPROMMemory(imageData, imageOffset, AddressSpace.BLOCK_SIZE, addressSpace.getCodeBlockManager());
+                shadow = new ShadowEPROMMemory(AddressSpace.BLOCK_SIZE, ep, addressSpace.getCodeBlockManager());
+                addressSpace.mapMemory(epromOffset, shadow);
+                epromOffset += AddressSpace.BLOCK_SIZE;
+                imageOffset += AddressSpace.BLOCK_SIZE;
+            }
+
+            if (imageOffset < imageData.length) {
+                ep = new EPROMMemory(AddressSpace.BLOCK_SIZE, 0, imageData, imageOffset, imageData.length - imageOffset, addressSpace.getCodeBlockManager());
+                shadow = new ShadowEPROMMemory(AddressSpace.BLOCK_SIZE, ep, addressSpace.getCodeBlockManager());
+                addressSpace.mapMemory(epromOffset, shadow);
+            }
         }
     }
 

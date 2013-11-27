@@ -37,20 +37,24 @@ import java.util.logging.*;
 import org.jpc.emulator.execution.codeblock.CodeBlockManager;
 
 /**
- * Provides a read-only memory implementation in which the contents of ROM chips
- * can be stored (for example System and VGA bioses).
+ * Provides an Eprom memory implementation in which the contents of ROM chips
+ * can be stored with configurable read/write access.
+ * Used for the System BIOS at FFFE0000
  * <p>
- * Attempts to perform any kind of write on an <code>EPROMMemory</code> will
- * silently fail.
- * @author Chris Dennis
+ * @author Ian Preston
  */
 public class EPROMMemory extends LazyCodeBlockMemory
 {
     private static final Logger LOGGING = Logger.getLogger(EPROMMemory.class.getName());
-    private static final byte[] ZERO = new byte[4096];
 
     private boolean writable = false;
-    private byte[] rom = new byte[4096];
+    private boolean readable = false;
+
+    // constructor that doesn't initialise the memory
+    public EPROMMemory(int size, CodeBlockManager manager)
+    {
+        super(size, manager);
+    }
 
     /**
      * Constructs an instance with contents equal to a 
@@ -77,19 +81,26 @@ public class EPROMMemory extends LazyCodeBlockMemory
     {
         super(size, manager);
         super.copyArrayIntoContents(base, data, offset, Math.min(size - base, Math.min(length, data.length - offset)));
-        System.arraycopy(data, offset, rom, 0, Math.min(size - base, Math.min(length, data.length - offset)));
     }
 
-    public void setWritable(boolean rw)
+    public void setWritable(boolean w)
     {
-        if (writable != rw)
-        {
-            if (rw)
-                super.copyArrayIntoContents(0, ZERO, 0, ZERO.length);
-            else
-                super.copyArrayIntoContents(0, rom, 0, rom.length);
-        }
-        writable = rw;
+        writable = w;
+    }
+
+    public boolean writable()
+    {
+        return writable;
+    }
+
+    public void setReadable(boolean r)
+    {
+        readable = r;
+    }
+
+    public boolean readable()
+    {
+        return readable;
     }
 
     // EEPROM can be written to! The ability is controlled through the PCIHostBridge

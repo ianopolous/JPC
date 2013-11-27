@@ -224,20 +224,32 @@ public class PCIHostBridge extends AbstractPCIDevice implements IODevice
         {
             if (address == 0x59)
             {
-                boolean rw = (data & (1<< 5)) != 0;
+                boolean w = (data & (1<< 5)) != 0;
+                boolean r = (data & (1<< 4)) != 0;
                 for (int page = 0xF0000; page < 0x100000; page += 0x1000)
-                    memory.setEpromWritable(page, rw);
+                {
+                    memory.setEpromWritable(page, w);
+                    memory.setEpromReadable(page, r);
+                }
             }
             else if ((address > 0x59) && (address <= 0x5F))
             {
-                boolean rw1 = (data & (1<< 1)) != 0;
+                boolean w1 = (data & (1<< 0)) != 0;
+                boolean r1 = (data & (1<< 1)) != 0;
                 int page = (address - 0x5a)*2*0x4000 + 0xC0000;
                 for (int pa = page; pa < page + 0x4000; pa += 0x1000)
-                    memory.setEpromWritable(pa, rw1);
-                boolean rw2 = (data & (1<< 5)) != 0;
+                {
+                    memory.setEpromWritable(pa, w1);
+                    memory.setEpromReadable(pa, r1);
+                }
+                boolean w2 = (data & (1<< 5)) != 0;
+                boolean r2 = (data & (1<< 4)) != 0;
                 page += 0x4000;
                 for (int pa = page; pa < page + 0x4000; pa += 0x1000)
-                    memory.setEpromWritable(pa, rw2);
+                {
+                    memory.setEpromWritable(pa, w2);
+                    memory.setEpromReadable(pa, r2);
+                }
             }
             else
                 System.out.println("SMM RAM control needs to be implemented..");

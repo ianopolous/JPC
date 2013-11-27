@@ -116,8 +116,8 @@ public class CompareToBochs
         flagIgnores.put("mul", ~0xd4); // not defined in spec
         flagIgnores.put("imul", ~0xd4); // not defined in spec
         flagIgnores.put("popfw", ~0x895);
-        flagIgnores.put("bsf", ~0x40); // not defined in spec
-        flagIgnores.put("bsr", ~0x40); // not defined in spec
+        flagIgnores.put("bsf", 0x40); // not defined in spec
+        flagIgnores.put("bsr", 0x40); // not defined in spec
         flagIgnores.put("mul", ~0x80); // not defined in spec
         flagIgnores.put("ror", ~0x800); // not defined in spec for shifts != 1
         flagIgnores.put("shl", ~0x810); // not defined in spec for shifts != 1
@@ -343,11 +343,13 @@ public class CompareToBochs
             // account for repeated strings
             if ((fast[8] != bochsState[8]) && (currentInstruction().contains("rep")))
             {
+                String bnext = "";
                 while (fast[8] != bochsState[8])
                 {
-                    String bnext = bochs.executeInstruction(); if (bnext.contains("vector=")) System.out.println("***** Missed interrupt during rep X: "+bnext);
+                    bnext = bochs.executeInstruction(); if (bnext.contains("vector=")) System.out.println("***** Missed interrupt during rep X: "+bnext);
                     bochsState = bochs.getState();
                 }
+                nextBochs += bnext;
                 // now update ticks
                 fast[16] = bochsState[16];
                 setState1.invoke(newpc, (int[])fast);
@@ -544,6 +546,7 @@ public class CompareToBochs
                         setState1.invoke(newpc, (int[])bochsState);
                     if (diff.contains(8))
                     {
+
                         System.out.println("going to STOP!!");
                     }
                     if (diff.contains(8))
@@ -614,13 +617,23 @@ public class CompareToBochs
 
                 compareStacks(espPageIndex, esp, save1, newpc, sdata1, bochs, sdata2, pm, load1);
             }
-            if (bochsState[16] == 0xED8DA9)
+            if (bochsState[16] == 0x21E33CA)
                 System.out.printf("");
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();
             dirty1.invoke(newpc, dirtyPages);
-//            dirtyPages.add(0);
+            // relevant to win311 RM
+            dirtyPages.add(7);
+            dirtyPages.add(4);
+            dirtyPages.add(5);
+            dirtyPages.add(0xd);
+            // relevant to win311 PM
+            dirtyPages.add(0x8c);
+            dirtyPages.add(0x14b);
+            dirtyPages.add(0x1ad);
+            dirtyPages.add(0x1fb);
+            dirtyPages.add(0x1f8);
             // check all first 2MB
 //            for (int i=0; i < 512; i++)
 //                dirtyPages.add(i);

@@ -201,6 +201,7 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         for (int i = 0; i < PC.SYS_RAM_SIZE; i += AddressSpace.BLOCK_SIZE) {
             mapMemory(i, new LazyCodeBlockMemory(AddressSpace.BLOCK_SIZE, manager));
         }
+        // memory hole, the last half of this is replaced by BIOS shadow ram if the BIOS ROM is 128 K or greater
         for (int i = 0; i < 32; i++)
         {
             mapMemory(0xd0000 + i * AddressSpace.BLOCK_SIZE, new PhysicalAddressSpace.UnconnectedMemoryBlock());
@@ -277,15 +278,33 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
     
     public void loadState(DataInput in) {}
 
-    public void setEpromWritable(int address, boolean rw)
+    public void setEpromWritable(int address, boolean w)
     {
         Memory m = getMemoryBlockAt(address);
         if (m instanceof EPROMMemory)
         {
-            ((EPROMMemory) m).setWritable(rw);
+            ((EPROMMemory) m).setWritable(w);
         }
         else
-            System.out.printf("Tried to set non bios eprom writable at %x\n", address);
+            System.out.printf("Tried to set non eprom writable at %x\n", address);
+    }
+
+    public void setEpromReadable(int address, boolean r)
+    {
+        Memory m = getMemoryBlockAt(address);
+        if (m instanceof EPROMMemory)
+        {
+            ((EPROMMemory) m).setReadable(r);
+        }
+        else
+            System.out.printf("Tried to set non eprom readable at %x\n", address);
+    }
+
+    public void setBIOSWritable(boolean w)
+    {
+        // set Eprom at FFFE0000 writable or not
+        for (int page = 0xFFFE0000; page < -1; page += 0x1000)
+            ((EPROMMemory) getMemoryBlockAt(page)).setWritable(w);
     }
 
     public CodeBlockManager getCodeBlockManager()
@@ -680,7 +699,7 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         }
 
         public int getDoubleWord(int offset) {
-            return 0xff;
+            return -1;
         }
 
         public long getQuadWord(int offset) {
