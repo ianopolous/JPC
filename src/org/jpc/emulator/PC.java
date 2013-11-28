@@ -438,6 +438,11 @@ public class PC {
         pic.triggerSpuriousInterrupt();
     }
 
+    public void triggerSpuriousMasterInterrupt()
+    {
+        pic.triggerSpuriousMasterInterrupt();
+    }
+
     /**
      * Starts this PC's attached clock instance.
      */

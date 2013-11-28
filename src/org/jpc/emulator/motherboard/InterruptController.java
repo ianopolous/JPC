@@ -97,6 +97,11 @@ public class InterruptController extends AbstractHardwareComponent implements IO
         setIRQ(2, 1);
     }
 
+    public void triggerSpuriousMasterInterrupt()
+    {
+        connectedCPU.raiseInterrupt();
+    }
+
     public int getMasterIRR()
     {
         return master.interruptRequestRegister;

@@ -657,7 +657,7 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         }
         unmap(start, BLOCK_SIZE);
         if (Option.log_memory_maps.isSet())
-            if (((start & 0xffffffffL) > PC.SYS_RAM_SIZE) || !(block instanceof LazyCodeBlockMemory))
+            if (block instanceof EPROMMemory)
                 System.out.printf("Mapping %s into memory from %x to %x\n", block, start, start+BLOCK_SIZE);
 
         long s = 0xFFFFFFFFl & start;

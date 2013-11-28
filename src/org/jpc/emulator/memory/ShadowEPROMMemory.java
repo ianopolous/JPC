@@ -84,6 +84,14 @@ public class ShadowEPROMMemory extends EPROMMemory
             return rom.getDoubleWord(offset);
     }
 
+    public void copyContentsIntoArray(int address, byte[] buffer, int off, int len)
+    {
+        if (readable())
+            super.copyContentsIntoArray(address, buffer, off, len);
+        else
+            rom.copyContentsIntoArray(address, buffer, off, len);
+    }
+
     public String toString()
     {
         return "Shadow EPROM Memory [" + getSize() + "]";

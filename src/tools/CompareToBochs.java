@@ -187,6 +187,7 @@ public class CompareToBochs
         Method setState1 = c1.getMethod("setState", int[].class);
         Method execute1 = c1.getMethod("executeBlock");
         Method spurious1 = c1.getMethod("triggerSpuriousInterrupt");
+        Method spuriousMaster1 = c1.getMethod("triggerSpuriousMasterInterrupt");
         Method dirty1 = c1.getMethod("getDirtyPages", Set.class);
         Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
         Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
@@ -267,9 +268,15 @@ public class CompareToBochs
                     }
                     pitExpiry1.invoke(newpc, new Long(bochsState[16]+10));
                 }
-                else if (nextBochs.contains("spurious interrupt"))
+                else if (nextBochs.contains("spurious interrupt")) // modify pic.cc
                 {
-                    spurious1.invoke(newpc);bochsEnteredNonPitInt = true;
+                    spurious1.invoke(newpc);
+                    bochsEnteredNonPitInt = true;
+                }
+                else if (nextBochs.contains("spurious master interrupt")) // modify pic.cc
+                {
+                    spuriousMaster1.invoke(newpc);
+                    bochsEnteredNonPitInt = true;
                 }
                 else if (nextBochs.contains("vector="))
                 {
@@ -635,9 +642,10 @@ public class CompareToBochs
             // relevant to win311 PM
             if ((bochsState[36] & 1) != 0)
             {
-//            dirtyPages.add(0x1ad);
-                dirtyPages.add(0x1fb);
-                dirtyPages.add(0x1f8);
+                dirtyPages.add(0x1fa);
+////            dirtyPages.add(0x1ad);
+//                dirtyPages.add(0x1fb);
+//                dirtyPages.add(0x1f8);
             }
             for (int i : dirtyPages)
             {
