@@ -3761,9 +3761,9 @@ public class Processor implements HardwareComponent
             Segment result = SegmentFactory.createProtectedModeSegment(linearMemory, segmentSelector, segmentDescriptor);
             // mark segment descriptor as accessed
             if ((segmentSelector & 0x4) != 0)
-                ldtr.setByte((segmentSelector & 0xfff8) + 4, (byte) (ldtr.getByte((segmentSelector & 0xfff8) + 4) | 1));
+                ldtr.setByte((segmentSelector & 0xfff8) + 5, (byte) (ldtr.getByte((segmentSelector & 0xfff8) + 5) | 1));
             else
-                gdtr.setByte((segmentSelector & 0xfff8) + 4, (byte) (gdtr.getByte((segmentSelector & 0xfff8) + 4) | 1));
+                gdtr.setByte((segmentSelector & 0xfff8) + 5, (byte) (gdtr.getByte((segmentSelector & 0xfff8) + 5) | 1));
             if (alignmentChecking)
             {
                 if ((result.getType() & 0x18) == 0x10) // Should make this a data segment
