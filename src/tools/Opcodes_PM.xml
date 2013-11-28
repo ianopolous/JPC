@@ -1750,7 +1750,7 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="push_o32">
     <return>Branch.None</return>
-    <snippet>        cpu.push32($mask$op1.get);</snippet>
+    <snippet>        cpu.push$size_o32($cast$op1.get);</snippet>
     <args size="16">CS</args>
     <args size="16">DS</args>
     <args size="16">ES</args>

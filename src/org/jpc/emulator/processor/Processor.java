@@ -453,6 +453,25 @@ public class Processor implements HardwareComponent
         }
     }
 
+    public void push16_o32(short val)
+    {
+        if (ss.getDefaultSizeFlag()) {
+            if ((r_esp.get32() < 4) && (r_esp.get32() > 0))
+                throw ProcessorException.STACK_SEGMENT_0;
+
+            int offset = r_esp.get32() - 4;
+            ss.setWord(offset, val);
+            r_esp.set32(offset);
+        } else {
+            if (((r_esp.get32() & 0xffff) < 4) && ((r_esp.get32() & 0xffff) > 0))
+                throw ProcessorException.STACK_SEGMENT_0;
+
+            int offset = (r_esp.get32() - 4) & 0xffff;
+            ss.setWord(offset, val);
+            r_esp.set16(offset);
+        }
+    }
+
     public void push32(int val)
     {
         if (ss.getDefaultSizeFlag()) {
@@ -3740,6 +3759,11 @@ public class Processor implements HardwareComponent
                 segmentDescriptor = gdtr.getQuadWord(segmentSelector & 0xfff8);
             }
             Segment result = SegmentFactory.createProtectedModeSegment(linearMemory, segmentSelector, segmentDescriptor);
+            // mark segment descriptor as accessed
+            if ((segmentSelector & 0x4) != 0)
+                ldtr.setByte((segmentSelector & 0xfff8) + 4, (byte) (ldtr.getByte((segmentSelector & 0xfff8) + 4) | 1));
+            else
+                gdtr.setByte((segmentSelector & 0xfff8) + 4, (byte) (gdtr.getByte((segmentSelector & 0xfff8) + 4) | 1));
             if (alignmentChecking)
             {
                 if ((result.getType() & 0x18) == 0x10) // Should make this a data segment

@@ -954,8 +954,13 @@
     <args size="32">rBPr13</args>
     <args size="32">rSIr14</args>
     <args size="32">rDIr15</args>
-    <args size="32">CS</args>
     <args size="32">Id</args>
+  </opcode>
+
+  <opcode mnemonic="push_o32">
+    <return>Branch.None</return>
+    <snippet>        cpu.push$size_o32($cast$op1.get);</snippet>
+    <args size="16">CS</args>
   </opcode>
 
   <opcode mnemonic="pusha">

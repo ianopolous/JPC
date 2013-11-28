@@ -341,12 +341,18 @@ public class CompareToBochs
             if (e1 != null)
                 throw e1;
             // account for repeated strings
+            boolean missedIntDuringRep = false;
             if ((fast[8] != bochsState[8]) && (currentInstruction().contains("rep")))
             {
                 String bnext = "";
                 while (fast[8] != bochsState[8])
                 {
-                    bnext = bochs.executeInstruction(); if (bnext.contains("vector=")) System.out.println("***** Missed interrupt during rep X: "+bnext);
+                    bnext = bochs.executeInstruction();
+                    if (bnext.contains("vector="))
+                    {
+                        System.out.println("***** Missed interrupt during rep X: "+bnext);
+                        missedIntDuringRep = true;
+                    }
                     bochsState = bochs.getState();
                 }
                 nextBochs += bnext;
@@ -624,19 +630,15 @@ public class CompareToBochs
             Set<Integer> dirtyPages = new HashSet<Integer>();
             dirty1.invoke(newpc, dirtyPages);
             // relevant to win311 RM
-            dirtyPages.add(7);
-            dirtyPages.add(4);
-            dirtyPages.add(5);
-            dirtyPages.add(0xd);
+            if (missedIntDuringRep) // add stack to catch changes due to interrupts during the rep X
+                dirtyPages.add((bochsState[32] + bochsState[4]) >> 12);
             // relevant to win311 PM
-            dirtyPages.add(0x8c);
-            dirtyPages.add(0x14b);
-            dirtyPages.add(0x1ad);
-            dirtyPages.add(0x1fb);
-            dirtyPages.add(0x1f8);
-            // check all first 2MB
-//            for (int i=0; i < 512; i++)
-//                dirtyPages.add(i);
+            if ((bochsState[36] & 1) != 0)
+            {
+//            dirtyPages.add(0x1ad);
+                dirtyPages.add(0x1fb);
+                dirtyPages.add(0x1f8);
+            }
             for (int i : dirtyPages)
             {
                 Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1, false);
@@ -646,6 +648,11 @@ public class CompareToBochs
                     List<Integer> addrs = new ArrayList<Integer>();
                     if (!samePage(i, sdata1, sdata2, addrs))
                     {
+                        if (missedIntDuringRep && (i == (bochsState[32] + bochsState[4]) >> 12))
+                        {
+                            load1.invoke(newpc, new Integer(i<<12), sdata2, false);
+                            System.out.println("Adopted stack page after rep instruction (assuming difference came from pit int during rep in bochs): " + nextBochs);
+                        }
                         System.out.printf("Comparing");
                         for (int j: dirtyPages)
                             System.out.printf(" %08x", j << 12);

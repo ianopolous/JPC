@@ -201,10 +201,10 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         for (int i = 0; i < PC.SYS_RAM_SIZE; i += AddressSpace.BLOCK_SIZE) {
             mapMemory(i, new LazyCodeBlockMemory(AddressSpace.BLOCK_SIZE, manager));
         }
-        // memory hole, the last half of this is replaced by BIOS shadow ram if the BIOS ROM is 128 K or greater
-        for (int i = 0; i < 32; i++)
+        // memory hole, the last 64 K of this is replaced by BIOS shadow ram if the BIOS ROM is 128 K or greater
+        for (int i = 0xC0000; i < 0xF0000; i += AddressSpace.BLOCK_SIZE)
         {
-            mapMemory(0xd0000 + i * AddressSpace.BLOCK_SIZE, new PhysicalAddressSpace.UnconnectedMemoryBlock());
+            mapMemory(i, new PhysicalAddressSpace.UnconnectedMemoryBlock());
         }
     }
 

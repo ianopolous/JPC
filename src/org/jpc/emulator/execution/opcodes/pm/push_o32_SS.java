@@ -43,7 +43,7 @@ public class push_o32_SS extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.push32(0xFFFF&cpu.ss());
+        cpu.push16_o32((short)cpu.ss());
         return Branch.None;
     }
 
