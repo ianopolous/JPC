@@ -3761,9 +3761,9 @@ public class Processor implements HardwareComponent
             Segment result = SegmentFactory.createProtectedModeSegment(linearMemory, segmentSelector, segmentDescriptor);
             // mark segment descriptor as accessed
             if ((segmentSelector & 0x4) != 0)
-                ldtr.setByte((segmentSelector & 0xfff8) + 5, (byte) (ldtr.getByte((segmentSelector & 0xfff8) + 5) | 1));
+                ldtr.VMsetByte((segmentSelector & 0xfff8) + 5, (byte) (ldtr.getByte((segmentSelector & 0xfff8) + 5) | 1));
             else
-                gdtr.setByte((segmentSelector & 0xfff8) + 5, (byte) (gdtr.getByte((segmentSelector & 0xfff8) + 5) | 1));
+                gdtr.VMsetByte((segmentSelector & 0xfff8) + 5, (byte) (gdtr.getByte((segmentSelector & 0xfff8) + 5) | 1));
             if (alignmentChecking)
             {
                 if ((result.getType() & 0x18) == 0x10) // Should make this a data segment
@@ -3931,7 +3931,7 @@ public class Processor implements HardwareComponent
                     interruptFlags &= ~IFLAGS_HARDWARE_INTERRUPT;
                     int vec = interruptController.cpuGetInterrupt();
                     //System.out.printf("JPC handling interrupt 0x%x\n", vec);
-                    if (USEBOCHS && (vec != interruptController.getIRQ0Vector()) && (vec != interruptController.getSpuriousVector()))
+                    if (USEBOCHS && (vec != interruptController.getIRQ0Vector()) && (vec != interruptController.getSpuriousVector()) && (vec != interruptController.getSpuriousMasterVector()))
                         lastPMVector = vec;
                     else
                     {

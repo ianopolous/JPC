@@ -111,6 +111,12 @@ public abstract class Segment implements Hibernatable
         return result;
     }
 
+    // used by JPC for VM specific things
+    public void VMsetByte(int offset, byte data)
+    {
+        memory.setByte(translateAddressWrite(offset), data);
+    }
+
     public void setByte(int offset, byte data)
     {
         memory.setByte(translateAddressWrite(offset), data);

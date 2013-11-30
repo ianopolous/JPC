@@ -91,6 +91,11 @@ public class InterruptController extends AbstractHardwareComponent implements IO
         return slave.irqBase + 7;
     }
 
+    public int getSpuriousMasterVector()
+    {
+        return master.irqBase + 7;
+    }
+
     public void triggerSpuriousInterrupt()
     {
         setIRQ(2, 0);
