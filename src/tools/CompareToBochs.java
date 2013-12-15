@@ -83,6 +83,7 @@ public class CompareToBochs
 
     public static final Map<String, String[]> possibleArgs = new HashMap();
     static {
+        possibleArgs.put("prince", prince1);
         possibleArgs.put("win311", win311);
         possibleArgs.put("win311_crash", win311_crash);
         possibleArgs.put("win95", win95);

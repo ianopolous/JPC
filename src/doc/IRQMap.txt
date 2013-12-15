@@ -1,5 +1,5 @@
 All in hex.
-JPC IOPorts
+JPC IRQ levels
 
 IntervalTimer (PIT) 0
 

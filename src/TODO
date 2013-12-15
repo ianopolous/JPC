@@ -1,5 +1,6 @@
 JPC TODO (In rough order of desirability)
 
+* test TombTaider and create bootable hd with autorun
 * boot Windows 3.11
 * fix bug leading to top ~1/3 of screen being redrawn at the bottom third (e.g. dsl and kolibri)
 * auto resize JFrame in application
