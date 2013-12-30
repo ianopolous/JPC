@@ -37,6 +37,7 @@ import java.awt.*;
 import java.io.*;
 
 import javax.swing.JScrollPane;
+
 import org.jpc.emulator.*;
 import org.jpc.emulator.pci.peripheral.*;
 import org.jpc.emulator.peripheral.*;
@@ -52,7 +53,10 @@ public class PCMonitor extends KeyHandlingPanel
     private Updater updater;
     private Component frame = null;
     private PC pc;
-
+    private double scaleX = 1.0;
+    private double scaleY = 1.0;
+    private boolean ignoreResize = false;
+    
     private volatile boolean clearBackground;
 
     public PCMonitor(PC pc) 
@@ -186,13 +190,15 @@ public class PCMonitor extends KeyHandlingPanel
 
                 vgaCard.prepareUpdate();
                 vgaCard.updateDisplay();
-
-                int xmin = vgaCard.getXMin();
-                int xmax = vgaCard.getXMax();
-                int ymin = vgaCard.getYMin();
-                int ymax = vgaCard.getYMax();
+                /*
+                int xmin = (int)((vgaCard.getXMin() -1 ) * scaleX);
+                int xmax = (int)(vgaCard.getXMax() * scaleX);
+                int ymin = (int)((vgaCard.getYMin() - 1) * scaleY);
+                int ymax = (int)(vgaCard.getYMax() * scaleY);
                 
                 repaint(xmin, ymin, xmax - xmin + 1, ymax - ymin + 1);
+                */
+                repaint();
             }
         }
 
@@ -209,6 +215,12 @@ public class PCMonitor extends KeyHandlingPanel
 
     public void resizeDisplay(int width, int height) 
     {
+		resizeDisplayCommon((int)(width * scaleX), (int)(height * scaleY));
+    }
+    private void resizeDisplayCommon(int width, int height) 
+    {
+    	//System.out.println("resized X="+width+" Y="+height);
+    	//System.out.println("resized scaleX="+scaleX+" scaleY="+scaleY);
         setPreferredSize(new Dimension(width, height));
         setMaximumSize(new Dimension(width, height));
         setMinimumSize(new Dimension(width, height));
@@ -216,6 +228,25 @@ public class PCMonitor extends KeyHandlingPanel
         clearBackground = true;
         revalidate();
         repaint();
+    }
+
+    public void scaleDisplay(int width, int height) 
+    {
+        
+    	Dimension display = vgaCard.getDisplaySize();
+    	double displayWidth=display.width;
+    	double displayHeight=display.height;
+    	if(width > displayWidth) {
+    		scaleX = width / displayWidth;
+    	}else{
+    		scaleX = 1.0;
+    	}
+    	if(height > displayHeight) {
+    		scaleY = height / displayHeight;
+    	}else{
+    		scaleY = 1.0;
+    	}
+    	//System.out.println("scale display scaleX="+scaleX+" scaleY="+scaleY + "actual x="+displayWidth+" y="+displayHeight);
     }
 
     public void update(Graphics g) 
@@ -237,6 +268,6 @@ public class PCMonitor extends KeyHandlingPanel
                 g.fillRect(0, s2.height, s1.width, s1.height - s2.height);
             clearBackground = false;
         }
-        vgaCard.paintPCMonitor(g, this);
+        vgaCard.paintPCMonitor((Graphics2D)g, this);
     }
 }

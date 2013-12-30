@@ -34,7 +34,8 @@
 package org.jpc.emulator.pci.peripheral;
 
 import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
@@ -126,13 +127,12 @@ public final class DefaultVGACard extends VGACard {
         ymax = Math.max(y + h, ymax);
     }
 
-    public void paintPCMonitor(Graphics g, PCMonitor monitor)
+    public void paintPCMonitor(Graphics2D g, PCMonitor monitor)
     {
-        g.drawImage(buffer, 0, 0, null);
         Dimension s = monitor.getSize();
-        g.setColor(monitor.getBackground());
-        g.fillRect(width, 0, s.width - width, height);
-        g.fillRect(0, height, s.width, s.height - height);
+        
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(buffer, 0, 0, s.width,  s.height, 0, 0, width, height, null);
     }
 
     public final void prepareUpdate() 
