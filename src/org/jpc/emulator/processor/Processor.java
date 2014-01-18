@@ -163,7 +163,7 @@ public class Processor implements HardwareComponent
 
     private static boolean SKIP_SLEEPS = Option.max_instructions_per_block.intValue(1000) == 1;
 
-    public static final int cpuLevel = Option.cpulevel.intValue(6);
+    public static final int cpuLevel = Option.cpulevel.intValue(5);
     public int eip;
     public Segment cs, ds, ss, es, fs, gs;
     public Segment idtr, gdtr, ldtr, tss;
@@ -1204,17 +1204,20 @@ public class Processor implements HardwareComponent
                     r_ecx.set32(0);
                     int features = 0;
                     features |= 1; //Have an FPU;
-                    features |= (1<< 1);  // VME - Virtual 8086 mode enhancements, CR4.VME and eflags.VIP and VIF
-                    features |= (1<< 2); // Debugging extensions CR4.DE and DR4 and DR5
+                    //features |= (1<< 1);  // VME - Virtual 8086 mode enhancements, CR4.VME and eflags.VIP and VIF
+                    //features |= (1<< 2); // Debugging extensions CR4.DE and DR4 and DR5
                     features |= (1<< 3);  // Support Page-Size Extension (4M pages)
                     features |= (1<< 4);  // implement TSC
                     features |= (1<< 5);  // support RDMSR/WRMSR
                     features |= (1<< 7);  // Machine Check exception
                     features |= (1<< 8);  // Support CMPXCHG8B instruction
                     //features |= (1<< 9);   // APIC on chip
+                    //features |= (1<<11);  // SYSENTER/SYSEXIT
+                    features |= (1<<13);  // Support Global pages.
                     features |= (1<<14);  // Machine check architecture
+                    features |= (1<<15);  // Implement CMOV instructions.
                     features |= (1<<23);  // support MMX
-                    features |= (1<<28);  // max APIC ID (cpuid.1.ebx[23-16]) is valid
+                    //features |= (1<<28);  // max APIC ID (cpuid.1.ebx[23-16]) is valid
                     r_edx.set32(features);
                     return;
                 default:
