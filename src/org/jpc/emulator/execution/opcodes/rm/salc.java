@@ -43,7 +43,7 @@ public class salc extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.r_al.set8((byte)(cpu.cf() ? 1 : 0));
+        cpu.r_al.set8((byte)(cpu.cf() ? -1 : 0));
         return Branch.None;
     }
 

@@ -408,7 +408,7 @@
 
   <opcode mnemonic="salc">
     <return>Branch.None</return>
-    <snippet>        cpu.r_al.set8((byte)(cpu.cf() ? 1 : 0));</snippet>
+    <snippet>        cpu.r_al.set8((byte)(cpu.cf() ? -1 : 0));</snippet>
     <args size="0"></args>
   </opcode>
 
