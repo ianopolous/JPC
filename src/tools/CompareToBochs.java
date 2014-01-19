@@ -73,6 +73,7 @@ public class CompareToBochs
     public static final String[] isolinux = {"-cdrom", "isolinux.iso", "-boot", "cdrom"};
     public static final String[] dslCD = {"-cdrom", "../../tmpdrives/dsl-n-01RC4.iso", "-boot", "cdrom"};
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
+    public static final String[] ubuntu = {"-cdrom", "ubuntu-8.10-desktop-i386.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "win311.img", "-boot", "hda", "-ips", "1193181", "-ram", "2"};
     public static final String[] win311_crash = {"-hda", "caching:64MBDOS5WFW311.img", "-boot", "hda", "-ips", "1193181", "-ram", "2", "-cpulevel", "5"};
@@ -92,6 +93,7 @@ public class CompareToBochs
         possibleArgs.put("sf2turbo", sf2turbo);
         possibleArgs.put("sodium_fat12", sodium_fat12);
         possibleArgs.put("sodium_fat16", sodium_fat16);
+        possibleArgs.put("ubuntu", ubuntu);
         possibleArgs.put("wolf3d", wolf3d);
     }
 

@@ -1958,7 +1958,7 @@ private ZygoteInstruction[] itab__1byte = new ZygoteInstruction[]{
   new ZygoteInstruction( "mov",           O_Ev,    O_Gv,    O_NONE,  P_aso|P_oso|P_rexw|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "mov",           O_Gb,    O_Eb,    O_NONE,  P_aso|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "mov",           O_Gv,    O_Ev,    O_NONE,  P_aso|P_oso|P_rexw|P_rexr|P_rexx|P_rexb ),
-  new ZygoteInstruction( "mov",           O_Ew,    O_S,     O_NONE,  P_aso|P_oso|P_rexr|P_rexx|P_rexb ),
+  new ZygoteInstruction( "mov",           O_Ev,    O_S,     O_NONE,  P_aso|P_oso|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "lea",           O_Gv,    O_M,     O_NONE,  P_aso|P_oso|P_rexw|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "mov",           O_S,     O_Ev,    O_NONE,  P_aso|P_oso|P_rexr|P_rexx|P_rexb ),
   new ZygoteInstruction( "grp_reg",       O_NONE, O_NONE, O_NONE,    ITAB__1BYTE__OP_8F__REG ),

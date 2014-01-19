@@ -5155,8 +5155,14 @@ ops[0x28b] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.rm.mov_Gd_Ed(blockStart, eip, prefices, input);
     }
 };
-ops[0x28c] = ops[0x8c];
-
+ops[0x28c] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Modrm.isMem(input.peek()))
+            return new org.jpc.emulator.execution.opcodes.rm.mov_Ed_S_mem(blockStart, eip, prefices, input);
+        else
+            return new org.jpc.emulator.execution.opcodes.rm.mov_Ed_S(blockStart, eip, prefices, input);
+    }
+};
 ops[0x28d] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         int modrm = input.peek() & 0xFF;
@@ -8853,8 +8859,14 @@ ops[0x68b] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.rm.mov_Gd_Ed(blockStart, eip, prefices, input);
     }
 };
-ops[0x68c] = ops[0x8c];
-
+ops[0x68c] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Modrm.isMem(input.peek()))
+            return new org.jpc.emulator.execution.opcodes.rm.mov_Ed_S_mem(blockStart, eip, prefices, input);
+        else
+            return new org.jpc.emulator.execution.opcodes.rm.mov_Ed_S(blockStart, eip, prefices, input);
+    }
+};
 ops[0x68d] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         int modrm = input.peek() & 0xFF;
@@ -16009,8 +16021,14 @@ ops[0x28b] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.pm.mov_Gd_Ed(blockStart, eip, prefices, input);
     }
 };
-ops[0x28c] = ops[0x8c];
-
+ops[0x28c] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Modrm.isMem(input.peek()))
+            return new org.jpc.emulator.execution.opcodes.pm.mov_Ed_S_mem(blockStart, eip, prefices, input);
+        else
+            return new org.jpc.emulator.execution.opcodes.pm.mov_Ed_S(blockStart, eip, prefices, input);
+    }
+};
 ops[0x28d] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         int modrm = input.peek() & 0xFF;
@@ -19915,8 +19933,14 @@ ops[0x68b] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.pm.mov_Gd_Ed(blockStart, eip, prefices, input);
     }
 };
-ops[0x68c] = ops[0x8c];
-
+ops[0x68c] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Modrm.isMem(input.peek()))
+            return new org.jpc.emulator.execution.opcodes.pm.mov_Ed_S_mem(blockStart, eip, prefices, input);
+        else
+            return new org.jpc.emulator.execution.opcodes.pm.mov_Ed_S(blockStart, eip, prefices, input);
+    }
+};
 ops[0x68d] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         int modrm = input.peek() & 0xFF;
@@ -27069,8 +27093,14 @@ ops[0x28b] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.vm.mov_Gd_Ed(blockStart, eip, prefices, input);
     }
 };
-ops[0x28c] = ops[0x8c];
-
+ops[0x28c] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Modrm.isMem(input.peek()))
+            return new org.jpc.emulator.execution.opcodes.vm.mov_Ed_S_mem(blockStart, eip, prefices, input);
+        else
+            return new org.jpc.emulator.execution.opcodes.vm.mov_Ed_S(blockStart, eip, prefices, input);
+    }
+};
 ops[0x28d] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         int modrm = input.peek() & 0xFF;
@@ -30649,8 +30679,14 @@ ops[0x68b] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.vm.mov_Gd_Ed(blockStart, eip, prefices, input);
     }
 };
-ops[0x68c] = ops[0x8c];
-
+ops[0x68c] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Modrm.isMem(input.peek()))
+            return new org.jpc.emulator.execution.opcodes.vm.mov_Ed_S_mem(blockStart, eip, prefices, input);
+        else
+            return new org.jpc.emulator.execution.opcodes.vm.mov_Ed_S(blockStart, eip, prefices, input);
+    }
+};
 ops[0x68d] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         int modrm = input.peek() & 0xFF;
