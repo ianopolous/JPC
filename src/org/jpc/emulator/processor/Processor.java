@@ -951,7 +951,7 @@ public class Processor implements HardwareComponent
         else throw new IllegalStateException("Unknown Segment index: "+index);
     }
 
-    private final Segment loadSegment(int selector)
+    protected final Segment loadSegment(int selector)
     {
         selector &= 0xffff;
         if (selector < 0x4)
@@ -3566,6 +3566,11 @@ public class Processor implements HardwareComponent
         linearMemory.setPageSizeExtensionsEnabled((cr4 & CR4_PAGE_SIZE_EXTENSIONS) != 0);
     }
 
+    public boolean physicalAddressExtension()
+    {
+        return (cr4 & CR4_PHYSICAL_ADDRESS_EXTENSION) != 0;
+    }
+
     public int getCR4()
     {
         return cr4;
@@ -4190,7 +4195,31 @@ public class Processor implements HardwareComponent
                 LOGGING.log(Level.INFO, "Invalid gate type for throwing interrupt: 0x{0}", Integer.toHexString(gate.getType()));
                 throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector + 2 + EXT, true);
             case 0x05: //Interrupt Handler: Task Gate
-                throw new IllegalStateException("Unimplemented Interrupt Handler: Task Gate");
+                ProtectedModeSegment.GateSegment taskGate = (ProtectedModeSegment.GateSegment) gate;
+                int tssSelector = taskGate.getTargetSegment();
+
+                // must specify global in the local/global bit
+                if ((tssSelector & 0x4) != 0)
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector & 0xfffc, true);
+
+                ProtectedModeSegment newTss;
+                try {
+                    newTss = (ProtectedModeSegment) getSegment(tssSelector);
+                } catch (ProcessorException e) {
+                    throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, tssSelector, true);
+                }
+
+                if (!newTss.isSystem())
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector & 0xfffc, true);
+
+                if (!(newTss instanceof ProtectedModeSegment.Available16BitTSS) && !(newTss instanceof ProtectedModeSegment.Available32BitTSS))
+                    throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, selector & 0xfffc, true);
+
+                if (!newTss.isPresent())
+                    throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, tssSelector & 0xfffc, true);
+
+                Tasking.task_switch(this, Tasking.Source.INT, newTss, hasErrorCode, errorCode);
+                break;
             case 0x06: //Interrupt Handler: 16-bit Interrupt Gate
             case 0x07: //Interrupt Handler: 16-bit Trap Gate
             case 0x0e: //Interrupt Handler: 32-bit Interrupt Gate
@@ -4779,7 +4808,7 @@ public class Processor implements HardwareComponent
         }
     }
 
-    private void checkAlignmentChecking()
+    protected void checkAlignmentChecking()
     {
         if ((getCPL() == 3) && eflagsAlignmentCheck && ((cr0 & CR0_ALIGNMENT_MASK) != 0)) {
             if (!alignmentChecking) {

@@ -105,6 +105,11 @@ public abstract class ProtectedModeSegment extends Segment
         return !system;
     }
 
+    public boolean isAccessed()
+    {
+        return (getType() & TYPE_ACCESSED) != 0;
+    }
+
     public boolean isConforming()
     {
         return (getType() & TYPE_CODE_CONFORMING) != 0;
@@ -113,6 +118,11 @@ public abstract class ProtectedModeSegment extends Segment
     public boolean isCode()
     {
         return (getType() & TYPE_CODE) != 0;
+    }
+
+    public boolean isCodeReadable()
+    {
+        return (getType() & TYPE_CODE_READABLE) != 0;
     }
 
     public boolean isDataWritable()
