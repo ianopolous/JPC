@@ -1965,8 +1965,8 @@ ops[0xd9] = new OpcodeDecoder() {
             case 0xf3: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fpatan(blockStart, eip, prefices, input);
             case 0xf4: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0xf5: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fprem1(blockStart, eip, prefices, input);
-            case 0xf6:
-            case 0xf7: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf6: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf7: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fincstp(blockStart, eip, prefices, input);
             case 0xf8: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fprem(blockStart, eip, prefices, input);
             case 0xf9: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fyl2xp1(blockStart, eip, prefices, input);
             case 0xfa: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fsqrt(blockStart, eip, prefices, input);
@@ -5774,8 +5774,8 @@ ops[0x2d9] = new OpcodeDecoder() {
             case 0xf3: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fpatan(blockStart, eip, prefices, input);
             case 0xf4: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0xf5: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fprem1(blockStart, eip, prefices, input);
-            case 0xf6:
-            case 0xf7: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf6: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf7: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fincstp(blockStart, eip, prefices, input);
             case 0xf8: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fprem(blockStart, eip, prefices, input);
             case 0xf9: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fyl2xp1(blockStart, eip, prefices, input);
             case 0xfa: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fsqrt(blockStart, eip, prefices, input);
@@ -9536,8 +9536,8 @@ ops[0x6d9] = new OpcodeDecoder() {
             case 0xf3: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fpatan(blockStart, eip, prefices, input);
             case 0xf4: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0xf5: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fprem1(blockStart, eip, prefices, input);
-            case 0xf6:
-            case 0xf7: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf6: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf7: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fincstp(blockStart, eip, prefices, input);
             case 0xf8: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fprem(blockStart, eip, prefices, input);
             case 0xf9: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fyl2xp1(blockStart, eip, prefices, input);
             case 0xfa: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.fsqrt(blockStart, eip, prefices, input);
@@ -12761,8 +12761,8 @@ ops[0xd9] = new OpcodeDecoder() {
             case 0xf3: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fpatan(blockStart, eip, prefices, input);
             case 0xf4: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0xf5: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fprem1(blockStart, eip, prefices, input);
-            case 0xf6:
-            case 0xf7: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf6: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf7: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fincstp(blockStart, eip, prefices, input);
             case 0xf8: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fprem(blockStart, eip, prefices, input);
             case 0xf9: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fyl2xp1(blockStart, eip, prefices, input);
             case 0xfa: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fsqrt(blockStart, eip, prefices, input);
@@ -16652,8 +16652,8 @@ ops[0x2d9] = new OpcodeDecoder() {
             case 0xf3: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fpatan(blockStart, eip, prefices, input);
             case 0xf4: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0xf5: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fprem1(blockStart, eip, prefices, input);
-            case 0xf6:
-            case 0xf7: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf6: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf7: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fincstp(blockStart, eip, prefices, input);
             case 0xf8: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fprem(blockStart, eip, prefices, input);
             case 0xf9: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fyl2xp1(blockStart, eip, prefices, input);
             case 0xfa: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fsqrt(blockStart, eip, prefices, input);
@@ -20622,8 +20622,8 @@ ops[0x6d9] = new OpcodeDecoder() {
             case 0xf3: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fpatan(blockStart, eip, prefices, input);
             case 0xf4: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0xf5: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fprem1(blockStart, eip, prefices, input);
-            case 0xf6:
-            case 0xf7: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf6: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf7: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fincstp(blockStart, eip, prefices, input);
             case 0xf8: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fprem(blockStart, eip, prefices, input);
             case 0xf9: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fyl2xp1(blockStart, eip, prefices, input);
             case 0xfa: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.fsqrt(blockStart, eip, prefices, input);
@@ -23982,8 +23982,8 @@ ops[0xd9] = new OpcodeDecoder() {
             case 0xf3: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fpatan(blockStart, eip, prefices, input);
             case 0xf4: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0xf5: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fprem1(blockStart, eip, prefices, input);
-            case 0xf6:
-            case 0xf7: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf6: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf7: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fincstp(blockStart, eip, prefices, input);
             case 0xf8: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fprem(blockStart, eip, prefices, input);
             case 0xf9: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fyl2xp1(blockStart, eip, prefices, input);
             case 0xfa: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fsqrt(blockStart, eip, prefices, input);
@@ -27712,8 +27712,8 @@ ops[0x2d9] = new OpcodeDecoder() {
             case 0xf3: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fpatan(blockStart, eip, prefices, input);
             case 0xf4: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0xf5: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fprem1(blockStart, eip, prefices, input);
-            case 0xf6:
-            case 0xf7: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf6: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf7: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fincstp(blockStart, eip, prefices, input);
             case 0xf8: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fprem(blockStart, eip, prefices, input);
             case 0xf9: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fyl2xp1(blockStart, eip, prefices, input);
             case 0xfa: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fsqrt(blockStart, eip, prefices, input);
@@ -31356,8 +31356,8 @@ ops[0x6d9] = new OpcodeDecoder() {
             case 0xf3: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fpatan(blockStart, eip, prefices, input);
             case 0xf4: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0xf5: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fprem1(blockStart, eip, prefices, input);
-            case 0xf6:
-            case 0xf7: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf6: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0xf7: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fincstp(blockStart, eip, prefices, input);
             case 0xf8: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fprem(blockStart, eip, prefices, input);
             case 0xf9: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fyl2xp1(blockStart, eip, prefices, input);
             case 0xfa: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.fsqrt(blockStart, eip, prefices, input);

@@ -660,6 +660,12 @@
     <args size="64">Mq</args>
   </opcode>
   
+  <opcode mnemonic="fincstp">
+    <return>Branch.None</return>
+    <snippet>        cpu.fpu.top += 1; cpu.fpu.top &amp;= 7;</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="fisub">
     <return>Branch.None</return>
     <snippet>        cpu.fpu.setST(0, cpu.fpu.ST(0)-$op1.get);</snippet>
