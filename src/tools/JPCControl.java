@@ -101,7 +101,13 @@ public class JPCControl implements EmulatorControl
             ints.invoke(pc, new Integer(1), new Boolean(false));
             int blockLength = (Integer)execute.invoke(pc);
             return (String) instructionInfo.invoke(pc, new Integer(1));
-        } catch (InvocationTargetException e) {e.printStackTrace();throw new RuntimeException(e.getMessage());}
+        } catch (InvocationTargetException e)
+        {
+            Throwable c = e.getCause();
+            if (c instanceof IllegalStateException)
+                throw (RuntimeException) c;
+            throw new RuntimeException(e.getMessage());
+        }
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
     }
 

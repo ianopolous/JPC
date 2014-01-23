@@ -271,12 +271,12 @@ public class PC {
         vmClock.update(s[16]-(int)vmClock.getTicks());
         if (!processor.isProtectedMode() && !processor.isVirtual8086Mode())
         {
-            processor.cs(s[10]);
-            processor.ds(s[11]);
-            processor.es(s[12]);
-            processor.fs(s[13]);
-            processor.gs(s[14]);
-            processor.ss(s[15]);
+            processor.es(s[10]);
+            processor.cs(s[11]);
+            processor.ss(s[12]);
+            processor.ds(s[13]);
+            processor.fs(s[14]);
+            processor.gs(s[15]);
         }
         double[] newFPUStack = new double[8];
         for (int i=0; i < 8; i++)

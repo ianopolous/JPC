@@ -166,14 +166,14 @@ public class Bochs implements EmulatorControl
     {
         // Assumes we are currently in real mode
         int codeAddress16 = 0x2000;
-        // touch memory to invalidate the oracle's trace cache
-        setPhysicalMemory(currentCSEIP, new byte[] {(byte)0x83, (byte)0x06, (byte)0, (byte)0x20, (byte)1});
-        executeInstruction();
+//        // touch memory to invalidate the oracle's trace cache
+//        setPhysicalMemory(currentCSEIP, new byte[] {(byte)0x83, (byte)0x06, (byte)0, (byte)0x20, (byte)1});
+//        executeInstruction();
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         // assume we are starting in real mode
         int intCount = 0;
-        for (int i=0; i < 8; i++)
+        for (int i=1; i < 8; i++)
         {
             // mov reg, ID
             bout.write(0x66);
@@ -186,9 +186,58 @@ public class Bochs implements EmulatorControl
             intCount++;
         }
         // set segments
+        // 8e c0 = mov es, ax
+        // 8e d0 = mov ss, ax
+        // 8e d8 = mov ds, ax
+        // 8e e0 = mov fs, ax
+        // 8e e8 = mov gs, ax
+        for (int seg = 0; seg < 6; seg++)
+        {
+            if (seg == 1) // can't load CS like this
+                continue;
+            bout.write(0xc7);
+            bout.write(0xc0);
+            bout.write(state[seg + 10]);
+            bout.write(state[seg + 10] >> 8);
+            bout.write(0x8e);
+            bout.write(0xc0 + (seg << 3));
+            intCount += 2;
+        }
 
+        // set FPU stack
+
+
+        // set eflags
+        bout.write(0x66); // push ID
+        bout.write(0x68);
+        bout.write(state[9]);
+        bout.write(state[9] >> 8);
+        bout.write(state[9] >> 16);
+        bout.write(state[9] >> 24);
+        bout.write(0x66); // popfd
+        bout.write(0x9d);
+        intCount += 2;
 
         // set CR0
+
+
+        // set eax: mov reg, ID
+        bout.write(0x66);
+        bout.write(0xc7);
+        bout.write(0xc0);
+        bout.write(state[0]);
+        bout.write(state[0] >> 8);
+        bout.write(state[0] >> 16);
+        bout.write(state[0] >> 24);
+        intCount++;
+
+        // set cs:eip with far jmp
+        bout.write(0xea);
+        bout.write(state[8]);
+        bout.write(state[8] >> 8);
+        bout.write(state[11]);
+        bout.write(state[11] >> 8);
+        intCount++;
 
         setPhysicalMemory(codeAddress16, bout.toByteArray());
         // make it point at the code
@@ -196,9 +245,6 @@ public class Bochs implements EmulatorControl
         readLine();
         for (int i = 0; i < intCount; i++)
             executeInstruction();
-        // set EIP last
-        writeCommand("set eip = 0x"+Integer.toHexString(state[8]));
-        readLine();
     }
 
     public byte[] getCMOS() throws IOException

@@ -43,7 +43,7 @@ public class bswap_o16_rDXr10 extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.r_edx.set16(Short.reverseBytes((short)cpu.r_edx.get16()));
+        cpu.r_edx.set16((short)0);
         return Branch.None;
     }
 

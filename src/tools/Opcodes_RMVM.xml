@@ -136,7 +136,7 @@
 
   <opcode mnemonic="bswap_o16">
     <return>Branch.None</return>
-    <snippet>        $op1.setShort.reverseBytes((short)$op1.get));</snippet>
+    <snippet>        $op1.set$cast0);</snippet>
     <args size="16">rAXr8</args>
     <args size="16">rCXr9</args>
     <args size="16">rDXr10</args>
