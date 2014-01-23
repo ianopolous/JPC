@@ -30,7 +30,7 @@ public class Tools
         {
             String[] rest = new String[args.length-1];
             System.arraycopy(args, 1, rest, 0, rest.length);
-            Fuzzer.main(rest);
+            OracleFuzzer.main(rest);
         }
         else if (args[0].equals("-history"))
         {

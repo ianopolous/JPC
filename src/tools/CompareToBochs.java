@@ -49,7 +49,7 @@ public class CompareToBochs
             /*45*/"ST4H", "ST4L","ST5H", "ST5L","ST6H", "ST6L","ST7H", "ST7L",
             //"expiry"
         };
-    static String newJar = "JPCApplication.jar";
+    public static String newJar = "JPCApplication.jar";
     public static final boolean compareFlags = true;
     public static final boolean compareStack = false;
     public static final boolean compareCMOS = false;
@@ -67,9 +67,11 @@ public class CompareToBochs
     public static final String[] worms = {"-fda", "floppy.img", "-boot", "fda", "-hda", "worms.img"};
     public static final String[] war2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "war2demo.img"};
     public static final String[] linux = {"-hda", "../../tmpdrives/linux.img", "-boot", "hda"};
+    public static final String[] linux02 = {"-hda", "../../tmpdrives/linux-0.2.img", "-boot", "hda"};
     public static final String[] bsd = {"-hda", "../../tmpdrives/netbsd.img", "-boot", "hda"};
     public static final String[] mosa = {"-hda", "mosa-project.img", "-boot", "hda"};
     public static final String[] dsl = {"-hda", "dsl-desktop-demo2.img", "-boot", "hda"};
+    public static final String[] alpinelinux = {"-cdrom", "/home/ian/jpc/tmpdrives/alpinelinux.iso", "-boot", "cdrom"};
     public static final String[] isolinux = {"-cdrom", "isolinux.iso", "-boot", "cdrom"};
     public static final String[] dslCD = {"-cdrom", "../../tmpdrives/dsl-n-01RC4.iso", "-boot", "cdrom"};
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
@@ -85,6 +87,9 @@ public class CompareToBochs
 
     public static final Map<String, String[]> possibleArgs = new HashMap();
     static {
+        possibleArgs.put("linux-0.2", linux02);
+        possibleArgs.put("alpinelinux", alpinelinux);
+        possibleArgs.put("linux", linux);
         possibleArgs.put("doom", doom);
         possibleArgs.put("prince", prince1);
         possibleArgs.put("win311", win311);

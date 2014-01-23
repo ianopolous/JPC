@@ -68,7 +68,7 @@ public class Bochs implements EmulatorControl
         out = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
         // read startup
         String end = readLine();
-        while (!end.contains("e05b"))
+        while (!end.contains("e05b") && !end.contains("2000")) // my hacked BIOS jumps to 0000:2000
             end = readLine();
         readLine(); // last line
     }
@@ -151,6 +151,56 @@ public class Bochs implements EmulatorControl
         return regs;
     }
 
+    public void setPhysicalMemory(int addr, byte[] data) throws IOException
+    {
+        for (int i=0; i < data.length; i++)
+        {
+            writeCommand(String.format("setpmem 0x%x 1 0x%x", addr+i, data[i]));
+            String line = readLine();
+            while (!line.contains("Mouse capture"))
+                line = readLine();
+        }
+    }
+
+    public void setState(int[] state, int currentCSEIP) throws IOException
+    {
+        // Assumes we are currently in real mode
+        int codeAddress16 = 0x2000;
+        // touch memory to invalidate the oracle's trace cache
+        setPhysicalMemory(currentCSEIP, new byte[] {(byte)0x83, (byte)0x06, (byte)0, (byte)0x20, (byte)1});
+        executeInstruction();
+
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        // assume we are starting in real mode
+        int intCount = 0;
+        for (int i=0; i < 8; i++)
+        {
+            // mov reg, ID
+            bout.write(0x66);
+            bout.write(0xc7);
+            bout.write(0xc0+i);
+            bout.write(state[i]);
+            bout.write(state[i] >> 8);
+            bout.write(state[i] >> 16);
+            bout.write(state[i] >> 24);
+            intCount++;
+        }
+        // set segments
+
+
+        // set CR0
+
+        setPhysicalMemory(codeAddress16, bout.toByteArray());
+        // make it point at the code
+        writeCommand("set eip = 0x"+Integer.toHexString(codeAddress16));
+        readLine();
+        for (int i = 0; i < intCount; i++)
+            executeInstruction();
+        // set EIP last
+        writeCommand("set eip = 0x"+Integer.toHexString(state[8]));
+        readLine();
+    }
+
     public byte[] getCMOS() throws IOException
     {
         writeCommand("info device \"cmos\"");
@@ -227,11 +277,6 @@ public class Bochs implements EmulatorControl
         state[4*channel+3] = nextChangeTime;
     }
 
-    public void setState(int[] state)
-    {
-        throw new IllegalStateException("Unimplemented setState");
-    }
-
     public void keysDown(String keys)
     {
         throw new IllegalStateException("Unimplemented keysDown");
@@ -243,6 +288,11 @@ public class Bochs implements EmulatorControl
     }
 
     public void sendMouse(Integer dx, Integer dy, Integer dz, Integer buttons)
+    {
+        throw new IllegalStateException("Unimplemented sendMouse");
+    }
+
+    public String disam(byte[] code, Integer ops, Integer mode)
     {
         throw new IllegalStateException("Unimplemented sendMouse");
     }

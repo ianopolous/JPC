@@ -269,16 +269,24 @@ public class PC {
             processor.setEFlags(s[9]);
         } catch (ProcessorException e) {}
         vmClock.update(s[16]-(int)vmClock.getTicks());
-        /*processor.cs(s[10]);
-        processor.ds(s[11]);
-        processor.es(s[12]);
-        processor.fs(s[13]);
-        processor.gs(s[14]);
-        processor.ss(s[15]);*/
+        if (!processor.isProtectedMode() && !processor.isVirtual8086Mode())
+        {
+            processor.cs(s[10]);
+            processor.ds(s[11]);
+            processor.es(s[12]);
+            processor.fs(s[13]);
+            processor.gs(s[14]);
+            processor.ss(s[15]);
+        }
         double[] newFPUStack = new double[8];
         for (int i=0; i < 8; i++)
             newFPUStack[i] = Double.longBitsToDouble(0xffffffffL & s[2*i+37] | ((0xffffffffL & s[2*i+38]) << 32));
         processor.fpu.setStack(newFPUStack);
+    }
+
+    public void setPhysicalMemory(Integer addr, byte[] data)
+    {
+        physicalAddr.copyArrayIntoContents(addr, data, 0, data.length);
     }
 
     public void setNextPITExpiry(Long ticks)
@@ -743,6 +751,18 @@ public class PC {
     public void getDirtyPages(Set<Integer> res)
     {
         physicalAddr.getDirtyPages(res);
+    }
+
+    public String disam(byte[] code, Integer ops, Integer mode)
+    {
+        Disassembler.ByteArrayPeekStream mem = new Disassembler.ByteArrayPeekStream(code);
+        StringBuilder b = new StringBuilder();
+        for (int i=0; i < ops; i++)
+        {
+            Instruction disam = Disassembler.disassemble(mem, mode);
+            b.append(disam.toString()+"\n");
+        }
+        return b.toString();
     }
 
     public int executeBlock()

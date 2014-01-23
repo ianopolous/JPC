@@ -31,6 +31,7 @@ import java.io.IOException;
 
 public interface EmulatorControl
 {
+    public String disam(byte[] code, Integer ops, Integer mode);
     // return disam of next instruction
     public String executeInstruction() throws IOException;
     public int[] getState() throws IOException;
@@ -39,7 +40,8 @@ public interface EmulatorControl
     public int getPITIntTargetEIP() throws IOException;
     public Integer savePage(Integer page, byte[] data, Boolean linear) throws IOException;
 
-    public void setState(int[] state) throws IOException;
+    public void setPhysicalMemory(int addr, byte[] data) throws IOException;
+    public void setState(int[] state, int currentCSEIP) throws IOException;
     public void keysDown(String keys);
     public void keysUp(String keys);
     public void sendMouse(Integer dx, Integer dy, Integer dz, Integer buttons);
