@@ -53,7 +53,7 @@ public class bound_Gd_M_mem extends Executable
         int lower = cpu.linearMemory.getDoubleWord(addr);
 	int upper = cpu.linearMemory.getDoubleWord(addr+4);
 	int index = op1.get32();
-	if ((index < lower) || (index > (upper + 4)))
+	if ((index < lower) || (index > upper))
 	    throw ProcessorException.BOUND_RANGE;
         return Branch.None;
     }

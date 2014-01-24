@@ -37,7 +37,7 @@
         short lower = (short)cpu.physicalMemory.getWord(addr);
 	short upper = (short)cpu.physicalMemory.getWord(addr+2);
 	short index = (short)$op1.get;
-	if ((index &lt; lower) || (index > (upper + 2)))
+	if ((index &lt; lower) || (index > upper))
 	    throw ProcessorException.BOUND_RANGE;</snippet>
     <args size="16">Gw;M</args>
   </opcode>

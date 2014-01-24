@@ -53,7 +53,7 @@ public class bound_Gw_M extends Executable
         short lower = (short)cpu.linearMemory.getWord(addr);
 	short upper = (short)cpu.linearMemory.getWord(addr+2);
 	short index = (short)op1.get16();
-	if ((index < lower) || (index > (upper + 2)))
+	if ((index < lower) || (index > upper))
 	    throw ProcessorException.BOUND_RANGE;
         return Branch.None;
     }

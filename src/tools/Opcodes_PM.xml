@@ -171,7 +171,7 @@
         short lower = (short)cpu.linearMemory.getWord(addr);
 	short upper = (short)cpu.linearMemory.getWord(addr+2);
 	short index = (short)$op1.get;
-	if ((index &lt; lower) || (index > (upper + 2)))
+	if ((index &lt; lower) || (index > upper))
 	    throw ProcessorException.BOUND_RANGE;</snippet>
     <args size="16">Gw;M</args>
   </opcode>
@@ -181,7 +181,7 @@
         int lower = cpu.linearMemory.getDoubleWord(addr);
 	int upper = cpu.linearMemory.getDoubleWord(addr+4);
 	int index = $op1.get;
-	if ((index &lt; lower) || (index > (upper + 4)))
+	if ((index &lt; lower) || (index > upper))
 	    throw ProcessorException.BOUND_RANGE;</snippet>
     <args size="32">Gd;M</args>
   </opcode>
