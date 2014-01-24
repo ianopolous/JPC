@@ -107,18 +107,24 @@ public class StaticOpcodes
 
     public static void aas(Processor cpu)
     {
-        if (((cpu.r_al.get8() & 0xf) > 0x9) || cpu.af()) {
-            int alBorrow = (cpu.r_al.get8() & 0xff) < 6 ? 0x100 : 0x000;
-            cpu.r_ax.set16((0x0f & (cpu.r_ax.get16() - 6)) | (0xff00 & (cpu.r_ax.get16() - 0x100 - alBorrow)));
-            cpu.af = true;
-            cpu.cf = true;
-            cpu.flagStatus &= Executable.NAFCF;
-        } else {
-            cpu.af = false;
-            cpu.cf = false;
-            cpu.flagStatus &= Executable.NAFCF;
-            cpu.r_eax.set32(cpu.r_eax.get32() & 0xffffff0f);
+        boolean cf = false, af = false;
+        if (((cpu.r_eax.get32() & 0xf) > 9) || cpu.af())
+        {
+            cpu.r_ax.set16(cpu.r_ax.get16() - 0x106);
+            af = cf = true;
         }
+
+        cpu.r_al.set8(cpu.r_eax.get32() & 0xf);
+
+        /* AAS affects also the following flags: Z,S,O,P */
+        /* modification of the flags is undocumented */
+
+        /* The following behaviour seems to match the P6 and
+        its derived processors. */
+        cpu.flagResult = cpu.r_eax.get8();
+        cpu.flagStatus = OSZP;
+        cpu.af = af;
+        cpu.cf = cf;
     }
 
     public static final void daa(Processor cpu)
