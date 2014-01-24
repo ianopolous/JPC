@@ -91,7 +91,7 @@ public class JPCControl implements EmulatorControl
     {
         try {
             return (String) disam.invoke(pc, code, ops, mode);
-        } catch (InvocationTargetException e) {throw new RuntimeException(e.getMessage());}
+        } catch (InvocationTargetException e) {return "Error during disam: " + e.getMessage();}
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
     }
 
