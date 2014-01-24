@@ -40,6 +40,7 @@ public abstract class Executable
     public static final int SF = 1 << 7;
     public static final int OF = 1 << 11;
     public static final int OSZAPC = CF | PF | AF | ZF | SF | OF;
+    public static final int OSZP = PF | ZF | SF | OF;
     public static final int SZAPC = CF | PF | AF | ZF | SF;
     public static final int SZP = SF | ZF | PF;
     public static final int SP = SF | PF;

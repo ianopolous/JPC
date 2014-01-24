@@ -37,16 +37,44 @@ public class StaticOpcodes
 {
     public static final void aaa(Processor cpu)
     {
-        if (((cpu.r_eax.get32() & 0xf) > 0x9) || cpu.af()) {
-            int alCarry = ((cpu.r_eax.get32() & 0xff) > 0xf9) ? 0x100 : 0x000;
-            cpu.r_ax.set16((0x0f & (cpu.r_eax.get32() + 6)) | (0xff00 & (cpu.r_eax.get32() + 0x100 + alCarry)));
-            cpu.af(true);
-            cpu.cf(true);
-        } else {
-            cpu.af(false);
-            cpu.cf(false);
-            cpu.r_al.set8(cpu.r_al.get8() & 0xffffff0f);
+        /*
+         *  Note: This instruction incorrectly documented in Intel's materials.
+         *        The right description is:
+         *
+         *    IF (((AL and 0FH) > 9) or (AF==1)
+         *    THEN
+         *        IF CPU<286 THEN {  AL <- AL+6 }
+         *                   ELSE {  AX <- AX+6 }
+         *        AH <- AH+1
+         *        CF <- 1
+         *        AF <- 1
+         *    ELSE
+         *        CF <- 0
+         *        AF <- 0
+         *    ENDIF
+         *	AL <- AL and 0Fh
+         */
+
+        /* Validated against Intel Pentium family hardware. */
+
+        boolean cf = false, af = false;
+        if (((cpu.r_eax.get32() & 0xf) > 9) || cpu.af())
+        {
+            cpu.r_ax.set16(cpu.r_ax.get16() + 0x106);
+            af = cf = true;
         }
+
+        cpu.r_al.set8(cpu.r_eax.get32() & 0xf);
+
+        /* AAA affects also the following flags: Z,S,O,P */
+        /* modification of the flags is undocumented */
+
+        /* The following behaviour seems to match the P6 and
+        its derived processors. */
+        cpu.flagResult = cpu.r_eax.get8();
+        cpu.flagStatus = OSZP;
+        cpu.af = af;
+        cpu.cf = cf;
     }
 
     public static void aad(Processor cpu, int base)

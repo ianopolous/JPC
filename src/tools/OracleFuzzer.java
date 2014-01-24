@@ -80,8 +80,19 @@ public class OracleFuzzer
         for (int i=0; i < 256; i++)
             for (int j=0; j < 256; j++)
             {
-                if (i == (byte)0xF4) // don't test halt
+                if (i == 0xF4) // don't test halt
                         continue;
+                // don't 'test' segment overrides
+                if ((i == 0x26) || (i == 0x2e) || (i == 0x36) || (i == 0x3e) || (i == 0x64) || (i == 0x65))
+                    continue;
+                if (i == 0xf0) // don't test lock
+                    continue;
+                if ((i == 0xf2) || (i == 0xf3)) // don't test rep/repne
+                    continue;
+                if ((i == 0x66) || (i == 0x67)) // don't test size overrides
+                    continue;
+                if ((j == 0xf4) && (i == 0x17)) // avoid a potential halt after a pop ss which forces a 2nd instruction
+                    continue;
                 code[0] = (byte) i;
                 code[1] = (byte) j;
                 testOpcode(disciple, oracle, codeEIP, code, 1, inputState, 0xffffffff, RM);
@@ -94,8 +105,19 @@ public class OracleFuzzer
             for (int i=0; i < 256; i++)
                 for (int j=0; j < 256; j++)
                 {
-                    if (i == (byte)0xF4) // don't test halt
+                    if (i == 0xF4) // don't test halt
                         continue;
+                    // don't 'test' segment overrides
+                    if ((i == 0x26) || (i == 0x2e) || (i == 0x36) || (i == 0x3e) || (i == 0x64) || (i == 0x65))
+                        continue;
+                    if (i == 0xf0) // don't test lock
+                        continue;
+                    if ((i == 0xf2) || (i == 0xf3)) // don't rep/repne
+                        continue;
+                    if ((i == 0x66) || (i == 0x67)) // don't test size overrides
+                    continue;
+                    if ((j == 0xf4) && (i == 0x17)) // avoid a potential halt after a pop ss which forces a 2nd instruction
+                    continue;
                     code[1] = (byte) i;
                     code[2] = (byte) j;
                     testOpcode(disciple, oracle, codeEIP, code, 1, inputState, 0xffffffff, RM);
@@ -173,15 +195,15 @@ public class OracleFuzzer
             System.out.printf("%02x ", b);
         System.out.println();
         System.out.println(disciple.disam(code, x86, mode));
+        System.out.println("Differences:");
+        Set<Integer> diff = differentRegs(discipleState, oracle, flagMask);
+        for (Integer index: diff)
+            System.out.printf("Difference: %s %08x - %08x : ^ %08x\n", CompareToBochs.names[index], discipleState[index], oracle[index], discipleState[index]^oracle[index]);
         System.out.println("Input:");
         Fuzzer.printState(input);
         System.out.println("Disciple:");
         Fuzzer.printState(discipleState);
         System.out.println("Oracle:");
         Fuzzer.printState(oracle);
-        System.out.println("Differences:");
-        Set<Integer> diff = differentRegs(discipleState, oracle, flagMask);
-        for (Integer index: diff)
-            System.out.printf("Difference: %s %08x - %08x : ^ %08x\n", CompareToBochs.names[index], discipleState[index], oracle[index], discipleState[index]^oracle[index]);
     }
 }
