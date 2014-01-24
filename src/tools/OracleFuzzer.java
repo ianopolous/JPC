@@ -80,6 +80,8 @@ public class OracleFuzzer
         for (int i=0; i < 256; i++)
             for (int j=0; j < 256; j++)
             {
+                if (i == (byte)0xF4) // don't test halt
+                        continue;
                 code[0] = (byte) i;
                 code[1] = (byte) j;
                 testOpcode(disciple, oracle, codeEIP, code, 1, inputState, 0xffffffff, RM);
