@@ -48,6 +48,8 @@ public class mov_S_Ew_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
+        if (segIndex == 1)
+            throw ProcessorException.UNDEFINED;
         cpu.setSeg(segIndex, (short)op2.get16(cpu));
         return Branch.None;
     }

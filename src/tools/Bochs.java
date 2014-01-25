@@ -164,11 +164,11 @@ public class Bochs implements EmulatorControl
 
     public void setState(int[] state, int currentCSEIP) throws IOException
     {
+        // get to cs:eip = 0:2000
         // Assumes we are currently in real mode
         int codeAddress16 = 0x2000;
-//        // touch memory to invalidate the oracle's trace cache
-//        setPhysicalMemory(currentCSEIP, new byte[] {(byte)0x83, (byte)0x06, (byte)0, (byte)0x20, (byte)1});
-//        executeInstruction();
+        setPhysicalMemory(currentCSEIP, new byte[] {(byte)0xea, (byte)codeAddress16, (byte)(codeAddress16 >> 8), (byte)0, (byte)0});
+        executeInstruction();
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         // assume we are starting in real mode
@@ -240,9 +240,6 @@ public class Bochs implements EmulatorControl
         intCount++;
 
         setPhysicalMemory(codeAddress16, bout.toByteArray());
-        // make it point at the code
-        writeCommand("set eip = 0x"+Integer.toHexString(codeAddress16));
-        readLine();
         for (int i = 0; i < intCount; i++)
             executeInstruction();
     }

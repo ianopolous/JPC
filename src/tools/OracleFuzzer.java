@@ -77,6 +77,8 @@ public class OracleFuzzer
         for (int i=0; i < 16; i++)
             code[i] = (byte)i;
 
+        int cseip = codeEIP;
+
         for (int i=0; i < 256; i++)
             for (int j=0; j < 256; j++)
             {
@@ -95,7 +97,7 @@ public class OracleFuzzer
                     continue;
                 code[0] = (byte) i;
                 code[1] = (byte) j;
-                testOpcode(disciple, oracle, codeEIP, code, 1, inputState, 0xffffffff, RM);
+                cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM);
             }
 
         byte[] prefices = new byte[]{(byte) 0x66, 0x67, 0x0F};
@@ -120,14 +122,17 @@ public class OracleFuzzer
                     continue;
                     code[1] = (byte) i;
                     code[2] = (byte) j;
-                    testOpcode(disciple, oracle, codeEIP, code, 1, inputState, 0xffffffff, RM);
+                    cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM);
                 }
         }
     }
 
-    private static void testOpcode(EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, byte[] code, int x86, int[] inputState, int flagMask, int mode) throws IOException
+    // returns resulting cseip
+    private static int testOpcode(EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, byte[] code, int x86, int[] inputState, int flagMask, int mode) throws IOException
     {
         disciple.setState(inputState, 0);
+        if (code[0] == (byte) 0x9b)
+            System.out.println("Here!");
         oracle.setState(inputState, currentCSEIP);
 
         disciple.setPhysicalMemory(inputState[8], code);
@@ -143,13 +148,14 @@ public class OracleFuzzer
         {
             System.out.println("*****************ERROR****************");
             System.out.println(e.getMessage());
-            return;
+            return inputState[31];
         }
         int[] us = disciple.getState();
         int[] good = oracle.getState();
 
         if (!sameState(us, good, flagMask))
             printCase(code, x86, mode, disciple, inputState, us, good, flagMask);
+        return good[31]+good[8];
     }
 
     private static boolean sameState(int[] disciple, int[] oracle, int flagMask)
