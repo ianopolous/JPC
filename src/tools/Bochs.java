@@ -219,7 +219,17 @@ public class Bochs implements EmulatorControl
         intCount += 2;
 
         // set CR0
-
+        bout.write(0x66);
+        bout.write(0xc7);
+        bout.write(0xc0);
+        bout.write(state[36]);
+        bout.write(state[36] >> 8);
+        bout.write(state[36] >> 16);
+        bout.write(state[36] >> 24);
+        bout.write(0x0f);
+        bout.write(0x22);
+        bout.write(0xc0);
+        intCount += 2;
 
         // set eax: mov reg, ID
         bout.write(0x66);
