@@ -1041,7 +1041,7 @@
 
   <opcode mnemonic="sldt">
     <return>Branch.None</return>
-    <snippet>        $op1.set$cast(0xFFFF &amp; cpu.ldtr.getSelector()));</snippet>
+    <snippet>        throw ProcessorException.UNDEFINED;</snippet>
     <args size="16">Ew</args>
   </opcode>
 

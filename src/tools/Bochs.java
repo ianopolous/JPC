@@ -147,6 +147,18 @@ public class Bochs implements EmulatorControl
         String end = readLine();
         while (!end.contains("Mouse capture off"))
             end = readLine();
+        // get FPU stack
+        writeCommand("fpu");
+        String fline;
+        while (!(fline = readLine()).contains("fds"));
+        for (int i=0; i < 8; i++)
+        {
+            fline = readLine();
+            long val = parseFPUReg(fline);
+            regs[37+2*i] = (int)(val >> 32);
+            regs[37+2*i+1] = (int)val;
+        }
+        readLine(); // Mouse capture off
         //print(regs);
         return regs;
     }
@@ -167,8 +179,11 @@ public class Bochs implements EmulatorControl
         // get to cs:eip = 0:2000
         // Assumes we are currently in real mode
         int codeAddress16 = 0x2000;
-        setPhysicalMemory(currentCSEIP, new byte[] {(byte)0xea, (byte)codeAddress16, (byte)(codeAddress16 >> 8), (byte)0, (byte)0});
+        int dataAddress16 = 0x3000;
+        setPhysicalMemory(currentCSEIP, new byte[]{(byte) 0xea, (byte) codeAddress16, (byte) (codeAddress16 >> 8), (byte) 0, (byte) 0});
         executeInstruction();
+        // zero what we just wrote
+        setPhysicalMemory(currentCSEIP, new byte[5]);
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         // assume we are starting in real mode
@@ -197,15 +212,46 @@ public class Bochs implements EmulatorControl
                 continue;
             bout.write(0xc7);
             bout.write(0xc0);
-            bout.write(state[seg + 10]);
-            bout.write(state[seg + 10] >> 8);
+            if (seg == 3)
+            {
+                bout.write(0);
+                bout.write(0);
+            }
+            else
+            {
+                bout.write(state[seg + 10]);
+                bout.write(state[seg + 10] >> 8);
+            }
             bout.write(0x8e);
             bout.write(0xc0 + (seg << 3));
             intCount += 2;
         }
 
-        // set FPU stack
+        // reset FPU
+        bout.write(0xdb);
+        bout.write(0xe3);
+        intCount++;
 
+        // set FPU stack (relies on ds base being 0)
+        int nextDataAddress = dataAddress16;
+        for (int i=7; i >=0 ; i--)
+        {
+            byte[] value = new byte[8];
+            for (int j=0; j < 4; j++)
+                value[7-j] = (byte)(state[37 + 2*i] >> (8*(3-j)));
+            for (int j=4; j < 8; j++)
+                value[7-j] = (byte)(state[37 + 2*i +1] >> (8*(7-j)));
+            // put value in mem at dataAddress
+            setPhysicalMemory(nextDataAddress, value);
+
+            // fld that mem section
+            bout.write(0xdd);
+            bout.write(0x06);
+            bout.write(nextDataAddress);
+            bout.write(nextDataAddress >> 8);
+            nextDataAddress += 8;
+            intCount++;
+        }
 
         // set eflags
         bout.write(0x66); // push ID
@@ -231,6 +277,15 @@ public class Bochs implements EmulatorControl
         bout.write(0xc0);
         intCount += 2;
 
+        // set ds (FPU set needed it zero)
+        bout.write(0xc7);
+        bout.write(0xc0);
+        bout.write(state[3 + 10]);
+        bout.write(state[3 + 10] >> 8);
+        bout.write(0x8e);
+        bout.write(0xc0 + (3 << 3));
+        intCount += 2;
+
         // set eax: mov reg, ID
         bout.write(0x66);
         bout.write(0xc7);
@@ -252,6 +307,10 @@ public class Bochs implements EmulatorControl
         setPhysicalMemory(codeAddress16, bout.toByteArray());
         for (int i = 0; i < intCount; i++)
             executeInstruction();
+        // zero what we just wrote
+        setPhysicalMemory(codeAddress16, new byte[bout.size()]);
+        // and the data too
+        setPhysicalMemory(dataAddress16, new byte[8 * 8]);
     }
 
     public byte[] getCMOS() throws IOException
@@ -408,6 +467,18 @@ public class Bochs implements EmulatorControl
             System.out.printf("%s %08x\n", names2[i], r[i]);
     }
 
+    public static long parseFPUReg(String line)
+    {
+        int start = line.indexOf(":", line.indexOf("raw")) + 1;
+        long sign = Integer.parseInt(line.substring(start-5, start-4), 16) >= 8 ? 1 : 0;
+        long exponent = Long.parseLong(line.substring(start - 5, start - 1), 16);
+        exponent -= (0x3fff - 0x3ff);
+        exponent &= 0x7ff;
+        long fraction = Long.parseLong(line.substring(start, start + 14), 16);
+        fraction >>= 3;
+        return (sign << 63) | (exponent << 52) | (fraction & 0xfffffffffffffL);
+    }
+
     public static int parseReg(String line, int size)
     {
         int start = line.indexOf("0x");
@@ -418,7 +489,7 @@ public class Bochs implements EmulatorControl
         return (int)Long.parseLong(line.substring(start+2, end), 16);
         } catch (StringIndexOutOfBoundsException e)
         {
-            System.out.println("Input string for boch reg parse: "+line+"*");
+            System.out.println("Input string for bochs reg parse: "+line+"*");
             throw e;
         }
     }

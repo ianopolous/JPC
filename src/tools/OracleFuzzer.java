@@ -31,8 +31,10 @@ import org.jpc.emulator.execution.decoder.Instruction;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class OracleFuzzer
 {
@@ -48,6 +50,21 @@ public class OracleFuzzer
 
         // set cs base to 0
         oracle.executeInstruction(); // jmp 0000:2000
+
+        //set up the exception handlers so we can tell from EIP which exception occurred
+
+
+        // test Real mode
+
+
+        // test Protected mode
+
+
+        // test Real mode with 32 bit segments after return from Protected mode
+
+
+        // test Virtual 8086 mode
+
 
         int codeEIP = 0x2000;
         int[] inputState = new int[CompareToBochs.names.length];
@@ -73,6 +90,32 @@ public class OracleFuzzer
         inputState[25] = inputState[27] = inputState[29] = 0xffff;
         inputState[36] = 0x60000010; // CR0
 
+        // FPU
+        long one = getDoubleBits(1.0);
+        long two = getDoubleBits(2.0);
+        long four = getDoubleBits(4.0);
+        long eight = getDoubleBits(8.0);
+        long sixteen = getDoubleBits(16.0);
+        long half = getDoubleBits(0.5);
+        long hundred = getDoubleBits(100.0);
+        long thousand = getDoubleBits(1000.0);
+        inputState[37] = (int) (one >> 32); // ST0H
+        inputState[38] = (int) one; // ST0L
+        inputState[39] = (int) (two >> 32); // ST1H
+        inputState[40] = (int) two; // ST1L
+        inputState[41] = (int) (four >> 32); // ST2H
+        inputState[42] = (int) four; // ST2L
+        inputState[43] = (int) (eight >> 32); // ST3H
+        inputState[44] = (int) eight; // ST3L
+        inputState[45] = (int) (sixteen >> 32); // ST4H
+        inputState[46] = (int) sixteen; // ST4L
+        inputState[47] = (int) (half >> 32); // ST5H
+        inputState[48] = (int) half; // ST5L
+        inputState[49] = (int) (hundred >> 32); // ST6H
+        inputState[50] = (int) hundred; // ST6L
+        inputState[51] = (int) (thousand >> 32); // ST7H
+        inputState[52] = (int) thousand; // ST7L
+
         byte[] code = new byte[16];
         for (int i=0; i < 16; i++)
             code[i] = (byte)i;
@@ -93,6 +136,13 @@ public class OracleFuzzer
                     continue;
                 if ((i == 0x66) || (i == 0x67)) // don't test size overrides
                     continue;
+                if ((i == 0xe4) || (i == 0xe5) || (i == 0xec) || (i == 0xed)) // don't test in X,Ib
+                        continue;
+                if ((i == 0xe6) || (i == 0xe7) || (i == 0xee) || (i == 0xef)) // don't test out Ib,X
+                        continue;
+                if (i == 0x17) // don't test pop ss
+                    continue;
+
                 if ((j == 0xf4) && (i == 0x17)) // avoid a potential halt after a pop ss which forces a 2nd instruction
                     continue;
                 code[0] = (byte) i;
@@ -117,9 +167,16 @@ public class OracleFuzzer
                     if ((i == 0xf2) || (i == 0xf3)) // don't rep/repne
                         continue;
                     if ((i == 0x66) || (i == 0x67)) // don't test size overrides
-                    continue;
+                        continue;
+                    if ((i == 0xe4) || (i == 0xe5) || (i == 0xec) || (i == 0xed)) // don't test in X,Ib
+                        continue;
+                    if ((i == 0xe6) || (i == 0xe7) || (i == 0xee) || (i == 0xef)) // don't test out Ib,X
+                        continue;
+                    if (i == 0x17) // don't test pop ss
+                        continue;
+
                     if ((j == 0xf4) && (i == 0x17)) // avoid a potential halt after a pop ss which forces a 2nd instruction
-                    continue;
+                        continue;
                     code[1] = (byte) i;
                     code[2] = (byte) j;
                     cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM);
@@ -158,6 +215,11 @@ public class OracleFuzzer
         return good[31]+good[8];
     }
 
+    public static long getDoubleBits(double x)
+    {
+        return Double.doubleToLongBits(x);
+    }
+
     private static boolean sameState(int[] disciple, int[] oracle, int flagMask)
     {
         for (int i=0; i < disciple.length; i++)
@@ -177,7 +239,7 @@ public class OracleFuzzer
 
     private static Set<Integer> differentRegs(int[] disciple, int[] oracle, int flagMask)
     {
-        Set<Integer> diff = new HashSet();
+        Set<Integer> diff = new TreeSet();
         for (int i=0; i < disciple.length; i++)
         {
             if (i == 9)

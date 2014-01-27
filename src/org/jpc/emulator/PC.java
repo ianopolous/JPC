@@ -278,6 +278,7 @@ public class PC {
             processor.fs(s[14]);
             processor.gs(s[15]);
         }
+        processor.setCR0(s[36]);
         double[] newFPUStack = new double[8];
         for (int i=0; i < 8; i++)
             newFPUStack[i] = Double.longBitsToDouble(0xffffffffL & s[2*i+37] | ((0xffffffffL & s[2*i+38]) << 32));
