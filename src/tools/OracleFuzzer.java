@@ -26,13 +26,7 @@
 */
 package tools;
 
-import org.jpc.emulator.execution.decoder.Disassembler;
-import org.jpc.emulator.execution.decoder.Instruction;
-
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.io.*;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -44,12 +38,21 @@ public class OracleFuzzer
 
     public static void main(String[] args) throws IOException
     {
+        BufferedWriter out = new BufferedWriter(new FileWriter("tests/test-cases.txt"));
+
         String[] pcargs = new String[] {"-max-block-size", "1", "-boot", "hda", "-hda", "linux.img"};
         EmulatorControl disciple = new JPCControl(CompareToBochs.newJar, pcargs);
         EmulatorControl oracle = new Bochs("linux.cfg");
 
         // set cs base to 0
         oracle.executeInstruction(); // jmp 0000:2000
+
+        int codeEIP = 0x2000;
+        if (args.length > 0)
+        {
+            testFromFile(args[0], disciple, oracle, codeEIP);
+            return;
+        }
 
         //set up the exception handlers so we can tell from EIP which exception occurred
 
@@ -66,7 +69,6 @@ public class OracleFuzzer
         // test Virtual 8086 mode
 
 
-        int codeEIP = 0x2000;
         int[] inputState = new int[CompareToBochs.names.length];
         inputState[0] = 0x12345678;
         inputState[1] = 0x9ABCDEF0;
@@ -78,12 +80,12 @@ public class OracleFuzzer
         inputState[7] = 0x15263748;
         inputState[8] = codeEIP; // eip
         inputState[9] = 0x846; // eflags
-        inputState[10] = 0x3000; // es
-        inputState[11] = 0x0; // cs
-        inputState[12] = 0x4000; // ds
-        inputState[13] = 0x5000; // ss
-        inputState[14] = 0x6000; // fs
-        inputState[15] = 0x7000; // gs
+        inputState[10] = 0x3000; inputState[30] = inputState[10] << 4; // es
+        inputState[11] = 0x0; inputState[31] = inputState[11] << 4; // cs
+        inputState[12] = 0x4000; inputState[32] = inputState[12] << 4; // ds
+        inputState[13] = 0x5000; inputState[33] = inputState[13] << 4;// ss
+        inputState[14] = 0x6000; inputState[34] = inputState[14] << 4;// fs
+        inputState[15] = 0x7000; inputState[35] = inputState[15] << 4;// gs
         // RM segment limits (not used)
         for (int i=0; i < 6; i++)
             inputState[17 + i] = 0xffff;
@@ -147,7 +149,7 @@ public class OracleFuzzer
                     continue;
                 code[0] = (byte) i;
                 code[1] = (byte) j;
-                cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM);
+                cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM, out);
             }
 
         byte[] prefices = new byte[]{(byte) 0x66, 0x67, 0x0F};
@@ -179,13 +181,38 @@ public class OracleFuzzer
                         continue;
                     code[1] = (byte) i;
                     code[2] = (byte) j;
-                    cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM);
+                    cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM, out);
                 }
         }
     }
 
+    public static void testFromFile(String file, EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP) throws IOException
+    {
+        BufferedReader r = new BufferedReader(new FileReader(file));
+        String line = r.readLine();
+        while (line != null)
+        {
+            String[] props = line.split(" ");
+            int mode = Integer.parseInt(props[0], 16);
+            int x86 = Integer.parseInt(props[1], 16);
+            int flagMask = Integer.parseInt(props[2], 16);
+            line = r.readLine();
+            String[] raw = line.trim().split(" ");
+            byte[] code = new byte[raw.length];
+            for (int i=0; i < code.length; i++)
+                code[i] = (byte) Integer.parseInt(raw[i], 16);
+            String[] rawState = r.readLine().trim().split(" ");
+            int[] inputState = new int[rawState.length];
+            for (int i=0; i < inputState.length; i++)
+                inputState[i] = Integer.parseInt(rawState[i], 16);
+            currentCSEIP = testOpcode(disciple, oracle, currentCSEIP, code, x86, inputState, flagMask, mode, null);
+
+            line = r.readLine();
+        }
+    }
+
     // returns resulting cseip
-    private static int testOpcode(EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, byte[] code, int x86, int[] inputState, int flagMask, int mode) throws IOException
+    private static int testOpcode(EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, byte[] code, int x86, int[] inputState, int flagMask, int mode, BufferedWriter out) throws IOException
     {
         disciple.setState(inputState, 0);
         if (code[0] == (byte) 0x9b)
@@ -211,7 +238,19 @@ public class OracleFuzzer
         int[] good = oracle.getState();
 
         if (!sameState(us, good, flagMask))
+        {
             printCase(code, x86, mode, disciple, inputState, us, good, flagMask);
+            if (out != null)
+            {
+                System.out.printf("%08x %08x %08x\n", mode, x86, flagMask);
+                for (int i=0; i < code.length; i++)
+                    out.append(String.format("%02x ", code[i]));
+                out.append("\n");
+                for (int i=0; i < inputState.length; i++)
+                    out.append(String.format("%08x ", inputState[i]));
+                out.append("\n");
+            }
+        }
         return good[31]+good[8];
     }
 
