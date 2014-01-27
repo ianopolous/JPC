@@ -46,7 +46,7 @@ public class sldt_Ew_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        op1.set16(cpu, (short)(0xFFFF & cpu.ldtr.getSelector()));
+        if (true) throw ProcessorException.UNDEFINED;
         return Branch.None;
     }
 

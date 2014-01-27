@@ -1041,7 +1041,7 @@
 
   <opcode mnemonic="sldt">
     <return>Branch.None</return>
-    <snippet>        throw ProcessorException.UNDEFINED;</snippet>
+    <snippet>        if (true) throw ProcessorException.UNDEFINED;</snippet>
     <args size="16">Ew</args>
   </opcode>
 

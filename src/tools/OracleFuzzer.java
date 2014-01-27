@@ -36,6 +36,18 @@ public class OracleFuzzer
     public static final int PM = 2;
     public static final int VM = 3;
 
+    public static byte[] real_mode_idt = new byte[4*64];
+    static
+    {
+        int eipBase = 0x100;
+        for (int i=0; i < 20; i++)
+        {
+            real_mode_idt[4*i] = (byte) (eipBase + i);
+            real_mode_idt[4*i] = (byte) ((eipBase + i) >> 8);
+            // leave cs 0
+        }
+    }
+
     public static void main(String[] args) throws IOException
     {
         BufferedWriter out = new BufferedWriter(new FileWriter("tests/test-cases.txt"));
@@ -221,6 +233,7 @@ public class OracleFuzzer
 
         disciple.setPhysicalMemory(inputState[8], code);
         oracle.setPhysicalMemory(inputState[8], code);
+        oracle.setPhysicalMemory(0, real_mode_idt);
 
         try {
             for (int i=0; i < x86; i++)

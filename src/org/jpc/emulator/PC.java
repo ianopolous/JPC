@@ -760,7 +760,7 @@ public class PC {
         StringBuilder b = new StringBuilder();
         for (int i=0; i < ops; i++)
         {
-            Instruction disam = Disassembler.disassemble(mem, mode);
+            Instruction disam = mode == 1 ? Disassembler.disassemble16(mem) : mode == 3 ? Disassembler.disassemble16(mem) : Disassembler.disassemble32(mem);
             b.append(disam.toString()+"\n");
         }
         return b.toString();

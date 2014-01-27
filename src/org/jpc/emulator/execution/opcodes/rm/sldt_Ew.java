@@ -47,7 +47,7 @@ public class sldt_Ew extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        op1.set16((short)(0xFFFF & cpu.ldtr.getSelector()));
+        if (true) throw ProcessorException.UNDEFINED;
         return Branch.None;
     }
 
