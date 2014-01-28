@@ -36,15 +36,17 @@ public class OracleFuzzer
     public static final int PM = 2;
     public static final int VM = 3;
 
-    public static byte[] real_mode_idt = new byte[4*64];
+    public static byte[] real_mode_idt = new byte[0x120];
     static
     {
         int eipBase = 0x100;
         for (int i=0; i < 20; i++)
         {
             real_mode_idt[4*i] = (byte) (eipBase + i);
-            real_mode_idt[4*i] = (byte) ((eipBase + i) >> 8);
+            real_mode_idt[4*i+1] = (byte) ((eipBase + i) >> 8);
             // leave cs 0
+            // put nop at each handler (the oracle sometimes executes this after an exception)
+            real_mode_idt[0x100+i] = (byte) 0x90;
         }
     }
 
@@ -159,6 +161,8 @@ public class OracleFuzzer
 
                 if ((j == 0xf4) && (i == 0x17)) // avoid a potential halt after a pop ss which forces a 2nd instruction
                     continue;
+                if ((j == 0xf4) && (i == 0xfb)) // avoid a potential halt after an sti which forces a 2nd instruction
+                    continue;
                 code[0] = (byte) i;
                 code[1] = (byte) j;
                 cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM, out);
@@ -190,6 +194,8 @@ public class OracleFuzzer
                         continue;
 
                     if ((j == 0xf4) && (i == 0x17)) // avoid a potential halt after a pop ss which forces a 2nd instruction
+                        continue;
+                    if ((j == 0xf4) && (i == 0xfb)) // avoid a potential halt after an sti which forces a 2nd instruction
                         continue;
                     code[1] = (byte) i;
                     code[2] = (byte) j;
@@ -227,11 +233,10 @@ public class OracleFuzzer
     private static int testOpcode(EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, byte[] code, int x86, int[] inputState, int flagMask, int mode, BufferedWriter out) throws IOException
     {
         disciple.setState(inputState, 0);
-        if (code[0] == (byte) 0x9b)
-            System.out.println("Here!");
         oracle.setState(inputState, currentCSEIP);
 
         disciple.setPhysicalMemory(inputState[8], code);
+        disciple.setPhysicalMemory(0, real_mode_idt);
         oracle.setPhysicalMemory(inputState[8], code);
         oracle.setPhysicalMemory(0, real_mode_idt);
 
@@ -255,13 +260,14 @@ public class OracleFuzzer
             printCase(code, x86, mode, disciple, inputState, us, good, flagMask);
             if (out != null)
             {
-                System.out.printf("%08x %08x %08x\n", mode, x86, flagMask);
+                out.append(String.format("%08x %08x %08x\n", mode, x86, flagMask));
                 for (int i=0; i < code.length; i++)
                     out.append(String.format("%02x ", code[i]));
                 out.append("\n");
                 for (int i=0; i < inputState.length; i++)
                     out.append(String.format("%08x ", inputState[i]));
                 out.append("\n");
+                out.flush();
             }
         }
         return good[31]+good[8];

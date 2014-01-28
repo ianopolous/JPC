@@ -94,9 +94,10 @@ public class StaticOpcodes
     {
         if (base == 0) 
             throw ProcessorException.DIVIDE_ERROR;
-        int tl = 0xff & cpu.r_al.get8();
-        int ah = 0xff & (tl / base);
-        int al = 0xff & (tl % base);
+
+        int inAL = 0xff & cpu.r_al.get8();
+        int ah = 0xff & (inAL / base);
+        int al = 0xff & (inAL % base);
         cpu.r_eax.set16(al | (ah << 8));
 
         //flags

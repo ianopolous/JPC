@@ -15,7 +15,7 @@
 
   <opcode mnemonic="aam">
     <return>Branch.None</return>
-    <snippet>        StaticOpcodes.aam(cpu, $op1.get);</snippet>
+    <snippet>        StaticOpcodes.aam(cpu, $mask$op1.get);</snippet>
     <args size="8">Ib</args>
   </opcode>
 
