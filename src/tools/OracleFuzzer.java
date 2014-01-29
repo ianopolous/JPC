@@ -32,6 +32,7 @@ import java.util.TreeSet;
 
 public class OracleFuzzer
 {
+    public static String altJar = "JPCApplication2.jar";
     public static final int RM = 1;
     public static final int PM = 2;
     public static final int VM = 3;
@@ -55,7 +56,7 @@ public class OracleFuzzer
         BufferedWriter out = new BufferedWriter(new FileWriter("tests/test-cases.txt"));
 
         String[] pcargs = new String[] {"-max-block-size", "1", "-boot", "hda", "-hda", "linux.img"};
-        EmulatorControl disciple = new JPCControl(CompareToBochs.newJar, pcargs);
+        EmulatorControl disciple = new JPCControl(altJar, pcargs);
         EmulatorControl oracle = new Bochs("linux.cfg");
 
         // set cs base to 0

@@ -59,8 +59,8 @@ public class BasicBlock implements CodeBlock
 
     public void preBlock(Processor cpu)
     {
-        if ((LOG_BLOCKENTRY) && watchedAddress(cpu.getInstructionPointer()))
-            System.out.printf("*****Entering basic block %08x\n", cpu.cs.getBase()+cpu.eip);
+        if (LOG_BLOCKENTRY)
+            System.out.printf("***** %08x:%08x\n", cpu.cs.getBase(), cpu.eip);
         if (PC.HISTORY)
             PC.logBlock(cpu.getInstructionPointer(), this);
     }
