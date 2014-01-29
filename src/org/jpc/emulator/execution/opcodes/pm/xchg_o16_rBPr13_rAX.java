@@ -43,9 +43,10 @@ public class xchg_o16_rBPr13_rAX extends Executable
 
     public Branch execute(Processor cpu)
     {
-            int tmp = cpu.r_eax.get16();
-        cpu.r_eax.set16(cpu.r_ebp.get16());
-        cpu.r_ebp.set16((short)tmp);
+            int tmp2 = cpu.r_eax.get16();
+        int tmp1 = cpu.r_ebp.get16();
+        cpu.r_ebp.set16((short)tmp2);
+        cpu.r_eax.set16(tmp1);
         return Branch.None;
     }
 

@@ -1145,9 +1145,10 @@
 
   <opcode mnemonic="xchg">
     <return>Branch.None</return>
-    <snippet>            int tmp = $op2.get;
-        $op2.set$op1.get);
-        $op1.set$casttmp);</snippet>
+    <snippet>            int tmp2 = $op2.get;
+        int tmp1 = $op1.get;
+        $op1.set$casttmp2);
+        $op2.settmp1);</snippet>
     <args size="8">Eb;Gb</args>
     <args size="16">Ew;Gw</args>
     <args size="32">Ed;Gd</args>
@@ -1155,9 +1156,10 @@
 
   <opcode mnemonic="xchg_o16">
     <return>Branch.None</return>
-    <snippet>            int tmp = $op2.get;
-        $op2.set$op1.get);
-        $op1.set$casttmp);</snippet>
+    <snippet>            int tmp2 = $op2.get;
+        int tmp1 = $op1.get;
+        $op1.set$casttmp2);
+        $op2.settmp1);</snippet>
     <args size="16">rCXr9;rAX</args>
     <args size="16">rDXr10;rAX</args>
     <args size="16">rBXr11;rAX</args>
@@ -1169,9 +1171,10 @@
 
   <opcode mnemonic="xchg_o32">
     <return>Branch.None</return>
-    <snippet>            int tmp = $op2.get;
-        $op2.set$op1.get);
-        $op1.set$casttmp);</snippet>
+    <snippet>            int tmp2 = $op2.get;
+        int tmp1 = $op1.get;
+        $op1.set$casttmp2);
+        $op2.settmp1);</snippet>
     <args size="32">rCXr9;rAX</args>
     <args size="32">rDXr10;rAX</args>
     <args size="32">rBXr11;rAX</args>

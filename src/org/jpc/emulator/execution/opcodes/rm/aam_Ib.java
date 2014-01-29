@@ -45,7 +45,7 @@ public class aam_Ib extends Executable
 
     public Branch execute(Processor cpu)
     {
-        StaticOpcodes.aam(cpu, 0xff&immb);
+        StaticOpcodes.aam(cpu, 0xFF&immb);
         return Branch.None;
     }
 

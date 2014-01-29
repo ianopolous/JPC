@@ -49,9 +49,10 @@ public class xchg_Ed_Gd_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op2 = cpu.regs[op2Index];
-            int tmp = op2.get32();
-        op2.set32(op1.get32(cpu));
-        op1.set32(cpu, tmp);
+            int tmp2 = op2.get32();
+        int tmp1 = op1.get32(cpu);
+        op1.set32(cpu, tmp2);
+        op2.set32(tmp1);
         return Branch.None;
     }
 

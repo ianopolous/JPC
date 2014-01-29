@@ -50,9 +50,10 @@ public class xchg_Ew_Gw extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
         Reg op2 = cpu.regs[op2Index];
-            int tmp = op2.get16();
-        op2.set16(op1.get16());
-        op1.set16((short)tmp);
+            int tmp2 = op2.get16();
+        int tmp1 = op1.get16();
+        op1.set16((short)tmp2);
+        op2.set16(tmp1);
         return Branch.None;
     }
 

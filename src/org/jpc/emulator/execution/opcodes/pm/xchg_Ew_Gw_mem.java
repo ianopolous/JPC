@@ -49,9 +49,10 @@ public class xchg_Ew_Gw_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op2 = cpu.regs[op2Index];
-            int tmp = op2.get16();
-        op2.set16(op1.get16(cpu));
-        op1.set16(cpu, (short)tmp);
+            int tmp2 = op2.get16();
+        int tmp1 = op1.get16(cpu);
+        op1.set16(cpu, (short)tmp2);
+        op2.set16(tmp1);
         return Branch.None;
     }
 

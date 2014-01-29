@@ -43,9 +43,10 @@ public class xchg_o32_rDXr10_rAX extends Executable
 
     public Branch execute(Processor cpu)
     {
-            int tmp = cpu.r_eax.get32();
-        cpu.r_eax.set32(cpu.r_edx.get32());
-        cpu.r_edx.set32(tmp);
+            int tmp2 = cpu.r_eax.get32();
+        int tmp1 = cpu.r_edx.get32();
+        cpu.r_edx.set32(tmp2);
+        cpu.r_eax.set32(tmp1);
         return Branch.None;
     }
 

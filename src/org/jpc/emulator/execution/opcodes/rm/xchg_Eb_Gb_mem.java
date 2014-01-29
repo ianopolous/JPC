@@ -49,9 +49,10 @@ public class xchg_Eb_Gb_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op2 = cpu.regs[op2Index];
-            int tmp = op2.get8();
-        op2.set8(op1.get8(cpu));
-        op1.set8(cpu, (byte)tmp);
+            int tmp2 = op2.get8();
+        int tmp1 = op1.get8(cpu);
+        op1.set8(cpu, (byte)tmp2);
+        op2.set8(tmp1);
         return Branch.None;
     }
 
