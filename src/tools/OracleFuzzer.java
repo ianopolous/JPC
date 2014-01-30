@@ -209,12 +209,12 @@ public class OracleFuzzer
     {
         BufferedReader r = new BufferedReader(new FileReader(file));
         String line = r.readLine();
-        while (line != null)
+        for (;line != null; line = r.readLine())
         {
             String[] props = line.split(" ");
             int mode = Integer.parseInt(props[0], 16);
             int x86 = Integer.parseInt(props[1], 16);
-            int flagMask = Integer.parseInt(props[2], 16);
+            int flagMask = (int) Long.parseLong(props[2], 16);
             line = r.readLine();
             String[] raw = line.trim().split(" ");
             byte[] code = new byte[raw.length];
@@ -223,10 +223,8 @@ public class OracleFuzzer
             String[] rawState = r.readLine().trim().split(" ");
             int[] inputState = new int[rawState.length];
             for (int i=0; i < inputState.length; i++)
-                inputState[i] = Integer.parseInt(rawState[i], 16);
+                inputState[i] = (int) Long.parseLong(rawState[i], 16);
             currentCSEIP = testOpcode(disciple, oracle, currentCSEIP, code, x86, inputState, flagMask, mode, out);
-
-            line = r.readLine();
         }
     }
 
