@@ -185,18 +185,19 @@ public class FastDecoder
         return decodeVMOpcode(blockStart, input);
     }
 
-    public static Executable decodePMOpcode(int blockStart, PeekableInputStream input, boolean is32Bit)
+    public static Executable decodePMOpcode(int blockStart, PeekableInputStream input, boolean is32BitSeg)
     {
         int opStart = (int) input.getAddress();
         int prefices = 0x1C;
         int b = input.readU8();
-        boolean addrSize = is32Bit;
+        boolean addrSize = is32BitSeg;
+        boolean is32Bit = is32BitSeg;
         while (Prefices.isPrefix(b))
         {
             if (b == 0x66)
                 is32Bit = !is32Bit;
             else if (b == 0x67)
-                addrSize = !addrSize;
+                addrSize = !is32BitSeg;
             else
                 prefices = Prefices.encodePrefix(prefices, b);
             b = input.readU8();
