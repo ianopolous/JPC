@@ -22414,7 +22414,7 @@ ops[0x35] = new OpcodeDecoder() {
 ops[0x36] = null;
 ops[0x37] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
-        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.vm.aaa(blockStart, eip, prefices, input);
     }
 };
 ops[0x38] = new OpcodeDecoder() {
@@ -22462,7 +22462,7 @@ ops[0x3d] = new OpcodeDecoder() {
 ops[0x3e] = null;
 ops[0x3f] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
-        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.vm.aas(blockStart, eip, prefices, input);
     }
 };
 ops[0x40] = new OpcodeDecoder() {
@@ -23806,12 +23806,12 @@ ops[0xd3] = new OpcodeDecoder() {
 };
 ops[0xd4] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
-        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.vm.aam_Ib(blockStart, eip, prefices, input);
     }
 };
 ops[0xd5] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
-        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.vm.aad_Ib(blockStart, eip, prefices, input);
     }
 };
 ops[0xd6] = new OpcodeDecoder() {

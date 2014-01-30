@@ -65,7 +65,7 @@ public class OracleFuzzer
         int codeEIP = 0x2000;
         if (args.length > 0)
         {
-            testFromFile(args[0], disciple, oracle, codeEIP);
+            testFromFile(args[0], disciple, oracle, codeEIP, out);
             return;
         }
 
@@ -205,7 +205,7 @@ public class OracleFuzzer
         }
     }
 
-    public static void testFromFile(String file, EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP) throws IOException
+    public static void testFromFile(String file, EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, BufferedWriter out) throws IOException
     {
         BufferedReader r = new BufferedReader(new FileReader(file));
         String line = r.readLine();
@@ -224,7 +224,7 @@ public class OracleFuzzer
             int[] inputState = new int[rawState.length];
             for (int i=0; i < inputState.length; i++)
                 inputState[i] = Integer.parseInt(rawState[i], 16);
-            currentCSEIP = testOpcode(disciple, oracle, currentCSEIP, code, x86, inputState, flagMask, mode, null);
+            currentCSEIP = testOpcode(disciple, oracle, currentCSEIP, code, x86, inputState, flagMask, mode, out);
 
             line = r.readLine();
         }
