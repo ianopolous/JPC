@@ -494,6 +494,11 @@ public class Bochs implements EmulatorControl
         }
     }
 
+    public void destroy()
+    {
+        p.destroy();
+    }
+
     public static void main(String[] args) throws IOException
     {
         Bochs b = new Bochs();

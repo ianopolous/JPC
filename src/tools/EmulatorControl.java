@@ -46,4 +46,5 @@ public interface EmulatorControl
     public void keysUp(String keys);
     public void sendMouse(Integer dx, Integer dy, Integer dz, Integer buttons);
 
+    public void destroy();
 }

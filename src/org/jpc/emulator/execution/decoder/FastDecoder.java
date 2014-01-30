@@ -231,9 +231,9 @@ public class FastDecoder
         while (Prefices.isPrefix(b))
         {
             if (b == 0x66)
-                is32Bit = !is32Bit;
+                is32Bit = true;
             else if (b == 0x67)
-                addrSize = !addrSize;
+                addrSize = true;
             else
                 prefices = Prefices.encodePrefix(prefices, b);
             b = input.readU8();
@@ -267,9 +267,9 @@ public class FastDecoder
         while (Prefices.isPrefix(b))
         {
             if (b == 0x66)
-                is32Bit = !is32Bit;
+                is32Bit = true;
             else if (b == 0x67)
-                addrSize = !addrSize;
+                addrSize = true;
             else
                 prefices = Prefices.encodePrefix(prefices, b);
             b = input.readU8();

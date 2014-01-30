@@ -37,6 +37,8 @@ public class OracleFuzzer
     public static final int PM = 2;
     public static final int VM = 3;
 
+    private static String[] pcargs = new String[] {"-max-block-size", "1", "-boot", "hda", "-hda", "linux.img", "-ram", "4"};
+
     public static byte[] real_mode_idt = new byte[0x120];
     static
     {
@@ -55,7 +57,6 @@ public class OracleFuzzer
     {
         BufferedWriter out = new BufferedWriter(new FileWriter("tests/test-cases.txt"));
 
-        String[] pcargs = new String[] {"-max-block-size", "1", "-boot", "hda", "-hda", "linux.img"};
         EmulatorControl disciple = new JPCControl(altJar, pcargs);
         EmulatorControl oracle = new Bochs("linux.cfg");
 
@@ -65,7 +66,7 @@ public class OracleFuzzer
         int codeEIP = 0x2000;
         if (args.length > 0)
         {
-            testFromFile(args[0], disciple, oracle, codeEIP, out);
+            testFromFile(args[0], disciple, oracle, codeEIP, out, true);
             return;
         }
 
@@ -205,7 +206,7 @@ public class OracleFuzzer
         }
     }
 
-    public static void testFromFile(String file, EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, BufferedWriter out) throws IOException
+    public static void testFromFile(String file, EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, BufferedWriter out, boolean freshVM) throws IOException
     {
         BufferedReader r = new BufferedReader(new FileReader(file));
         String line = r.readLine();
@@ -225,6 +226,18 @@ public class OracleFuzzer
             for (int i=0; i < inputState.length; i++)
                 inputState[i] = (int) Long.parseLong(rawState[i], 16);
             currentCSEIP = testOpcode(disciple, oracle, currentCSEIP, code, x86, inputState, flagMask, mode, out);
+            if (freshVM)
+            {
+                // this doesn't work as somehow the perm gen isn't freed
+                disciple.destroy();
+//                disciple = new JPCControl(altJar, pcargs);
+                oracle.destroy();
+                oracle = new Bochs("linux.cfg");
+
+                // set cs base to 0
+                oracle.executeInstruction();
+                System.gc();
+            }
         }
     }
 

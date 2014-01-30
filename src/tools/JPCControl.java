@@ -47,6 +47,8 @@ public class JPCControl implements EmulatorControl
     private final Method instructionInfo;
     private final Method setPhysicalMemory;
     private final Method disam;
+    private final Method reset;
+    private final URLClassLoader cl1;
 
     public JPCControl(String jar, String pcName, String[] extraArgs) throws IOException
     {
@@ -56,7 +58,7 @@ public class JPCControl implements EmulatorControl
     public JPCControl(String jar, String[] args) throws IOException
     {
         URL[] urls1 = new URL[]{new File(jar).toURL()};
-        ClassLoader cl1 = new URLClassLoader(urls1, Comparison.class.getClassLoader());
+        cl1 = new URLClassLoader(urls1, Comparison.class.getClassLoader());
 
         try {
             Class opts = cl1.loadClass("org.jpc.j2se.Option");
@@ -78,6 +80,7 @@ public class JPCControl implements EmulatorControl
             instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
             setPhysicalMemory = c1.getMethod("setPhysicalMemory", Integer.class, byte[].class);
             disam = c1.getMethod("disam", byte[].class, Integer.class, Integer.class);
+            reset = c1.getMethod("reset");
             Method save = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
             Method load = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
         } catch (ClassNotFoundException e) {throw new RuntimeException(e.getMessage());}
@@ -136,6 +139,14 @@ public class JPCControl implements EmulatorControl
     {
         try {
         setState.invoke(pc, (int[])state);
+        } catch (InvocationTargetException e) {throw new RuntimeException(e.getMessage());}
+        catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
+    }
+
+    public void destroy()
+    {
+        try {
+            reset.invoke(pc);
         } catch (InvocationTargetException e) {throw new RuntimeException(e.getMessage());}
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
     }
