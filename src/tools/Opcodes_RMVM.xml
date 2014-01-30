@@ -17,6 +17,30 @@
     <args size="0"></args>
   </opcode>
   
+  <opcode mnemonic="aaa">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.aaa(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="aad">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.aad(cpu, $op1.get);</snippet>
+    <args size="8">Ib</args>
+  </opcode>
+
+  <opcode mnemonic="aam">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.aam(cpu, $mask$op1.get);</snippet>
+    <args size="8">Ib</args>
+  </opcode>
+
+  <opcode mnemonic="aas">
+    <return>Branch.None</return>
+    <snippet>        StaticOpcodes.aas(cpu);</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="adc">
     <return>Branch.None</return>
     <snippet>        boolean incf = cpu.cf();
