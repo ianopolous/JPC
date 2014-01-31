@@ -55,6 +55,13 @@ public class OracleFuzzer
 
     public static void main(String[] args) throws IOException
     {
+        if (args.length == 0)
+        {
+            System.out.printf("Usage: java -jar Tools.jar -fuzz $type\n");
+            System.out.printf("       type = rm, pm, -tests $file\n");
+            System.out.printf("       N.B. This uses JPCApplication2.jar\n");
+            return;
+        }
         BufferedWriter out = new BufferedWriter(new FileWriter("tests/test-cases.txt"));
 
         EmulatorControl disciple = new JPCControl(altJar, pcargs);
@@ -64,28 +71,35 @@ public class OracleFuzzer
         oracle.executeInstruction(); // jmp 0000:2000
 
         int codeEIP = 0x2000;
-        if (args.length > 0)
+        if (args[0].equals("-tests"))
         {
-            testFromFile(args[0], disciple, oracle, codeEIP, out, true);
+            testFromFile(args[1], disciple, oracle, codeEIP, out, true);
             return;
+        } else if (args[0].equals("rm"))
+        {
+            // test Real mode
+            fuzzRealMode(disciple, oracle, codeEIP, out, true);
+        } else if (args[0].equals("pm"))
+        {
+            // test Protected mode
+            fuzzProtectedMode(disciple, oracle, codeEIP, out, true);
+        } else
+        {
+            System.out.printf("Usage: java -jar Tools.jar -fuzz $type\n");
+            System.out.printf("       type = rm, pm, -tests $file\n");
         }
-
-        //set up the exception handlers so we can tell from EIP which exception occurred
-
-
-        // test Real mode
-
-
-        // test Protected mode
-
-
         // test Real mode with 32 bit segments after return from Protected mode
 
 
         // test Virtual 8086 mode
 
 
-        int[] inputState = new int[CompareToBochs.names.length];
+
+    }
+
+    public static void fuzzRealMode(EmulatorControl disciple, EmulatorControl oracle, int codeEIP, BufferedWriter out, boolean freshVM) throws IOException
+    {
+        int[] inputState = new int[EmulatorControl.names.length];
         inputState[0] = 0x12345678;
         inputState[1] = 0x9ABCDEF0;
         inputState[2] = 0x192A3B4C;
@@ -144,7 +158,7 @@ public class OracleFuzzer
             for (int j=0; j < 256; j++)
             {
                 if (i == 0xF4) // don't test halt
-                        continue;
+                    continue;
                 // don't 'test' segment overrides
                 if ((i == 0x26) || (i == 0x2e) || (i == 0x36) || (i == 0x3e) || (i == 0x64) || (i == 0x65))
                     continue;
@@ -155,9 +169,9 @@ public class OracleFuzzer
                 if ((i == 0x66) || (i == 0x67)) // don't test size overrides
                     continue;
                 if ((i == 0xe4) || (i == 0xe5) || (i == 0xec) || (i == 0xed)) // don't test in X,Ib
-                        continue;
+                    continue;
                 if ((i == 0xe6) || (i == 0xe7) || (i == 0xee) || (i == 0xef)) // don't test out Ib,X
-                        continue;
+                    continue;
                 if (i == 0x17) // don't test pop ss
                     continue;
 
@@ -204,6 +218,65 @@ public class OracleFuzzer
                     cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM, out);
                 }
         }
+    }
+
+    public static void fuzzProtectedMode(EmulatorControl disciple, EmulatorControl oracle, int codeEIP, BufferedWriter out, boolean freshVM) throws IOException
+    {
+        int[] inputState = new int[EmulatorControl.names.length];
+        inputState[0] = 0x12345678;
+        inputState[1] = 0x9ABCDEF0;
+        inputState[2] = 0x192A3B4C;
+        inputState[3] = 0x5D6E7F80;
+        inputState[4] = 0x800; // esp
+        inputState[5] = 0x15263748;
+        inputState[6] = 0x9DAEBFC0;
+        inputState[7] = 0x15263748;
+        inputState[8] = codeEIP; // eip
+        inputState[9] = 0x846; // eflags
+        inputState[10] = 0x3000; inputState[30] = inputState[10] << 4; // es
+        inputState[11] = 0x0; inputState[31] = inputState[11] << 4; // cs
+        inputState[12] = 0x4000; inputState[32] = inputState[12] << 4; // ds
+        inputState[13] = 0x5000; inputState[33] = inputState[13] << 4;// ss
+        inputState[14] = 0x6000; inputState[34] = inputState[14] << 4;// fs
+        inputState[15] = 0x7000; inputState[35] = inputState[15] << 4;// gs
+        for (int i=0; i < 6; i++)
+            inputState[17 + i] = 0xffffff;
+        inputState[25] = inputState[27] = inputState[29] = 0xffff;
+        inputState[36] = 0x60000011; // CR0: PM, no paging
+
+        // FPU
+        long one = getDoubleBits(1.0);
+        long two = getDoubleBits(2.0);
+        long four = getDoubleBits(4.0);
+        long eight = getDoubleBits(8.0);
+        long sixteen = getDoubleBits(16.0);
+        long half = getDoubleBits(0.5);
+        long hundred = getDoubleBits(100.0);
+        long thousand = getDoubleBits(1000.0);
+        inputState[37] = (int) (one >> 32); // ST0H
+        inputState[38] = (int) one; // ST0L
+        inputState[39] = (int) (two >> 32); // ST1H
+        inputState[40] = (int) two; // ST1L
+        inputState[41] = (int) (four >> 32); // ST2H
+        inputState[42] = (int) four; // ST2L
+        inputState[43] = (int) (eight >> 32); // ST3H
+        inputState[44] = (int) eight; // ST3L
+        inputState[45] = (int) (sixteen >> 32); // ST4H
+        inputState[46] = (int) sixteen; // ST4L
+        inputState[47] = (int) (half >> 32); // ST5H
+        inputState[48] = (int) half; // ST5L
+        inputState[49] = (int) (hundred >> 32); // ST6H
+        inputState[50] = (int) hundred; // ST6L
+        inputState[51] = (int) (thousand >> 32); // ST7H
+        inputState[52] = (int) thousand; // ST7L
+
+        byte[] code = new byte[16];
+        for (int i=0; i < 16; i++)
+            code[i] = (byte)i;
+
+        int cseip = codeEIP;
+
+        cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, PM, out);
     }
 
     public static void testFromFile(String file, EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, BufferedWriter out, boolean freshVM) throws IOException
@@ -336,7 +409,7 @@ public class OracleFuzzer
         System.out.println("Differences:");
         Set<Integer> diff = differentRegs(discipleState, oracle, flagMask);
         for (Integer index: diff)
-            System.out.printf("Difference: %s %08x - %08x : ^ %08x\n", CompareToBochs.names[index], discipleState[index], oracle[index], discipleState[index]^oracle[index]);
+            System.out.printf("Difference: %s %08x - %08x : ^ %08x\n", EmulatorControl.names[index], discipleState[index], oracle[index], discipleState[index]^oracle[index]);
         System.out.println("Input:");
         Fuzzer.printState(input);
         System.out.println("Disciple:");

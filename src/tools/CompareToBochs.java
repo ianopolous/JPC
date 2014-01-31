@@ -37,18 +37,6 @@ import java.lang.reflect.*;
 
 public class CompareToBochs
 {
-    public static String[] names = new String[]
-        {
-            "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi","eip", "flags",
-            /*10*/"es", "cs", "ss", "ds", "fs", "gs", "ticks",
-            /*17*/"es-lim", "cs-lim", "ss-lim", "ds-lim", "fs-lim", "gs-lim", "cs-prop",
-            /*24*/"gdtrbase", "gdtr-lim", "idtrbase", "idtr-lim", "ldtrbase", "ldtr-lim",
-            /*30*/"es-base", "cs-base", "ss-base", "ds-base", "fs-base", "gs-base",
-            /*36*/"cr0",
-            /*37*/"ST0H", "ST0L","ST1H", "ST1L","ST2H", "ST2L","ST3H", "ST3L",
-            /*45*/"ST4H", "ST4L","ST5H", "ST5L","ST6H", "ST6L","ST7H", "ST7L",
-            //"expiry"
-        };
     public static String newJar = "JPCApplication.jar";
     public static final boolean compareFlags = true;
     public static final boolean compareStack = false;
@@ -566,7 +554,7 @@ public class CompareToBochs
                 {
                     printHistory();
                     for (int diffIndex: diff)
-                        System.out.printf("Difference: %s %08x - %08x : ^ %08x\n", names[diffIndex], fast[diffIndex], bochsState[diffIndex], fast[diffIndex]^bochsState[diffIndex]);
+                        System.out.printf("Difference: %s %08x - %08x : ^ %08x\n", EmulatorControl.names[diffIndex], fast[diffIndex], bochsState[diffIndex], fast[diffIndex]^bochsState[diffIndex]);
                         setState1.invoke(newpc, (int[])bochsState);
                     if (diff.contains(8))
                     {
@@ -931,9 +919,9 @@ public class CompareToBochs
 
     public static boolean sameStates(int[] fast, int[] old, int[] prevFast, int[] prevOld, boolean compareFlags, Set<Integer> diff)
     {
-        if (fast.length != names.length)
-            throw new IllegalArgumentException(String.format("new state length: %d != %d",fast.length, names.length));
-        if (old.length != names.length)
+        if (fast.length != EmulatorControl.names.length)
+            throw new IllegalArgumentException(String.format("new state length: %d != %d",fast.length, EmulatorControl.names.length));
+        if (old.length != EmulatorControl.names.length)
             throw new IllegalArgumentException("old state length = "+old.length);
         boolean same = true;
         for (int i=0; i < fast.length; i++)

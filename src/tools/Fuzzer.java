@@ -133,7 +133,7 @@ public class Fuzzer
         return true;
     }
 
-    public static String[] names = CompareToBochs.names;
+    public static String[] names = EmulatorControl.names;
 
     public static void printState(int[] state)
     {
