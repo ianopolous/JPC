@@ -107,7 +107,7 @@ secondapplication: build_core
 
 	jar -cfm JPCApplication2.jar application.manifest \
 	    resources/bios/vgabios.bin \
-	    resources/bios/bios.bin resources/images/dosgames.img \
+	    resources/bios/fuzzerBIOS resources/images/dosgames.img \
 	    resources/images/floppy.img resources/icon.png \
 	    resources/licence.html resources/jpc.png \
 	    resources/smallpause.png \

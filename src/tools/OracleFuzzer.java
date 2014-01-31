@@ -37,7 +37,8 @@ public class OracleFuzzer
     public static final int PM = 2;
     public static final int VM = 3;
 
-    private static String[] pcargs = new String[] {"-max-block-size", "1", "-boot", "hda", "-hda", "linux.img", "-ram", "4"};
+    private static String[] pcargs = new String[]
+            {"-max-block-size", "1", "-boot", "hda", "-hda", "linux.img", "-ram", "4", "-bios", "/resources/bios/fuzzerBIOS"};
 
     public static byte[] real_mode_idt = new byte[0x120];
     static
@@ -68,6 +69,7 @@ public class OracleFuzzer
         EmulatorControl oracle = new Bochs("linux.cfg");
 
         // set cs base to 0
+        disciple.executeInstruction(); // jmp 0000:2000
         oracle.executeInstruction(); // jmp 0000:2000
 
         int codeEIP = 0x2000;

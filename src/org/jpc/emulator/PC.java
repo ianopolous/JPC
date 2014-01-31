@@ -171,7 +171,7 @@ public class PC {
         parts.add(new PCIBus());
 
         //BIOSes
-        parts.add(new SystemBIOS("/resources/bios/bios.bin"));
+        parts.add(new SystemBIOS(Option.bios.value("/resources/bios/bios.bin")));
         parts.add(new VGABIOS("/resources/bios/vgabios.bin"));
 
         if (Option.sound.value())
@@ -380,8 +380,8 @@ public class PC {
         double[] fpuStack = processor.fpu.getStack();
         for (int i=0; i < 8; i++)
         {
-            res[2*i+37] = (int)Double.doubleToRawLongBits(fpuStack[i]);
-            res[2*i+38] = (int)(Double.doubleToRawLongBits(fpuStack[i])>>>32);
+            res[2*i+37] = (int)(Double.doubleToRawLongBits(fpuStack[i])>>>32);
+            res[2*i+38] = (int)Double.doubleToRawLongBits(fpuStack[i]);
         }
         return res;
     }

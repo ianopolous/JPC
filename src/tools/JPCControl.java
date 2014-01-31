@@ -37,7 +37,7 @@ import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Calendar;
 
-public class JPCControl implements EmulatorControl
+public class JPCControl extends EmulatorControl
 {
     private final Object pc;
     private final Method execute;
@@ -135,13 +135,13 @@ public class JPCControl implements EmulatorControl
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
     }
 
-    public void setState(int[] state, int currentCSEIP) throws IOException
-    {
-        try {
-        setState.invoke(pc, (int[])state);
-        } catch (InvocationTargetException e) {throw new RuntimeException(e.getMessage());}
-        catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
-    }
+    //public void setState(int[] state, int currentCSEIP) throws IOException
+    //{
+    //    try {
+    //    setState.invoke(pc, (int[])state);
+    //    } catch (InvocationTargetException e) {throw new RuntimeException(e.getMessage());}
+    //    catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
+    //}
 
     public void destroy()
     {
