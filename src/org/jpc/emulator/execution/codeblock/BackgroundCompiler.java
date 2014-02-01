@@ -67,14 +67,14 @@ class BackgroundCompiler implements CodeBlockCompiler {
 //            compilerCount = MAX_COMPILER_THREADS;
 //        
 //        while (compilerCount-- > 0) {
-        Thread t = new Thread(new Compiler(), "Background CodeBlock Compiler Thread " + compilerCount);
-        try {
-            t.setPriority(Math.max(Thread.MIN_PRIORITY, Thread.currentThread().getPriority() - 3));
-        } catch (SecurityException e) {
-            LOGGING.log(Level.INFO, "security manager prevents setting thread priorities");
-        }
-        t.setDaemon(true);
-        t.start();
+//        Thread t = new Thread(new Compiler(), "Background CodeBlock Compiler Thread " + compilerCount);
+//        try {
+//            t.setPriority(Math.max(Thread.MIN_PRIORITY, Thread.currentThread().getPriority() - 3));
+//        } catch (SecurityException e) {
+//            LOGGING.log(Level.INFO, "security manager prevents setting thread priorities");
+//        }
+//        t.setDaemon(true);
+//        t.start();
 //        }        
     }
 

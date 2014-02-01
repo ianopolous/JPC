@@ -17,7 +17,6 @@ public class BochsPIT
     {
         if (!timings.containsKey(ips))
         {
-            System.out.println("Unprepared IPS for Bochs PIT: "+ ips + "defaulting to following Bochs ints..");
             cycles = null;
         }
         else

@@ -58,7 +58,7 @@ public class JPCControl extends EmulatorControl
     public JPCControl(String jar, String[] args) throws IOException
     {
         URL[] urls1 = new URL[]{new File(jar).toURL()};
-        cl1 = new URLClassLoader(urls1, Comparison.class.getClassLoader());
+        cl1 = new URLClassLoader(urls1, EmulatorControl.class.getClassLoader());
 
         try {
             Class opts = cl1.loadClass("org.jpc.j2se.Option");

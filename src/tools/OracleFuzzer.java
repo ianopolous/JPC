@@ -65,26 +65,19 @@ public class OracleFuzzer
         }
         BufferedWriter out = new BufferedWriter(new FileWriter("tests/test-cases.txt"));
 
-        EmulatorControl disciple = new JPCControl(altJar, pcargs);
-        EmulatorControl oracle = new Bochs("linux.cfg");
-
-        // set cs base to 0
-        disciple.executeInstruction(); // jmp 0000:2000
-        oracle.executeInstruction(); // jmp 0000:2000
-
         int codeEIP = 0x2000;
         if (args[0].equals("-tests"))
         {
-            testFromFile(args[1], disciple, oracle, codeEIP, out, true);
+            testFromFile(args[1], codeEIP, out, true);
             return;
         } else if (args[0].equals("rm"))
         {
             // test Real mode
-            fuzzRealMode(disciple, oracle, codeEIP, out, true);
+            fuzzRealMode(codeEIP, out, true);
         } else if (args[0].equals("pm"))
         {
             // test Protected mode
-            fuzzProtectedMode(disciple, oracle, codeEIP, out, true);
+            fuzzProtectedMode(codeEIP, out, true);
         } else
         {
             System.out.printf("Usage: java -jar Tools.jar -fuzz $type\n");
@@ -99,7 +92,7 @@ public class OracleFuzzer
 
     }
 
-    public static void fuzzRealMode(EmulatorControl disciple, EmulatorControl oracle, int codeEIP, BufferedWriter out, boolean freshVM) throws IOException
+    public static void fuzzRealMode(int codeEIP, BufferedWriter out, boolean freshVM) throws IOException
     {
         int[] inputState = new int[EmulatorControl.names.length];
         inputState[0] = 0x12345678;
@@ -154,8 +147,6 @@ public class OracleFuzzer
         for (int i=0; i < 16; i++)
             code[i] = (byte)i;
 
-        int cseip = codeEIP;
-
         for (int i=0; i < 256; i++)
             for (int j=0; j < 256; j++)
             {
@@ -183,7 +174,7 @@ public class OracleFuzzer
                     continue;
                 code[0] = (byte) i;
                 code[1] = (byte) j;
-                cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM, out);
+                testOpcode(codeEIP, code, 1, inputState, 0xffffffff, RM, out);
             }
 
         byte[] prefices = new byte[]{(byte) 0x66, 0x67, 0x0F};
@@ -217,12 +208,12 @@ public class OracleFuzzer
                         continue;
                     code[1] = (byte) i;
                     code[2] = (byte) j;
-                    cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, RM, out);
+                    testOpcode(codeEIP, code, 1, inputState, 0xffffffff, RM, out);
                 }
         }
     }
 
-    public static void fuzzProtectedMode(EmulatorControl disciple, EmulatorControl oracle, int codeEIP, BufferedWriter out, boolean freshVM) throws IOException
+    public static void fuzzProtectedMode(int codeEIP, BufferedWriter out, boolean freshVM) throws IOException
     {
         int[] inputState = new int[EmulatorControl.names.length];
         inputState[0] = 0x12345678;
@@ -276,12 +267,76 @@ public class OracleFuzzer
         for (int i=0; i < 16; i++)
             code[i] = (byte)i;
 
-        int cseip = codeEIP;
+        for (int i=0; i < 256; i++)
+            for (int j=0; j < 256; j++)
+            {
+                if (i == 0xF4) // don't test halt
+                    continue;
+                // don't 'test' segment overrides
+                if ((i == 0x26) || (i == 0x2e) || (i == 0x36) || (i == 0x3e) || (i == 0x64) || (i == 0x65))
+                    continue;
+                if (i == 0xf0) // don't test lock
+                    continue;
+                if (i == 0x0f) // don't these multi-byte ops
+                    continue;
+                if ((i == 0xf2) || (i == 0xf3)) // don't test rep/repne
+                    continue;
+                if ((i == 0x66) || (i == 0x67)) // don't test size overrides
+                    continue;
+                if ((i == 0xe4) || (i == 0xe5) || (i == 0xec) || (i == 0xed)) // don't test in X,Ib
+                    continue;
+                if ((i == 0xe6) || (i == 0xe7) || (i == 0xee) || (i == 0xef)) // don't test out Ib,X
+                    continue;
+                if (i == 0x17) // don't test pop ss
+                    continue;
 
-        cseip = testOpcode(disciple, oracle, cseip, code, 1, inputState, 0xffffffff, PM, out);
+                if ((j == 0xf4) && (i == 0x17)) // avoid a potential halt after a pop ss which forces a 2nd instruction
+                    continue;
+                if ((j == 0xf4) && (i == 0xfb)) // avoid a potential halt after an sti which forces a 2nd instruction
+                    continue;
+                code[0] = (byte) i;
+                code[1] = (byte) j;
+
+                testOpcode(codeEIP, code, 1, inputState, 0xffffffff, RM, out);
+            }
+
+        byte[] prefices = new byte[]{(byte) 0x66, 0x67, 0x0F};
+        for (byte p: prefices)
+        {
+            code[0] = p;
+            for (int i=0; i < 256; i++)
+                for (int j=0; j < 256; j++)
+                {
+                    if (i == 0xF4) // don't test halt
+                        continue;
+                    // don't 'test' segment overrides
+                    if ((i == 0x26) || (i == 0x2e) || (i == 0x36) || (i == 0x3e) || (i == 0x64) || (i == 0x65))
+                        continue;
+                    if (i == 0xf0) // don't test lock
+                        continue;
+                    if ((i == 0xf2) || (i == 0xf3)) // don't rep/repne
+                        continue;
+                    if ((i == 0x66) || (i == 0x67)) // don't test size overrides
+                        continue;
+                    if ((i == 0xe4) || (i == 0xe5) || (i == 0xec) || (i == 0xed)) // don't test in X,Ib
+                        continue;
+                    if ((i == 0xe6) || (i == 0xe7) || (i == 0xee) || (i == 0xef)) // don't test out Ib,X
+                        continue;
+                    if (i == 0x17) // don't test pop ss
+                        continue;
+
+                    if ((j == 0xf4) && (i == 0x17)) // avoid a potential halt after a pop ss which forces a 2nd instruction
+                        continue;
+                    if ((j == 0xf4) && (i == 0xfb)) // avoid a potential halt after an sti which forces a 2nd instruction
+                        continue;
+                    code[1] = (byte) i;
+                    code[2] = (byte) j;
+                    testOpcode(codeEIP, code, 1, inputState, 0xffffffff, RM, out);
+                }
+        }
     }
 
-    public static void testFromFile(String file, EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, BufferedWriter out, boolean freshVM) throws IOException
+    public static void testFromFile(String file, int currentCSEIP, BufferedWriter out, boolean freshVM) throws IOException
     {
         BufferedReader r = new BufferedReader(new FileReader(file));
         String line = r.readLine();
@@ -300,25 +355,19 @@ public class OracleFuzzer
             int[] inputState = new int[rawState.length];
             for (int i=0; i < inputState.length; i++)
                 inputState[i] = (int) Long.parseLong(rawState[i], 16);
-            currentCSEIP = testOpcode(disciple, oracle, currentCSEIP, code, x86, inputState, flagMask, mode, out);
-            if (freshVM)
-            {
-                // this doesn't work as somehow the perm gen isn't freed
-                disciple.destroy();
-//                disciple = new JPCControl(altJar, pcargs);
-                oracle.destroy();
-                oracle = new Bochs("linux.cfg");
-
-                // set cs base to 0
-                oracle.executeInstruction();
-                System.gc();
-            }
+            testOpcode(currentCSEIP, code, x86, inputState, flagMask, mode, out);
         }
     }
 
     // returns resulting cseip
-    private static int testOpcode(EmulatorControl disciple, EmulatorControl oracle, int currentCSEIP, byte[] code, int x86, int[] inputState, int flagMask, int mode, BufferedWriter out) throws IOException
+    private static int testOpcode(int currentCSEIP, byte[] code, int x86, int[] inputState, int flagMask, int mode, BufferedWriter out) throws IOException
     {
+        EmulatorControl disciple = new JPCControl(altJar, pcargs);
+        EmulatorControl oracle = new Bochs("linux.cfg");
+
+        // set cs base to 0
+        disciple.executeInstruction(); // jmp 0000:2000
+        oracle.executeInstruction(); // jmp 0000:2000
         disciple.setState(inputState, 0);
         oracle.setState(inputState, currentCSEIP);
 
@@ -337,6 +386,8 @@ public class OracleFuzzer
         {
             System.out.println("*****************ERROR****************");
             System.out.println(e.getMessage());
+            disciple.destroy();
+            oracle.destroy();
             return inputState[31];
         }
         int[] us = disciple.getState();
@@ -357,6 +408,8 @@ public class OracleFuzzer
                 out.flush();
             }
         }
+        disciple.destroy();
+        oracle.destroy();
         return good[31]+good[8];
     }
 

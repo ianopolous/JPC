@@ -33,6 +33,8 @@
 
 package org.jpc.support;
 
+import org.jpc.j2se.Option;
+
 import java.util.logging.*;
 
 /**
@@ -97,9 +99,10 @@ public class HDBlockDevice extends RawBlockDevice
 
             detectedHeads = 16;
             detectedSectors = 63;
-            LOGGING.log(Level.INFO, "no geometry information, guessing CHS {0,number,integer}:{1,number,integer}:{2,number,integer}",
-                    new Object[]{Integer.valueOf(detectedCylinders), Integer.valueOf(detectedHeads), Integer.valueOf(detectedSectors)
-            });
+            if (Option.printCHS.isSet())
+                LOGGING.log(Level.INFO, "no geometry information, guessing CHS {0,number,integer}:{1,number,integer}:{2,number,integer}",
+                        new Object[]{Integer.valueOf(detectedCylinders), Integer.valueOf(detectedHeads), Integer.valueOf(detectedSectors)
+                        });
         }
         
         cylinders = detectedCylinders;

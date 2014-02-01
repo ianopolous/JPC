@@ -60,7 +60,6 @@ public class CodeBlockManager {
         protectedModeChain = new DefaultCodeBlockFactory(new OptimisedCompiler(), BLOCK_LIMIT);
         virtual8086ModeChain = new DefaultCodeBlockFactory(new OptimisedCompiler(), BLOCK_LIMIT);
 
-        LOGGING.log(Level.INFO, "Not using advanced compilers.");
         bgc = new BackgroundCompiler(new OptimisedCompiler(), null);
         compilingRealModeChain = new DefaultCodeBlockFactory(bgc, BLOCK_LIMIT);//realModeChain;
         compilingProtectedModeChain = new DefaultCodeBlockFactory(bgc, BLOCK_LIMIT);//protectedModeChain;
