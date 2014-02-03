@@ -34,7 +34,9 @@ public abstract class EmulatorControl
 {
     public static int CRO_INDEX = 36;
     public static int GDT_BASE_INDEX = 24;
+    public static int IDT_BASE_INDEX = 26;
     public static int GDT_LIMIT_INDEX = 25;
+    public static int IDT_LIMIT_INDEX = 27;
     public static int ES_LIMIT_INDEX = 17;
     public static int CS_LIMIT_INDEX = 18;
     public static int SS_LIMIT_INDEX = 19;
@@ -238,7 +240,7 @@ public abstract class EmulatorControl
         // assume we are starting in real mode
         int intCount = 0;
 
-        // create GDT
+        // create GDTR
         setPhysicalMemory(nextDataAddress, new byte[]{(byte)state[GDT_LIMIT_INDEX], (byte)(state[GDT_LIMIT_INDEX] >> 8),
                 (byte)state[GDT_BASE_INDEX], (byte)(state[GDT_BASE_INDEX] >> 8), (byte)(state[GDT_BASE_INDEX] >> 16),
                 (byte)(state[GDT_BASE_INDEX] >> 24)});
@@ -255,6 +257,18 @@ public abstract class EmulatorControl
                 getDataDescriptor(state[DS_BASE_INDEX], state[DS_LIMIT_INDEX]), getDataDescriptor(state[FS_BASE_INDEX], state[FS_LIMIT_INDEX]),
                 getDataDescriptor(state[GS_BASE_INDEX], state[GS_LIMIT_INDEX]), getCodeDescriptor(0, 0xffffffff)});
         setPhysicalMemory(state[GDT_BASE_INDEX], gdt);
+
+        // create IDTR
+        setPhysicalMemory(nextDataAddress, new byte[]{(byte)state[IDT_LIMIT_INDEX], (byte)(state[IDT_LIMIT_INDEX] >> 8),
+                (byte)state[IDT_BASE_INDEX], (byte)(state[IDT_BASE_INDEX] >> 8), (byte)(state[IDT_BASE_INDEX] >> 16),
+                (byte)(state[IDT_BASE_INDEX] >> 24)});
+        bout.write(0x0f); // LIDT ds:IW
+        bout.write(0x01);
+        bout.write(0x1e);
+        bout.write(nextDataAddress);
+        bout.write(nextDataAddress >> 8);
+        nextDataAddress += 6;
+        intCount++;
 
         for (int i=1; i < 8; i++)
         {
@@ -384,6 +398,15 @@ public abstract class EmulatorControl
         setPhysicalMemory(codeAddress16, new byte[bout.size()]);
         // and the data too
         setPhysicalMemory(dataAddress16, new byte[8 * 8]);
+    }
+
+    public static long getInterruptGateDescriptor(int gdt_index, int offset)
+    {
+        long d = ((gdt_index << 3) & 0xffffL) << 16;
+        d |= offset & 0xffffL;
+        d |= (offset & 0xffff0000L) << 32;
+        d |= (0x86L << 40); // present, 16-bit gate
+        return d;
     }
 
     public static long getCodeDescriptor(int base, int limit)

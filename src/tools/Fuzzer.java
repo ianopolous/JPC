@@ -135,6 +135,23 @@ public class Fuzzer
 
     public static String[] names = EmulatorControl.names;
 
+    public static void printState(int[] state, BufferedWriter out) throws IOException
+    {
+        StringBuilder builder = new StringBuilder(4096);
+        Formatter formatter=new Formatter(builder);
+        arrayImpl(names, state, formatter, 0, 10);
+        arrayImpl(names, state, formatter, 10, 17);
+        arrayImpl(names, state, formatter, 17, 24);
+        arrayImpl(names, state, formatter, 24, 30);
+        arrayImpl(names, state, formatter, 30, 37);
+        arrayImpl(names, state, formatter, 37, 45);
+        arrayImpl(names, state, formatter, 45, names.length);
+        doubleImpl(names, state, formatter, 37, 37 + 16);
+        out.flush();
+        out.write(builder.toString());
+        out.newLine();
+    }
+
     public static void printState(int[] state)
     {
         StringBuilder builder = new StringBuilder(4096);

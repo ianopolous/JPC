@@ -357,7 +357,16 @@ public class Bochs extends EmulatorControl
 
     public void destroy()
     {
-        p.destroy();
+        try {
+            writeCommand("q");
+            in.close();
+            out.close();
+            p.getInputStream().close();
+            p.destroy();
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) throws IOException
