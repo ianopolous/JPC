@@ -756,13 +756,13 @@ public class PC {
         physicalAddr.getDirtyPages(res);
     }
 
-    public String disam(byte[] code, Integer ops, Integer mode)
+    public String disam(byte[] code, Integer ops, Boolean is32Bit)
     {
         Disassembler.ByteArrayPeekStream mem = new Disassembler.ByteArrayPeekStream(code);
         StringBuilder b = new StringBuilder();
         for (int i=0; i < ops; i++)
         {
-            Instruction disam = mode == 1 ? Disassembler.disassemble16(mem) : mode == 3 ? Disassembler.disassemble16(mem) : Disassembler.disassemble32(mem);
+            Instruction disam = is32Bit ? Disassembler.disassemble32(mem) : Disassembler.disassemble16(mem);
             b.append(disam.toString()+"\n");
         }
         return b.toString();

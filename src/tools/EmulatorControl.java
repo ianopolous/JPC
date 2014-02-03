@@ -62,7 +62,7 @@ public abstract class EmulatorControl
             //"expiry"
         };
 
-    public abstract String disam(byte[] code, Integer ops, Integer mode);
+    public abstract String disam(byte[] code, Integer ops, Boolean is32Bit);
     // return disam of next instruction
     public abstract String executeInstruction() throws IOException;
     public abstract int[] getState() throws IOException;

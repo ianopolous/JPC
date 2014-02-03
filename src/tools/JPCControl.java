@@ -79,7 +79,7 @@ public class JPCControl extends EmulatorControl
             execute = c1.getMethod("executeBlock");
             instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
             setPhysicalMemory = c1.getMethod("setPhysicalMemory", Integer.class, byte[].class);
-            disam = c1.getMethod("disam", byte[].class, Integer.class, Integer.class);
+            disam = c1.getMethod("disam", byte[].class, Integer.class, Boolean.class);
             reset = c1.getMethod("reset");
             Method save = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
             Method load = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
@@ -90,10 +90,10 @@ public class JPCControl extends EmulatorControl
         catch (InstantiationException e) {throw new RuntimeException(e.getMessage());}
     }
 
-    public String disam(byte[] code, Integer ops, Integer mode)
+    public String disam(byte[] code, Integer ops, Boolean is32Bit)
     {
         try {
-            return (String) disam.invoke(pc, code, ops, mode);
+            return (String) disam.invoke(pc, code, ops, is32Bit);
         } catch (InvocationTargetException e)
         {
             if (e.getCause().getMessage().contains("Invalid"))

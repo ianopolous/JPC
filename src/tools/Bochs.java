@@ -265,7 +265,7 @@ public class Bochs extends EmulatorControl
         throw new IllegalStateException("Unimplemented sendMouse");
     }
 
-    public String disam(byte[] code, Integer ops, Integer mode)
+    public String disam(byte[] code, Integer ops, Boolean mode)
     {
         throw new IllegalStateException("Unimplemented sendMouse");
     }
