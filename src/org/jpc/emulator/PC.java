@@ -655,6 +655,14 @@ public class PC {
         }
     }
 
+    public void destroy()
+    {
+        for (HardwareComponent hwc : parts) {
+            if (hwc instanceof DriveSet)
+                ((DriveSet) hwc).close();
+        }
+    }
+
     /**
      * Reset this PC back to its initial state.
      * <p>

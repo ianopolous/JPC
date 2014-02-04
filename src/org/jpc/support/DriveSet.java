@@ -337,4 +337,14 @@ public class DriveSet extends AbstractHardwareComponent
         temp.setInitialArgs(initialArgs);
         return temp;
     }
+
+    public void close()
+    {
+        for (BlockDevice d: ides)
+            if (d != null)
+                d.close();
+        for (BlockDevice d: floppies)
+            if (d != null)
+                d.close();
+    }
 }

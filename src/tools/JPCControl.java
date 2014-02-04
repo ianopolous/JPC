@@ -47,7 +47,7 @@ public class JPCControl extends EmulatorControl
     private final Method instructionInfo;
     private final Method setPhysicalMemory;
     private final Method disam;
-    private final Method reset;
+    private final Method destroy;
     private final URLClassLoader cl1;
 
     public JPCControl(String jar, String pcName, String[] extraArgs) throws IOException
@@ -80,7 +80,7 @@ public class JPCControl extends EmulatorControl
             instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
             setPhysicalMemory = c1.getMethod("setPhysicalMemory", Integer.class, byte[].class);
             disam = c1.getMethod("disam", byte[].class, Integer.class, Boolean.class);
-            reset = c1.getMethod("reset");
+            destroy = c1.getMethod("destroy");
             Method save = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
             Method load = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
         } catch (ClassNotFoundException e) {throw new RuntimeException(e.getMessage());}
@@ -146,8 +146,11 @@ public class JPCControl extends EmulatorControl
     public void destroy()
     {
         try {
-            reset.invoke(pc);
-        } catch (InvocationTargetException e) {throw new RuntimeException(e.getMessage());}
+            destroy.invoke(pc);
+        } catch (InvocationTargetException e)
+        {
+            throw new RuntimeException(e.getMessage());
+        }
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
     }
 

@@ -109,7 +109,8 @@ public abstract class RawBlockDevice implements BlockDevice
     public void close()
     {
         try {
-            data.close();
+            if (data != null)
+                data.close();
         } catch (IOException e) {
             LOGGING.log(Level.INFO, "Couldn't close device", e);
         }
