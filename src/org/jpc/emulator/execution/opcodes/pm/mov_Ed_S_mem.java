@@ -49,7 +49,7 @@ public class mov_Ed_S_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Segment seg = cpu.segs[segIndex];
-        op1.set32(cpu, seg.getSelector());
+        op1.set16(cpu, (short)seg.getSelector());
         return Branch.None;
     }
 

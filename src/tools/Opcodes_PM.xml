@@ -1376,7 +1376,6 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="8">DHr14b;Ib</args>
     <args size="8">BHr15b;Ib</args>
     <args size="16">Ew;S</args>
-    <args size="32">Ed;S</args>
     <args size="16">Ew;Gw</args>
     <args size="32">Ed;Gd</args>
     <args size="16">Ew;Iw</args>
@@ -1410,6 +1409,18 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
         $op1.set$cast$op2.get);</snippet>
     <args size="16">S;Ew</args>
     <args size="16">S;Ed</args>
+  </opcode>
+
+  <opcode mnemonic="mov" mem="false">
+    <return>Branch.None</return>
+    <snippet>        op1.set32($op2.get);</snippet>
+    <args size="32">Ed;S</args>
+  </opcode>
+
+  <opcode mnemonic="mov" mem="true">
+    <return>Branch.None</return>
+    <snippet>        op1.set16(cpu, (short)$op2.get);</snippet>
+    <args size="32">Ed;S</args>
   </opcode>
 
   <opcode mnemonic="mov">
