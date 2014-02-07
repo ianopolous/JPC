@@ -216,7 +216,7 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
                 try
                 {
                     long toSleep = Math.min((expiry - getTime()) / 1000000, 100);
-                    System.out.printf("Sleeping for %x millis", toSleep);
+//                    System.out.printf("Sleeping for %x millis", toSleep);
                     Thread.sleep(toSleep);
                 } catch (InterruptedException ex)
                 {
