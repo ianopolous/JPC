@@ -56,7 +56,6 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
 
     private static final byte FOUR_M = (byte) 0x01;
     private static final byte FOUR_K = (byte) 0x00;
-    private static final Memory[] EMPTY = new Memory[INDEX_SIZE];
 
     private boolean isSupervisor, globalPagesEnabled, pagingDisabled, pageCacheEnabled, writeProtectPages, pageSizeExtensions;
     private int baseAddress, lastAddress;
@@ -64,9 +63,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
 
     private byte[] pageSize;
     private final Set<Integer> nonGlobalPages;
-    private Memory[] readUserIndex = new Memory[INDEX_SIZE], readSupervisorIndex = new Memory[INDEX_SIZE],
-            writeUserIndex = new Memory[INDEX_SIZE], writeSupervisorIndex = new Memory[INDEX_SIZE];
-    private Memory[] readIndex, writeIndex;
+    private Memory[] readUserIndex, readSupervisorIndex, writeUserIndex, writeSupervisorIndex, readIndex, writeIndex;
 
     /**
      * Constructs a <code>LinearAddressSpace</code> with paging initially disabled
@@ -129,30 +126,18 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
 
     private Memory[] createReadIndex()
     {
-        if (isSupervisor)
-        {
-            System.arraycopy(EMPTY, 0, readSupervisorIndex, 0, INDEX_SIZE);
-            return (readIndex = readSupervisorIndex);
-        }
-        else
-        {
-            System.arraycopy(EMPTY, 0, readUserIndex, 0, INDEX_SIZE);
-            return (readIndex = readUserIndex);
-        }
+	if (isSupervisor)
+	    return (readIndex = readSupervisorIndex = new Memory[INDEX_SIZE]);
+	else
+	    return (readIndex = readUserIndex = new Memory[INDEX_SIZE]);
     }
 
     private Memory[] createWriteIndex()
     {
-        if (isSupervisor)
-        {
-            System.arraycopy(EMPTY, 0, writeSupervisorIndex, 0, INDEX_SIZE);
-            return (writeIndex = writeSupervisorIndex);
-        }
-        else
-        {
-            System.arraycopy(EMPTY, 0, writeUserIndex, 0, INDEX_SIZE);
-            return (writeIndex = writeUserIndex);
-        }
+	if (isSupervisor)
+	    return (writeIndex = writeSupervisorIndex = new Memory[INDEX_SIZE]);
+	else
+	    return (writeIndex = writeUserIndex = new Memory[INDEX_SIZE]);
     }
     
     private void setReadIndexValue(int index, Memory value)
@@ -333,10 +318,10 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
 
         nonGlobalPages.clear();
 
-//	readUserIndex = null;
-//	writeUserIndex = null;
-//	readSupervisorIndex = null;
-//	writeSupervisorIndex = null;
+	readUserIndex = null;
+	writeUserIndex = null;
+	readSupervisorIndex = null;
+	writeSupervisorIndex = null;
     }
 
     private void partialFlush()
@@ -1092,10 +1077,10 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         writeProtectPages = false;
         pageSizeExtensions = false;
 
-//	readUserIndex = null;
-//	writeUserIndex = null;
-//	readSupervisorIndex = null;
-//	writeSupervisorIndex = null;
+	readUserIndex = null;
+	writeUserIndex = null;
+	readSupervisorIndex = null;
+	writeSupervisorIndex = null;
     }
 
     public boolean updated()
