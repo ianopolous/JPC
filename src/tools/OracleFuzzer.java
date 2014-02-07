@@ -167,10 +167,10 @@ public class OracleFuzzer
         byte[][] preficesB = new byte[][]{new byte[]{0x66}};
         byte[][] preficesC = new byte[][]{new byte[]{0x67}};
         byte[][] preficesD = new byte[][]{new byte[]{0x0F}};
-        new Thread(new FuzzThread(codeEIP, preficesA, inputState, RM, false, "tests/RMtest-cases-A.txt")).start();
-        new Thread(new FuzzThread(codeEIP, preficesB, inputState, RM, false, "tests/RMtest-cases-B.txt")).start();
-        new Thread(new FuzzThread(codeEIP, preficesC, inputState, RM, false, "tests/RMtest-cases-C.txt")).start();
-        new Thread(new FuzzThread(codeEIP, preficesD, inputState, RM, false, "tests/RMtest-cases-D.txt")).start();
+        new Thread(new FuzzThread(codeEIP, preficesA, inputState, RM, false, "tests/RMtest-A")).start();
+        new Thread(new FuzzThread(codeEIP, preficesB, inputState, RM, false, "tests/RMtest-B")).start();
+        new Thread(new FuzzThread(codeEIP, preficesC, inputState, RM, false, "tests/RMtest-C")).start();
+        new Thread(new FuzzThread(codeEIP, preficesD, inputState, RM, false, "tests/RMtest-D")).start();
     }
 
     public static void fuzzProtectedMode(int codeEIP) throws IOException
