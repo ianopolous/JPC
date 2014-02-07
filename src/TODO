@@ -1,12 +1,13 @@
 JPC TODO (In rough order of desirability)
 
-* make cpu report it is i486 (all linuxes require this)
-* CPU instruction tests
-* make tests with multiple 66 and 67 prefices
-* test TombTaider and create bootable hd with autorun
-* fix bug leading to top ~1/3 of screen being redrawn at the bottom third (e.g. dsl and kolibri)
 * auto resize JFrame in application
-* allow scaling of screen to window
+* make cpu report it is i486 (all linuxes require this)
+* rewrite TLB
+* CPU instruction tests - memory input values, optional compare memory afterwards
+* make tests with multiple 66 and 67 prefices
+* -log-disam for win95 => fuzz test cases
+* test TombRaider and create bootable hd with autorun
+* fix bug leading to top ~1/3 of screen being redrawn at the bottom third (e.g. dsl and kolibri)
 * Soundblaster - fix PCM sound
 * boot windows 95
 * boot windows 98
@@ -20,6 +21,7 @@ JPC TODO (In rough order of desirability)
 * VDI format
 * VDI/VMDK runtime use
 * Voodoo graphics card
+* block chaining
 * compiler (fun)
 * Keyboard panel (and multilanguage)
 * Live migrate VM between hosts
