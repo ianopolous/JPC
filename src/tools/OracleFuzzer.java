@@ -27,6 +27,8 @@
 package tools;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -291,13 +293,27 @@ public class OracleFuzzer
             int[] inputState = new int[rawState.length];
             for (int i=0; i < inputState.length; i++)
                 inputState[i] = (int) Long.parseLong(rawState[i], 16);
-            testOpcode(currentCSEIP, code, x86, inputState, flagMask, mode, is32Bit, cases, log);
+            // read input memory values
+            line = r.readLine();
+            Map<Integer, byte[]> mem = new HashMap();
+            while (!line.contains("*****"))
+            {
+                int addr = Integer.parseInt(line.substring(0, 8), 16);
+                String[] hex = line.substring(9).trim().split(" ");
+                byte[] data = new byte[hex.length];
+                for (int i=0; i < hex.length; i++)
+                    data[i] = (byte) Integer.parseInt(hex[i], 16);
+                mem.put(addr, data);
+                line = r.readLine();
+            }
+            testOpcode(currentCSEIP, code, x86, inputState, flagMask, mode, is32Bit, mem, cases, log);
         }
     }
 
     public static void testRange(int codeEIP, byte[][] prefices, int[] inputState, int mode, boolean is32Bit, BufferedWriter cases, BufferedWriter log) throws IOException
     {
         EmulatorControl disam = new JPCControl(altJar, pcargs);
+        Map<Integer, byte[]> mem = new HashMap();
         for (int b=0; b < prefices.length; b++)
         {
             int opcodeIndex = prefices[b].length;
@@ -330,7 +346,7 @@ public class OracleFuzzer
                 code[opcodeIndex] = (byte) i;
                 if (disam.x86Length(code, is32Bit) == 1 + opcodeIndex)
                 {
-                    testOpcode(codeEIP, code, 1, inputState, 0xffffffff, mode, is32Bit, cases, log);
+                    testOpcode(codeEIP, code, 1, inputState, 0xffffffff, mode, is32Bit, mem, cases, log);
                     continue;
                 }
                 for (int j=0; j < 256; j++)
@@ -340,14 +356,14 @@ public class OracleFuzzer
                     if ((j == 0xf4) && (i == 0xfb)) // avoid a potential halt after an sti which forces a 2nd instruction
                         continue;
                     code[opcodeIndex+1] = (byte) j;
-                    testOpcode(codeEIP, code, 1, inputState, 0xffffffff, mode, is32Bit, cases, log);
+                    testOpcode(codeEIP, code, 1, inputState, 0xffffffff, mode, is32Bit, mem, cases, log);
                 }
             }
         }
     }
 
     // returns resulting cseip
-    private static int testOpcode(int currentCSEIP, byte[] code, int x86, int[] inputState, int flagMask, int mode, boolean is32Bit, BufferedWriter cases, BufferedWriter log) throws IOException
+    private static int testOpcode(int currentCSEIP, byte[] code, int x86, int[] inputState, int flagMask, int mode, boolean is32Bit, Map<Integer, byte[]> mem, BufferedWriter cases, BufferedWriter log) throws IOException
     {
         EmulatorControl disciple = new JPCControl(altJar, pcargs);
         EmulatorControl oracle = new Bochs("linux.cfg");
@@ -369,6 +385,13 @@ public class OracleFuzzer
         {
             disciple.setPhysicalMemory(inputState[EmulatorControl.IDT_BASE_INDEX], protected_mode_idt);
             oracle.setPhysicalMemory(inputState[EmulatorControl.IDT_BASE_INDEX], protected_mode_idt);
+        }
+
+        // set memory inputs
+        for (Integer addr: mem.keySet())
+        {
+            disciple.setPhysicalMemory(addr, mem.get(addr));
+            oracle.setPhysicalMemory(addr, mem.get(addr));
         }
 
         try {
@@ -403,6 +426,7 @@ public class OracleFuzzer
         int[] us = disciple.getState();
         int[] good = oracle.getState();
 
+        // need to compare memory if there are memory inputs
         if (!sameState(us, good, flagMask))
         {
             printCase(code, x86, mode == RM ? false : is32Bit, disciple, inputState, us, good, flagMask, log);
@@ -414,7 +438,7 @@ public class OracleFuzzer
                 cases.append("\n");
                 for (int i=0; i < inputState.length; i++)
                     cases.append(String.format("%08x ", inputState[i]));
-                cases.append("\n");
+                cases.append("\n*****\n");
                 cases.flush();
             }
         }
