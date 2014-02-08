@@ -87,6 +87,11 @@ public class SegmentFactory
 
     public static Segment createProtectedModeSegment(AddressSpace memory, int selector, long descriptor)
     {
+        return createProtectedModeSegment(memory, selector, descriptor, false);
+    }
+
+    public static Segment createProtectedModeSegment(AddressSpace memory, int selector, long descriptor, boolean isStack)
+    {
         switch ((int) ((descriptor & (DESCRIPTOR_TYPE | SEGMENT_TYPE)) >>> 40)) {
 
             // System Segments 
@@ -123,13 +128,25 @@ public class SegmentFactory
 
             // Data Segments
             case 0x10: //Data Segment: Read-Only
-                return new ProtectedModeSegment.ReadOnlyDataSegment(memory, selector, descriptor);
+                if (isStack)
+                    return new ProtectedModeSegment.ReadOnlyDataStackSegment(memory, selector, descriptor);
+                else
+                    return new ProtectedModeSegment.ReadOnlyDataSegment(memory, selector, descriptor);
             case 0x11: //Data Segment: Read-Only, Accessed
-                return new ProtectedModeSegment.ReadOnlyAccessedDataSegment(memory, selector, descriptor);
+                if (isStack)
+                    return new ProtectedModeSegment.ReadOnlyAccessedStackSegment(memory, selector, descriptor);
+                else
+                    return new ProtectedModeSegment.ReadOnlyAccessedDataSegment(memory, selector, descriptor);
             case 0x12: //Data Segment: Read/Write
-                return new ProtectedModeSegment.ReadWriteDataSegment(memory, selector, descriptor);
+                if (isStack)
+                    return new ProtectedModeSegment.ReadWriteStackSegment(memory, selector, descriptor);
+                else
+                    return new ProtectedModeSegment.ReadWriteDataSegment(memory, selector, descriptor);
             case 0x13: //Data Segment: Read/Write, Accessed
-                return new ProtectedModeSegment.ReadWriteAccessedDataSegment(memory, selector, descriptor);
+                if (isStack)
+                    return new ProtectedModeSegment.ReadWriteAccessedStackSegment(memory, selector, descriptor);
+                else
+                    return new ProtectedModeSegment.ReadWriteAccessedDataSegment(memory, selector, descriptor);
             case 0x14: //Data Segment: Read-Only, Expand-Down
                 throw new IllegalStateException("Unimplemented Data Segment: Read-Only, Expand-Down");
             case 0x15: //Data Segment: Read-Only, Expand-Down, Accessed

@@ -360,7 +360,7 @@ public class Tasking
             if ((newSs & 0xfffc) == 0)
                 throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newSs & 0xfffc, true);
 
-            Segment ss = cpu.loadSegment(newSs);
+            Segment ss = cpu.loadSegment(newSs, true);
 
             if (!((ProtectedModeSegment)ss).isDataWritable() || ((ProtectedModeSegment)ss).isCode())
                 throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newSs & 0xfffc, true);
@@ -372,7 +372,7 @@ public class Tasking
                 throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newSs & 0xfffc, true);
 
             if (touch_segment((ProtectedModeSegment)ss, cpu))
-                ss = cpu.loadSegment(newSs);
+                ss = cpu.loadSegment(newSs, true);
             cpu.ss(ss);
 
             cpu.setCPL(saveCPL);

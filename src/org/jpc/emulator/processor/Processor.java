@@ -690,7 +690,7 @@ public class Processor implements HardwareComponent
                     int returnESP = 0xffff & ss.getWord(r_esp.get16() & 0xFFFF);
                     int newSS = 0xffff & ss.getWord((r_esp.get16() + 2) & 0xFFFF);
 
-                    Segment returnStackSegment = getSegment(newSS);
+                    Segment returnStackSegment = getSegment(newSS, true);
 
                     if ((returnStackSegment.getRPL() != returnSegment.getRPL()) || ((returnStackSegment.getType() & 0x12) != 0x12) ||
                             (returnStackSegment.getDPL() != returnSegment.getRPL()))
@@ -953,11 +953,16 @@ public class Processor implements HardwareComponent
 
     protected final Segment loadSegment(int selector)
     {
+        return loadSegment(selector, false);
+    }
+
+    protected final Segment loadSegment(int selector, boolean isStack)
+    {
         selector &= 0xffff;
         if (selector < 0x4)
             return SegmentFactory.NULL_SEGMENT;
 
-        Segment s = getSegment(selector);
+        Segment s = getSegment(selector, isStack);
         if (!s.isPresent())
             throw new ProcessorException(ProcessorException.Type.NOT_PRESENT, selector, true);
         return s;
@@ -1071,7 +1076,7 @@ public class Processor implements HardwareComponent
         if (!isProtectedMode() || isVirtual8086Mode())
             ss.setSelector(selector & 0xffff);
         else
-            ss(loadSegment(selector));
+            ss(loadSegment(selector, true));
     }
 
     public void ss(Segment seg)
@@ -1437,7 +1442,7 @@ public class Processor implements HardwareComponent
                     if ((newSS & 0xfffc) == 0)
                         throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
 
-                    Segment returnStackSegment = getSegment(newSS);
+                    Segment returnStackSegment = getSegment(newSS, true);
 
                     if ((returnStackSegment.getRPL() != returnSegment.getRPL()) || ((returnStackSegment.getType() & 0x12) != 0x12) ||
                             (returnStackSegment.getDPL() != returnSegment.getRPL()))
@@ -1725,7 +1730,7 @@ public class Processor implements HardwareComponent
                     int returnESP = ss.getDoubleWord(r_esp.get32() + 8 + stackdelta);
                     int tempSS = 0xffff & ss.getDoubleWord(r_esp.get32() + 12 + stackdelta);
 
-                    Segment returnStackSegment = getSegment(tempSS);
+                    Segment returnStackSegment = getSegment(tempSS, true);
 
                     if ((returnStackSegment.getRPL() != returnSegment.getRPL()) || ((returnStackSegment.getType() & 0x12) != 0x12) ||
                             (returnStackSegment.getDPL() != returnSegment.getRPL()))
@@ -1932,7 +1937,7 @@ public class Processor implements HardwareComponent
             if ((ssSelector & 0xfffc) == 0)
                 throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
 
-            ProtectedModeSegment returnStackSegment = (ProtectedModeSegment) getSegment(ssSelector);
+            ProtectedModeSegment returnStackSegment = (ProtectedModeSegment) getSegment(ssSelector, true);
 
             if (returnStackSegment.getRPL() != returnSegment.getRPL())
                 throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, ssSelector & 0xfffc, true);
@@ -2144,7 +2149,7 @@ public class Processor implements HardwareComponent
                     //load SS
                     if ((ssSelector & 0xfffc) != 0)
                     {
-                        Segment newSS = getSegment(ssSelector);
+                        Segment newSS = getSegment(ssSelector, true);
                         if (newSS.isSystem() || ((ProtectedModeSegment) newSS).isCode() || !((ProtectedModeSegment) newSS).isDataWritable())
                             throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, ssSelector & 0xfffc, true);
 
@@ -2521,9 +2526,9 @@ public class Processor implements HardwareComponent
                             if ((newStackSelector & 0xfffc) == 0)
                                 throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, 0, true);
 
-                            Segment newStackSegment = null;
+                            Segment newStackSegment;
                             try {
-                                newStackSegment = getSegment(newStackSelector);
+                                newStackSegment = getSegment(newStackSelector, true);
                             } catch (ProcessorException e) {
                                 throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector, true);
                             }
@@ -3753,10 +3758,15 @@ public class Processor implements HardwareComponent
 
     public Segment getSegment(int segmentSelector)
     {
+        return getSegment(segmentSelector, false);
+    }
+
+    public Segment getSegment(int segmentSelector, boolean isStack)
+    {
         boolean isSup = linearMemory.isSupervisor();
         try
         {
-            long segmentDescriptor = 0;
+            long segmentDescriptor;
             linearMemory.setSupervisor(true);
             if ((segmentSelector & 0x4) != 0)
                 segmentDescriptor = ldtr.getQuadWord(segmentSelector & 0xfff8);
@@ -3766,7 +3776,7 @@ public class Processor implements HardwareComponent
                     return SegmentFactory.NULL_SEGMENT;
                 segmentDescriptor = gdtr.getQuadWord(segmentSelector & 0xfff8);
             }
-            Segment result = SegmentFactory.createProtectedModeSegment(linearMemory, segmentSelector, segmentDescriptor);
+            Segment result = SegmentFactory.createProtectedModeSegment(linearMemory, segmentSelector, segmentDescriptor, isStack);
             // mark segment descriptor as accessed (somehow this stops doom working)
 //            if ((segmentSelector & 0x4) != 0)
 //                ldtr.VMsetByte((segmentSelector & 0xfff8) + 5, (byte) (ldtr.getByte((segmentSelector & 0xfff8) + 5) | 1));
@@ -3785,7 +3795,6 @@ public class Processor implements HardwareComponent
             linearMemory.setSupervisor(isSup);
         }
     }
-
 
     public Segment getSegment(int segmentSelector, Segment local, Segment global)
     {
@@ -4293,7 +4302,7 @@ public class Processor implements HardwareComponent
 
                     ProtectedModeSegment newStackSegment;
                     try {
-                        newStackSegment = (ProtectedModeSegment) getSegment(newStackSelector);
+                        newStackSegment = (ProtectedModeSegment) getSegment(newStackSelector, true);
                     } catch (ProcessorException e) {
                         throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector & 0xfffc, true);
                     }
@@ -4640,7 +4649,7 @@ public class Processor implements HardwareComponent
 
                     ProtectedModeSegment newStackSegment;
                     try {
-                        newStackSegment = (ProtectedModeSegment) getSegment(newStackSelector);
+                        newStackSegment = (ProtectedModeSegment) getSegment(newStackSelector, true);
                     } catch (ProcessorException e) {
                         throw new ProcessorException(ProcessorException.Type.TASK_SWITCH, newStackSelector & 0xfffc, true);
                     }
@@ -5137,13 +5146,13 @@ public class Processor implements HardwareComponent
         case SHLD32:
             return getCarryFlag(op1, op2, result, instr) ^ ((result >> 31) != 0);
         case SHRD16:
-            if (op2 == 1)
+//            if (op2 == 1) commented because despite the Intel spec, this is what Bochs does
                 return (((result << 1) ^ result) & (1 << 15)) != 0;
-            return false;
+//            return false;
         case SHRD32:
-            if (op2 == 1)
+//            if (op2 == 1) commented because despite the Intel spec, this is what Bochs does
                 return (((result << 1) ^ result) >> 31) != 0;
-            return false;
+//            return false;
         case SHR8:
             return (((result << 1) ^ result) >> 7) != 0;
         case SHR16:

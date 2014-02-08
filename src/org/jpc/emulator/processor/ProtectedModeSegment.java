@@ -196,10 +196,59 @@ public abstract class ProtectedModeSegment extends Segment
     {
         throw new IllegalStateException("Cannot set a selector for a descriptor table segment");
     }
-    
+
+    static abstract class StackSegment extends ProtectedModeSegment
+    {
+        public StackSegment(AddressSpace memory, int selector, long descriptor)
+        {
+            super(memory, selector, descriptor);
+        }
+
+        public void checkAddress(int offset)
+        {
+            if ((0xffffffffL & offset) > limit) {
+                LOGGING.log(Level.INFO, this + "Stack segment limit exceeded: 0x{0} > 0x{1}", new Object[]{Integer.toHexString(offset), Integer.toHexString((int) limit)});
+                throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT,0,true);
+            }
+        }
+    }
+
     static abstract class ReadOnlyProtectedModeSegment extends ProtectedModeSegment
     {
         public ReadOnlyProtectedModeSegment(AddressSpace memory, int selector, long descriptor)
+        {
+            super(memory, selector, descriptor);
+        }
+
+        void writeAttempted()
+        {
+            throw new IllegalStateException();
+        }
+
+        public final void setByte(int offset, byte data)
+        {
+            writeAttempted();
+        }
+
+        public final void setWord(int offset, short data)
+        {
+            writeAttempted();
+        }
+
+        public final void setDoubleWord(int offset, int data)
+        {
+            writeAttempted();
+        }
+
+        public final void setQuadWord(int offset, long data)
+        {
+            writeAttempted();
+        }
+    }
+
+    static abstract class ReadOnlyStackSegment extends StackSegment
+    {
+        public ReadOnlyStackSegment(AddressSpace memory, int selector, long descriptor)
         {
             super(memory, selector, descriptor);
         }
@@ -248,6 +297,24 @@ public abstract class ProtectedModeSegment extends Segment
         }
     }
 
+    static final class ReadOnlyDataStackSegment extends ReadOnlyStackSegment
+    {
+        public ReadOnlyDataStackSegment(AddressSpace memory, int selector, long descriptor)
+        {
+            super(memory, selector, descriptor);
+        }
+
+        public int getType()
+        {
+            return DESCRIPTOR_TYPE_CODE_DATA;
+        }
+
+        void writeAttempted()
+        {
+            throw ProcessorException.GENERAL_PROTECTION_0;
+        }
+    }
+
     static final class ReadOnlyAccessedDataSegment extends ReadOnlyProtectedModeSegment
     {
         public ReadOnlyAccessedDataSegment(AddressSpace memory, int selector, long descriptor)
@@ -266,9 +333,40 @@ public abstract class ProtectedModeSegment extends Segment
         }
     }
 
+    static final class ReadOnlyAccessedStackSegment extends ReadOnlyStackSegment
+    {
+        public ReadOnlyAccessedStackSegment(AddressSpace memory, int selector, long descriptor)
+        {
+            super(memory, selector, descriptor);
+        }
+
+        public int getType()
+        {
+            return DESCRIPTOR_TYPE_CODE_DATA | TYPE_ACCESSED;
+        }
+
+        void writeAttempted()
+        {
+            throw ProcessorException.GENERAL_PROTECTION_0;
+        }
+    }
+
     static final class ReadWriteDataSegment extends ProtectedModeSegment
     {
         public ReadWriteDataSegment(AddressSpace memory, int selector, long descriptor)
+        {
+            super(memory, selector, descriptor);
+        }
+
+        public int getType()
+        {
+            return DESCRIPTOR_TYPE_CODE_DATA | TYPE_DATA_WRITABLE;
+        }
+    }
+
+    static final class ReadWriteStackSegment extends StackSegment
+    {
+        public ReadWriteStackSegment(AddressSpace memory, int selector, long descriptor)
         {
             super(memory, selector, descriptor);
         }
@@ -315,6 +413,19 @@ public abstract class ProtectedModeSegment extends Segment
     static final class ReadWriteAccessedDataSegment extends ProtectedModeSegment
     {
         public ReadWriteAccessedDataSegment(AddressSpace memory, int selector, long descriptor)
+        {
+            super(memory, selector, descriptor);
+        }
+
+        public int getType()
+        {
+            return DESCRIPTOR_TYPE_CODE_DATA | TYPE_DATA_WRITABLE | TYPE_ACCESSED;
+        }
+    }
+
+    static final class ReadWriteAccessedStackSegment extends StackSegment
+    {
+        public ReadWriteAccessedStackSegment(AddressSpace memory, int selector, long descriptor)
         {
             super(memory, selector, descriptor);
         }
