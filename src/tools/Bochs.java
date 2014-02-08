@@ -270,6 +270,11 @@ public class Bochs extends EmulatorControl
         throw new IllegalStateException("Unimplemented sendMouse");
     }
 
+    public int x86Length(byte[] code, Boolean mode)
+    {
+        throw new IllegalStateException("Unimplemented sendMouse");
+    }
+
     public Integer savePage(Integer page, byte[] data, Boolean linear) throws IOException
     {
         writeCommand("xp/4096bx "+page);

@@ -63,6 +63,8 @@ public abstract class EmulatorControl
         };
 
     public abstract String disam(byte[] code, Integer ops, Boolean is32Bit);
+    public abstract int x86Length(byte[] code, Boolean is32Bit);
+
     // return disam of next instruction
     public abstract String executeInstruction() throws IOException;
     public abstract int[] getState() throws IOException;

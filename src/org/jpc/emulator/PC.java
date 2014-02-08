@@ -776,6 +776,13 @@ public class PC {
         return b.toString();
     }
 
+    public Integer x86Length(byte[] code, Boolean is32Bit)
+    {
+        Disassembler.ByteArrayPeekStream mem = new Disassembler.ByteArrayPeekStream(code);
+        Instruction disam = is32Bit ? Disassembler.disassemble32(mem) : Disassembler.disassemble16(mem);
+        return disam.x86Length;
+    }
+
     public int executeBlock()
     {
         if (processor.isProtectedMode()) {

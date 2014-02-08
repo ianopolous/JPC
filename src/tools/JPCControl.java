@@ -47,6 +47,7 @@ public class JPCControl extends EmulatorControl
     private final Method instructionInfo;
     private final Method setPhysicalMemory;
     private final Method disam;
+    private final Method x86Length;
     private final Method destroy;
     private final URLClassLoader cl1;
 
@@ -80,6 +81,7 @@ public class JPCControl extends EmulatorControl
             instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
             setPhysicalMemory = c1.getMethod("setPhysicalMemory", Integer.class, byte[].class);
             disam = c1.getMethod("disam", byte[].class, Integer.class, Boolean.class);
+            x86Length = c1.getMethod("x86Length", byte[].class, Boolean.class);
             destroy = c1.getMethod("destroy");
             Method save = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
             Method load = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
@@ -99,6 +101,17 @@ public class JPCControl extends EmulatorControl
             if (e.getCause().getMessage().contains("Invalid"))
                 return "invalid";
             return "Error during disam: " + e.getMessage();
+        }
+        catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
+    }
+
+    public int x86Length(byte[] code, Boolean is32Bit)
+    {
+        try {
+            return (Integer) x86Length.invoke(pc, code, is32Bit);
+        } catch (InvocationTargetException e)
+        {
+            return 0;
         }
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
     }

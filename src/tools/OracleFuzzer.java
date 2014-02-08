@@ -297,6 +297,7 @@ public class OracleFuzzer
 
     public static void testRange(int codeEIP, byte[][] prefices, int[] inputState, int mode, boolean is32Bit, BufferedWriter cases, BufferedWriter log) throws IOException
     {
+        EmulatorControl disam = new JPCControl(altJar, pcargs);
         for (int b=0; b < prefices.length; b++)
         {
             int opcodeIndex = prefices[b].length;
@@ -307,34 +308,41 @@ public class OracleFuzzer
 
             // 60158 cases
             for (int i=0; i < 256; i++)
+            {
+                if (i == 0xF4) // don't test halt
+                    continue;
+                if (i == 0x17) // don't test pop ss
+                    continue;
+                // don't 'test' segment overrides
+                if ((i == 0x26) || (i == 0x2e) || (i == 0x36) || (i == 0x3e) || (i == 0x64) || (i == 0x65))
+                    continue;
+                if (i == 0xf0) // don't test lock
+                    continue;
+                if ((i == 0xf2) || (i == 0xf3)) // don't rep/repne
+                    continue;
+                if ((i == 0x66) || (i == 0x67)) // don't test size overrides
+                    continue;
+                if ((i == 0xe4) || (i == 0xe5) || (i == 0xec) || (i == 0xed)) // don't test in X,Ib
+                    continue;
+                if ((i == 0xe6) || (i == 0xe7) || (i == 0xee) || (i == 0xef)) // don't test out Ib,X
+                    continue;
+
+                code[opcodeIndex] = (byte) i;
+                if (disam.x86Length(code, is32Bit) == 1 + opcodeIndex)
+                {
+                    testOpcode(codeEIP, code, 1, inputState, 0xffffffff, mode, is32Bit, cases, log);
+                    continue;
+                }
                 for (int j=0; j < 256; j++)
                 {
-                    if (i == 0xF4) // don't test halt
-                        continue;
-                    // don't 'test' segment overrides
-                    if ((i == 0x26) || (i == 0x2e) || (i == 0x36) || (i == 0x3e) || (i == 0x64) || (i == 0x65))
-                        continue;
-                    if (i == 0xf0) // don't test lock
-                        continue;
-                    if ((i == 0xf2) || (i == 0xf3)) // don't rep/repne
-                        continue;
-                    if ((i == 0x66) || (i == 0x67)) // don't test size overrides
-                        continue;
-                    if ((i == 0xe4) || (i == 0xe5) || (i == 0xec) || (i == 0xed)) // don't test in X,Ib
-                        continue;
-                    if ((i == 0xe6) || (i == 0xe7) || (i == 0xee) || (i == 0xef)) // don't test out Ib,X
-                        continue;
-                    if (i == 0x17) // don't test pop ss
-                        continue;
-
                     if ((j == 0xf4) && (i == 0x17)) // avoid a potential halt after a pop ss which forces a 2nd instruction
                         continue;
                     if ((j == 0xf4) && (i == 0xfb)) // avoid a potential halt after an sti which forces a 2nd instruction
                         continue;
-                    code[opcodeIndex] = (byte) i;
                     code[opcodeIndex+1] = (byte) j;
                     testOpcode(codeEIP, code, 1, inputState, 0xffffffff, mode, is32Bit, cases, log);
                 }
+            }
         }
     }
 
