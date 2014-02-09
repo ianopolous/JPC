@@ -50,8 +50,9 @@ public class cmova_Gw_Ew extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
         Reg op2 = cpu.regs[op2Index];
+        int tmp = op2.get16();
         if (!cpu.cf() && !cpu.zf())
-            op1.set16((short)op2.get16());
+            op1.set16((short)tmp);
         return Branch.None;
     }
 

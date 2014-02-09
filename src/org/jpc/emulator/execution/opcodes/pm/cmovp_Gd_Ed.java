@@ -50,8 +50,9 @@ public class cmovp_Gd_Ed extends Executable
     {
         Reg op1 = cpu.regs[op1Index];
         Reg op2 = cpu.regs[op2Index];
+        int tmp = op2.get32();
         if (cpu.pf())
-            op1.set32(op2.get32());
+            op1.set32(tmp);
         return Branch.None;
     }
 

@@ -49,8 +49,9 @@ public class cmovle_Gd_Ed_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
+        int tmp = op2.get32(cpu);
         if (cpu.zf() || (cpu.sf() != cpu.of()))
-            op1.set32(op2.get32(cpu));
+            op1.set32(tmp);
         return Branch.None;
     }
 

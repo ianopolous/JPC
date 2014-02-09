@@ -344,113 +344,129 @@
 
   <opcode mnemonic="cmova">
     <return>Branch.None</return>
-    <snippet>        if (!cpu.cf() &amp;&amp; !cpu.zf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (!cpu.cf() &amp;&amp; !cpu.zf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovae">
     <return>Branch.None</return>
-    <snippet>        if (!cpu.cf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (!cpu.cf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovb">
     <return>Branch.None</return>
-    <snippet>        if (cpu.cf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (cpu.cf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovbe">
     <return>Branch.None</return>
-    <snippet>        if (cpu.cf() || cpu.zf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (cpu.cf() || cpu.zf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmove">
     <return>Branch.None</return>
-    <snippet>        if (cpu.zf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (cpu.zf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovne">
     <return>Branch.None</return>
-    <snippet>        if (!cpu.zf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (!cpu.zf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovg">
     <return>Branch.None</return>
-    <snippet>        if (!cpu.zf() &amp;&amp; (cpu.sf() == cpu.of()))
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (!cpu.zf() &amp;&amp; (cpu.sf() == cpu.of()))
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovge">
     <return>Branch.None</return>
-    <snippet>        if (cpu.sf() == cpu.of())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (cpu.sf() == cpu.of())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovl">
     <return>Branch.None</return>
-    <snippet>        if (cpu.sf() != cpu.of())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (cpu.sf() != cpu.of())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovle">
     <return>Branch.None</return>
-    <snippet>        if (cpu.zf() || (cpu.sf() != cpu.of()))
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (cpu.zf() || (cpu.sf() != cpu.of()))
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovs">
     <return>Branch.None</return>
-    <snippet>        if (cpu.sf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (cpu.sf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovns">
     <return>Branch.None</return>
-    <snippet>        if (!cpu.sf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (!cpu.sf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovo">
     <return>Branch.None</return>
-    <snippet>        if (cpu.of())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (cpu.of())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovno">
     <return>Branch.None</return>
-    <snippet>        if (!cpu.of())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (!cpu.of())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovp">
     <return>Branch.None</return>
-    <snippet>        if (cpu.pf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (cpu.pf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>
   <opcode mnemonic="cmovnp">
     <return>Branch.None</return>
-    <snippet>        if (!cpu.pf())
-            $op1.set$cast$op2.get);</snippet>
+    <snippet>        int tmp = $op2.get;
+        if (!cpu.pf())
+            $op1.set$casttmp);</snippet>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>
   </opcode>

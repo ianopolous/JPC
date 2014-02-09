@@ -49,8 +49,9 @@ public class cmovp_Gw_Ew_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
+        int tmp = op2.get16(cpu);
         if (cpu.pf())
-            op1.set16((short)op2.get16(cpu));
+            op1.set16((short)tmp);
         return Branch.None;
     }
 
