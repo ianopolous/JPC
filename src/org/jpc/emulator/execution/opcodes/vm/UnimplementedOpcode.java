@@ -19,7 +19,7 @@ public class UnimplementedOpcode extends Executable
         blockLength = (int)input.getAddress()-blockStart;
         input.seek(-instructionLength);
         Instruction in = Disassembler.disassemble(input, Prefices.isAddr16(prefices) ? 16 : 32);
-        error = in.toString() + ", x86 byte = " + Disassembler.getRawBytes(input, eip-blockStart);
+        error = in.toString() +  " ("+in.getGeneralClassName(false, false)+"), x86 byte = " + Disassembler.getRawBytes(input, eip-blockStart);
     }
 
     public Branch execute(Processor cpu)

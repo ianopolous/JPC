@@ -135,8 +135,6 @@ public class Instruction
                 b.append("rep_");
         }
         b.append(operator);
-        if (operator.equals("nop"))
-            return b.toString();
         if (includeOperandSize)
             b.append("_o"+opr_mode);
         if (includeAddressSize)

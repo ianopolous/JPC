@@ -1492,6 +1492,12 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="nop" mem="true">
+    <return>Branch.None</return>
+    <snippet></snippet>
+    <args size="0">M</args>
+  </opcode>
+
   <opcode mnemonic="not">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast~$op1.get);</snippet>
