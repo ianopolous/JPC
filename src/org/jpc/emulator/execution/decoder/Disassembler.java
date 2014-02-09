@@ -1230,6 +1230,8 @@ public class Disassembler
         int reg = (REX_R(inst.pfx.rex) << 3) | MODRM_REG(input.peek());
 
         op.size = resolve_operand_size(mode, inst, s);
+        if (reg_type.equals("T_DBG") || reg_type.equals("T_CRG"))
+            mod = 3; // force to a register if mov R,D or mov R, C
 
         // if mod is 11b, then the m specifies a gpr/mmx/sse/control/debug 
         if (mod == 3)

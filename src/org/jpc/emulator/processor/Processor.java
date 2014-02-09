@@ -3852,8 +3852,8 @@ public class Processor implements HardwareComponent
         cr2 = cr3 = cr4 = 0x0;
 
         dr0 = dr1 = dr2 = dr3 = 0x0;
-        dr6 = 0xffff0ff0;
-        dr7 = 0x00000400;
+        dr6 = dr4 = 0xffff0ff0;
+        dr7 = dr5 = 0x00000400;
 
         flagStatus = 0;
         of = sf = zf = af = pf =cf = false;

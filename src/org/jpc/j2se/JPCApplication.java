@@ -668,6 +668,15 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
 
     public static void main(String[] args) throws Exception
     {
+        if ((args.length > 0) && args[0].equals("-disam"))
+        {
+            boolean is32Bit = args[1].equals("32");
+            byte[] m = new byte[args.length-2];
+            for (int i=0; i < m.length; i++)
+                m[i] = (byte) Integer.parseInt(args[i+2], 16);
+            System.out.println(PC.disam(m, 1, is32Bit));
+            return;
+        }
         try
         {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

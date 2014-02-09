@@ -764,7 +764,7 @@ public class PC {
         physicalAddr.getDirtyPages(res);
     }
 
-    public String disam(byte[] code, Integer ops, Boolean is32Bit)
+    public static String disam(byte[] code, Integer ops, Boolean is32Bit)
     {
         Disassembler.ByteArrayPeekStream mem = new Disassembler.ByteArrayPeekStream(code);
         StringBuilder b = new StringBuilder();
@@ -776,7 +776,7 @@ public class PC {
         return b.toString();
     }
 
-    public Integer x86Length(byte[] code, Boolean is32Bit)
+    public static Integer x86Length(byte[] code, Boolean is32Bit)
     {
         Disassembler.ByteArrayPeekStream mem = new Disassembler.ByteArrayPeekStream(code);
         Instruction disam = is32Bit ? Disassembler.disassemble32(mem) : Disassembler.disassemble16(mem);
