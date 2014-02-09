@@ -1635,6 +1635,15 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="rep_outsd_a32" segment="true">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions8(cpu.r_dx.get16() &amp; 0xffff))
+            StaticOpcodes.rep_outsd_a32(cpu, seg);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
   <opcode mnemonic="pause">
     <return>Branch.None</return>
     <snippet>        // hint that this is a spinloop</snippet>
@@ -1869,6 +1878,15 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <return>Branch.None</return>
     <snippet>        if (cpu.checkIOPermissions16(cpu.r_dx.get16() &amp; 0xffff))
             StaticOpcodes.rep_insw_a32(cpu, cpu.es);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
+    <args size="0"></args>
+  </opcode>
+
+  <opcode mnemonic="rep_insd_a32" segment="true">
+    <return>Branch.None</return>
+    <snippet>        if (cpu.checkIOPermissions8(cpu.r_dx.get16() &amp; 0xffff))
+            StaticOpcodes.rep_insd_a32(cpu, seg);
         else
             throw ProcessorException.GENERAL_PROTECTION_0;</snippet>
     <args size="0"></args>

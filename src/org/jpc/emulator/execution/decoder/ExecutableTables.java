@@ -19763,8 +19763,19 @@ ops[0x66c] = new OpcodeDecoder() {
         return new org.jpc.emulator.execution.opcodes.pm.insb_a32(blockStart, eip, prefices, input);
     }
 };
-ops[0x66d] = ops[0x6d];
-
+ops[0x66d] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Prefices.isRepne(prefices))
+        {
+        return new org.jpc.emulator.execution.opcodes.pm.rep_insd_a32(blockStart, eip, prefices, input);
+        }
+        if (Prefices.isRep(prefices))
+        {
+        return new org.jpc.emulator.execution.opcodes.pm.rep_insd_a32(blockStart, eip, prefices, input);
+        }
+        return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+    }
+};
 ops[0x66e] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         if (Prefices.isRepne(prefices))
@@ -19782,11 +19793,11 @@ ops[0x66f] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         if (Prefices.isRepne(prefices))
         {
-        return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.pm.rep_outsd_a32(blockStart, eip, prefices, input);
         }
         if (Prefices.isRep(prefices))
         {
-        return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        return new org.jpc.emulator.execution.opcodes.pm.rep_outsd_a32(blockStart, eip, prefices, input);
         }
         return new org.jpc.emulator.execution.opcodes.pm.outsd_a32(blockStart, eip, prefices, input);
     }
