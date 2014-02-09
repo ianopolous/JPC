@@ -1502,6 +1502,35 @@ public class StaticOpcodes
         }
     }
 
+    public static void rep_insd_a32(Processor cpu, Segment seg)
+    {
+        int port = cpu.r_dx.get16() & 0xffff;
+        int count = cpu.r_ecx.get32();
+        int addr = cpu.r_edi.get32();
+
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    //check hardware interrupts
+                    seg.setDoubleWord(addr, cpu.ioports.ioPortRead32(port));
+                    count--;
+                    addr -= 4;
+                }
+            } else {
+                while (count != 0) {
+                    //check hardware interrupts
+                    seg.setDoubleWord(addr, cpu.ioports.ioPortRead32(port));
+                    count--;
+                    addr += 4;
+                }
+            }
+        }
+        finally {
+            cpu.r_ecx.set32(count);
+            cpu.r_edi.set32(addr);
+        }
+    }
+
     public static void outsb_a16(Processor cpu, Segment seg)
     {
         int port = cpu.r_dx.get16() & 0xffff;
@@ -1704,6 +1733,33 @@ public class StaticOpcodes
         finally {
             cpu.r_ecx.set16(count);
             cpu.r_esi.set16(addr);
+        }
+    }
+
+    public static void rep_outsd_a32(Processor cpu, Segment seg)
+    {
+        int port = cpu.r_dx.get16() & 0xffff;
+        int count = cpu.r_ecx.get32();
+        int addr = cpu.r_esi.get32();
+
+        try {
+            if (cpu.df) {
+                while (count != 0) {
+                    cpu.ioports.ioPortWrite32(port, seg.getDoubleWord(addr));
+                    count--;
+                    addr -= 4;
+                }
+            } else {
+                while (count != 0) {
+                    cpu.ioports.ioPortWrite32(port, seg.getDoubleWord(addr));
+                    count--;
+                    addr += 4;
+                }
+            }
+        }
+        finally {
+            cpu.r_ecx.set32(count);
+            cpu.r_esi.set32(addr);
         }
     }
 
