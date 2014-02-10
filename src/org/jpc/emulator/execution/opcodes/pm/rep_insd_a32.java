@@ -25,7 +25,7 @@
     End of licence header
 */
 
-package org.jpc.emulator.execution.opcodes.rm;
+package org.jpc.emulator.execution.opcodes.pm;
 
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
@@ -33,22 +33,23 @@ import org.jpc.emulator.processor.*;
 import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class lgdt_o32_M extends Executable
+public class rep_insd_a32 extends Executable
 {
-    final Pointer op1;
+    final int segIndex;
 
-    public lgdt_o32_M(int blockStart, int eip, int prefices, PeekableInputStream input)
+    public rep_insd_a32(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
-        int modrm = input.readU8();
-        op1 = Modrm.getPointer(prefices, modrm, input);
+        segIndex = Prefices.getSegment(prefices, Processor.DS_INDEX);
     }
 
     public Branch execute(Processor cpu)
     {
-        int limit = 0xffff & op1.get16(cpu, 0);
-        int base = op1.get32(cpu, 2);
-        cpu.gdtr = cpu.createDescriptorTableSegment(base, limit);
+        Segment seg = cpu.segs[segIndex];
+        if (cpu.checkIOPermissions8(cpu.r_dx.get16() & 0xffff))
+            StaticOpcodes.rep_insd_a32(cpu, seg);
+        else
+            throw ProcessorException.GENERAL_PROTECTION_0;
         return Branch.None;
     }
 

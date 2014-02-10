@@ -25,7 +25,7 @@
     End of licence header
 */
 
-package org.jpc.emulator.execution.opcodes.rm;
+package org.jpc.emulator.execution.opcodes.vm;
 
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
@@ -33,11 +33,11 @@ import org.jpc.emulator.processor.*;
 import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class lidt_o32_M extends Executable
+public class nop_M_mem extends Executable
 {
     final Pointer op1;
 
-    public lidt_o32_M(int blockStart, int eip, int prefices, PeekableInputStream input)
+    public nop_M_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
         int modrm = input.readU8();
@@ -46,9 +46,7 @@ public class lidt_o32_M extends Executable
 
     public Branch execute(Processor cpu)
     {
-        int limit = 0xffff & op1.get16(cpu, 0);
-        int base = op1.get32(cpu, 2);
-        cpu.idtr = cpu.createDescriptorTableSegment(base, limit);
+
         return Branch.None;
     }
 

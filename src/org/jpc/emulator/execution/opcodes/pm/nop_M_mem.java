@@ -25,7 +25,7 @@
     End of licence header
 */
 
-package org.jpc.emulator.execution.opcodes.vm;
+package org.jpc.emulator.execution.opcodes.pm;
 
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
@@ -33,25 +33,20 @@ import org.jpc.emulator.processor.*;
 import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class lss_o32_Gd_M extends Executable
+public class nop_M_mem extends Executable
 {
-    final int op1Index;
-    final Pointer op2;
+    final Pointer op1;
 
-    public lss_o32_Gd_M(int blockStart, int eip, int prefices, PeekableInputStream input)
+    public nop_M_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
         int modrm = input.readU8();
-        op1Index = Modrm.Gd(modrm);
-        op2 = Modrm.getPointer(prefices, modrm, input);
+        op1 = Modrm.getPointer(prefices, modrm, input);
     }
 
     public Branch execute(Processor cpu)
     {
-        Reg op1 = cpu.regs[op1Index];
-        int addr = op2.get(cpu) + op2.getBase(cpu);
-        cpu.ss(0xFFFF & cpu.physicalMemory.getWord(addr+4));
-        op1.set32(cpu.physicalMemory.getDoubleWord(addr));
+
         return Branch.None;
     }
 

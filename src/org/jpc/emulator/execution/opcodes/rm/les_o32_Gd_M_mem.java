@@ -33,12 +33,12 @@ import org.jpc.emulator.processor.*;
 import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class lds_o32_Gd_M extends Executable
+public class les_o32_Gd_M_mem extends Executable
 {
     final int op1Index;
     final Pointer op2;
 
-    public lds_o32_Gd_M(int blockStart, int eip, int prefices, PeekableInputStream input)
+    public les_o32_Gd_M_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
         int modrm = input.readU8();
@@ -51,7 +51,7 @@ public class lds_o32_Gd_M extends Executable
         Reg op1 = cpu.regs[op1Index];
         int selector = 0xFFFF & op2.get16(cpu, 4);
         int offset = op2.get32(cpu, 0);
-        cpu.ds(selector);
+        cpu.es(selector);
         op1.set32(offset);
         return Branch.None;
     }
