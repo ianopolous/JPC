@@ -212,7 +212,7 @@
     <args size="16">Ew</args>
   </opcode>
 
-  <opcode mnemonic="lgdt_o16">
+  <opcode mnemonic="lgdt_o16" mem="true">
       <return>Branch.None</return>
       <snippet>        int limit = 0xffff &amp; $op1.get160);
         int base = 0x00ffffff &amp; $op1.get322);
@@ -220,7 +220,7 @@
     <args size="0">M</args>
   </opcode>
 
-  <opcode mnemonic="lgdt_o32">
+  <opcode mnemonic="lgdt_o32" mem="true">
       <return>Branch.None</return>
       <snippet>        int limit = 0xffff &amp; $op1.get160);
         int base = $op1.get322);
