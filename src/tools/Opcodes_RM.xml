@@ -206,7 +206,7 @@
 
   <opcode mnemonic="les_o16">
       <return>Branch.None</return>
-      <snippet>        cpu.ds(0xFFFF &amp; $op2.get162));
+      <snippet>        cpu.es(0xFFFF &amp; $op2.get162));
         $op1.set$op2.get160));</snippet>
     <args size="16">Gw;M</args>
     <args size="32">Gd;M</args>
@@ -214,7 +214,7 @@
 
   <opcode mnemonic="les_o32">
       <return>Branch.None</return>
-      <snippet>        cpu.ds(0xFFFF &amp; $op2.get164));
+      <snippet>        cpu.es(0xFFFF &amp; $op2.get164));
         $op1.set$op2.get320));</snippet>
     <args size="16">Gw;M</args>
     <args size="32">Gd;M</args>
@@ -222,7 +222,7 @@
 
   <opcode mnemonic="lfs_o16">
       <return>Branch.None</return>
-      <snippet>        cpu.ds(0xFFFF &amp; $op2.get162));
+      <snippet>        cpu.fs(0xFFFF &amp; $op2.get162));
         $op1.set$op2.get160));</snippet>
     <args size="16">Gw;M</args>
     <args size="32">Gd;M</args>
@@ -230,7 +230,7 @@
 
   <opcode mnemonic="lfs_o32">
       <return>Branch.None</return>
-      <snippet>        cpu.ds(0xFFFF &amp; $op2.get164));
+      <snippet>        cpu.fs(0xFFFF &amp; $op2.get164));
         $op1.set$op2.get320));</snippet>
     <args size="16">Gw;M</args>
     <args size="32">Gd;M</args>
@@ -238,7 +238,7 @@
 
   <opcode mnemonic="lgs_o16">
       <return>Branch.None</return>
-      <snippet>        cpu.ds(0xFFFF &amp; $op2.get162));
+      <snippet>        cpu.gs(0xFFFF &amp; $op2.get162));
         $op1.set$op2.get160));</snippet>
     <args size="16">Gw;M</args>
     <args size="32">Gd;M</args>
@@ -246,7 +246,7 @@
 
   <opcode mnemonic="lgs_o32">
       <return>Branch.None</return>
-      <snippet>        cpu.ds(0xFFFF &amp; $op2.get164));
+      <snippet>        cpu.gs(0xFFFF &amp; $op2.get164));
         $op1.set$op2.get320));</snippet>
     <args size="16">Gw;M</args>
     <args size="32">Gd;M</args>
@@ -254,7 +254,7 @@
 
   <opcode mnemonic="lss_o16">
       <return>Branch.None</return>
-      <snippet>        cpu.ds(0xFFFF &amp; $op2.get162));
+      <snippet>        cpu.ss(0xFFFF &amp; $op2.get162));
         $op1.set$op2.get160));</snippet>
     <args size="16">Gw;M</args>
     <args size="32">Gd;M</args>
@@ -262,7 +262,7 @@
 
   <opcode mnemonic="lss_o32">
       <return>Branch.None</return>
-      <snippet>        cpu.ds(0xFFFF &amp; $op2.get164));
+      <snippet>        cpu.ss(0xFFFF &amp; $op2.get164));
         $op1.set$op2.get320));</snippet>
     <args size="32">Gd;M</args>
   </opcode>

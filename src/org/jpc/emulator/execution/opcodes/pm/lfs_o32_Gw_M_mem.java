@@ -49,7 +49,7 @@ public class lfs_o32_Gw_M_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        cpu.ds(0xFFFF & op2.get16(cpu, 4));
+        cpu.fs(0xFFFF & op2.get16(cpu, 4));
         op1.set16(op2.get32(cpu, 0));
         return Branch.None;
     }
