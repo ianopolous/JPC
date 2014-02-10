@@ -26537,7 +26537,7 @@ ops[0x1b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.lfs_o16_Gw_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -26570,7 +26570,7 @@ ops[0x1b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.lgs_o16_Gw_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -29207,10 +29207,72 @@ ops[0x3b3] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.vm.btr_Ed_Gd(blockStart, eip, prefices, input);
     }
 };
-ops[0x3b4] = ops[0x1b4];
-
-ops[0x3b5] = ops[0x1b5];
-
+ops[0x3b4] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        int modrm = input.peek() & 0xFF;
+        int reg = (modrm >> 3) & 7;
+        if (modrm < 0xC0)
+        {
+            switch (reg) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.lfs_o32_Gd_M_mem(blockStart, eip, prefices, input);
+            }
+        }
+        else
+        {
+            switch (reg) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            }
+        }
+        return null;
+    }
+};
+ops[0x3b5] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        int modrm = input.peek() & 0xFF;
+        int reg = (modrm >> 3) & 7;
+        if (modrm < 0xC0)
+        {
+            switch (reg) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.lgs_o32_Gd_M_mem(blockStart, eip, prefices, input);
+            }
+        }
+        else
+        {
+            switch (reg) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            }
+        }
+        return null;
+    }
+};
 ops[0x3b6] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         if (Modrm.isMem(input.peek()))
@@ -32863,10 +32925,72 @@ ops[0x7b3] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.vm.btr_Ed_Gd(blockStart, eip, prefices, input);
     }
 };
-ops[0x7b4] = ops[0x1b4];
-
-ops[0x7b5] = ops[0x1b5];
-
+ops[0x7b4] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        int modrm = input.peek() & 0xFF;
+        int reg = (modrm >> 3) & 7;
+        if (modrm < 0xC0)
+        {
+            switch (reg) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.lfs_o32_Gd_M_mem(blockStart, eip, prefices, input);
+            }
+        }
+        else
+        {
+            switch (reg) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            }
+        }
+        return null;
+    }
+};
+ops[0x7b5] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        int modrm = input.peek() & 0xFF;
+        int reg = (modrm >> 3) & 7;
+        if (modrm < 0xC0)
+        {
+            switch (reg) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.lgs_o32_Gd_M_mem(blockStart, eip, prefices, input);
+            }
+        }
+        else
+        {
+            switch (reg) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            }
+        }
+        return null;
+    }
+};
 ops[0x7b6] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
         if (Modrm.isMem(input.peek()))

@@ -49,8 +49,9 @@ public class lss_o16_Gw_M extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        cpu.ss(0xFFFF & op2.get16(cpu, 2));
-        op1.set16(op2.get16(cpu, 0));
+        int addr = op2.get(cpu) + op2.getBase(cpu);
+        cpu.ss(0xFFFF & cpu.physicalMemory.getWord(addr+2));
+        op1.set16(cpu.physicalMemory.getWord(addr));
         return Branch.None;
     }
 

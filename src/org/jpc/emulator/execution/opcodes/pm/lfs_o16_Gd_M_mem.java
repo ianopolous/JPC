@@ -49,8 +49,10 @@ public class lfs_o16_Gd_M_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        cpu.fs(0xFFFF & op2.get16(cpu, 2));
-        op1.set32(op2.get16(cpu, 0));
+        int selector = 0xFFFF & op2.get16(cpu, 2);
+        int offset = op2.get16(cpu, 0);
+        cpu.fs(selector);
+        op1.set32(offset);
         return Branch.None;
     }
 

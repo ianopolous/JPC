@@ -49,8 +49,10 @@ public class les_o16_Gw_M_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        cpu.es(0xFFFF & op2.get16(cpu, 2));
-        op1.set16(op2.get16(cpu, 0));
+        int selector = 0xFFFF & op2.get16(cpu, 2);
+        int offset = op2.get16(cpu, 0);
+        cpu.es(selector);
+        op1.set16((short)offset);
         return Branch.None;
     }
 
