@@ -49,9 +49,8 @@ public class lds_o32_Gw_M extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        int addr = op2.get(cpu) + op2.getBase(cpu);
-        cpu.ds(0xFFFF & cpu.linearMemory.getWord(addr+4));
-        op1.set16(cpu.linearMemory.getDoubleWord(addr));
+        cpu.ds(0xFFFF & op2.get16(cpu, 4));
+        op1.set16(op2.get32(cpu, 0));
         return Branch.None;
     }
 

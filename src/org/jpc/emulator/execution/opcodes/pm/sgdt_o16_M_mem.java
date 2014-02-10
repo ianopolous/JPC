@@ -46,9 +46,8 @@ public class sgdt_o16_M_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        int addr = op1.get(cpu) + op1.getBase(cpu);
-        cpu.linearMemory.setWord(addr, (short)cpu.gdtr.getLimit());
-        cpu.linearMemory.setDoubleWord(addr+2, cpu.gdtr.getBase() & 0x00ffffff);
+        op1.set16(cpu, 0, (short)cpu.gdtr.getLimit());
+        op1.set32(cpu, 2, cpu.gdtr.getBase() & 0x00ffffff);
         return Branch.None;
     }
 

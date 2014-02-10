@@ -46,9 +46,8 @@ public class sidt_o16_M extends Executable
 
     public Branch execute(Processor cpu)
     {
-        int addr = op1.get(cpu) + op1.getBase(cpu);
-        cpu.linearMemory.setWord(addr, (short)cpu.idtr.getLimit());
-        cpu.linearMemory.setDoubleWord(addr+2, cpu.idtr.getBase() & 0x00ffffff);
+        op1.set16(cpu, 0, (short)cpu.idtr.getLimit());
+        op1.set32(cpu, 2, cpu.idtr.getBase() & 0x00ffffff);
         return Branch.None;
     }
 

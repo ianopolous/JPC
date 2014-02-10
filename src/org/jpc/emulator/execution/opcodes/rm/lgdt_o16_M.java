@@ -46,9 +46,8 @@ public class lgdt_o16_M extends Executable
 
     public Branch execute(Processor cpu)
     {
-        int addr = op1.get(cpu) + op1.getBase(cpu);
-        int limit = 0xffff & cpu.linearMemory.getWord(addr);
-        int base = 0x00ffffff & cpu.linearMemory.getDoubleWord(addr+2);
+        int limit = 0xffff & op1.get16(cpu, 0);
+        int base = 0x00ffffff & op1.get32(cpu, 2);
         cpu.gdtr = cpu.createDescriptorTableSegment(base, limit);
         return Branch.None;
     }

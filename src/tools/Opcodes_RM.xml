@@ -190,48 +190,95 @@
 
   <opcode mnemonic="lds_o16">
       <return>Branch.None</return>
-      <snippet>        int addr = $op2.get + op2.getBase(cpu);
-        cpu.ds(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
-        $op1.setcpu.physicalMemory.getWord(addr));</snippet>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get162));
+        $op1.set$op2.get160));</snippet>
     <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
   </opcode>
+
   <opcode mnemonic="lds_o32">
       <return>Branch.None</return>
-      <snippet>        int addr = $op2.get + op2.getBase(cpu);
-        cpu.ds(0xFFFF &amp; cpu.physicalMemory.getWord(addr+4));
-        $op1.setcpu.physicalMemory.getDoubleWord(addr));</snippet>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get164));
+        $op1.set$op2.get320));</snippet>
+    <args size="16">Gw;M</args>
     <args size="32">Gd;M</args>
   </opcode>
 
   <opcode mnemonic="les_o16">
       <return>Branch.None</return>
-      <snippet>        int addr = $op2.get + op2.getBase(cpu);
-        cpu.es(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
-        $op1.setcpu.physicalMemory.getWord(addr));</snippet>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get162));
+        $op1.set$op2.get160));</snippet>
     <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
+  </opcode>
+
+  <opcode mnemonic="les_o32">
+      <return>Branch.None</return>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get164));
+        $op1.set$op2.get320));</snippet>
+    <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
   </opcode>
 
   <opcode mnemonic="lfs_o16">
       <return>Branch.None</return>
-      <snippet>        int addr = $op2.get + op2.getBase(cpu);
-        cpu.fs(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
-        $op1.setcpu.physicalMemory.getWord(addr));</snippet>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get162));
+        $op1.set$op2.get160));</snippet>
     <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
+  </opcode>
+
+  <opcode mnemonic="lfs_o32">
+      <return>Branch.None</return>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get164));
+        $op1.set$op2.get320));</snippet>
+    <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
   </opcode>
 
   <opcode mnemonic="lgs_o16">
       <return>Branch.None</return>
-      <snippet>        int addr = $op2.get + op2.getBase(cpu);
-        cpu.gs(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
-        $op1.setcpu.physicalMemory.getWord(addr));</snippet>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get162));
+        $op1.set$op2.get160));</snippet>
     <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
+  </opcode>
+
+  <opcode mnemonic="lgs_o32">
+      <return>Branch.None</return>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get164));
+        $op1.set$op2.get320));</snippet>
+    <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
+  </opcode>
+
+  <opcode mnemonic="lss_o16">
+      <return>Branch.None</return>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get162));
+        $op1.set$op2.get160));</snippet>
+    <args size="16">Gw;M</args>
+    <args size="32">Gd;M</args>
+  </opcode>
+
+  <opcode mnemonic="lss_o32">
+      <return>Branch.None</return>
+      <snippet>        cpu.ds(0xFFFF &amp; $op2.get164));
+        $op1.set$op2.get320));</snippet>
+    <args size="32">Gd;M</args>
+  </opcode>
+
+  <opcode mnemonic="lidt_o16">
+      <return>Branch.None</return>
+      <snippet>        int limit = 0xffff &amp; $op1.get160);
+        int base = 0x00ffffff &amp; $op1.get322);
+        cpu.idtr = cpu.createDescriptorTableSegment(base, limit);</snippet>
+    <args size="0">M</args>
   </opcode>
 
   <opcode mnemonic="lidt_o32">
       <return>Branch.None</return>
-      <snippet>        int addr = $op1.get + op1.getBase(cpu);
-        int limit = 0xffff &amp; cpu.linearMemory.getWord(addr);
-        int base = cpu.linearMemory.getDoubleWord(addr+2);
+      <snippet>        int limit = 0xffff &amp; $op1.get160);
+        int base = $op1.get322);
         cpu.idtr = cpu.createDescriptorTableSegment(base, limit);</snippet>
     <args size="0">M</args>
   </opcode>
@@ -246,28 +293,17 @@
 
   <opcode mnemonic="lgdt_o16">
       <return>Branch.None</return>
-      <snippet>        int addr = $op1.get + op1.getBase(cpu);
-        int limit = 0xffff &amp; cpu.linearMemory.getWord(addr);
-        int base = 0x00ffffff &amp; cpu.linearMemory.getDoubleWord(addr+2);
+      <snippet>        int limit = 0xffff &amp; $op1.get160);
+        int base = 0x00ffffff &amp; $op1.get322);
         cpu.gdtr = cpu.createDescriptorTableSegment(base, limit);</snippet>
     <args size="0">M</args>
   </opcode>
 
   <opcode mnemonic="lgdt_o32">
       <return>Branch.None</return>
-      <snippet>        int addr = $op1.get + op1.getBase(cpu);
-        int limit = 0xffff &amp; cpu.linearMemory.getWord(addr);
-        int base = cpu.linearMemory.getDoubleWord(addr+2);
+      <snippet>        int limit = 0xffff &amp; $op1.get160);
+        int base = $op1.get322);
         cpu.gdtr = cpu.createDescriptorTableSegment(base, limit);</snippet>
-    <args size="0">M</args>
-  </opcode>
-
-  <opcode mnemonic="lidt_o16">
-      <return>Branch.None</return>
-      <snippet>        int addr = $op1.get + op1.getBase(cpu);
-        int limit = 0xffff &amp; cpu.linearMemory.getWord(addr);
-        int base = 0x00ffffff &amp; cpu.linearMemory.getDoubleWord(addr+2);
-        cpu.idtr = cpu.createDescriptorTableSegment(base, limit);</snippet>
     <args size="0">M</args>
   </opcode>
 

@@ -5697,7 +5697,7 @@ ops[0x2c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.les_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -6904,7 +6904,7 @@ ops[0x3b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.lfs_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -6937,7 +6937,7 @@ ops[0x3b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.lgs_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -9456,7 +9456,7 @@ ops[0x6c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.les_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -10678,7 +10678,7 @@ ops[0x7b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.lfs_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -10711,7 +10711,7 @@ ops[0x7b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.rm.lgs_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -28023,7 +28023,7 @@ ops[0x2c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.les_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -28056,7 +28056,7 @@ ops[0x2c5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.lds_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -31664,7 +31664,7 @@ ops[0x6c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.les_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else
@@ -31697,7 +31697,7 @@ ops[0x6c5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+            case 0x07: return new org.jpc.emulator.execution.opcodes.vm.lds_o32_Gd_M_mem(blockStart, eip, prefices, input);
             }
         }
         else

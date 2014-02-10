@@ -49,9 +49,8 @@ public class les_o16_Gd_M extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        int addr = op2.get(cpu) + op2.getBase(cpu);
-        cpu.es(0xFFFF & cpu.linearMemory.getWord(addr+2));
-        op1.set32(cpu.linearMemory.getWord(addr));
+        cpu.ds(0xFFFF & op2.get16(cpu, 2));
+        op1.set32(op2.get16(cpu, 0));
         return Branch.None;
     }
 
