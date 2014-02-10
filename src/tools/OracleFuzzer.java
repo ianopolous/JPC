@@ -38,6 +38,7 @@ public class OracleFuzzer
     public static final int RM = 1;
     public static final int PM = 2;
     public static final int VM = 3;
+    public static int codeEIP = 0x2000;
 
     private static String[] pcargs = new String[]
             {"-max-block-size", "1", "-boot", "hda", "-hda", "linux.img", "-ram", "4", "-bios", "/resources/bios/fuzzerBIOS"};
@@ -87,7 +88,6 @@ public class OracleFuzzer
             return;
         }
 
-        int codeEIP = 0x2000;
         if (args[0].equals("-tests"))
         {
             testFromFile(args[1], codeEIP);
@@ -105,7 +105,7 @@ public class OracleFuzzer
             System.out.printf("Usage: java -jar Tools.jar -fuzz $type\n");
             System.out.printf("       type = rm, pm, -tests $file\n");
         }
-        // test Real mode with 32 bit segments after return from Protected mode
+        // test Real mode with 4G segment limits after return from Protected mode
 
 
         // test Virtual 8086 mode
@@ -114,7 +114,7 @@ public class OracleFuzzer
 
     }
 
-    public static void fuzzRealMode(int codeEIP) throws IOException
+    public static int[] getCanonicalRealModeInput(int codeEIP)
     {
         int[] inputState = new int[EmulatorControl.names.length];
         inputState[0] = 0x12345678;
@@ -164,7 +164,12 @@ public class OracleFuzzer
         inputState[50] = (int) hundred; // ST6L
         inputState[51] = (int) (thousand >> 32); // ST7H
         inputState[52] = (int) thousand; // ST7L
+        return inputState;
+    }
 
+    public static void fuzzRealMode(int codeEIP) throws IOException
+    {
+        int[] inputState = getCanonicalRealModeInput(codeEIP);
         byte[][] preficesA = new byte[][]{new byte[0]};
         byte[][] preficesB = new byte[][]{new byte[]{0x66}};
         byte[][] preficesC = new byte[][]{new byte[]{0x67}};
@@ -175,7 +180,7 @@ public class OracleFuzzer
         new Thread(new FuzzThread(codeEIP, preficesD, inputState, RM, false, "tests/RMtest-D")).start();
     }
 
-    public static void fuzzProtectedMode(int codeEIP) throws IOException
+    public static int[] getCanonicalProtectedModeInput(int codeEIP, boolean isCS32Bit)
     {
         int[] inputState = new int[EmulatorControl.names.length];
         inputState[0] = 0x12345678;
@@ -196,6 +201,7 @@ public class OracleFuzzer
         inputState[15] = 0x7000; inputState[35] = inputState[15] << 4;// gs
         for (int i=0; i < 6; i++)
             inputState[17 + i] = 0xffffff;
+        inputState[23] = isCS32Bit ? 1 : 0;
         inputState[25] = inputState[27] = inputState[29] = 0xffff;
         inputState[36] = 0x60000011; // CR0: PM, no paging
 
@@ -226,9 +232,12 @@ public class OracleFuzzer
         inputState[50] = (int) hundred; // ST6L
         inputState[51] = (int) (thousand >> 32); // ST7H
         inputState[52] = (int) thousand; // ST7L
+        return inputState;
+    }
 
-
-
+    public static void fuzzProtectedMode(int codeEIP) throws IOException
+    {
+        int[] inputState = getCanonicalProtectedModeInput(codeEIP, false);
         byte[][] preficesA = new byte[][]{new byte[0]};
         byte[][] preficesB = new byte[][]{new byte[]{0x66}};
         byte[][] preficesC = new byte[][]{new byte[]{0x67}};
