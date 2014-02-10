@@ -380,7 +380,7 @@ public class OracleFuzzer
         // set cs base to 0
         disciple.executeInstruction(); // jmp 0000:2000
         oracle.executeInstruction(); // jmp 0000:2000
-        disciple.setState(inputState, 0);
+        disciple.setState(inputState, currentCSEIP);
         oracle.setState(inputState, currentCSEIP);
 
         disciple.setPhysicalMemory(inputState[8], code);
