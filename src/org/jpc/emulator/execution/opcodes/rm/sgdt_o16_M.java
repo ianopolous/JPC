@@ -35,7 +35,7 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class sgdt_o16_M extends Executable
 {
-    final Address op1;
+    final Pointer op1;
 
     public sgdt_o16_M(int blockStart, int eip, int prefices, PeekableInputStream input)
     {

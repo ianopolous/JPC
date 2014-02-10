@@ -35,7 +35,7 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class frstor_o32_M extends Executable
 {
-    final Address op1;
+    final Pointer op1;
 
     public frstor_o32_M(int blockStart, int eip, int prefices, PeekableInputStream input)
     {

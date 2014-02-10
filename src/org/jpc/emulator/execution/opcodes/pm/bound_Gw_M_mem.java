@@ -36,7 +36,7 @@ import static org.jpc.emulator.processor.Processor.*;
 public class bound_Gw_M_mem extends Executable
 {
     final int op1Index;
-    final Address op2;
+    final Pointer op2;
 
     public bound_Gw_M_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
@@ -49,10 +49,9 @@ public class bound_Gw_M_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        int addr = op2.get(cpu);
-        short lower = (short)cpu.linearMemory.getWord(addr);
-	short upper = (short)cpu.linearMemory.getWord(addr+2);
-	short index = (short)op1.get16();
+        short lower = op2.get16(cpu, 0);
+	short upper = op2.get16(cpu, 2);
+	short index = op1.get16();
 	if ((index < lower) || (index > upper))
 	    throw ProcessorException.BOUND_RANGE;
         return Branch.None;

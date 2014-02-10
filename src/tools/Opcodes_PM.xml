@@ -167,19 +167,17 @@
 
   <opcode mnemonic="bound">
     <return>Branch.None</return>
-    <snippet>        int addr = $op2.get;
-        short lower = (short)cpu.linearMemory.getWord(addr);
-	short upper = (short)cpu.linearMemory.getWord(addr+2);
-	short index = (short)$op1.get;
+    <snippet>        short lower = $op2.get160);
+	short upper = $op2.get162);
+	short index = $op1.get;
 	if ((index &lt; lower) || (index > upper))
 	    throw ProcessorException.BOUND_RANGE;</snippet>
     <args size="16">Gw;M</args>
   </opcode>
   <opcode mnemonic="bound">
     <return>Branch.None</return>
-    <snippet>        int addr = $op2.get;
-        int lower = cpu.linearMemory.getDoubleWord(addr);
-	int upper = cpu.linearMemory.getDoubleWord(addr+4);
+    <snippet>        int lower = $op2.get320);
+	int upper = $op2.get324);
 	int index = $op1.get;
 	if ((index &lt; lower) || (index > upper))
 	    throw ProcessorException.BOUND_RANGE;</snippet>

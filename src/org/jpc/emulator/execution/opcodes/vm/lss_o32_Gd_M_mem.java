@@ -36,7 +36,7 @@ import static org.jpc.emulator.processor.Processor.*;
 public class lss_o32_Gd_M_mem extends Executable
 {
     final int op1Index;
-    final Address op2;
+    final Pointer op2;
 
     public lss_o32_Gd_M_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
     {

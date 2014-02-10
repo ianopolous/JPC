@@ -148,6 +148,32 @@ public class Opcode
                     }
                 }
             }
+            if (body.contains("op1.get16") || body.contains("op1.set16"))
+            {
+                body = body.replaceAll("\\$op1.get16", operands[0].get16(1));
+                body = body.replaceAll("\\$op1.set16", operands[0].set16(1));
+            }
+            if (body.contains("op2.get16") || body.contains("op2.set16"))
+            {
+                if (operands.length >1)
+                {
+                    body = body.replaceAll("\\$op2.get16", operands[1].get16(2));
+                    body = body.replaceAll("\\$op2.set16", operands[1].set16(2));
+                }
+            }
+            if (body.contains("op1.get32") || body.contains("op1.set32"))
+            {
+                body = body.replaceAll("\\$op1.get32", operands[0].get32(1));
+                body = body.replaceAll("\\$op1.set32", operands[0].set32(1));
+            }
+            if (body.contains("op2.get32") || body.contains("op2.set32"))
+            {
+                if (operands.length >1)
+                {
+                    body = body.replaceAll("\\$op2.get32", operands[1].get32(2));
+                    body = body.replaceAll("\\$op2.set32", operands[1].set32(2));
+                }
+            }
             body = body.replaceAll("\\$op1.get", operands[0].get(1));
             body = body.replaceAll("\\$op1.set", operands[0].set(1));
             if (operands.length >1)

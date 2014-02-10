@@ -35,7 +35,7 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class cmpxchg8b_M extends Executable
 {
-    final Address op1;
+    final Pointer op1;
 
     public cmpxchg8b_M(int blockStart, int eip, int prefices, PeekableInputStream input)
     {

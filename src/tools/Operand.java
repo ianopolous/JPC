@@ -30,6 +30,26 @@ public abstract class Operand
 
     public abstract String get(int arg);
 
+    public String get16(int arg)
+    {
+        throw new IllegalStateException("Unimplemented get16!");
+    }
+
+    public String get32(int arg)
+    {
+        throw new IllegalStateException("Unimplemented get32!");
+    }
+
+    public String set16(int arg)
+    {
+        throw new IllegalStateException("Unimplemented set16!");
+    }
+
+    public String set32(int arg)
+    {
+        throw new IllegalStateException("Unimplemented set32!");
+    }
+
     public boolean needsModrm()
     {
         return false;
@@ -103,6 +123,26 @@ public abstract class Operand
         private String getVal(int arg)
         {
             return "op"+arg+"Index";
+        }
+
+        public String get16(int arg)
+        {
+            return "op"+arg+".get16(";
+        }
+
+        public String get32(int arg)
+        {
+            return "op"+arg+".get32(";
+        }
+
+        public String set16(int arg)
+        {
+            return "op"+arg+".set16(";
+        }
+
+        public String set32(int arg)
+        {
+            return "op"+arg+".set32(";
         }
     }
 
@@ -376,6 +416,26 @@ public abstract class Operand
         {
             return "op"+arg+".get"+getSize()+"(cpu, ";
         }
+
+        public String get16(int arg)
+        {
+            return "op"+arg+".get16(cpu, ";
+        }
+
+        public String get32(int arg)
+        {
+            return "op"+arg+".get32(cpu, ";
+        }
+
+        public String set16(int arg)
+        {
+            return "op"+arg+".set16(cpu, ";
+        }
+
+        public String set32(int arg)
+        {
+            return "op"+arg+".set32(cpu, ";
+        }
     }
 
     public static class Segment extends Operand
@@ -487,7 +547,7 @@ public abstract class Operand
 
         public String define(int arg)
         {
-            return "    final Address op"+arg+";\n";
+            return "    final Pointer op"+arg+";\n";
         }
 
         public String construct(int arg)
@@ -513,6 +573,26 @@ public abstract class Operand
         public String get(int arg)
         {
             return "op"+arg+".get(cpu)";
+        }
+
+        public String get16(int arg)
+        {
+            return "op"+arg+".get16(cpu, ";
+        }
+
+        public String get32(int arg)
+        {
+            return "op"+arg+".get32(cpu, ";
+        }
+
+        public String set16(int arg)
+        {
+            return "op"+arg+".set16(cpu, ";
+        }
+
+        public String set32(int arg)
+        {
+            return "op"+arg+".set32(cpu, ";
         }
     }
 

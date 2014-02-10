@@ -35,7 +35,7 @@ import static org.jpc.emulator.processor.Processor.*;
 
 public class fstenv_o16_M extends Executable
 {
-    final Address op1;
+    final Pointer op1;
 
     public fstenv_o16_M(int blockStart, int eip, int prefices, PeekableInputStream input)
     {

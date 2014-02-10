@@ -36,7 +36,7 @@ import static org.jpc.emulator.processor.Processor.*;
 public class lfs_o16_Gw_M extends Executable
 {
     final int op1Index;
-    final Address op2;
+    final Pointer op2;
 
     public lfs_o16_Gw_M(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
