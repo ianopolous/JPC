@@ -25,6 +25,8 @@ public class TestGenerator
             byte[] raw = new byte[hex.length];
             for (int i=0; i < raw.length; i++)
                 raw[i] = (byte) Integer.parseInt(hex[i], 16);
+            if (cname.contains("hlt"))
+                continue;
             generateCases(is32Bit, cname, raw, cases);
         }
     }

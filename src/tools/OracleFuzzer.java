@@ -408,6 +408,9 @@ public class OracleFuzzer
             {
                 disciple.executeInstruction();
                 oracle.executeInstruction();
+                // finish repeated string ops
+                while (oracle.getState()[8] == inputState[8]) // eip must progress
+                    oracle.executeInstruction();
             }
         } catch (Throwable e)
         {
