@@ -52,16 +52,11 @@ public class rol_Eb_CL_mem extends Executable
             op1.set8(cpu, (byte)res);
             boolean bit0  = (res & 1 ) != 0;
             boolean bit31 = (res & (1 << (8-1))) != 0;
-            if (cpu.r_cl.get8() > 0)
+            if ((0x1F & cpu.r_cl.get8()) > 0)
             {
                 cpu.cf = bit0;
-                if (cpu.r_cl.get8() == 1)
-                {
-                    cpu.of = bit0 ^ bit31;
-                    cpu.flagStatus &= NOFCF;
-                }
-                else
-                    cpu.flagStatus &= NCF;
+                cpu.of = bit0 ^ bit31;
+                cpu.flagStatus &= NOFCF;
             }
         return Branch.None;
     }

@@ -2167,16 +2167,11 @@
             $op1.set$castres);
             boolean bit0  = (res &amp; 1 ) != 0;
             boolean bit31 = (res &amp; (1 &lt;&lt; ($size-1))) != 0;
-            if ($op2.get > 0)
+            if ((0x1F &amp; $op2.get) > 0)
             {
                 cpu.cf = bit0;
-                if ($op2.get == 1)
-                {
-                    cpu.of = bit0 ^ bit31;
-                    cpu.flagStatus &amp;= NOFCF;
-                }
-                else
-                    cpu.flagStatus &amp;= NCF;
+                cpu.of = bit0 ^ bit31;
+                cpu.flagStatus &amp;= NOFCF;
             }</snippet>
     <args size="8">Eb;I1</args>
     <args size="8">Eb;Ib</args>

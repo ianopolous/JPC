@@ -55,16 +55,11 @@ public class rol_Ew_Ib extends Executable
             op1.set16((short)res);
             boolean bit0  = (res & 1 ) != 0;
             boolean bit31 = (res & (1 << (16-1))) != 0;
-            if (immb > 0)
+            if ((0x1F & immb) > 0)
             {
                 cpu.cf = bit0;
-                if (immb == 1)
-                {
-                    cpu.of = bit0 ^ bit31;
-                    cpu.flagStatus &= NOFCF;
-                }
-                else
-                    cpu.flagStatus &= NCF;
+                cpu.of = bit0 ^ bit31;
+                cpu.flagStatus &= NOFCF;
             }
         return Branch.None;
     }
