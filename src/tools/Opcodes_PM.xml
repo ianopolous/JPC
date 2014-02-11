@@ -644,8 +644,11 @@
     <return>Branch.None</return>
     <snippet>        if ($op1.get == 0)
             throw ProcessorException.DIVIDE_ERROR;
-        int ldiv = cpu.r_ax.get16();
-        cpu.r_al.set$size($cast (ldiv/($mask $op1.get)));
+        int ldiv = 0xffff &amp; cpu.r_ax.get16();
+        short quot16 = (short)(ldiv / ($mask $op1.get));
+        if (quot16 != (byte) quot16)
+            throw ProcessorException.DIVIDE_ERROR;
+        cpu.r_al.set$size($cast quot16);
         cpu.r_ah.set$size($cast (ldiv % ($mask $op1.get)));</snippet>
     <args size="8">Eb</args>
   </opcode>
