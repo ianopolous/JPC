@@ -49,7 +49,7 @@ public class shl_Ed_I1_mem extends Executable
         int shift = 1 & 0x1f;
         if(shift != 0)
         {
-            if (shift != 1)
+            if (shift <= 16)
             {
                 cpu.of(cpu.of());
                 cpu.flagStatus = SZAPC;

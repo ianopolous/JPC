@@ -2298,7 +2298,7 @@
     <snippet>        int shift = $op2.get &amp; 0x1f;
         if(shift != 0)
         {
-            if (shift != 1)
+            if (shift &lt;= 16)
             {
                 cpu.of(cpu.of());
                 cpu.flagStatus = SZAPC;

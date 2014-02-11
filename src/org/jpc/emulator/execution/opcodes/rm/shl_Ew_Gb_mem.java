@@ -52,7 +52,7 @@ public class shl_Ew_Gb_mem extends Executable
         int shift = op2.get8() & 0x1f;
         if(shift != 0)
         {
-            if (shift != 1)
+            if (shift <= 16)
             {
                 cpu.of(cpu.of());
                 cpu.flagStatus = SZAPC;
