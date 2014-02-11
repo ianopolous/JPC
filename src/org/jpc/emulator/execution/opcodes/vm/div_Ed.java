@@ -49,9 +49,9 @@ public class div_Ed extends Executable
         Reg op1 = cpu.regs[op1Index];
         if (op1.get32() == 0)
             throw ProcessorException.DIVIDE_ERROR;
-        long ldiv = (((long)cpu.r_edx.get32()) << 32 ) | (0xffffffffL & cpu.r_eax.get32());
+        long ldiv = ((0xffffffffL & cpu.r_edx.get32()) << 32 ) | (0xffffffffL & cpu.r_eax.get32());
         long quot64 = ldiv / (0xffffffffL & op1.get32());
-        if (quot64 != (int)quot64)
+        if (quot64 != (quot64 & 0xffffffffL))
             throw ProcessorException.DIVIDE_ERROR;
         cpu.r_eax.set32((int) quot64);
         cpu.r_edx.set32((int) (ldiv % (0xffffffffL & op1.get32())));

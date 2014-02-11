@@ -51,7 +51,7 @@ public class div_Eb extends Executable
             throw ProcessorException.DIVIDE_ERROR;
         int ldiv = 0xffff & cpu.r_ax.get16();
         short quot16 = (short)(ldiv / (0xFF& op1.get8()));
-        if (quot16 != (byte) quot16)
+        if (quot16 != (quot16 & 0xff))
             throw ProcessorException.DIVIDE_ERROR;
         cpu.r_al.set8((byte) quot16);
         cpu.r_ah.set8((byte) (ldiv % (0xFF& op1.get8())));

@@ -146,7 +146,7 @@
             throw ProcessorException.DIVIDE_ERROR;
         int ldiv = 0xffff &amp; cpu.r_ax.get16();
         short quot16 = (short)(ldiv / ($mask $op1.get));
-        if (quot16 != (byte) quot16)
+        if (quot16 != (quot16 &amp; 0xff))
             throw ProcessorException.DIVIDE_ERROR;
         cpu.r_al.set$size($cast quot16);
         cpu.r_ah.set$size($cast (ldiv % ($mask $op1.get)));</snippet>
@@ -157,9 +157,9 @@
     <return>Branch.None</return>
     <snippet>        if ($op1.get == 0)
             throw ProcessorException.DIVIDE_ERROR;
-        long ldiv = (((long)cpu.r_edx.get$size()) &lt;&lt; $size ) | ($mask cpu.r_eax.get$size());
+        long ldiv = ((0xffffL &amp; cpu.r_edx.get16()) &lt;&lt; 16 ) | ($mask cpu.r_eax.get16());
         int quot32 = (int)(ldiv / ($mask $op1.get));
-        if (quot32 != (short)quot32)
+        if (quot32 != (quot32 &amp; 0xffff))
             throw ProcessorException.DIVIDE_ERROR;
         cpu.r_eax.set$size($cast quot32);
         cpu.r_edx.set$size($cast (ldiv % ($mask $op1.get)));</snippet>
@@ -169,9 +169,9 @@
     <return>Branch.None</return>
     <snippet>        if ($op1.get == 0)
             throw ProcessorException.DIVIDE_ERROR;
-        long ldiv = (((long)cpu.r_edx.get$size()) &lt;&lt; $size ) | (0xffffffffL &amp; cpu.r_eax.get$size());
+        long ldiv = ((0xffffffffL &amp; cpu.r_edx.get32()) &lt;&lt; 32 ) | (0xffffffffL &amp; cpu.r_eax.get32());
         long quot64 = ldiv / (0xffffffffL &amp; $op1.get);
-        if (quot64 != (int)quot64)
+        if (quot64 != (quot64 &amp; 0xffffffffL))
             throw ProcessorException.DIVIDE_ERROR;
         cpu.r_eax.set$size($cast quot64);
         cpu.r_edx.set$size($cast (ldiv % (0xffffffffL &amp; $op1.get)));</snippet>
