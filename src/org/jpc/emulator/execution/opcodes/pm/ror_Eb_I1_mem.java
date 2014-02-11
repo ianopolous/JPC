@@ -52,16 +52,11 @@ public class ror_Eb_I1_mem extends Executable
             op1.set8(cpu, (byte)res);
             boolean bit30  = (res & (1 << (8-2))) != 0;
             boolean bit31 = (res & (1 << (8-1))) != 0;
-            if (1 > 0)
+            if (shift > 0)
             {
                 cpu.cf = bit31;
-                if (1 == 1)
-                {
-                    cpu.of = bit30 ^ bit31;
-                    cpu.flagStatus &= NOFCF;
-                }
-                else
-                    cpu.flagStatus &= NCF;
+                cpu.of = bit30 ^ bit31;
+                cpu.flagStatus &= NOFCF;
             }
         return Branch.None;
     }

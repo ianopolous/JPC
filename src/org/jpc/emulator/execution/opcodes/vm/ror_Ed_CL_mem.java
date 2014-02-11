@@ -52,16 +52,11 @@ public class ror_Ed_CL_mem extends Executable
             op1.set32(cpu, res);
             boolean bit30  = (res & (1 << (32-2))) != 0;
             boolean bit31 = (res & (1 << (32-1))) != 0;
-            if (cpu.r_cl.get8() > 0)
+            if (shift > 0)
             {
                 cpu.cf = bit31;
-                if (cpu.r_cl.get8() == 1)
-                {
-                    cpu.of = bit30 ^ bit31;
-                    cpu.flagStatus &= NOFCF;
-                }
-                else
-                    cpu.flagStatus &= NCF;
+                cpu.of = bit30 ^ bit31;
+                cpu.flagStatus &= NOFCF;
             }
         return Branch.None;
     }
