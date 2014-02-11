@@ -49,7 +49,10 @@ public class div_Ew_mem extends Executable
         if (op1.get16(cpu) == 0)
             throw ProcessorException.DIVIDE_ERROR;
         long ldiv = (((long)cpu.r_edx.get16()) << 16 ) | (0xFFFF& cpu.r_eax.get16());
-        cpu.r_eax.set16((short) (ldiv/(0xFFFF& op1.get16(cpu))));
+        int quot32 = (int)(ldiv / (0xFFFF& op1.get16(cpu)));
+        if (quot32 != (short)quot32)
+            throw ProcessorException.DIVIDE_ERROR;
+        cpu.r_eax.set16((short) quot32);
         cpu.r_edx.set16((short) (ldiv % (0xFFFF& op1.get16(cpu))));
         return Branch.None;
     }

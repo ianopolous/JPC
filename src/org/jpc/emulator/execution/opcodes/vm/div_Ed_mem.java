@@ -49,7 +49,10 @@ public class div_Ed_mem extends Executable
         if (op1.get32(cpu) == 0)
             throw ProcessorException.DIVIDE_ERROR;
         long ldiv = (((long)cpu.r_edx.get32()) << 32 ) | (0xffffffffL & cpu.r_eax.get32());
-        cpu.r_eax.set32((int) (ldiv/(0xffffffffL & op1.get32(cpu))));
+        long quot64 = ldiv / (0xffffffffL & op1.get32(cpu));
+        if (quot64 != (int)quot64)
+            throw ProcessorException.DIVIDE_ERROR;
+        cpu.r_eax.set32((int) quot64);
         cpu.r_edx.set32((int) (ldiv % (0xffffffffL & op1.get32(cpu))));
         return Branch.None;
     }

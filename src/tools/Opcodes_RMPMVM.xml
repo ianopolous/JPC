@@ -140,6 +140,44 @@
     <args size="0"></args>
   </opcode>
 
+  <opcode mnemonic="div">
+    <return>Branch.None</return>
+    <snippet>        if ($op1.get == 0)
+            throw ProcessorException.DIVIDE_ERROR;
+        int ldiv = 0xffff &amp; cpu.r_ax.get16();
+        short quot16 = (short)(ldiv / ($mask $op1.get));
+        if (quot16 != (byte) quot16)
+            throw ProcessorException.DIVIDE_ERROR;
+        cpu.r_al.set$size($cast quot16);
+        cpu.r_ah.set$size($cast (ldiv % ($mask $op1.get)));</snippet>
+    <args size="8">Eb</args>
+  </opcode>
+
+  <opcode mnemonic="div">
+    <return>Branch.None</return>
+    <snippet>        if ($op1.get == 0)
+            throw ProcessorException.DIVIDE_ERROR;
+        long ldiv = (((long)cpu.r_edx.get$size()) &lt;&lt; $size ) | ($mask cpu.r_eax.get$size());
+        int quot32 = (int)(ldiv / ($mask $op1.get));
+        if (quot32 != (short)quot32)
+            throw ProcessorException.DIVIDE_ERROR;
+        cpu.r_eax.set$size($cast quot32);
+        cpu.r_edx.set$size($cast (ldiv % ($mask $op1.get)));</snippet>
+    <args size="16">Ew</args>
+  </opcode>
+  <opcode mnemonic="div">
+    <return>Branch.None</return>
+    <snippet>        if ($op1.get == 0)
+            throw ProcessorException.DIVIDE_ERROR;
+        long ldiv = (((long)cpu.r_edx.get$size()) &lt;&lt; $size ) | (0xffffffffL &amp; cpu.r_eax.get$size());
+        long quot64 = ldiv / (0xffffffffL &amp; $op1.get);
+        if (quot64 != (int)quot64)
+            throw ProcessorException.DIVIDE_ERROR;
+        cpu.r_eax.set$size($cast quot64);
+        cpu.r_edx.set$size($cast (ldiv % (0xffffffffL &amp; $op1.get)));</snippet>
+    <args size="32">Ed</args>
+  </opcode>
+
   <opcode mnemonic="imul">
     <return>Branch.None</return>
     <snippet>            cpu.flagStatus = OSZAPC;

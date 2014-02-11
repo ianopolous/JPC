@@ -351,34 +351,6 @@
     <args size="32">eBP</args>
   </opcode>
 
-  <opcode mnemonic="div">
-    <return>Branch.None</return>
-    <snippet>        if ($op1.get == 0)
-            throw ProcessorException.DIVIDE_ERROR;
-        int ldiv = cpu.r_ax.get16();
-        cpu.r_al.set$size($cast (ldiv/($mask $op1.get)));
-        cpu.r_ah.set$size($cast (ldiv % ($mask $op1.get)));</snippet>
-    <args size="8">Eb</args>
-  </opcode>
-  <opcode mnemonic="div">
-    <return>Branch.None</return>
-    <snippet>        if ($op1.get == 0)
-            throw ProcessorException.DIVIDE_ERROR;
-        long ldiv = (((long)($maskcpu.r_edx.get$size())) &lt;&lt; $size ) | ($mask cpu.r_eax.get$size());
-        cpu.r_eax.set$size($cast (ldiv/($mask $op1.get)));
-        cpu.r_edx.set$size($cast (ldiv % ($mask $op1.get)));</snippet>
-    <args size="16">Ew</args>
-  </opcode>
-  <opcode mnemonic="div">
-    <return>Branch.None</return>
-    <snippet>        if ($op1.get == 0)
-            throw ProcessorException.DIVIDE_ERROR;
-        long ldiv = (((long)cpu.r_edx.get$size()) &lt;&lt; $size ) | (0xffffffffL &amp; cpu.r_eax.get$size());
-        cpu.r_eax.set$size($cast (ldiv/(0xffffffffL &amp; $op1.get)));
-        cpu.r_edx.set$size($cast (ldiv % (0xffffffffL &amp; $op1.get)));</snippet>
-    <args size="32">Ed</args>
-  </opcode>
-
   <opcode mnemonic="enter_o16">
     <return>Branch.None</return>
     <snippet>            int frameSize = 0xffff &amp; $op1.get;
