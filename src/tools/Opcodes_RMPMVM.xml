@@ -2295,11 +2295,14 @@
         {
             if (shift &lt;= 16)
             {
-                cpu.of(cpu.of());
-                cpu.flagStatus = SZAPC;
+                cpu.flagStatus = OSZAPC;
             }
             else
-                cpu.flagStatus = OSZAPC;
+            {
+                cpu.flagStatus = SZAP;
+                cpu.of = false;
+                cpu.cf = false;
+            }
             cpu.flagOp1 = $op1.get;
             cpu.flagOp2 = shift;
             cpu.flagResult = $cast(cpu.flagOp1 &lt;&lt; cpu.flagOp2);

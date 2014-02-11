@@ -54,11 +54,14 @@ public class shl_Ew_Gb_mem extends Executable
         {
             if (shift <= 16)
             {
-                cpu.of(cpu.of());
-                cpu.flagStatus = SZAPC;
+                cpu.flagStatus = OSZAPC;
             }
             else
-                cpu.flagStatus = OSZAPC;
+            {
+                cpu.flagStatus = SZAP;
+                cpu.of = false;
+                cpu.cf = false;
+            }
             cpu.flagOp1 = op1.get16(cpu);
             cpu.flagOp2 = shift;
             cpu.flagResult = (short)(cpu.flagOp1 << cpu.flagOp2);
