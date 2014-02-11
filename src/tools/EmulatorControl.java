@@ -399,8 +399,13 @@ public abstract class EmulatorControl
         intCount++;
 
         setPhysicalMemory(codeAddress16, bout.toByteArray());
-        for (int i = 0; i < intCount; i++)
+        for (int i = 0; i < intCount-1; i++)
             executeInstruction();
+        // account for mov ss, X executing 2 instructions in JPC
+        int[] stateNow = getState();
+        if (stateNow[8] != state[8])
+            executeInstruction();
+
         // zero what we just wrote
         setPhysicalMemory(codeAddress16, new byte[bout.size()]);
         // and the data too
