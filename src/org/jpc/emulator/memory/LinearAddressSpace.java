@@ -269,7 +269,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
      */
     public void setPageWriteThroughEnabled(boolean value)
     {
-        //System.err.println("ERR: Write Through Caching enabled for TLBs");        
+        //System.err.println("ERR: Write Through Caching enabled for TLBs");
     }
 
     /**
@@ -322,6 +322,8 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
 	writeUserIndex = null;
 	readSupervisorIndex = null;
 	writeSupervisorIndex = null;
+        readIndex = null;
+        writeIndex = null;
     }
 
     private void partialFlush()
