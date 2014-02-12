@@ -1449,7 +1449,7 @@ ops[0xc1] = new OpcodeDecoder() {
             switch (reg) {
             case 0x00: return new org.jpc.emulator.execution.opcodes.rm.rol_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x01: return new org.jpc.emulator.execution.opcodes.rm.ror_Ew_Ib_mem(blockStart, eip, prefices, input);
-            case 0x02:
+            case 0x02: return new org.jpc.emulator.execution.opcodes.rm.rcl_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x03: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0x04: return new org.jpc.emulator.execution.opcodes.rm.shl_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.rm.shr_Ew_Ib_mem(blockStart, eip, prefices, input);
@@ -1462,7 +1462,7 @@ ops[0xc1] = new OpcodeDecoder() {
             switch (reg) {
             case 0x00: return new org.jpc.emulator.execution.opcodes.rm.rol_Ew_Ib(blockStart, eip, prefices, input);
             case 0x01: return new org.jpc.emulator.execution.opcodes.rm.ror_Ew_Ib(blockStart, eip, prefices, input);
-            case 0x02:
+            case 0x02: return new org.jpc.emulator.execution.opcodes.rm.rcl_Ew_Ib(blockStart, eip, prefices, input);
             case 0x03: return new org.jpc.emulator.execution.opcodes.rm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0x04: return new org.jpc.emulator.execution.opcodes.rm.shl_Ew_Ib(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.rm.shr_Ew_Ib(blockStart, eip, prefices, input);
@@ -12432,7 +12432,7 @@ ops[0xc1] = new OpcodeDecoder() {
             switch (reg) {
             case 0x00: return new org.jpc.emulator.execution.opcodes.pm.rol_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x01: return new org.jpc.emulator.execution.opcodes.pm.ror_Ew_Ib_mem(blockStart, eip, prefices, input);
-            case 0x02:
+            case 0x02: return new org.jpc.emulator.execution.opcodes.pm.rcl_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x03: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0x04: return new org.jpc.emulator.execution.opcodes.pm.shl_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.pm.shr_Ew_Ib_mem(blockStart, eip, prefices, input);
@@ -12445,7 +12445,7 @@ ops[0xc1] = new OpcodeDecoder() {
             switch (reg) {
             case 0x00: return new org.jpc.emulator.execution.opcodes.pm.rol_Ew_Ib(blockStart, eip, prefices, input);
             case 0x01: return new org.jpc.emulator.execution.opcodes.pm.ror_Ew_Ib(blockStart, eip, prefices, input);
-            case 0x02:
+            case 0x02: return new org.jpc.emulator.execution.opcodes.pm.rcl_Ew_Ib(blockStart, eip, prefices, input);
             case 0x03: return new org.jpc.emulator.execution.opcodes.pm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0x04: return new org.jpc.emulator.execution.opcodes.pm.shl_Ew_Ib(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.pm.shr_Ew_Ib(blockStart, eip, prefices, input);
@@ -23848,7 +23848,7 @@ ops[0xc1] = new OpcodeDecoder() {
             switch (reg) {
             case 0x00: return new org.jpc.emulator.execution.opcodes.vm.rol_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x01: return new org.jpc.emulator.execution.opcodes.vm.ror_Ew_Ib_mem(blockStart, eip, prefices, input);
-            case 0x02:
+            case 0x02: return new org.jpc.emulator.execution.opcodes.vm.rcl_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x03: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_Ib_mem(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ew_Ib_mem(blockStart, eip, prefices, input);
@@ -23861,7 +23861,7 @@ ops[0xc1] = new OpcodeDecoder() {
             switch (reg) {
             case 0x00: return new org.jpc.emulator.execution.opcodes.vm.rol_Ew_Ib(blockStart, eip, prefices, input);
             case 0x01: return new org.jpc.emulator.execution.opcodes.vm.ror_Ew_Ib(blockStart, eip, prefices, input);
-            case 0x02:
+            case 0x02: return new org.jpc.emulator.execution.opcodes.vm.rcl_Ew_Ib(blockStart, eip, prefices, input);
             case 0x03: return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
             case 0x04: return new org.jpc.emulator.execution.opcodes.vm.shl_Ew_Ib(blockStart, eip, prefices, input);
             case 0x05: return new org.jpc.emulator.execution.opcodes.vm.shr_Ew_Ib(blockStart, eip, prefices, input);

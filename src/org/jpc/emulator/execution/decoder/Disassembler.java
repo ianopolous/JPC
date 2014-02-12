@@ -186,8 +186,8 @@ public class Disassembler
             gen = in.getGeneralClassName(false, false);
         } catch (IllegalStateException e)
         {
-            e.printStackTrace();
-            return prefix + "InvalidOpcode";
+//            e.printStackTrace();
+            return prefix + "InvalidOpcode(Disassembler.java line 189)";
         }
 
         if (instructions.containsKey(gen))

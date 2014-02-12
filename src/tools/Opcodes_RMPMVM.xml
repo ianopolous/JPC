@@ -2144,6 +2144,7 @@
     <args size="8">Eb;CL</args>
     <args size="8">Eb;Ib</args>
     <args size="16">Ew;I1</args>
+    <args size="16">Ew;Ib</args>
     <args size="16">Ew;CL</args>
   </opcode>
   <opcode mnemonic="rcl">
