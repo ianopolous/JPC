@@ -1796,7 +1796,7 @@ public class Processor implements HardwareComponent
             iretFromTask();
         else {
             try {
-                ss.checkAddress(r_esp.get16() + 11);
+                ss.checkAddress((r_esp.get16() & 0xffff) + 11);
             } catch (ProcessorException e) {
                 throw ProcessorException.STACK_SEGMENT_0;
             }
