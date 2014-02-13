@@ -195,7 +195,7 @@ public class FastDecoder
         while (Prefices.isPrefix(b))
         {
             if (b == 0x66)
-                is32Bit = !is32Bit;
+                is32Bit = !is32BitSeg;
             else if (b == 0x67)
                 addrSize = !is32BitSeg;
             else
