@@ -629,7 +629,7 @@ ops[0x62] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -1036,7 +1036,7 @@ ops[0x8d] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -1510,7 +1510,7 @@ ops[0xc4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -1543,7 +1543,7 @@ ops[0xc5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -4146,7 +4146,7 @@ ops[0x1b2] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -4187,7 +4187,7 @@ ops[0x1b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -4220,7 +4220,7 @@ ops[0x1b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -5132,7 +5132,7 @@ ops[0x262] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -5377,7 +5377,7 @@ ops[0x28d] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -5710,7 +5710,7 @@ ops[0x2c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -5743,7 +5743,7 @@ ops[0x2c5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -6876,7 +6876,7 @@ ops[0x3b2] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -6917,7 +6917,7 @@ ops[0x3b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -6950,7 +6950,7 @@ ops[0x3b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -8846,7 +8846,7 @@ ops[0x662] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -9081,7 +9081,7 @@ ops[0x68d] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -9469,7 +9469,7 @@ ops[0x6c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -9502,7 +9502,7 @@ ops[0x6c5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -10650,7 +10650,7 @@ ops[0x7b2] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -10691,7 +10691,7 @@ ops[0x7b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -10724,7 +10724,7 @@ ops[0x7b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.rm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -11620,7 +11620,7 @@ ops[0x62] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -12019,7 +12019,7 @@ ops[0x8d] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -12493,7 +12493,7 @@ ops[0xc4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -12526,7 +12526,7 @@ ops[0xc5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -15201,7 +15201,7 @@ ops[0x1b2] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -15242,7 +15242,7 @@ ops[0x1b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -15275,7 +15275,7 @@ ops[0x1b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -16193,7 +16193,7 @@ ops[0x262] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -16427,7 +16427,7 @@ ops[0x28d] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -16766,7 +16766,7 @@ ops[0x2c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -16799,7 +16799,7 @@ ops[0x2c5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -18043,7 +18043,7 @@ ops[0x3b2] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -18084,7 +18084,7 @@ ops[0x3b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -18117,7 +18117,7 @@ ops[0x3b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -20083,7 +20083,7 @@ ops[0x662] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -20350,7 +20350,7 @@ ops[0x68d] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -20744,7 +20744,7 @@ ops[0x6c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -20777,7 +20777,7 @@ ops[0x6c5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -22036,7 +22036,7 @@ ops[0x7b2] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -22077,7 +22077,7 @@ ops[0x7b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -22110,7 +22110,7 @@ ops[0x7b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.pm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -23044,7 +23044,7 @@ ops[0x62] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -23435,7 +23435,7 @@ ops[0x8d] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -23909,7 +23909,7 @@ ops[0xc4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -23942,7 +23942,7 @@ ops[0xc5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -26509,7 +26509,7 @@ ops[0x1b2] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -26550,7 +26550,7 @@ ops[0x1b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -26583,7 +26583,7 @@ ops[0x1b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -27703,7 +27703,7 @@ ops[0x28d] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -28036,7 +28036,7 @@ ops[0x2c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -28069,7 +28069,7 @@ ops[0x2c5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -29193,7 +29193,7 @@ ops[0x3b2] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -29234,7 +29234,7 @@ ops[0x3b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -29267,7 +29267,7 @@ ops[0x3b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -31351,7 +31351,7 @@ ops[0x68d] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -31739,7 +31739,7 @@ ops[0x6c4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -31772,7 +31772,7 @@ ops[0x6c5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -32911,7 +32911,7 @@ ops[0x7b2] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -32952,7 +32952,7 @@ ops[0x7b4] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;
@@ -32985,7 +32985,7 @@ ops[0x7b5] = new OpcodeDecoder() {
             case 0x04:
             case 0x05:
             case 0x06:
-            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode(blockStart, eip, prefices, input);
+            case 0x07: input.read8(); return new org.jpc.emulator.execution.opcodes.vm.InvalidOpcode/*(Disassembler.java line 189)*/(blockStart, eip, prefices, input);
             }
         }
         return null;

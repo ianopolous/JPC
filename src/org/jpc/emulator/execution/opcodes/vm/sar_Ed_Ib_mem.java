@@ -57,10 +57,7 @@ public class sar_Ed_Ib_mem extends Executable
             op1.set32(cpu, cpu.flagResult);
             cpu.flagIns = UCodes.SAR32;
             cpu.flagStatus = OSZAPC;
-            if (cpu.flagOp2 == 1)
-                cpu.of(false);
-            else
-                cpu.of(inOF);
+            cpu.of(false);
         }
         return Branch.None;
     }

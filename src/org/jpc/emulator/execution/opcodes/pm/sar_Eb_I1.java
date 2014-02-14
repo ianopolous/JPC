@@ -56,10 +56,7 @@ public class sar_Eb_I1 extends Executable
             op1.set8((byte)cpu.flagResult);
             cpu.flagIns = UCodes.SAR8;
             cpu.flagStatus = OSZAPC;
-            if (cpu.flagOp2 == 1)
-                cpu.of(false);
-            else
-                cpu.of(inOF);
+            cpu.of(false);
         }
         return Branch.None;
     }

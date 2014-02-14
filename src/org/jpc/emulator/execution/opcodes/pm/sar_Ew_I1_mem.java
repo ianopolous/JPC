@@ -55,10 +55,7 @@ public class sar_Ew_I1_mem extends Executable
             op1.set16(cpu, (short)cpu.flagResult);
             cpu.flagIns = UCodes.SAR16;
             cpu.flagStatus = OSZAPC;
-            if (cpu.flagOp2 == 1)
-                cpu.of(false);
-            else
-                cpu.of(inOF);
+            cpu.of(false);
         }
         return Branch.None;
     }

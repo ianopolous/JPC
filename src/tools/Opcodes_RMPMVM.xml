@@ -2268,10 +2268,7 @@
             $op1.set$castcpu.flagResult);
             cpu.flagIns = UCodes.SAR$size;
             cpu.flagStatus = OSZAPC;
-            if (cpu.flagOp2 == 1)
-                cpu.of(false);
-            else
-                cpu.of(inOF);
+            cpu.of(false);
         }</snippet>
     <args size="8">Eb;I1</args>
     <args size="8">Eb;Ib</args>
