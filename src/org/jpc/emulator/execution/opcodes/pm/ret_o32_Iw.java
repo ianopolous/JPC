@@ -50,13 +50,10 @@ public class ret_o32_Iw extends Executable
     public Branch execute(Processor cpu)
     {
         cpu.eip += blockLength;
-        int tmpEip = cpu.pop32();
+        int tmpEip = cpu.stack32(0);
         cpu.cs.checkAddress(tmpEip);
+        cpu.incrementStack(4 + immw);
         cpu.eip = tmpEip;
-        if (cpu.ss.getDefaultSizeFlag())
-            cpu.r_esp.set32(cpu.r_esp.get32()+immw);
-        else
-            cpu.r_sp.set16(cpu.r_sp.get16()+immw);
         return Branch.Ret;
     }
 

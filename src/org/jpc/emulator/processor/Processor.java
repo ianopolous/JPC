@@ -491,6 +491,26 @@ public class Processor implements HardwareComponent
         }
     }
 
+    public int stack32(int offset)
+    {
+        if (ss.getDefaultSizeFlag()) {
+            int targetESP = r_esp.get32() + offset;
+            return ss.getDoubleWord(targetESP);
+        } else {
+            int targetESP = r_esp.get16() + offset;
+            return ss.getDoubleWord(0xffff & targetESP);
+        }
+    }
+
+    public void incrementStack(int amount)
+    {
+        if (ss.getDefaultSizeFlag()) {
+            r_esp.set32(r_esp.get32()+amount);
+        } else {
+            r_esp.set16(r_esp.get16() + amount);
+        }
+    }
+
     public void pusha()
     {
         int offset, offmask;

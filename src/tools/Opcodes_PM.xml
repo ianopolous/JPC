@@ -1795,8 +1795,9 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   <opcode mnemonic="ret_o32">
     <return>Branch.Ret</return>
     <snippet>        cpu.eip += blockLength;
-        int tmpEip = cpu.pop32();
+        int tmpEip = cpu.stack32(0);
         cpu.cs.checkAddress(tmpEip);
+        cpu.incrementStack(4);
         cpu.eip = tmpEip;</snippet>
     <args size="32"></args>
   </opcode>
@@ -1804,13 +1805,10 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
   <opcode mnemonic="ret_o32">
     <return>Branch.Ret</return>
     <snippet>        cpu.eip += blockLength;
-        int tmpEip = cpu.pop32();
+        int tmpEip = cpu.stack32(0);
         cpu.cs.checkAddress(tmpEip);
-        cpu.eip = tmpEip;
-        if (cpu.ss.getDefaultSizeFlag())
-            cpu.r_esp.set32(cpu.r_esp.get32()+$op1.get);
-        else
-            cpu.r_sp.set16(cpu.r_sp.get16()+$op1.get);</snippet>
+        cpu.incrementStack(4 + $op1.get);
+        cpu.eip = tmpEip;</snippet>
     <args size="16">Iw</args>
   </opcode>
 
