@@ -136,13 +136,13 @@ final class RealModeSegment extends Segment
 
     public int translateAddressRead(int offset)
     {
-        //checkAddress(offset);
+        checkAddress(offset);
         return base + offset;
     }
 
     public int translateAddressWrite(int offset)
     {
-        //checkAddress(offset);
+        checkAddress(offset);
         return base + offset;
     }
 
