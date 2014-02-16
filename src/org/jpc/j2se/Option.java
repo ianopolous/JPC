@@ -110,8 +110,13 @@ public abstract class Option {
         System.out.println("-ss $file - snapshot file to load");
         System.out.println("-ram $megabytes - the amount RAM the virtual machine should have");
         System.out.println("-ips $number - number of emulated instructions per emulated second - a larger value will cause a slower apparent time in the VM");
+        System.out.println("-cpulevel $number - 4 = 486, 5 = Pentium, 6 = Pentium Pro");
         System.out.println();
         System.out.println("-sound - enable sound");
+        System.out.println();
+        System.out.println("Advanced Options:");
+        System.out.println("-bios - specify an alternate bios image");
+        System.out.println("-max-block-size $num - maximum number of instructions per basic block (A value of 1 will still have some blocks of length 2 due to mov ss,X, pop ss and sti)");
     }
 
     public static String[] parse(String[] source) {
