@@ -54,7 +54,10 @@ public class bsf_Gw_Ew extends Executable
 	    cpu.zf(true);
 	} else {
 	    cpu.zf(false);
-	    op1.set16(StaticOpcodes.numberOfTrailingZeros(op2.get16()));
+            cpu.of = cpu.af = cpu.cf = false;
+            cpu.flagStatus = SP;
+            cpu.flagResult = StaticOpcodes.numberOfTrailingZeros(op2.get16());
+	    op1.set16(cpu.flagResult);
 	}
         return Branch.None;
     }

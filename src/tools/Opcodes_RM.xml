@@ -18,18 +18,6 @@
     <args size="16">Gw;M</args>
   </opcode>
 
-  <opcode mnemonic="bsf">
-    <return>Branch.None</return>
-    <snippet>        if ($op2.get == 0) {
-	    cpu.zf(true);
-	} else {
-	    cpu.zf(false);
-	    $op1.setStaticOpcodes.numberOfTrailingZeros($op2.get));
-	}</snippet>
-    <args size="16">Gw;Ew</args>
-    <args size="32">Gd;Ed</args>
-  </opcode>
-
   <opcode mnemonic="bsr">
     <return>Branch.None</return>
     <snippet>        if ($op2.get == 0) {

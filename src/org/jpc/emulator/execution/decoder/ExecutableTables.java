@@ -26655,7 +26655,10 @@ ops[0x1bb] = new OpcodeDecoder() {
 };
 ops[0x1bc] = new OpcodeDecoder() {
     public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
-        return new org.jpc.emulator.execution.opcodes.vm.UnimplementedOpcode(blockStart, eip, prefices, input);
+        if (Modrm.isMem(input.peek()))
+            return new org.jpc.emulator.execution.opcodes.vm.bsf_Gw_Ew_mem(blockStart, eip, prefices, input);
+        else
+            return new org.jpc.emulator.execution.opcodes.vm.bsf_Gw_Ew(blockStart, eip, prefices, input);
     }
 };
 ops[0x1bd] = new OpcodeDecoder() {
@@ -29334,8 +29337,14 @@ ops[0x3bb] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.vm.btc_Ed_Gd(blockStart, eip, prefices, input);
     }
 };
-ops[0x3bc] = ops[0x1bc];
-
+ops[0x3bc] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Modrm.isMem(input.peek()))
+            return new org.jpc.emulator.execution.opcodes.vm.bsf_Gd_Ed_mem(blockStart, eip, prefices, input);
+        else
+            return new org.jpc.emulator.execution.opcodes.vm.bsf_Gd_Ed(blockStart, eip, prefices, input);
+    }
+};
 ops[0x3bd] = ops[0x1bd];
 
 ops[0x3be] = new OpcodeDecoder() {
@@ -33052,8 +33061,14 @@ ops[0x7bb] = new OpcodeDecoder() {
             return new org.jpc.emulator.execution.opcodes.vm.btc_Ed_Gd(blockStart, eip, prefices, input);
     }
 };
-ops[0x7bc] = ops[0x1bc];
-
+ops[0x7bc] = new OpcodeDecoder() {
+    public Executable decodeOpcode(int blockStart, int eip, int prefices, PeekableInputStream input) {
+        if (Modrm.isMem(input.peek()))
+            return new org.jpc.emulator.execution.opcodes.vm.bsf_Gd_Ed_mem(blockStart, eip, prefices, input);
+        else
+            return new org.jpc.emulator.execution.opcodes.vm.bsf_Gd_Ed(blockStart, eip, prefices, input);
+    }
+};
 ops[0x7bd] = ops[0x1bd];
 
 ops[0x7be] = new OpcodeDecoder() {

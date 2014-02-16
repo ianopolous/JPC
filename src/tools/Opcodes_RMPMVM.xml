@@ -13,6 +13,21 @@
     <args size="0"></args>
   </opcode>-->
 
+  <opcode mnemonic="bsf">
+    <return>Branch.None</return>
+    <snippet>        if ($op2.get == 0) {
+	    cpu.zf(true);
+	} else {
+	    cpu.zf(false);
+            cpu.of = cpu.af = cpu.cf = false;
+            cpu.flagStatus = SP;
+            cpu.flagResult = StaticOpcodes.numberOfTrailingZeros($op2.get);
+	    $op1.setcpu.flagResult);
+	}</snippet>
+    <args size="16">Gw;Ew</args>
+    <args size="32">Gd;Ed</args>
+  </opcode>
+
   <opcode mnemonic="bt" mem="false">
     <return>Branch.None</return>
     <snippet>        cpu.zf(cpu.zf());

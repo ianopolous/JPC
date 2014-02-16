@@ -54,7 +54,10 @@ public class bsf_Gd_Ed extends Executable
 	    cpu.zf(true);
 	} else {
 	    cpu.zf(false);
-	    op1.set32(StaticOpcodes.numberOfTrailingZeros(op2.get32()));
+            cpu.of = cpu.af = cpu.cf = false;
+            cpu.flagStatus = SP;
+            cpu.flagResult = StaticOpcodes.numberOfTrailingZeros(op2.get32());
+	    op1.set32(cpu.flagResult);
 	}
         return Branch.None;
     }
