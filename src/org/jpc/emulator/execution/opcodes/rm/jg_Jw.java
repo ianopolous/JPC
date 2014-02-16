@@ -51,7 +51,9 @@ public class jg_Jw extends Executable
     {
         if (!cpu.zf() && (cpu.sf() == cpu.of()))
             {
-            cpu.eip += jmp+blockLength;
+            int target = (cpu.eip + jmp + blockLength) & 0xffff;
+            cpu.cs.checkAddress(target);
+            cpu.eip = target;
             return Branch.T1;
         }
         else

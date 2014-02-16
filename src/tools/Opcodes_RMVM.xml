@@ -2,7 +2,9 @@
 <?xml-stylesheet href="x86optable.xsl" type="text/xsl"?>
 <opcodesnippets>
   <jcc>        {
-            cpu.eip += jmp+blockLength;
+            int target = (cpu.eip + jmp + blockLength) &amp; 0xffff;
+            cpu.cs.checkAddress(target);
+            cpu.eip = target;
             return Branch.T1;
         }
         else

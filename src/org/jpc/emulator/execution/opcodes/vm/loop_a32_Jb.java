@@ -52,7 +52,9 @@ public class loop_a32_Jb extends Executable
         cpu.r_ecx.set32(cpu.r_ecx.get32()-1);
         if (cpu.r_ecx.get32() != 0)
         {
-            cpu.eip += jmp+blockLength;
+            int target = (cpu.eip + jmp + blockLength) & 0xffff;
+            cpu.cs.checkAddress(target);
+            cpu.eip = target;
             return Branch.T1;
         }
         else

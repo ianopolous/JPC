@@ -51,7 +51,9 @@ public class jae_Jb extends Executable
     {
         if (!cpu.cf())
             {
-            cpu.eip += jmp+blockLength;
+            int target = (cpu.eip + jmp + blockLength) & 0xffff;
+            cpu.cs.checkAddress(target);
+            cpu.eip = target;
             return Branch.T1;
         }
         else

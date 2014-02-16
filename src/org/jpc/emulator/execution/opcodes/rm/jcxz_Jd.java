@@ -51,7 +51,9 @@ public class jcxz_Jd extends Executable
     {
         if (cpu.r_cx.get16() == 0)
             {
-            cpu.eip += jmp+blockLength;
+            int target = (cpu.eip + jmp + blockLength) & 0xffff;
+            cpu.cs.checkAddress(target);
+            cpu.eip = target;
             return Branch.T1;
         }
         else

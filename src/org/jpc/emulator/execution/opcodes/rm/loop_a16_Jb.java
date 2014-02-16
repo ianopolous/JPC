@@ -52,7 +52,9 @@ public class loop_a16_Jb extends Executable
         cpu.r_cx.set16(cpu.r_cx.get16()-1);
         if (cpu.r_cx.get16() != 0)
         {
-            cpu.eip += jmp+blockLength;
+            int target = (cpu.eip + jmp + blockLength) & 0xffff;
+            cpu.cs.checkAddress(target);
+            cpu.eip = target;
             return Branch.T1;
         }
         else
