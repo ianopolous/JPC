@@ -1214,18 +1214,18 @@ public class Processor implements HardwareComponent
                     return;
             }
         }
-        else if (cpuLevel == 5) // Intel Pentium MMX
+        else if (cpuLevel == 5) // Intel Pentium
         {
             switch (r_eax.get32()) {
                 case 0x00:
-                    r_eax.set32(0x02);
+                    r_eax.set32(0x01);
                     r_ebx.set32(0x756e6547); /* "Genu", with G in the low nibble of BL */
                     r_edx.set32(0x49656e69); /* "ineI", with i in the low nibble of DL */
                     r_ecx.set32(0x6c65746e); /* "ntel", with n in the low nibble of CL */
                     return;
                 case 0x01:
-                    r_eax.set32(0x00000533);
-                    r_ebx.set32(1 << 16);
+                    r_eax.set32(0x00000513);
+                    r_ebx.set32(0);
                     r_ecx.set32(0);
                     int features = 0;
                     features |= 1; //Have an FPU;
@@ -1245,13 +1245,25 @@ public class Processor implements HardwareComponent
                     //features |= (1<<28);  // max APIC ID (cpuid.1.ebx[23-16]) is valid
                     r_edx.set32(features);
                     return;
-                default:
                 case 0x02:
                     r_eax.set32(0x410601);
                     r_ebx.set32(0);
                     r_ecx.set32(0);
                     r_edx.set32(0);
                     return;
+                case 0x80000000:
+                case 0x80000001:
+                    r_eax.set32(0);
+                    r_ebx.set32(0);
+                    r_ecx.set32(0);
+                    r_edx.set32(0);
+                    return;
+                default:
+                    System.err.printf("Unknown CPUID argument eax=%08x\n", r_eax.get32());
+                    r_eax.set32(0);
+                    r_ebx.set32(0);
+                    r_ecx.set32(0);
+                    r_edx.set32(0);
             }
         }
         else if (cpuLevel == 6) // Intel Pentium II stepping 4
@@ -3858,8 +3870,14 @@ public class Processor implements HardwareComponent
         r_esi.set32(0);
         r_ebp.set32(0);
         r_esp.set32(0);
-        //r_edx.set32(0x00000633); // Pentium II Model 3 Stepping 3
-        r_edx.set32(0); // to comform with Bochs
+        int cpulevel = Option.cpulevel.intValue(5);
+        if (cpulevel == 4)
+            r_edx.set32(0x00000433); // 486
+        else if (cpulevel == 5)
+            r_edx.set32(0x00000513); // Pentium
+        else
+            r_edx.set32(0x00000634); // Pentium II
+//        r_edx.set32(0); // to comform with Bochs
 
         interruptFlags = 0;
         currentPrivilegeLevel = 0;
