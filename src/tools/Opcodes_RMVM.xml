@@ -711,21 +711,6 @@
     <args size="8">Jb</args>
   </opcode>
 
-  <opcode mnemonic="lss_o16">
-      <return>Branch.None</return>
-      <snippet>        int addr = $op2.get + op2.getBase(cpu);
-        cpu.ss(0xFFFF &amp; cpu.physicalMemory.getWord(addr+2));
-        $op1.setcpu.physicalMemory.getWord(addr));</snippet>
-    <args size="16">Gw;M</args>
-  </opcode>
-  <opcode mnemonic="lss_o32">
-      <return>Branch.None</return>
-      <snippet>        int addr = $op2.get + op2.getBase(cpu);
-        cpu.ss(0xFFFF &amp; cpu.physicalMemory.getWord(addr+4));
-        $op1.setcpu.physicalMemory.getDoubleWord(addr));</snippet>
-    <args size="32">Gd;M</args>
-  </opcode>
-
   <opcode mnemonic="mov">
     <return>Branch.None</return>
     <snippet>        $op1.set$cast$op2.get);</snippet>
