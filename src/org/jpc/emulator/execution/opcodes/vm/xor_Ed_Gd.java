@@ -51,8 +51,8 @@ public class xor_Ed_Gd extends Executable
         Reg op1 = cpu.regs[op1Index];
         Reg op2 = cpu.regs[op2Index];
         cpu.of = cpu.af = cpu.cf = false;
-        cpu.flagResult = (short)(op1.get32() ^ op2.get32());
-        op1.set32((short)cpu.flagResult);
+        cpu.flagResult = (op1.get32() ^ op2.get32());
+        op1.set32(cpu.flagResult);
         cpu.flagStatus = SZP;
         return Branch.None;
     }

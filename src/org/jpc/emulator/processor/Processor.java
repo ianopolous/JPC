@@ -1223,6 +1223,8 @@ public class Processor implements HardwareComponent
                     r_edx.set32(0x49656e69); /* "ineI", with i in the low nibble of DL */
                     r_ecx.set32(0x6c65746e); /* "ntel", with n in the low nibble of CL */
                     return;
+                case 0x80000000:
+                case 0x80000001:
                 case 0x01:
                     r_eax.set32(0x00000513);
                     r_ebx.set32(0);
@@ -1251,13 +1253,13 @@ public class Processor implements HardwareComponent
                     r_ecx.set32(0);
                     r_edx.set32(0);
                     return;
-                case 0x80000000:
-                case 0x80000001:
-                    r_eax.set32(0);
-                    r_ebx.set32(0);
-                    r_ecx.set32(0);
-                    r_edx.set32(0);
-                    return;
+//                case 0x80000000:
+//                case 0x80000001:
+//                    r_eax.set32(0);
+//                    r_ebx.set32(0);
+//                    r_ecx.set32(0);
+//                    r_edx.set32(0);
+//                    return;
                 default:
                     System.err.printf("Unknown CPUID argument eax=%08x\n", r_eax.get32());
                     r_eax.set32(0);

@@ -1187,7 +1187,7 @@
     <args size="32">Ed;Ib</args>
     <args size="32">Ed;Id</args>
     <args size="16">Ew;Gw</args>
-    <args size="16">Ed;Gd</args>
+    <args size="32">Ed;Gd</args>
     <args size="16">Ew;Iw</args>
     <args size="16">Gw;Ew</args>
     <args size="32">Gd;Ed</args>

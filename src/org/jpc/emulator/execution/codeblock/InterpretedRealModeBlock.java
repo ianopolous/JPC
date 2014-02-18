@@ -29,6 +29,7 @@ package org.jpc.emulator.execution.codeblock;
 
 import org.jpc.emulator.execution.decoder.*;
 import org.jpc.emulator.execution.*;
+import org.jpc.emulator.execution.opcodes.rm.pushfd;
 import org.jpc.emulator.processor.*;
 import static org.jpc.emulator.execution.Executable.*;
 

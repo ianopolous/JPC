@@ -49,9 +49,10 @@ public class lss_o32_Gd_M_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        int addr = op2.get(cpu) + op2.getBase(cpu);
-        cpu.ss(0xFFFF & cpu.physicalMemory.getWord(addr+4));
-        op1.set32(cpu.physicalMemory.getDoubleWord(addr));
+        int selector = 0xFFFF & op2.get16(cpu, 4);
+        int offset = op2.get32(cpu, 0);
+        cpu.ss(selector);
+        op1.set32(offset);
         return Branch.None;
     }
 
