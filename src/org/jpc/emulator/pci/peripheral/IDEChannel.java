@@ -42,22 +42,17 @@ import java.util.logging.*;
 
 /**
  * 
- * @author Ian Preston
+ * @author Chris Dennis
  */
 class IDEChannel extends AbstractHardwareComponent implements IODevice {
 
     private static final Logger LOGGING = Logger.getLogger(IDEChannel.class.getName());
-    private static final int INDEX_PULSE_CYCLE = 10;
     private IDEState[] devices;
     private IDEState currentDevice;
     private int ioBase,  ioBaseTwo,  irq;
     private InterruptController irqDevice;
     private int nextDriveSerial;
-    private int channel;
-    public static final String CDLABEL = "Generic 1234  ";/*"JPC CD-ROM";*/
-    public static final String HDLABEL = "Generic 1234  ";//"JPC HARDDISK";
-    public static final String HD_VERSION = "0.01";
-    public static final String CD_VERSION = "ALPHA1  ";
+    public static final String CDLABEL = "CDROM";//"JPC CD-ROM";
 
     public void saveState(DataOutput output) throws IOException {
         output.writeInt(ioBase);
@@ -139,13 +134,12 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
         }
     }
 
-    public IDEChannel(int channel, int irq, InterruptController irqDevice, int ioBase, int ioBaseTwo, BlockDevice[] drives, BMDMAIORegion bmdma) {
+    public IDEChannel(int irq, InterruptController irqDevice, int ioBase, int ioBaseTwo, BlockDevice[] drives, BMDMAIORegion bmdma) {
         this.irq = irq;
         this.irqDevice = irqDevice;
         this.ioBase = ioBase;
         this.ioBaseTwo = ioBaseTwo;
         this.nextDriveSerial = 1;
-        this.channel = channel;
 
         devices = new IDEState[2];
         devices[0] = new IDEState(drives[0]); // master
@@ -251,25 +245,23 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
 
     private void writeCommand(int data) {
         /* common for both drives */
-        if (((devices[0].command & IDEState.IDE_CMD_RESET) == 0) && ((data & IDEState.IDE_CMD_RESET) != 0))
-        {
+        if (((devices[0].command & IDEState.IDE_CMD_RESET) == 0) &&
+                ((data & IDEState.IDE_CMD_RESET) != 0)) {
             /* reset low to high */
             devices[0].status = (byte) (IDEState.BUSY_STAT | IDEState.SEEK_STAT);
             devices[0].error = 0x01;
-            devices[0].dataBufferOffset = 0;
-            devices[0].multSectors = 0;
-            devices[0].select &= ~0x40;
             devices[1].status = (byte) (IDEState.BUSY_STAT | IDEState.SEEK_STAT);
             devices[1].error = 0x01;
-            devices[1].dataBufferOffset = 0;
-            devices[1].multSectors = 0;
-            devices[1].select &= ~0x40;
-        }
-        else if (((devices[0].command & IDEState.IDE_CMD_RESET) != 0) && ((data & IDEState.IDE_CMD_RESET) == 0))
-        {
+        } else if (((devices[0].command & IDEState.IDE_CMD_RESET) != 0) &&
+                ((data & IDEState.IDE_CMD_RESET) == 0)) {
             /* reset high to low */
             for (int i = 0; i < 2; i++) {
-                devices[i].status = (byte) (IDEState.READY_STAT);
+                if (devices[i].isCDROM) {
+                    devices[i].status = 0x00; /* NOTE: READY is not set */
+
+                } else {
+                    devices[i].status = (byte) (IDEState.READY_STAT | IDEState.SEEK_STAT);
+                }
                 devices[i].setSignature();
             }
         }
@@ -304,17 +296,17 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                 break;
             case 2:
                 clearHob();
-                devices[0].hobNSector = (byte) devices[0].sector_count;
-                devices[1].hobNSector = (byte) devices[1].sector_count;
-                devices[0].sector_count = 0xff & data;
-                devices[1].sector_count = 0xff & data;
+                devices[0].hobNSector = (byte) devices[0].nSector;
+                devices[1].hobNSector = (byte) devices[1].nSector;
+                devices[0].nSector = 0xff & data;
+                devices[1].nSector = 0xff & data;
                 break;
             case 3:
                 clearHob();
-                devices[0].hobSector = devices[0].sector_no;
-                devices[1].hobSector = devices[1].sector_no;
-                devices[0].sector_no = (byte) data;
-                devices[1].sector_no = (byte) data;
+                devices[0].hobSector = devices[0].sector;
+                devices[1].hobSector = devices[1].sector;
+                devices[0].sector = (byte) data;
+                devices[1].sector = (byte) data;
                 break;
             case 4:
                 clearHob();
@@ -331,7 +323,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                 devices[1].hcyl = (byte) data;
                 break;
             case 6:
-
+                // FIXME: HOB readback uses bit 7
                 devices[0].select = (byte) ((data & ~0x10) | 0xa0);
                 devices[1].select = (byte) (data | 0x10 | 0xa0);
                 /* select drive */
@@ -345,212 +337,97 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                     break;
                 }
                 switch (data) {
-                    case IDEState.WIN_RECAL:
-                        if (currentDevice.isCDROM)
-                        {
-                            currentDevice.abortCommand();
-                            break;
-                        }
-                        if (currentDevice.drive == null)
-                        {
-                            currentDevice.error = 2; // track 0 not found
-                            currentDevice.status = (byte) (IDEState.READY_STAT | IDEState.ERR_STAT);
-                            currentDevice.setIRQ();
-                        }
-                        currentDevice.error = 0;
-                        currentDevice.status = (byte) (IDEState.READY_STAT | IDEState.SEEK_STAT);
-                        currentDevice.setIRQ();
-                        break;
-                    case IDEState.WIN_READ_EXT:
-                    case IDEState.WIN_MULTREAD_EXT:
-                        lba48 = true;
-                    case IDEState.WIN_READ:
-                    case IDEState.WIN_READ_ONCE:
-                    case IDEState.WIN_MULTREAD:
-                        if ((currentDevice.isCDROM) || (currentDevice.drive == null))
-                        {
-                            currentDevice.abortCommand();
-                            currentDevice.setIRQ();
-                            return;
-                        }
-
-                        currentDevice.commandLBA48Transform(lba48);
-                        if ((data == IDEState.WIN_MULTREAD) || (data == IDEState.WIN_MULTREAD_EXT))
-                        {
-                            if (currentDevice.multSectors == 0) {
-                                currentDevice.abortCommand();
-                                currentDevice.setIRQ();
-                                return;
-                            }
-                            currentDevice.requiredNumberOfSectors = currentDevice.multSectors;
-                        }
-                        else
-                            currentDevice.requiredNumberOfSectors = 1;
-                        currentDevice.sectorRead();
-                        break;
-                    case IDEState.WIN_WRITE_EXT:
-                    case IDEState.WIN_MULTWRITE_EXT:
-                        lba48 = true;
-                    case IDEState.WIN_WRITE:
-                    case IDEState.WIN_MULTWRITE:
-                        if ((currentDevice.isCDROM) || (currentDevice.drive == null))
-                        {
-                            currentDevice.abortCommand();
-                            currentDevice.setIRQ();
-                            return;
-                        }
-                        currentDevice.commandLBA48Transform(lba48);
-                        if ((data == IDEState.WIN_MULTWRITE) || (data == IDEState.WIN_MULTWRITE_EXT))
-                        {
-                            if (currentDevice.multSectors == 0) {
-                                currentDevice.abortCommand();
-                                currentDevice.setIRQ();
-                                return;
-                            }
-                            currentDevice.requiredNumberOfSectors = currentDevice.multSectors;
-                        }
-                        else
-                            currentDevice.requiredNumberOfSectors = 1;
-
-                        currentDevice.error = 0;
-                        currentDevice.status = IDEState.SEEK_STAT;
-                        int n = currentDevice.sector_count;
-                        if (n > currentDevice.requiredNumberOfSectors) {
-                            n = currentDevice.requiredNumberOfSectors;
-                        }
-                        currentDevice.transferStart(currentDevice.ioBuffer, 0, 512 * n, IDEState.ETF_SECTOR_WRITE);
-                        break;
-                    case IDEState.WIN_DIAGNOSE:
-                        currentDevice.setSignature();
-                        currentDevice.status = 0x00;
-                        currentDevice.error = 0x01;
-                        currentDevice.setIRQ();
-                        break;
-                    case IDEState.WIN_SPECIFY:
-                        if (currentDevice.isCDROM)
-                        {
-                            currentDevice.abortCommand();
-                            break;
-                        }
-                        if (currentDevice.drive == null)
-                        {
-                            //currentDevice.error = 0x12;
-                            currentDevice.status = (byte) IDEState.READY_STAT;
-                            currentDevice.setIRQ();
-                            return;
-                        }
-                        if (currentDevice.sector_count != currentDevice.sectors)
-                        {
-                            currentDevice.abortCommand();
-                            break;
-                        }
-                        if ((currentDevice.select & 0xf) == 0) // Linux 2.6.x kernels use this value and don't like aborting here
-                        {}
-                        else if ((currentDevice.select & 0xf) != currentDevice.heads-1)
-                        {
-                            currentDevice.abortCommand();
-                            break;
-                        }
-                        currentDevice.error = 0;
-                        currentDevice.status = (byte) (IDEState.READY_STAT);
-                        currentDevice.setIRQ();
-                        break;
                     case IDEState.WIN_IDENTIFY:
                         if ((currentDevice.drive != null) && !currentDevice.isCDROM) {
-                            currentDevice.error = 0;
-                            currentDevice.command = (byte)data;
-                            currentDevice.status = (byte) (IDEState.READY_STAT | IDEState.SEEK_STAT);
                             currentDevice.identify();
+                            currentDevice.status = (byte) (IDEState.READY_STAT | IDEState.SEEK_STAT);
                             currentDevice.transferStart(currentDevice.ioBuffer, 0, 512, IDEState.ETF_TRANSFER_STOP);
                         } else {
                             if (currentDevice.isCDROM) {
                                 currentDevice.setSignature();
                             }
                             currentDevice.abortCommand();
-                            return;
                         }
-//                        currentDevice.setIRQ();
+                        currentDevice.setIRQ();
                         break;
-                    case IDEState.WIN_SETFEATURES:
-                        if (currentDevice.drive == null) {
+                    case IDEState.WIN_SPECIFY:
+                    case IDEState.WIN_RECAL:
+                        currentDevice.error = 0;
+                        currentDevice.status = (byte) (IDEState.READY_STAT | IDEState.SEEK_STAT);
+                        currentDevice.setIRQ();
+                        break;
+                    case IDEState.WIN_SETMULT:
+                        if (currentDevice.nSector > IDEState.MAX_MULT_SECTORS ||
+                                currentDevice.nSector == 0 ||
+                                (currentDevice.nSector & (currentDevice.nSector - 1)) != 0) {
                             currentDevice.abortCommand();
-                            currentDevice.setIRQ();
-                            return;
+                        } else {
+                            currentDevice.multSectors = currentDevice.nSector;
+                            currentDevice.status = IDEState.READY_STAT;
                         }
-                        switch (currentDevice.feature) {
-                            case (byte) 0x02: /* write cache enable */
-                            case (byte) 0x82: /* write cache disable */
-                            case (byte) 0xaa: /* read look-ahead enable */
-                            case (byte) 0x55: /* read look-ahead disable */
-                            case (byte) 0xCC: /* read look-ahead enable */
-                            case (byte) 0x66: /* disable reverting to power-on default */
-                                currentDevice.status = IDEState.READY_STAT | IDEState.SEEK_STAT;
-                                currentDevice.setIRQ();
-                                break;
-                            case (byte) 0x03: /* set transfer mode */
-                                int mode = currentDevice.sector_count & 0x07;
-                                switch (currentDevice.sector_count >>> 3) {
-                                    case 0x00: // pio default
-                                    case 0x01: // pio mode
-                                        currentDevice.mdma_mode = 0;
-                                        currentDevice.udma_mode = 0;
-                                        putLE16InByte(currentDevice.identifyData, 126, 0x07);
-                                        putLE16InByte(currentDevice.identifyData, 176, 0x3f);
-                                        break;
-                                    case 0x04: /* mdma mode */
-                                        currentDevice.mdma_mode = 1 << mode;
-                                        currentDevice.mdma_mode = 0;
-                                        putLE16InByte(currentDevice.identifyData, 126, 0x07 | (1 << (mode + 8)));
-                                        putLE16InByte(currentDevice.identifyData, 176, 0x3f);
-                                        break;
-                                    case 0x08: /* udma mode */
-                                        currentDevice.mdma_mode = 0;
-                                        currentDevice.mdma_mode = 1 << mode;
-                                        putLE16InByte(currentDevice.identifyData, 126, 0x07);
-                                        putLE16InByte(currentDevice.identifyData, 176, 0x3f | (1 << (mode + 8)));
-                                        break;
-                                    default:
-                                        currentDevice.abortCommand();
-                                        currentDevice.setIRQ();
-                                        return;
-                                }
-                                currentDevice.status = IDEState.READY_STAT | IDEState.SEEK_STAT;
-                                currentDevice.setIRQ();
-                                break;
-                            default:
-                                currentDevice.abortCommand();
-                                currentDevice.setIRQ();
-                                return;
-                        }
+                        currentDevice.setIRQ();
                         break;
                     case IDEState.WIN_VERIFY_EXT:
                         lba48 = true;
                     case IDEState.WIN_VERIFY:
                     case IDEState.WIN_VERIFY_ONCE:
-                        if ((currentDevice.isCDROM) || (currentDevice.drive == null))
-                        {
+                        currentDevice.commandLBA48Transform(lba48);
+                        /* do sector number check ? */
+                        currentDevice.status = IDEState.READY_STAT;
+                        currentDevice.setIRQ();
+                        break;
+                    case IDEState.WIN_READ_EXT:
+                        lba48 = true;
+                    case IDEState.WIN_READ:
+                    case IDEState.WIN_READ_ONCE:
+                        if (currentDevice.drive == null) {
                             currentDevice.abortCommand();
                             currentDevice.setIRQ();
                             return;
                         }
                         currentDevice.commandLBA48Transform(lba48);
-                        currentDevice.status = IDEState.READY_STAT;
-                        currentDevice.setIRQ();
+                        currentDevice.requiredNumberOfSectors = 1;
+                        currentDevice.sectorRead();
                         break;
-                    case IDEState.WIN_SETMULT:
-                        if ((currentDevice.isCDROM) || (currentDevice.drive == null))
-                        {
+                    case IDEState.WIN_WRITE_EXT:
+                        lba48 = true;
+                    case IDEState.WIN_WRITE:
+                    case IDEState.WIN_WRITE_ONCE:
+                        currentDevice.commandLBA48Transform(lba48);
+                        currentDevice.error = 0;
+                        currentDevice.status = IDEState.SEEK_STAT | IDEState.READY_STAT;
+                        currentDevice.requiredNumberOfSectors = 1;
+                        currentDevice.transferStart(currentDevice.ioBuffer, 0, 512, IDEState.ETF_SECTOR_WRITE);
+                        break;
+                    case IDEState.WIN_MULTREAD_EXT:
+                        lba48 = true;
+                    case IDEState.WIN_MULTREAD:
+                        if (currentDevice.multSectors == 0) {
                             currentDevice.abortCommand();
+                            currentDevice.setIRQ();
+                            return;
                         }
-                        else if (currentDevice.sector_count > IDEState.MAX_MULT_SECTORS ||
-                                currentDevice.sector_count == 0 ||
-                                (currentDevice.sector_count & (currentDevice.sector_count - 1)) != 0) {
+                        currentDevice.commandLBA48Transform(lba48);
+                        currentDevice.requiredNumberOfSectors = currentDevice.multSectors;
+                        currentDevice.sectorRead();
+                        break;
+                    case IDEState.WIN_MULTWRITE_EXT:
+                        lba48 = true;
+                    case IDEState.WIN_MULTWRITE:
+                        if (currentDevice.multSectors == 0) {
                             currentDevice.abortCommand();
-                        } else {
-                            currentDevice.multSectors = currentDevice.sector_count;
-                            currentDevice.status = IDEState.READY_STAT;
+                            currentDevice.setIRQ();
+                            return;
                         }
-                        currentDevice.setIRQ();
+                        currentDevice.commandLBA48Transform(lba48);
+                        currentDevice.error = 0;
+                        currentDevice.status = IDEState.SEEK_STAT | IDEState.READY_STAT;
+                        currentDevice.requiredNumberOfSectors = currentDevice.multSectors;
+                        int n = currentDevice.nSector;
+                        if (n > currentDevice.requiredNumberOfSectors) {
+                            n = currentDevice.requiredNumberOfSectors;
+                        }
+                        currentDevice.transferStart(currentDevice.ioBuffer, 0, 512 * n, IDEState.ETF_SECTOR_WRITE);
                         break;
                     case IDEState.WIN_READDMA_EXT:
                         lba48 = true;
@@ -579,48 +456,77 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                     case IDEState.WIN_READ_NATIVE_MAX_EXT:
                         lba48 = true;
                     case IDEState.WIN_READ_NATIVE_MAX:
-                        if (currentDevice.isCDROM || (currentDevice.drive == null)) {
+                        currentDevice.commandLBA48Transform(lba48);
+                        currentDevice.setSector(currentDevice.drive.getTotalSectors() - 1);
+                        currentDevice.status = IDEState.READY_STAT;
+                        currentDevice.setIRQ();
+                        break;
+                    case IDEState.WIN_CHECKPOWERMODE1:
+                        currentDevice.nSector = 0xff; /* device active or idle */
+                        currentDevice.status = IDEState.READY_STAT;
+                        currentDevice.setIRQ();
+                        break;
+                    case IDEState.WIN_SETFEATURES:
+                        if (currentDevice.drive == null) {
                             currentDevice.abortCommand();
                             currentDevice.setIRQ();
                             return;
                         }
-                        currentDevice.commandLBA48Transform(lba48);
-                        if ((currentDevice.select & 0x40) == 0)
-                        {
-                            currentDevice.abortCommand();
-                            return;
+                        /* XXX: valid for CDROM ? */
+                        switch (currentDevice.feature) {
+                            case (byte) 0x02: /* write cache enable */
+                            case (byte) 0x82: /* write cache disable */
+                            case (byte) 0xaa: /* read look-ahead enable */
+                            case (byte) 0x55: /* read look-ahead disable */
+                                currentDevice.status = IDEState.READY_STAT | IDEState.SEEK_STAT;
+                                currentDevice.setIRQ();
+                                break;
+                            case (byte) 0x03: /* set transfer mode */
+                                int val = currentDevice.nSector & 0x07;
+                                switch (currentDevice.nSector >>> 3) {
+                                    case 0x00: // pio default
+                                    case 0x01: // pio mode
+                                        putLE16InByte(currentDevice.identifyData, 126, 0x07);
+                                        putLE16InByte(currentDevice.identifyData, 176, 0x3f);
+                                        break;
+                                    case 0x04: /* mdma mode */
+                                        putLE16InByte(currentDevice.identifyData, 126, 0x07 | (1 << (val + 8)));
+                                        putLE16InByte(currentDevice.identifyData, 176, 0x3f);
+                                        break;
+                                    case 0x08: /* udma mode */
+                                        putLE16InByte(currentDevice.identifyData, 126, 0x07);
+                                        putLE16InByte(currentDevice.identifyData, 176, 0x3f | (1 << (val + 8)));
+                                        break;
+                                    default:
+                                        currentDevice.abortCommand();
+                                        currentDevice.setIRQ();
+                                        return;
+                                }
+                                currentDevice.status = IDEState.READY_STAT | IDEState.SEEK_STAT;
+                                currentDevice.setIRQ();
+                                break;
+                            default:
+                                currentDevice.abortCommand();
+                                currentDevice.setIRQ();
+                                return;
                         }
-                        currentDevice.setSector(currentDevice.drive.getTotalSectors() - 1);
-                        currentDevice.status = IDEState.READY_STAT | IDEState.SEEK_STAT;
-                        currentDevice.setIRQ();
                         break;
-                    case IDEState.WIN_CHECKPOWERMODE1:
-                        currentDevice.sector_count = 0xff; /* device active or idle */
+                    case IDEState.WIN_FLUSH_CACHE:
+                    case IDEState.WIN_FLUSH_CACHE_EXT:
+                        if (currentDevice.drive != null) {
+                            LOGGING.log(Level.INFO, "Should flush {0}", currentDevice.drive);
+                        }
                         currentDevice.status = IDEState.READY_STAT;
                         currentDevice.setIRQ();
                         break;
                     case IDEState.WIN_STANDBYNOW1:
                     case IDEState.WIN_IDLEIMMEDIATE:
-                    case IDEState.WIN_FLUSH_CACHE:
-                    case IDEState.WIN_FLUSH_CACHE_EXT:
                         currentDevice.status = IDEState.READY_STAT;
                         currentDevice.setIRQ();
                         break;
-                    case IDEState.WIN_SEEK:
-                        if (currentDevice.isCDROM || (currentDevice.drive == null)) {
-                            currentDevice.abortCommand();
-                            currentDevice.setIRQ();
-                            return;
-                        }
-                        currentDevice.error = 0;
-                        currentDevice.status = IDEState.READY_STAT | IDEState.SEEK_STAT;
-                        currentDevice.setIRQ();
-                        break;
-
                     /* ATAPI commands */
                     case IDEState.WIN_PIDENTIFY:
                         if (currentDevice.isCDROM) {
-                            currentDevice.error = 0;
                             currentDevice.atapiIdentify();
                             currentDevice.status = IDEState.READY_STAT | IDEState.SEEK_STAT;
                             currentDevice.transferStart(currentDevice.ioBuffer, 0, 512, IDEState.ETF_TRANSFER_STOP);
@@ -629,7 +535,12 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                         }
                         currentDevice.setIRQ();
                         break;
-                    case IDEState.WIN_DEVICE_RESET:
+                    case IDEState.WIN_DIAGNOSE:
+                        currentDevice.setSignature();
+                        currentDevice.status = 0x00;
+                        currentDevice.error = 0x01;
+                        break;
+                    case IDEState.WIN_SRST:
                         if (!currentDevice.isCDROM) {
                             currentDevice.abortCommand();
                             currentDevice.setIRQ();
@@ -637,7 +548,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                         }
                         currentDevice.setSignature();
                         currentDevice.status = 0x00; /* NOTE: READY is _not_ set */
-                        currentDevice.error &= ~(1 << 7);
+                        currentDevice.error = 0x01;
                         break;
                     case IDEState.WIN_PACKETCMD:
                         if (!currentDevice.isCDROM) {
@@ -652,10 +563,8 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                             return;
                         }
                         currentDevice.atapiDMA = ((currentDevice.feature & 1) == 1);
-                        currentDevice.sector_count = 1;
-                        currentDevice.status &= ~(IDEState.BUSY_STAT | IDEState.WRERR_STAT);
+                        currentDevice.nSector = 1;
                         currentDevice.transferStart(currentDevice.ioBuffer, 0, IDEState.ATAPI_PACKET_SIZE, IDEState.ETF_ATAPI_COMMAND);
-                        // no interrupt here.
                         break;
                     default:
                         currentDevice.abortCommand();
@@ -685,7 +594,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                 if (devices[0].drive == null && devices[1].drive == null) {
                     return 0;
                 } else if (!hob) {
-                    return currentDevice.sector_count & 0xff;
+                    return currentDevice.nSector & 0xff;
                 } else {
                     return currentDevice.hobNSector;
                 }
@@ -693,7 +602,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                 if (devices[0].drive == null && devices[1].drive == null) {
                     return 0;
                 } else if (!hob) {
-                    return currentDevice.sector_no;
+                    return currentDevice.sector;
                 } else {
                     return currentDevice.hobSector;
                 }
@@ -726,13 +635,6 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                     irqDevice.setIRQ(irq, 0);
                     return 0;
                 } else {
-                    currentDevice.indexPulseCount++;
-                    currentDevice.status &= ~IDEState.INDEX_STAT;
-                    if (currentDevice.indexPulseCount > INDEX_PULSE_CYCLE)
-                    {
-                        currentDevice.status |= IDEState.INDEX_STAT;
-                        currentDevice.indexPulseCount = 0;
-                    }
                     irqDevice.setIRQ(irq, 0);
                     return currentDevice.status;
                 }
@@ -740,11 +642,6 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
     }
 
     private int readDataWord() {
-        if ((currentDevice.status & IDEState.DRQ_STAT) == 0)
-        {
-            System.err.println("IDE: IO read16(0x1f0) with drq == 0");
-            return 0;
-        }
         int data = 0;
         data |= 0xff & currentDevice.dataBuffer[currentDevice.dataBufferOffset++];
         data |= 0xff00 & (currentDevice.dataBuffer[currentDevice.dataBufferOffset++] << 8);
@@ -1132,20 +1029,18 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
         public static final int IDF_WRITE_DMA_CB = 1;
         public static final int IDF_READ_DMA_CB = 2;
         public static final int IDF_ATAPI_READ_DMA_CB = 3;
+        public static final String HD_VERSION = "0.01";
         private int cylinders,  heads,  sectors;
-        public byte status,  command,  error,  feature,  select; // head = select & 0xf, lba_mode = select & 0x40
+        public byte status,  command,  error,  feature,  select;
         public byte hcyl,  lcyl;
-        public byte sector_no;
-        public int indexPulseCount;
-        public int sector_count;
+        public byte sector;
+        public int nSector;
         public int endTransferFunction;
         public boolean isCDROM;
         public boolean atapiDMA;
         public int requiredNumberOfSectors;
         public int multSectors;
-        public int driveSerial;
-        public int mdma_mode; // double up
-        public int udma_mode; // double up
+        public int driveSerial;        //lba48 support
         public byte hobFeature;
         public byte hobNSector;
         public byte hobSector;
@@ -1204,8 +1099,8 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
             output.writeByte(select);
             output.writeByte(hcyl);
             output.writeByte(lcyl);
-            output.writeByte(sector_no);
-            output.writeInt(sector_count);
+            output.writeByte(sector);
+            output.writeInt(nSector);
             output.writeInt(endTransferFunction);
             output.writeBoolean(isCDROM);
             output.writeBoolean(atapiDMA);
@@ -1251,8 +1146,8 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
             select = input.readByte();
             hcyl = input.readByte();
             lcyl = input.readByte();
-            sector_no = input.readByte();
-            sector_count = input.readInt();
+            sector = input.readByte();
+            nSector = input.readInt();
             endTransferFunction = input.readInt();
             isCDROM = input.readBoolean();
             atapiDMA = input.readBoolean();
@@ -1303,8 +1198,8 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
         public void setSignature() {
             select &= 0xf0; /* clear head */
             /* put signature */
-            sector_count = 1;
-            sector_no = 1;
+            nSector = 1;
+            sector = 1;
             if (isCDROM) {
                 lcyl = (byte) 0x14;
                 hcyl = (byte) 0xeb;
@@ -1341,15 +1236,14 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                 ioBuffer[i] = (byte) 0;
             }
             putLE16InByte(ioBuffer, 0, (2 << 14) | (5 << 8) | (1 << 7) | (2 << 5) | (0 << 0));
-            stringToBytes("BXCD00000           ", ioBuffer, 20, 20);
-            ioBuffer[28] = (byte) (0x30 + driveSerial);
-//            putLE16InByte(ioBuffer, 40, 3);
-//            putLE16InByte(ioBuffer, 42, 512); /* cache size in sectors */
-//            putLE16InByte(ioBuffer, 44, 4); /* ecc bytes */
-            stringToBytes(CD_VERSION, ioBuffer, 46, 8);
+            stringToBytes("JPC" + driveSerial, ioBuffer, 20, 20);
+            putLE16InByte(ioBuffer, 40, 3); /* XXX: retired, remove ? */
+            putLE16InByte(ioBuffer, 42, 512); /* cache size in sectors */
+            putLE16InByte(ioBuffer, 44, 4); /* ecc bytes */
+            stringToBytes(HD_VERSION, ioBuffer, 46, 8);
             stringToBytes(CDLABEL, ioBuffer, 54, 40);
             putLE16InByte(ioBuffer, 96, 1); /* dword I/O */
-            putLE16InByte(ioBuffer, 98, (1 << 9)|(1 << 8)); /* DMA and LBA supported */
+            putLE16InByte(ioBuffer, 98, (1 << 9)); /* DMA and LBA supported */
             putLE16InByte(ioBuffer, 106, 3); /* words 54-58, 64-70 are valid */
             putLE16InByte(ioBuffer, 126, 0x103);
             putLE16InByte(ioBuffer, 128, 1);
@@ -1371,9 +1265,9 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                     select = (byte) ((select & 0xf0) | (sectorNumber >>> 24));
                     hcyl = (byte) (sectorNumber >>> 16);
                     lcyl = (byte) (sectorNumber >>> 8);
-                    sector_no = (byte) sectorNumber;
+                    sector = (byte) sectorNumber;
                 } else {
-                    sector_no = (byte) sectorNumber;
+                    sector = (byte) sectorNumber;
                     lcyl = (byte) (sectorNumber >>> 8);
                     hcyl = (byte) (sectorNumber >>> 16);
                     hobSector = (byte) (sectorNumber >>> 24);
@@ -1386,13 +1280,13 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                 hcyl = (byte) (cyl >>> 8);
                 lcyl = (byte) (cyl);
                 select = (byte) ((select & 0xf0) | ((r / sectors) & 0x0f));
-                sector_no = (byte) ((r % sectors) + 1);
+                sector = (byte) ((r % sectors) + 1);
             }
         }
 
         public void sectorWriteDMA() {
             status = READY_STAT | SEEK_STAT | DRQ_STAT;
-            int n = sector_count;
+            int n = nSector;
             if (n > MAX_MULT_SECTORS) {
                 n = MAX_MULT_SECTORS;
             }
@@ -1411,16 +1305,16 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
         public void sectorWrite() {
             status = READY_STAT | SEEK_STAT;
             long sectorNumber = getSector();
-            int n = sector_count;
+            int n = nSector;
             if (n > requiredNumberOfSectors) {
                 n = requiredNumberOfSectors;
             }
             drive.write(sectorNumber, ioBuffer, n);
-            sector_count -= n;
-            if (sector_count == 0) {
+            nSector -= n;
+            if (nSector == 0) {
                 transferStop();
             } else {
-                int n1 = sector_count;
+                int n1 = nSector;
                 if (n1 > requiredNumberOfSectors) {
                     n1 = requiredNumberOfSectors;
                 }
@@ -1434,18 +1328,17 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
             status = READY_STAT | SEEK_STAT;
             error = 0; /* not needed by IDE spec, but needed by Windows */
             long sectorNumber = getSector();
-            int n = sector_count;
+            int n = nSector;
             if (n == 0) // no more sectors to read from disk
             {
                 transferStop();
             } else {
                 n = Math.min(n, requiredNumberOfSectors);
-                // TODO set gui drive indicator
                 drive.read(sectorNumber, ioBuffer, n);
                 transferStart(ioBuffer, 0, 512 * n, ETF_SECTOR_READ);
                 setIRQ();
                 setSector(sectorNumber + n);
-                sector_count -= n;
+                nSector -= n;
             }
         }
 
@@ -1459,36 +1352,24 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                 ioBuffer[i] = (byte) 0;
             }
             putLE16InByte(ioBuffer, 0, 0x0040);
-            if (cylinders > 16383)
-                putLE16InByte(ioBuffer, 2, 16383);
-            else
-                putLE16InByte(ioBuffer, 2, cylinders);
+            putLE16InByte(ioBuffer, 2, cylinders);
             putLE16InByte(ioBuffer, 6, heads);
-            putLE16InByte(ioBuffer, 8, 512 * sectors);
-            putLE16InByte(ioBuffer, 10, 512);
+            putLE16InByte(ioBuffer, 8, 512 * sectors); /* XXX: retired, remove ? */
+            putLE16InByte(ioBuffer, 10, 512); /* XXX: retired, remove ? */
             putLE16InByte(ioBuffer, 12, sectors);
-            try {
-                byte[] serial = "BXHD00000           ".getBytes("UTF-8");
-                serial[7] = (byte)(49 + channel);
-                serial[8] = (byte)(49 + channel);
-            stringToBytes(new String(serial), ioBuffer, 20, 20);
-            } catch (UnsupportedEncodingException e) {}
-            // buffer type dual ported mutli-sector_no buffer capable of simultaneous data transfers with a read caching capability.
-            putLE16InByte(ioBuffer, 40, 3);
-            putLE16InByte(ioBuffer, 42, 512); // cache size in sectors - 512 Sectors = 256kB cache
-            putLE16InByte(ioBuffer, 44, 4); // ECC bytes available on read/write long commands
-//            stringToBytes(HD_VERSION, ioBuffer, 46, 8);
-            stringToBytes(HDLABEL, ioBuffer, 54, 40); //TODO revert to "JPC HARDDISK"
-            putLE16InByte(ioBuffer, 94, MAX_MULT_SECTORS);
-            putLE16InByte(ioBuffer, 96, 1); // can perform DWORD IO
-            putLE16InByte(ioBuffer, 98, (1 << 9) | (1 << 8)); // LBA and DMA supported
-            putLE16InByte(ioBuffer, 102, 0x200); // PIO transfer cycle
-            putLE16InByte(ioBuffer, 104, 0x200); // DMA transfer cycle
-            putLE16InByte(ioBuffer, 106, 1 | (1 << 1) | (1 << 2)); // words 54-58, 64-70, 88 are valid
-            if (cylinders > 16383)
-                putLE16InByte(ioBuffer, 108, 16383);
-            else
-                putLE16InByte(ioBuffer, 108, cylinders);
+            stringToBytes("JPC" + driveSerial, ioBuffer, 20, 20);
+            putLE16InByte(ioBuffer, 40, 3); /* XXX: retired, remove ? */
+            putLE16InByte(ioBuffer, 42, 512); /* cache size in sectors */
+            putLE16InByte(ioBuffer, 44, 4); /* ecc bytes */
+            stringToBytes(HD_VERSION, ioBuffer, 46, 8);
+            stringToBytes("Generic 1234", ioBuffer, 54, 40); //TODO revert to "JPC HARDDISK"
+            putLE16InByte(ioBuffer, 94, 0x8000 | MAX_MULT_SECTORS);
+            putLE16InByte(ioBuffer, 96, 1); /* dword I/O */
+            putLE16InByte(ioBuffer, 98, (1 << 11) | (1 << 9) | (1 << 8)); /* DMA and LBA supported */
+            putLE16InByte(ioBuffer, 102, 0x200); /* PIO transfer cycle */
+            putLE16InByte(ioBuffer, 104, 0x200); /* DMA transfer cycle */
+            putLE16InByte(ioBuffer, 106, 1 | (1 << 1) | (1 << 2)); /* words 54-58, 64-70, 88 are valid */
+            putLE16InByte(ioBuffer, 108, cylinders);
             putLE16InByte(ioBuffer, 110, heads);
             putLE16InByte(ioBuffer, 112, sectors);
             int oldsize = cylinders * heads * sectors;
@@ -1499,60 +1380,27 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
             }
             putLE16InByte(ioBuffer, 120, (short) drive.getTotalSectors());
             putLE16InByte(ioBuffer, 122, (short) (drive.getTotalSectors() >>> 16));
-            putLE16InByte(ioBuffer, 126, 0x07 | (mdma_mode << 8)); // mdma mode supported
-            // 128 == 0 -> Word 64 PIO mode not supported
+            putLE16InByte(ioBuffer, 126, 0x07); // mdma0-2 supported
             putLE16InByte(ioBuffer, 130, 120);
             putLE16InByte(ioBuffer, 132, 120);
             putLE16InByte(ioBuffer, 134, 120);
             putLE16InByte(ioBuffer, 136, 120);
-            putLE16InByte(ioBuffer, 160, 0x7e); // ATA1 -> ATA6 supported
-            putLE16InByte(ioBuffer, 162, 0); // minor version number
+            putLE16InByte(ioBuffer, 160, 0xf0); // ata3 -> ata6 supported
+            putLE16InByte(ioBuffer, 162, 0x16); // conforms to ata5
             putLE16InByte(ioBuffer, 164, 1 << 14);
-            // Word 83: 15 shall be ZERO
-            //          14 shall be ONE
-            //          13 FLUSH CACHE EXT command supported
-            //          12 FLUSH CACHE command supported
-            //          11 Device configuration overlay supported
-            //          10 48-bit Address feature set supported
-            //           9 Automatic acoustic management supported
-            //           8 SET MAX security supported
-            //           7 reserved for 1407DT PARTIES
-            //           6 SetF sub-command Power-Up supported
-            //           5 Power-Up in standby feature set supported
-            //           4 Removable media notification supported
-            //           3 APM feature set supported
-            //           2 CFA feature set supported
-            //           1 READ/WRITE DMA QUEUED commands supported
-            //           0 Download MicroCode supported
-            //putLE16InByte(ioBuffer, 166, (1 << 14) | (1 << 13) | (1 << 12));
-            putLE16InByte(ioBuffer, 166, (1 << 14) | (1 << 13) | (1 << 12) | (1 << 10));
+            putLE16InByte(ioBuffer, 166, (1 << 14) | (1 << 13) | (1 << 12));
+            //putLE16InByte(ioBuffer, 166, (1 << 14) | (1 << 13) | (1 << 12) | (1 << 10));
             putLE16InByte(ioBuffer, 168, 1 << 14);
             putLE16InByte(ioBuffer, 170, 1 << 14);
-            // Word 86: 15 shall be ZERO
-            //          14 shall be ONE
-            //          13 FLUSH CACHE EXT command enabled
-            //          12 FLUSH CACHE command enabled
-            //          11 Device configuration overlay enabled
-            //          10 48-bit Address feature set enabled
-            //           9 Automatic acoustic management enabled
-            //           8 SET MAX security enabled
-            //           7 reserved for 1407DT PARTIES
-            //           6 SetF sub-command Power-Up enabled
-            //           5 Power-Up in standby feature set enabled
-            //           4 Removable media notification enabled
-            //           3 APM feature set enabled
-            //           2 CFA feature set enabled
-            //           1 READ/WRITE DMA QUEUED commands enabled
-            //           0 Download MicroCode enabled
-//            putLE16InByte(ioBuffer, 172, (1 << 14) | (1 << 13) | (1 << 12));
-            putLE16InByte(ioBuffer, 172, (1 << 14) | (1 << 13) | (1 << 12) | (1 << 10));
+            putLE16InByte(ioBuffer, 172, (1 << 14) | (1 << 13) | (1 << 12));
+            //putLE16InByte(ioBuffer, 172, (1 << 14) | (1 << 13) | (1 << 12) | (1 << 10));
             putLE16InByte(ioBuffer, 174, 1 << 14);
-            putLE16InByte(ioBuffer, 176, 0x3f | (udma_mode << 8));
+            putLE16InByte(ioBuffer, 176, 0x3f | (1 << 13));
             putLE16InByte(ioBuffer, 186, 1 | (1 << 14) | 0x2000);
-            putLE16InByte(ioBuffer, 200, (int) currentDevice.drive.getTotalSectors());
-            putLE16InByte(ioBuffer, 202, (int) (currentDevice.drive.getTotalSectors() >>> 16));
-            putLE16InByte(ioBuffer, 204, (int) (currentDevice.drive.getTotalSectors() >>> 32));
-            putLE16InByte(ioBuffer, 206, (int) (currentDevice.drive.getTotalSectors() >>> 48));
+            putLE16InByte(ioBuffer, 200, nSector);
+            putLE16InByte(ioBuffer, 202, nSector >>> 16);
+            putLE16InByte(ioBuffer, 204, /*nSector >>> 32*/ 0);
+            putLE16InByte(ioBuffer, 206, /*nSector >>> 48*/ 0);
 
             System.arraycopy(ioBuffer, 0, identifyData, 0, identifyData.length);
             identifySet = true;
@@ -1579,16 +1427,16 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
             this.lba48 = lba48;
 
             if (!this.lba48) {
-                if (sector_count == 0) {
-                    sector_count = 256;
+                if (nSector == 0) {
+                    nSector = 256;
                 }
             } else {
-                if ((sector_count == 0) && (hobNSector == 0)) {
-                    sector_count = 65536;
+                if ((nSector == 0) && (hobNSector == 0)) {
+                    nSector = 65536;
                 } else {
-                    int lo = 0xff & sector_count;
+                    int lo = 0xff & nSector;
                     int hi = 0xff & hobNSector;
-                    sector_count = (hi << 8) | lo;
+                    nSector = (hi << 8) | lo;
                 }
             }
         }
@@ -1599,17 +1447,17 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                     return ((select & 0x0fl) << 24) |
                             ((0xffl & hcyl) << 16) |
                             ((0xffl & lcyl) << 8) |
-                            (0xffl & sector_no);
+                            (0xffl & sector);
                 } else {
                     return ((0xffl & hobHCyl) << 40) |
                             ((0xffl & hobLCyl) << 32) |
                             ((0xffl & hobSector) << 24) |
                             ((0xffl & hcyl) << 16) |
                             ((0xffl & lcyl) << 16) |
-                            (0xffl & sector_no);
+                            (0xffl & sector);
                 }
             } else {
-                return ((((0xffl & hcyl) << 8) | (0xffl & lcyl)) * heads * sectors) + ((select & 0x0fl) * sectors) + ((0xffl & sector_no) - 1);
+                return ((((0xffl & hcyl) << 8) | (0xffl & lcyl)) * heads * sectors) + ((select & 0x0fl) * sectors) + ((0xffl & sector) - 1);
             }
         }
 
@@ -1977,14 +1825,14 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
         private void atapiCommandOk() {
             error = 0;
             status = READY_STAT;
-            sector_count = (sector_count & ~7) | ATAPI_INT_REASON_IO | ATAPI_INT_REASON_CD;
+            nSector = (nSector & ~7) | ATAPI_INT_REASON_IO | ATAPI_INT_REASON_CD;
             setIRQ();
         }
 
         private void atapiCommandError(int senseKey, int asc) {
             error = (byte) (this.senseKey << 4);
             status = READY_STAT | ERR_STAT;
-            sector_count = (sector_count & ~7) | ATAPI_INT_REASON_IO | ATAPI_INT_REASON_CD;
+            nSector = (nSector & ~7) | ATAPI_INT_REASON_IO | ATAPI_INT_REASON_CD;
             this.senseKey = (byte) senseKey;
             this.asc = (byte) asc;
             setIRQ();
@@ -2034,10 +1882,10 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
             if (packetTransferSize <= 0) { //end of transfer
                 transferStop();
                 status = READY_STAT;
-                sector_count = (sector_count & ~7) | ATAPI_INT_REASON_IO | ATAPI_INT_REASON_CD;
+                nSector = (nSector & ~7) | ATAPI_INT_REASON_IO | ATAPI_INT_REASON_CD;
                 setIRQ();
             } else {
-                /* see if a new sector_no must be read */
+                /* see if a new sector must be read */
                 if (lba != -1 && ioBufferIndex >= cdSectorSize) {
                     cdReadSector(lba, ioBuffer, cdSectorSize);
                     lba++;
@@ -2051,7 +1899,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                     ioBufferIndex += size;
                 } else {
                     /* a new transfer is needed */
-                    sector_count = (sector_count & ~7) | ATAPI_INT_REASON_IO;
+                    nSector = (nSector & ~7) | ATAPI_INT_REASON_IO;
                     int byteCountLimit = (0xff & lcyl) | (0xff00 & (hcyl << 8));
                     if (byteCountLimit == 0xffff) {
                         byteCountLimit--;
@@ -2067,7 +1915,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                     lcyl = (byte) size;
                     hcyl = (byte) (size >>> 8);
                     elementaryTransferSize = size;
-                    /* we cannot transmit more than one sector_no at a time */
+                    /* we cannot transmit more than one sector at a time */
                     if (lba != -1) {
                         size = Math.min(cdSectorSize - ioBufferIndex, size);
                     }
@@ -2093,9 +1941,9 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
 		}
 		if (length > size)
 		    length = size;
-                int start = sector_count;
+                int start = nSector;
                 sectorRead();
-                int end = sector_count;
+                int end = nSector;
 		bmdma.writeMemory(address, ioBuffer, ioBufferIndex, 512*(start-end));
 		packetTransferSize -= length;
 		ioBufferIndex += length;
@@ -2105,7 +1953,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
 
 	    if (packetTransferSize <= 0) {
 		status = READY_STAT | SEEK_STAT;
-		sector_count = (sector_count & ~0x7);
+		nSector = (nSector & ~0x7);
 		setIRQ();
 		return 0;
 	    }
@@ -2139,7 +1987,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
 
             if (packetTransferSize <= 0) {
                 status = READY_STAT;
-                sector_count = (sector_count & ~0x7) | ATAPI_INT_REASON_IO | ATAPI_INT_REASON_CD;
+                nSector = (nSector & ~0x7) | ATAPI_INT_REASON_IO | ATAPI_INT_REASON_CD;
                 setIRQ();
                 return 0;
             }
@@ -2165,7 +2013,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
                     lbaToMSF(buffer, bufferOffset, 0);
                     bufferOffset += 3;
                 } else {
-                    // sector_no 0
+                    // sector 0
                     intToBigEndianBytes(buffer, bufferOffset, 0);
                     bufferOffset += 4;
                 }
@@ -2257,7 +2105,7 @@ class IDEChannel extends AbstractHardwareComponent implements IODevice {
 
         private void hdReadSector(long sector, byte[] buffer, int sectorSize) {
             drive.read(sector, buffer, 1);
-            System.out.println("DMA reading sector_no: " + sector);
+            System.out.println("DMA reading sector: " + sector);
         }
 
         private void cdReadSector(int lba, byte[] buffer, int sectorSize) {
