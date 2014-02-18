@@ -85,7 +85,8 @@ public class EPROMMemory extends LazyCodeBlockMemory
 
     public void setWritable(boolean w)
     {
-        writable = w;
+        // disabled until I understand the interplay of this with ACPI tables and processor identification (it breaks qemu linux)
+//        writable = w;
     }
 
     public boolean writable()
@@ -95,7 +96,8 @@ public class EPROMMemory extends LazyCodeBlockMemory
 
     public void setReadable(boolean r)
     {
-        readable = r;
+        // disabled until I understand the interplay of this with ACPI tables and processor identification (it breaks qemu linux)
+//        readable = r;
     }
 
     public boolean readable()
@@ -148,6 +150,6 @@ public class EPROMMemory extends LazyCodeBlockMemory
     
     private void writeAttempted(int address, int size)
     {
-        LOGGING.log(Level.INFO, "Write of {0,number,integer} {0,choice,1#byte|1<bytes} attempted at address 0x{1}", new Object[]{Integer.valueOf(size), Integer.toHexString(address)});
+//        LOGGING.log(Level.INFO, "Write of {0,number,integer} {0,choice,1#byte|1<bytes} attempted at address 0x{1}", new Object[]{Integer.valueOf(size), Integer.toHexString(address)});
     }
 }
