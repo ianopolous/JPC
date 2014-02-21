@@ -34,9 +34,9 @@ public class TestGenerator
     private static void generateCases(boolean is32Bit, String cname, byte[] raw, BufferedWriter out) throws IOException
     {
         int mode = OracleFuzzer.RM;
-        if (cname.contains("pm\\."))
+        if (cname.contains("pm."))
             mode = OracleFuzzer.PM;
-        if (cname.contains("vm\\."))
+        if (cname.contains("vm."))
             mode = OracleFuzzer.VM;
         int[] inputState = getInputState(is32Bit, mode, cname);
 
@@ -56,6 +56,8 @@ public class TestGenerator
     {
         if (mode == OracleFuzzer.PM)
             return OracleFuzzer.getCanonicalProtectedModeInput(OracleFuzzer.codeEIP, is32Bit);
+        if (mode == OracleFuzzer.VM)
+            return OracleFuzzer.getCanonicalVM86ModeInput(OracleFuzzer.codeEIP);
         return OracleFuzzer.getCanonicalRealModeInput(OracleFuzzer.codeEIP);
     }
 }

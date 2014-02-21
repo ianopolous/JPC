@@ -8,7 +8,7 @@ build: jpc
 debugger: build_core
 	mkdir -p build
 	echo "Name: JPC Debugger" > debugger.manifest
-	echo "Author: Ian Preston" > application.manifest
+	echo "Author: Ian Preston" >> application.manifest
 	echo "Main-Class: org.jpc.debugger.JPC" >> debugger.manifest
 	echo "Build-Date: " `date` >> debugger.manifest
 	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> debugger.manifest
@@ -42,14 +42,13 @@ build_core:
 tools:
 	mkdir -p build
 	javac $(JAVA_BUILD_OPTS) -d build `find tools -name \*.java`
-	echo "Name: JPC Tools" > application.manifest
-	echo "Main-Class: tools.Tools" >> application.manifest
-	echo "Author: Ian Preston" > application.manifest
-	echo "Class-Path: Tools.jar:." >> jpc.manifest
+	echo "Name: JPC Tools" > jpc.manifest
+	echo "Main-Class: tools.Tools" >> jpc.manifest
+	echo "Author: Ian Preston" >> jpc.manifest
 
-	jar -cfm Tools.jar application.manifest \
+	jar -cfm Tools.jar jpc.manifest \
 	    -C build tools
-	rm -f application.manifest
+	rm -f jpc.manifest
 
 .PHONY: tests
 tests:
@@ -58,22 +57,20 @@ tests:
 	`find org/jpc/emulator/execution/decoder -name \*.java` \
 	org/jpc/emulator/execution/Executable.java \
 	org/jpc/j2se/Option.java
-	echo "Name: JPC Tools" > application.manifest
-	echo "Main-Class: tools.TestGenerator" >> application.manifest
+	echo "Name: JPC Tools" > jpc.manifest
+	echo "Main-Class: tools.TestGenerator" >> jpc.manifest
 	echo "Class-Path: Tools.jar:." >> jpc.manifest
 
-	jar -cfm TestGen.jar application.manifest \
+	jar -cfm TestGen.jar jpc.manifest \
 	    -C build tools -C build org/jpc/emulator/execution/decoder \
 	    -C build org/jpc/emulator/execution/Executable.class \
 	    -C build org/jpc/j2se
-	rm -f application.manifest
+	rm -f jpc.manifest
 
 .PHONY: clean
 clean:
 	rm -Rf build
-	rm -f jpc_core.jar jpc.jar jpc.manifest application.jar \
-	    application.manifest linuxapplication.jar linuxapplication.manifest \
-	    applet.jar applet.manifest core.manifest
+	rm -f jpc.manifest
 
 .PHONY: cleanse
 cleanse: clean
@@ -82,14 +79,14 @@ cleanse: clean
 
 .PHONY: application
 application: build_core
-	echo "Name: JPC Application" > application.manifest
-	echo "Author: Ian Preston" > application.manifest
-	echo "Main-Class: org.jpc.j2se.JPCApplication" >> application.manifest
-	echo "Build-Date: " `date` >> application.manifest
-	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> application.manifest
-	echo "" >> application.manifest
+	echo "Name: JPC Application" > jpc.manifest
+	echo "Author: Ian Preston" >> jpc.manifest
+	echo "Main-Class: org.jpc.j2se.JPCApplication" >> jpc.manifest
+	echo "Build-Date: " `date` >> jpc.manifest
+	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> jpc.manifest
+	echo "" >> jpc.manifest
 
-	jar -cfm JPCApplication.jar application.manifest \
+	jar -cfm JPCApplication.jar jpc.manifest \
 	    resources/bios/vgabios.bin \
 	    resources/bios/bios.bin resources/images/dosgames.img \
 	    resources/images/floppy.img resources/icon.png \
@@ -100,7 +97,7 @@ application: build_core
 	    resources/soundbank-min.gm \
 	    -C build org/jpc/emulator \
 	    -C build org/jpc/support -C build org/jpc/j2se -C build org/jpc/debugger
-	rm -f application.manifest
+	rm -f jpc.manifest
 	jar -i JPCApplication.jar
 
 .PHONY: release
@@ -112,14 +109,14 @@ release:
 	    `find org/jpc/classfile -name \*.java` \
 	    `find org/jpc/debugger -name \*.java` \
 	    `find org/jpc/j2se -name \*.java`
-	echo "Name: JPC Application" > application.manifest
-	echo "Author: Ian Preston" > application.manifest
-	echo "Main-Class: org.jpc.j2se.JPCApplication" >> application.manifest
-	echo "Build-Date: " `date` >> application.manifest
-	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> application.manifest
-	echo "" >> application.manifest
+	echo "Name: JPC Application" > jpc.manifest
+	echo "Author: Ian Preston" >> jpc.manifest
+	echo "Main-Class: org.jpc.j2se.JPCApplication" >> jpc.manifest
+	echo "Build-Date: " `date` >> jpc.manifest
+	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> jpc.manifest
+	echo "" >> jpc.manifest
 
-	jar -cfm JPCApplication.jar application.manifest \
+	jar -cfm JPCApplication.jar jpc.manifest \
 	    resources/bios/vgabios.bin \
 	    resources/bios/bios.bin resources/images/dosgames.img \
 	    resources/images/floppy.img resources/icon.png \
@@ -130,18 +127,18 @@ release:
 	    resources/soundbank-min.gm \
 	    -C build org/jpc/emulator \
 	    -C build org/jpc/support -C build org/jpc/j2se -C build org/jpc/debugger
-	rm -f application.manifest
+	rm -f jpc.manifest
 	jar -i JPCApplication.jar
 
 .PHONY: secondapplication
 secondapplication: build_core
-	echo "Name: JPC Application" > application.manifest
-	echo "Main-Class: org.jpc.j2se.JPCApplication" >> application.manifest
-	echo "Build-Date: " `date` >> application.manifest
-	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> application.manifest
-	echo "" >> application.manifest
+	echo "Name: JPC Application" > jpc.manifest
+	echo "Main-Class: org.jpc.j2se.JPCApplication" >> jpc.manifest
+	echo "Build-Date: " `date` >> jpc.manifest
+	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> jpc.manifest
+	echo "" >> jpc.manifest
 
-	jar -cfm JPCApplication2.jar application.manifest \
+	jar -cfm JPCApplication2.jar jpc.manifest \
 	    resources/bios/vgabios.bin \
 	    resources/bios/fuzzerBIOS resources/images/dosgames.img \
 	    resources/images/floppy.img resources/icon.png \
@@ -152,5 +149,5 @@ secondapplication: build_core
 	    resources/soundbank-min.gm \
 	    -C build org/jpc/emulator \
 	    -C build org/jpc/support -C build org/jpc/j2se -C build org/jpc/debugger
-	rm -f application.manifest
-	jar -i JPCApplication.jar
+	rm -f jpc.manifest
+	jar -i JPCApplication2.jar

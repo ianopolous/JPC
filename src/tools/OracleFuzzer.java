@@ -114,6 +114,14 @@ public class OracleFuzzer
 
     }
 
+    public static int[] getCanonicalVM86ModeInput(int codeEIP)
+    {
+        int[] real =  getCanonicalRealModeInput(codeEIP);
+        real[EmulatorControl.EFLAGS_INDEX] |= EmulatorControl.VM86_FLAG;
+        real[EmulatorControl.CRO_INDEX] |= 1; // set PM
+        return real;
+    }
+
     public static int[] getCanonicalRealModeInput(int codeEIP)
     {
         int[] inputState = new int[EmulatorControl.names.length];
@@ -390,7 +398,7 @@ public class OracleFuzzer
             disciple.setPhysicalMemory(0, real_mode_idt);
             oracle.setPhysicalMemory(0, real_mode_idt);
         }
-        else if (mode == PM)
+        else // PM and VM86 mode
         {
             disciple.setPhysicalMemory(inputState[EmulatorControl.IDT_BASE_INDEX], protected_mode_idt);
             oracle.setPhysicalMemory(inputState[EmulatorControl.IDT_BASE_INDEX], protected_mode_idt);

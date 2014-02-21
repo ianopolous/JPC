@@ -32,6 +32,10 @@ import java.io.IOException;
 
 public abstract class EmulatorControl
 {
+    public static int ESP_INDEX = 4;
+    public static int EIP_INDEX = 8;
+    public static int EFLAGS_INDEX = 9;
+    public static int VM86_FLAG = 1 << 17;
     public static int CRO_INDEX = 36;
     public static int GDT_BASE_INDEX = 24;
     public static int IDT_BASE_INDEX = 26;
@@ -85,7 +89,10 @@ public abstract class EmulatorControl
         boolean targetPM = (state[EmulatorControl.CRO_INDEX] & 1) != 0;
         if (targetPM)
         {
-            setPMState(state, currentCSEIP);
+            if ((state[EFLAGS_INDEX] & VM86_FLAG) != 0)
+                setVM86State(state, currentCSEIP);
+            else
+                setPMState(state, currentCSEIP);
             return;
         }
         // get to cs:eip = 0:2000
@@ -412,6 +419,165 @@ public abstract class EmulatorControl
         setPhysicalMemory(dataAddress16, new byte[8 * 8]);
     }
 
+    private void setVM86State(int[] state, int currentCSEIP)  throws IOException
+    {
+        // need to have [EIP, CS, EFLAGS, ESP, SS, ES, DS, FS, GS] on stack, then do iret_o32_a32
+        int[] stack = new int[9];
+        stack[0] = state[EIP_INDEX];
+        stack[1] = state[CS_BASE_INDEX] >> 4;
+        stack[2] = state[EFLAGS_INDEX];
+        stack[3] = state[ESP_INDEX];
+        stack[4] = state[SS_BASE_INDEX] >> 4;
+        stack[5] = state[ES_BASE_INDEX] >> 4;
+        stack[6] = state[DS_BASE_INDEX] >> 4;
+        stack[7] = state[FS_BASE_INDEX] >> 4;
+        stack[8] = state[GS_BASE_INDEX] >> 4;
+
+        // get to cs:eip = 0:2000
+        // Assumes we are currently in real mode
+        int codeAddress16 = 0x2000;
+        int dataAddress16 = 0x3000;
+        int ssespAddress16 = 0x4000;
+        int nextDataAddress = dataAddress16;
+
+        setPhysicalMemory(currentCSEIP, new byte[]{(byte) 0xea, (byte) codeAddress16, (byte) (codeAddress16 >> 8), (byte) 0, (byte) 0});
+        executeInstruction();
+        // zero what we just wrote
+        setPhysicalMemory(currentCSEIP, new byte[5]);
+
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        // assume we are starting in real mode
+        int intCount = 0;
+
+        // create GDTR
+        setPhysicalMemory(nextDataAddress, new byte[]{(byte)state[GDT_LIMIT_INDEX], (byte)(state[GDT_LIMIT_INDEX] >> 8),
+                (byte)state[GDT_BASE_INDEX], (byte)(state[GDT_BASE_INDEX] >> 8), (byte)(state[GDT_BASE_INDEX] >> 16),
+                (byte)(state[GDT_BASE_INDEX] >> 24)});
+        bout.write(0x0f); // LGDT ds:IW
+        bout.write(0x01);
+        bout.write(0x16);
+        bout.write(nextDataAddress);
+        bout.write(nextDataAddress >> 8);
+        nextDataAddress += 6;
+        intCount++;
+
+        byte[] gdt = toBytes(new long[] {0L, getDataDescriptor(state[ES_BASE_INDEX], state[ES_LIMIT_INDEX]),
+                getCodeDescriptor(state[CS_BASE_INDEX], state[CS_LIMIT_INDEX]), getDataDescriptor(state[SS_BASE_INDEX], state[SS_LIMIT_INDEX]),
+                getDataDescriptor(state[DS_BASE_INDEX], state[DS_LIMIT_INDEX]), getDataDescriptor(state[FS_BASE_INDEX], state[FS_LIMIT_INDEX]),
+                getDataDescriptor(state[GS_BASE_INDEX], state[GS_LIMIT_INDEX]), getCodeDescriptor(0, 0xffffffff), getDataDescriptor(0, 0xffffffff)});
+        setPhysicalMemory(state[GDT_BASE_INDEX], gdt);
+
+        // create IDTR
+        setPhysicalMemory(nextDataAddress, new byte[]{(byte)state[IDT_LIMIT_INDEX], (byte)(state[IDT_LIMIT_INDEX] >> 8),
+                (byte)state[IDT_BASE_INDEX], (byte)(state[IDT_BASE_INDEX] >> 8), (byte)(state[IDT_BASE_INDEX] >> 16),
+                (byte)(state[IDT_BASE_INDEX] >> 24)});
+        bout.write(0x0f); // LIDT ds:IW
+        bout.write(0x01);
+        bout.write(0x1e);
+        bout.write(nextDataAddress);
+        bout.write(nextDataAddress >> 8);
+        nextDataAddress += 6;
+        intCount++;
+
+        for (int i=1; i < 8; i++)
+        {
+            // mov reg, ID
+            bout.write(0x66);
+            bout.write(0xc7);
+            bout.write(0xc0+i);
+            bout.write(state[i]);
+            bout.write(state[i] >> 8);
+            bout.write(state[i] >> 16);
+            bout.write(state[i] >> 24);
+            intCount++;
+        }
+
+        // reset FPU
+        bout.write(0xdb);
+        bout.write(0xe3);
+        intCount++;
+
+        // set FPU stack (relies on ds base being 0)
+        for (int i=7; i >=0 ; i--)
+        {
+            byte[] value = new byte[8];
+            for (int j=0; j < 4; j++)
+                value[7-j] = (byte)(state[37 + 2*i] >> (8*(3-j)));
+            for (int j=4; j < 8; j++)
+                value[7-j] = (byte)(state[37 + 2*i +1] >> (8*(7-j)));
+            // put value in mem at dataAddress
+            setPhysicalMemory(nextDataAddress, value);
+
+            // fld that mem section
+            bout.write(0xdd);
+            bout.write(0x06);
+            bout.write(nextDataAddress);
+            bout.write(nextDataAddress >> 8);
+            nextDataAddress += 8;
+            intCount++;
+        }
+
+        // set esp for iret: mov esp, ID
+        bout.write(0x66);
+        bout.write(0xc7);
+        bout.write(0xc4);
+        bout.write(ssespAddress16);
+        bout.write(ssespAddress16 >> 8);
+        bout.write(ssespAddress16 >> 16);
+        bout.write(ssespAddress16 >> 24);
+        intCount++;
+
+        // set CR0 and switch to 16 bit protected mode
+        bout.write(0x0f); // mov eax, cr0
+        bout.write(0x20);
+        bout.write(0xc0);
+        bout.write(0x0c); // or al, 1
+        bout.write(0x01);
+        bout.write(0x0f); // mov cr0, eax
+        bout.write(0x22);
+        bout.write(0xc0);
+        intCount += 3;
+
+        // set ss base to 0
+        bout.write(0xc7);
+        bout.write(0xc0);
+        bout.write(8 << 3); // gdt index is 8 = base 0
+        bout.write(0);
+        bout.write(0x8e); // mov S, ax
+        bout.write(0xd0);
+        intCount += 2;
+
+        // set eax: mov eax, ID
+        bout.write(0x66);
+        bout.write(0xc7);
+        bout.write(0xc0);
+        bout.write(state[0]);
+        bout.write(state[0] >> 8);
+        bout.write(state[0] >> 16);
+        bout.write(state[0] >> 24);
+        intCount++;
+
+        // iretd to VM86 (loads eip, esp, segments and eflags)
+        bout.write(0x66);
+        bout.write(0xcf);
+        intCount++;
+
+        setPhysicalMemory(ssespAddress16, toBytes(stack));
+        setPhysicalMemory(codeAddress16, bout.toByteArray());
+        for (int i = 0; i < intCount-1; i++)
+            executeInstruction();
+        // account for mov ss, X executing 2 instructions in JPC
+        int[] stateNow = getState();
+        if (stateNow[8] != state[8])
+            executeInstruction();
+
+        // zero what we just wrote
+        setPhysicalMemory(codeAddress16, new byte[bout.size()]);
+        // and the data too
+        setPhysicalMemory(dataAddress16, new byte[8 * 8]);
+        setPhysicalMemory(ssespAddress16, new byte[4 * stack.length]);
+    }
+
     public static long getInterruptGateDescriptor(int gdt_index, int offset)
     {
         long d = ((gdt_index << 3) & 0xffffL) << 16;
@@ -441,6 +607,19 @@ public abstract class EmulatorControl
         d |= (limit & 0xf0000L) << 32;
         d |= (0x93L << 40); // present, read/write data segment
         return d;
+    }
+
+    public static byte[] toBytes(int[] d)
+    {
+        byte[] b = new byte[d.length*8];
+        for (int i=0; i < d.length; i++)
+        {
+            b[4*i] = (byte) d[i];
+            b[4*i + 1] = (byte) (d[i] >> 8);
+            b[4*i + 2] = (byte) (d[i] >> 16);
+            b[4*i + 3] = (byte) (d[i] >> 24);
+        }
+        return b;
     }
 
     public static byte[] toBytes(long[] d)

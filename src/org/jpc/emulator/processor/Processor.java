@@ -3811,6 +3811,8 @@ public class Processor implements HardwareComponent
                 segmentDescriptor = gdtr.getQuadWord(segmentSelector & 0xfff8);
             }
             Segment result = SegmentFactory.createProtectedModeSegment(linearMemory, segmentSelector, segmentDescriptor, isStack);
+            if (isStack && !((ProtectedModeSegment)result).isDataWritable())
+                throw ProcessorException.GENERAL_PROTECTION_0;
             // mark segment descriptor as accessed (somehow this stops doom working)
 //            if ((segmentSelector & 0x4) != 0)
 //                ldtr.VMsetByte((segmentSelector & 0xfff8) + 5, (byte) (ldtr.getByte((segmentSelector & 0xfff8) + 5) | 1));
