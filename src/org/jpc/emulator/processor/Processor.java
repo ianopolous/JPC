@@ -491,6 +491,17 @@ public class Processor implements HardwareComponent
         }
     }
 
+    public short stack16(int offset)
+    {
+        if (ss.getDefaultSizeFlag()) {
+            int targetESP = r_esp.get32() + offset;
+            return ss.getWord(targetESP);
+        } else {
+            int targetESP = r_esp.get16() + offset;
+            return ss.getWord(0xffff & targetESP);
+        }
+    }
+
     public int stack32(int offset)
     {
         if (ss.getDefaultSizeFlag()) {
@@ -668,9 +679,9 @@ public class Processor implements HardwareComponent
             } catch (ProcessorException e) {
                 throw ProcessorException.STACK_SEGMENT_0;
             }
-            int tempEIP = 0xffff & pop16();
-            int tempCS = 0xffff & pop16();
-            int tempEFlags = 0xffff & pop16();
+            int tempEIP = 0xffff & stack16(0);
+            int tempCS = 0xffff & stack16(2);
+            int tempEFlags = 0xffff & stack16(4);
 
             return iret16ProtectedMode16BitAddressing(tempCS, tempEIP, tempEFlags);
         }
@@ -702,13 +713,13 @@ public class Processor implements HardwareComponent
                 if (returnSegment.getRPL() > getCPL()) {
                     //OUTER PRIVILEGE-LEVEL
                     try {
-                        ss.checkAddress((r_esp.get32() + 3) & 0xFFFF);
+                        ss.checkAddress((r_esp.get32() + 3+6) & 0xFFFF);
                     } catch (ProcessorException e) {
                         throw ProcessorException.STACK_SEGMENT_0;
                     }
 
-                    int returnESP = 0xffff & ss.getWord(r_esp.get16() & 0xFFFF);
-                    int newSS = 0xffff & ss.getWord((r_esp.get16() + 2) & 0xFFFF);
+                    int returnESP = 0xffff & stack16(6);
+                    int newSS = 0xffff & stack16(8);
 
                     Segment returnStackSegment = getSegment(newSS, true);
 
@@ -861,9 +872,9 @@ public class Processor implements HardwareComponent
         } catch (ProcessorException e) {
             throw ProcessorException.STACK_SEGMENT_0;
         }
-        int tmpIP = 0xffff & pop16();
-        int tmpCS = 0xffff & pop16();
-        int tmpFlags = 0xffff & pop16();
+        int tmpIP = 0xffff & stack16(0);
+        int tmpCS = 0xffff & stack16(2);
+        int tmpFlags = 0xffff & stack16(4);
         if (cpuLevel >= 5)
         {
             if (((getCR4() & CR4_VIRTUAL8086_MODE_EXTENSIONS) != 0) && eflagsIOPrivilegeLevel < 3)
@@ -877,6 +888,7 @@ public class Processor implements HardwareComponent
                 if ((tmpFlags & EFLAGS_IF_MASK) != 0)
                     tmpFlags |= EFLAGS_VIF_MASK;
                 setEFlags(tmpFlags, changeMask);
+                incrementStack(6);
                 return;
             }
         }
@@ -884,6 +896,7 @@ public class Processor implements HardwareComponent
         eip = tmpIP;
         int changeMask = EFLAGS_OSZAPC_MASK | EFLAGS_TF_MASK | EFLAGS_DF_MASK | EFLAGS_NT_MASK | EFLAGS_IF_MASK;
         setEFlags(tmpFlags, changeMask);
+        incrementStack(6);
     }
 
     public void setSeg(int index, int value)
