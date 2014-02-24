@@ -1395,8 +1395,9 @@ public class Processor implements HardwareComponent
         if (ioPermMapBaseAddress + port/8 >= tss.getLimit())
             return false;
         try {
-            byte ioPermMapByte = tss.getByte(ioPermMapBaseAddress + (port >>> 3));
-            return (ioPermMapByte & (1 << (port & 0x7))) == 0;
+            short ioPermMap = tss.getWord(ioPermMapBaseAddress + (port >>> 3));
+            int bitIndex = port & 7;
+            return (ioPermMap & (1 << bitIndex)) == 0;
         } catch (ProcessorException p) {
             if (p.getType() == ProcessorException.Type.GENERAL_PROTECTION)
                 return false;

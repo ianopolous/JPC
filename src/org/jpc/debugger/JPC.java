@@ -156,6 +156,14 @@ public class JPC extends ApplicationFrame implements ActionListener {
         resyncImageSelection(new File(System.getProperty("user.dir")));
     }
 
+    private void initialLayout()
+    {
+        ProcessorFrame pf = new ProcessorFrame();
+        addInternalFrame(desktop, -10, 10, pf);
+        ExecutionTraceFrame tr = new ExecutionTraceFrame();
+        addInternalFrame(desktop, -(20+pf.getWidth()), 10, tr);
+    }
+
     private void resyncImageSelection(File dir) {
         floppyDisk.rescan(dir);
         hardDisk.rescan(dir);
@@ -545,7 +553,7 @@ public class JPC extends ApplicationFrame implements ActionListener {
                 bringToFront(bp);
             } else {
                 bp = new BreakpointsFrame();
-                addInternalFrame(desktop, 550, 360, bp);
+                addInternalFrame(desktop, 10, 560, bp);
             }
         } else if (src == watchpoints) {
             WatchpointsFrame wp = (WatchpointsFrame) objects.getObject(WatchpointsFrame.class);
@@ -569,7 +577,7 @@ public class JPC extends ApplicationFrame implements ActionListener {
                 bringToFront(m);
             } else {
                 m = new PCMonitorFrame();
-                addInternalFrame(desktop, 0, 0, m);
+                addInternalFrame(desktop, 10, 10, m);
             }
         }
 //         else if (src == frequencies)
@@ -829,5 +837,6 @@ public class JPC extends ApplicationFrame implements ActionListener {
         if ((args.length > 0) || Option.config.isSet() || Option.boot.isSet()) {
             instance.createPC(args);
         }
+        instance.initialLayout();
     }
 }

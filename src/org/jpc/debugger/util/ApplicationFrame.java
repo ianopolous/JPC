@@ -78,6 +78,10 @@ public class ApplicationFrame extends JFrame
         int width = f.getPreferredSize().width;
         int height = f.getPreferredSize().height;
 
+        if (x < 0)
+            x = desktop.getWidth() + x - width;
+        if (y < 0)
+            y = desktop.getHeight() + y - height;
         f.setBounds(x, y, width, height);
         f.setVisible(true);
         desktop.add(f);

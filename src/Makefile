@@ -26,7 +26,7 @@ debugger: build_core
 	    -C build org/jpc/support -C build org/jpc/j2se \
 	    -C build org/jpc/debugger
 	rm -f debugger.manifest
-	jar -i JPCApplication.jar
+	jar -i JPCDebugger.jar
 
 .PHONY: build_core
 build_core:

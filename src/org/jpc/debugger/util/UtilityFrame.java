@@ -51,7 +51,7 @@ public class UtilityFrame extends JInternalFrame implements PropertyChangeListen
     public UtilityFrame(String title, boolean resizable, boolean closable, boolean maximizable,  boolean iconifiable)
     {
         super(title, resizable, closable, maximizable, iconifiable); 
-        setPreferredSize(new Dimension(600, 500));
+        setPreferredSize(new Dimension(750, 550));
 
         reportPanel = new ReportPanel();
         addInternalFrameListener(this);

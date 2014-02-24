@@ -76,7 +76,7 @@ public class ProcessorFrame extends UtilityFrame implements PCListener
         registerTable.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(hex));
 
         add("Center", new JScrollPane(registerTable));
-        setPreferredSize(new Dimension(480, 500));
+        setPreferredSize(new Dimension(430, 500));
 
         JPC.getInstance().objects().addObject(this);
 

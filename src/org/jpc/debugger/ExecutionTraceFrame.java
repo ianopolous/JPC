@@ -65,7 +65,7 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
 
         add("Center", new JScrollPane(trace));
 
-        setPreferredSize(new Dimension(500, 530));
+        setPreferredSize(new Dimension(450, 530));
         JPC.getInstance().objects().addObject(this);
         JPC.getInstance().refresh();
     }
@@ -122,7 +122,7 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
     {
         TraceModel()
         {
-            super(new String[]{"Index", "Code Block", "Address", "X86 Length", "X86 Count", "Decimal address", "raw x86"}, new int[]{100, 400, 150, 150, 150, 150, 400});
+            super(new String[]{"Index", "Code Block", "Address", "X86 Length", "X86 Count", "raw x86"}, new int[]{100, 400, 80, 50, 50, 400});
         }
 
         public int getRowCount()
@@ -151,8 +151,6 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
             case 4:
                 return Integer.valueOf(block.getX86Count());
             case 5:
-                return Integer.valueOf(codeBlocks.getBlockAddress(row));
-            case 6:
                 int address = codeBlocks.getBlockAddress(row);
                 int len = block.getX86Length();
                 byte[] buf = new byte[len];
