@@ -48,8 +48,6 @@ public class fadd_ST5_ST5 extends Executable
         double freg1 = cpu.fpu.ST(5);
         if ((freg0 == Double.NEGATIVE_INFINITY && freg1 == Double.POSITIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY && freg1 == Double.NEGATIVE_INFINITY))
             cpu.fpu.setInvalidOperation();
-	if ((freg1 == 0.0) && !Double.isNaN(freg0) && !Double.isInfinite(freg0))
-            cpu.fpu.setZeroDivide();
         cpu.fpu.setST(5, freg0+freg1);
         return Branch.None;
     }

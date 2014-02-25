@@ -48,8 +48,6 @@ public class faddp_ST6_ST3 extends Executable
         double freg1 = cpu.fpu.ST(3);
         if ((freg0 == Double.NEGATIVE_INFINITY && freg1 == Double.POSITIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY && freg1 == Double.NEGATIVE_INFINITY))
             cpu.fpu.setInvalidOperation();
-	if ((freg1 == 0.0) && !Double.isNaN(freg0) && !Double.isInfinite(freg0))
-            cpu.fpu.setZeroDivide();
         cpu.fpu.setST(6, freg0+freg1);
         cpu.fpu.pop();
         return Branch.None;

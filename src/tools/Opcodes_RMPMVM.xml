@@ -409,8 +409,6 @@
         double freg1 = $op1.getF;
         if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY))
             cpu.fpu.setInvalidOperation();
-	if ((freg1 == 0.0) &amp;&amp; !Double.isNaN(freg0) &amp;&amp; !Double.isInfinite(freg0))
-            cpu.fpu.setZeroDivide();
         cpu.fpu.setST(0, freg0+freg1);</snippet>
     <args size="32">Md</args>
     <args size="64">Mq</args>
@@ -422,8 +420,6 @@
         double freg1 = $op2.get;
         if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY))
             cpu.fpu.setInvalidOperation();
-	if ((freg1 == 0.0) &amp;&amp; !Double.isNaN(freg0) &amp;&amp; !Double.isInfinite(freg0))
-            cpu.fpu.setZeroDivide();
         $op1.setfreg0+freg1);</snippet>
     <args size="64">STi;STi</args>
   </opcode>
@@ -434,8 +430,6 @@
         double freg1 = $op2.get;
         if ((freg0 == Double.NEGATIVE_INFINITY &amp;&amp; freg1 == Double.POSITIVE_INFINITY) || (freg0 == Double.POSITIVE_INFINITY &amp;&amp; freg1 == Double.NEGATIVE_INFINITY))
             cpu.fpu.setInvalidOperation();
-	if ((freg1 == 0.0) &amp;&amp; !Double.isNaN(freg0) &amp;&amp; !Double.isInfinite(freg0))
-            cpu.fpu.setZeroDivide();
         $op1.setfreg0+freg1);
         cpu.fpu.pop();</snippet>
     <args size="64">STi;STi</args>
