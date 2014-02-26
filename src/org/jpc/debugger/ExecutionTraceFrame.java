@@ -157,8 +157,15 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
                 Memory m = codeBlocks.getMemory(address);
                 if (m instanceof LinearAddressSpace.PageFaultWrapper)
                     return "Page Fault";
-                
-                m.copyContentsIntoArray(address & AddressSpace.BLOCK_MASK, buf, 0, len);
+                if ((address & AddressSpace.BLOCK_MASK) + len <= AddressSpace.BLOCK_SIZE)
+                    m.copyContentsIntoArray(address & AddressSpace.BLOCK_MASK, buf, 0, len);
+                else
+                {
+                    int first = AddressSpace.BLOCK_SIZE - (address & AddressSpace.BLOCK_MASK);
+                    m.copyContentsIntoArray(address & AddressSpace.BLOCK_MASK, buf, 0, first);
+                    Memory m2 = codeBlocks.getMemory(address + AddressSpace.BLOCK_SIZE);
+                    m2.copyContentsIntoArray(0, buf, first, len-first);
+                }
                 return toHexString(buf);                
                     
             default:
