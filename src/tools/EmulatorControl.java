@@ -36,6 +36,12 @@ public abstract class EmulatorControl
     public static int EIP_INDEX = 8;
     public static int EFLAGS_INDEX = 9;
     public static int VM86_FLAG = 1 << 17;
+    public static int OF_FLAG = 1 << 11;
+    public static int SF_FLAG = 1 << 7;
+    public static int ZF_FLAG = 1 << 6;
+    public static int AF_FLAG = 1 << 4;
+    public static int PF_FLAG = 1 << 2;
+    public static int CF_FLAG = 1;
     public static int CRO_INDEX = 36;
     public static int GDT_BASE_INDEX = 24;
     public static int IDT_BASE_INDEX = 26;
@@ -136,6 +142,11 @@ public abstract class EmulatorControl
                 bout.write(0);
                 bout.write(0);
             }
+            else if (seg == 2) // ss
+            {
+                bout.write(0);
+                bout.write(0);
+            }
             else
             {
                 bout.write(state[seg + 10]);
@@ -205,6 +216,15 @@ public abstract class EmulatorControl
         bout.write(0xc0 + (3 << 3));
         intCount += 2;
 
+        // set ss (mov cr0,eax needed it zero)
+        bout.write(0xc7);
+        bout.write(0xc0);
+        bout.write(state[3 + 10]);
+        bout.write(state[3 + 10] >> 8);
+        bout.write(0x8e);
+        bout.write(0xc0 + (2 << 3));
+        intCount += 2;
+
         // set eax: mov reg, ID
         bout.write(0x66);
         bout.write(0xc7);
@@ -224,12 +244,15 @@ public abstract class EmulatorControl
         intCount++;
 
         setPhysicalMemory(codeAddress16, bout.toByteArray());
-        for (int i = 0; i < intCount-1; i++)
+        for (int i = 0; i < intCount-2; i++)
             executeInstruction();
         // account for mov ss, X executing 2 instructions in JPC
-        int[] stateNow = getState();
-        if (stateNow[8] != state[8])
-            executeInstruction();
+        for (int i: new int[]{0, 1})
+        {
+            int[] stateNow = getState();
+            if (stateNow[8] != state[8])
+                executeInstruction();
+        }
 
         // zero what we just wrote
         setPhysicalMemory(codeAddress16, new byte[bout.size()]);

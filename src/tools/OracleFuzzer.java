@@ -27,13 +27,12 @@
 package tools;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class OracleFuzzer
 {
+    public static final Random r = new Random(System.currentTimeMillis());
+
     public static String altJar = "JPCApplication2.jar";
     public static final int RM = 1;
     public static final int PM = 2;
@@ -114,37 +113,65 @@ public class OracleFuzzer
 
     }
 
-    public static int[] getCanonicalVM86ModeInput(int codeEIP)
+    public static int[] getCanonicalVM86ModeInput(int codeEIP, boolean random)
     {
-        int[] real =  getCanonicalRealModeInput(codeEIP);
+        int[] real =  getCanonicalRealModeInput(codeEIP, random);
         real[EmulatorControl.EFLAGS_INDEX] |= EmulatorControl.VM86_FLAG;
         real[EmulatorControl.CRO_INDEX] |= 1; // set PM
         return real;
     }
 
-    public static int[] getCanonicalRealModeInput(int codeEIP)
+    public static int[] getCanonicalRealModeInput(int codeEIP, boolean random)
     {
         int[] inputState = new int[EmulatorControl.names.length];
-        inputState[0] = 0x12345678;
-        inputState[1] = 0x9ABCDEF0;
-        inputState[2] = 0x192A3B4C;
-        inputState[3] = 0x5D6E7F80;
-        inputState[4] = 0x800; // esp
-        inputState[5] = 0x15263748;
-        inputState[6] = 0x9DAEBFC0;
-        inputState[7] = 0x15263748;
-        inputState[8] = codeEIP; // eip
-        inputState[9] = 0x846; // eflags
-        inputState[10] = 0x3000; inputState[30] = inputState[10] << 4; // es
-        inputState[11] = 0x0; inputState[31] = inputState[11] << 4; // cs
-        inputState[12] = 0x4000; inputState[32] = inputState[12] << 4; // ds
-        inputState[13] = 0x5000; inputState[33] = inputState[13] << 4;// ss
-        inputState[14] = 0x6000; inputState[34] = inputState[14] << 4;// fs
-        inputState[15] = 0x7000; inputState[35] = inputState[15] << 4;// gs
-        // RM segment limits (not used)
-        for (int i=0; i < 6; i++)
-            inputState[17 + i] = 0xffff;
-        inputState[25] = inputState[27] = inputState[29] = 0xffff;
+        if (random)
+        {
+            for (int i=0; i < 8; i++)
+                inputState[i] = r.nextInt();
+            inputState[8] = codeEIP;
+            inputState[9] = (r.nextBoolean()? 0 : EmulatorControl.OF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.SF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.ZF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.AF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.PF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.CF_FLAG);
+            for (int i=10; i < 16; i++)
+                inputState[i] = r.nextInt() & 0xffff;
+            inputState[30] = inputState[10] << 4; // es
+            inputState[31] = inputState[11] << 4; // cs
+            inputState[32] = inputState[12] << 4; // ds
+            inputState[33] = inputState[13] << 4;// ss
+            inputState[34] = inputState[14] << 4;// fs
+            inputState[35] = inputState[15] << 4;// gs
+            for (int i=0; i < 6; i++)
+                inputState[17 + i] = 0xffff;
+            for (int i=0; i < 3; i++)
+                inputState[25 + i] = r.nextInt();
+            inputState[11] = 0x0; inputState[31] = inputState[11] << 4; // cs
+        }
+        else
+        {
+            inputState[0] = 0x12345678;
+            inputState[1] = 0x9ABCDEF0;
+            inputState[2] = 0x192A3B4C;
+            inputState[3] = 0x5D6E7F80;
+            inputState[4] = 0x800; // esp
+            inputState[5] = 0x15263748;
+            inputState[6] = 0x9DAEBFC0;
+            inputState[7] = 0x15263748;
+            inputState[8] = codeEIP; // eip
+            inputState[9] = 0x846; // eflags
+            inputState[10] = 0x3000; inputState[30] = inputState[10] << 4; // es
+            inputState[11] = 0x0; inputState[31] = inputState[11] << 4; // cs
+            inputState[12] = 0x4000; inputState[32] = inputState[12] << 4; // ds
+            inputState[13] = 0x5000; inputState[33] = inputState[13] << 4;// ss
+            inputState[14] = 0x6000; inputState[34] = inputState[14] << 4;// fs
+            inputState[15] = 0x7000; inputState[35] = inputState[15] << 4;// gs
+            // RM segment limits (not used)
+            for (int i=0; i < 6; i++)
+                inputState[17 + i] = 0xffff;
+            inputState[25] = inputState[27] = inputState[29] = 0xffff;
+        }
         inputState[36] = 0x60000010; // CR0
 
         // FPU
@@ -177,7 +204,7 @@ public class OracleFuzzer
 
     public static void fuzzRealMode(int codeEIP) throws IOException
     {
-        int[] inputState = getCanonicalRealModeInput(codeEIP);
+        int[] inputState = getCanonicalRealModeInput(codeEIP, true);
         byte[][] preficesA = new byte[][]{new byte[0]};
         byte[][] preficesB = new byte[][]{new byte[]{0x66}};
         byte[][] preficesC = new byte[][]{new byte[]{0x67}};
@@ -188,29 +215,52 @@ public class OracleFuzzer
         new Thread(new FuzzThread(codeEIP, preficesD, inputState, RM, false, "tests/RMtest-D")).start();
     }
 
-    public static int[] getCanonicalProtectedModeInput(int codeEIP, boolean isCS32Bit)
+    public static int[] getCanonicalProtectedModeInput(int codeEIP, boolean isCS32Bit, boolean random)
     {
         int[] inputState = new int[EmulatorControl.names.length];
-        inputState[0] = 0x12345678;
-        inputState[1] = 0x9ABCDEF0;
-        inputState[2] = 0x192A3B4C;
-        inputState[3] = 0x5D6E7F80;
-        inputState[4] = 0x800; // esp
-        inputState[5] = 0x15263748;
-        inputState[6] = 0x9DAEBFC0;
-        inputState[7] = 0x15263748;
-        inputState[8] = codeEIP; // eip
-        inputState[9] = 0x846; // eflags
-        inputState[10] = 0x3000; inputState[30] = inputState[10] << 4; // es
-        inputState[11] = 0x0; inputState[31] = inputState[11] << 4; // cs
-        inputState[12] = 0x4000; inputState[32] = inputState[12] << 4; // ds
-        inputState[13] = 0x5000; inputState[33] = inputState[13] << 4;// ss
-        inputState[14] = 0x6000; inputState[34] = inputState[14] << 4;// fs
-        inputState[15] = 0x7000; inputState[35] = inputState[15] << 4;// gs
-        for (int i=0; i < 6; i++)
-            inputState[17 + i] = 0xffffff;
-        inputState[23] = isCS32Bit ? 1 : 0;
-        inputState[25] = inputState[27] = inputState[29] = 0xffff;
+        if (random)
+        {
+            for (int i=0; i < 8; i++)
+                inputState[i] = r.nextInt();
+            inputState[8] = codeEIP;
+            inputState[9] = (r.nextBoolean()? 0 : EmulatorControl.OF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.SF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.ZF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.AF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.PF_FLAG) |
+                    (r.nextBoolean()? 0 : EmulatorControl.CF_FLAG);
+            for (int i=30; i < 36; i++)
+                inputState[i] = r.nextInt() & 0xffff;
+            for (int i=0; i < 6; i++)
+                inputState[17 + i] = r.nextInt();
+            inputState[23] = isCS32Bit ? 1 : 0;
+            for (int i=0; i < 3; i++)
+                inputState[25 + i] = r.nextInt();
+            inputState[11] = 0x0; inputState[31] = inputState[11] << 4; // cs
+        }
+        else
+        {
+            inputState[0] = 0x12345678;
+            inputState[1] = 0x9ABCDEF0;
+            inputState[2] = 0x192A3B4C;
+            inputState[3] = 0x5D6E7F80;
+            inputState[4] = 0x800; // esp
+            inputState[5] = 0x15263748;
+            inputState[6] = 0x9DAEBFC0;
+            inputState[7] = 0x15263748;
+            inputState[8] = codeEIP; // eip
+            inputState[9] = 0x846; // eflags
+            inputState[10] = 0x3000; inputState[30] = inputState[10] << 4; // es
+            inputState[11] = 0x0; inputState[31] = inputState[11] << 4; // cs
+            inputState[12] = 0x4000; inputState[32] = inputState[12] << 4; // ds
+            inputState[13] = 0x5000; inputState[33] = inputState[13] << 4;// ss
+            inputState[14] = 0x6000; inputState[34] = inputState[14] << 4;// fs
+            inputState[15] = 0x7000; inputState[35] = inputState[15] << 4;// gs
+            for (int i=0; i < 6; i++)
+                inputState[17 + i] = 0xffffff;
+            inputState[23] = isCS32Bit ? 1 : 0;
+            inputState[25] = inputState[27] = inputState[29] = 0xffff;
+        }
         inputState[36] = 0x60000011; // CR0: PM, no paging
 
         inputState[EmulatorControl.IDT_BASE_INDEX] = 0x1000;
@@ -245,7 +295,7 @@ public class OracleFuzzer
 
     public static void fuzzProtectedMode(int codeEIP) throws IOException
     {
-        int[] inputState = getCanonicalProtectedModeInput(codeEIP, false);
+        int[] inputState = getCanonicalProtectedModeInput(codeEIP, false, true);
         byte[][] preficesA = new byte[][]{new byte[0]};
         byte[][] preficesB = new byte[][]{new byte[]{0x66}};
         byte[][] preficesC = new byte[][]{new byte[]{0x67}};

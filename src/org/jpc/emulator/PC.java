@@ -721,40 +721,46 @@ public class PC {
         for (int c=0; c < instrs; c++)
         {
             PeekableMemoryStream input = new PeekableMemoryStream();
-            Instruction in;
-            String e;
-            if (processor.isProtectedMode()) {
-                if (processor.isVirtual8086Mode()) {
-                    input.set(linearAddr, eip);
-                    in = Disassembler.disassemble16(input);
-                e = Disassembler.getExecutableName(3, in);
-                } else {
-                    input.set(linearAddr, eip);
-                    boolean opSize = processor.cs.getDefaultSizeFlag();
-                    if (opSize)
-                        in = Disassembler.disassemble32(input);
-                    else
+            try
+            {
+                Instruction in;
+                String e;
+                if (processor.isProtectedMode()) {
+                    if (processor.isVirtual8086Mode()) {
+                        input.set(linearAddr, eip);
                         in = Disassembler.disassemble16(input);
-                    e = Disassembler.getExecutableName(2, in);
+                        e = Disassembler.getExecutableName(3, in);
+                    } else {
+                        input.set(linearAddr, eip);
+                        boolean opSize = processor.cs.getDefaultSizeFlag();
+                        if (opSize)
+                            in = Disassembler.disassemble32(input);
+                        else
+                            in = Disassembler.disassemble16(input);
+                        e = Disassembler.getExecutableName(2, in);
+                    }
+                } else {
+                    input.set(physicalAddr, eip);
+                    in = Disassembler.disassemble16(input);
+                    e = Disassembler.getExecutableName(1, in);
                 }
-            } else {
-                input.set(physicalAddr, eip);
-                in = Disassembler.disassemble16(input);
-                e = Disassembler.getExecutableName(1, in);
+                b.append(in.toString());
+                b.append(" == ");
+                b.append(e);
+                b.append(" == ");
+                input.seek(-in.x86Length);
+                for(int i=0; i < in.x86Length; i++)
+                    b.append(String.format("%02x ", input.read8()));
+                b.append("\n");
+                eip += in.x86Length;
+                if (in.toString().equals("sti"))
+                    c--; // do one more instruction
+                if (in.isBranch())
+                    break;
+            } catch (IllegalStateException e)
+            {
+                b.append(e.getMessage());
             }
-            b.append(in.toString());
-            b.append(" == ");
-            b.append(e);
-            b.append(" == ");
-            input.seek(-in.x86Length);
-            for(int i=0; i < in.x86Length; i++)
-                b.append(String.format("%02x ", input.read8()));
-            b.append("\n");
-            eip += in.x86Length;
-            if (in.toString().equals("sti"))
-                c--; // do one more instruction
-            if (in.isBranch())
-                break;
         }
         return b.toString();
     }
