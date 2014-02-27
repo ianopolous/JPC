@@ -116,7 +116,7 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
         bar.add(options);
         setJMenuBar(bar);
 
-        setPreferredSize(new Dimension(450, 300));
+        setPreferredSize(new Dimension(600, 300));
         JPC.getInstance().objects().addObject(this);
         loadWatchpoints();
     }
@@ -311,24 +311,28 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
         private int value;
         private boolean isPrimary;
         private String name;
+        private boolean watchForValue;
+        private byte watchValue;
 
         Watchpoint(int addr)
         {
-            this(addr, false);
+            this(addr, false, (byte)0, false);
         }
 
-        public Watchpoint(String name, int addr)
+        public Watchpoint(String name, int addr, byte watchValue, boolean watchForValue)
         {
-            this(addr);
+            this(addr, false, watchValue, watchForValue);
             this.name = name;
         }
         
-        Watchpoint(int addr, boolean primary)
+        Watchpoint(int addr, boolean primary, byte watchValue, boolean watchForValue)
         {
             address = addr;
             isPrimary = primary;
             name = "";
             value=addressSpace.getByte(addr);
+            this.watchValue = watchValue;
+            this.watchForValue = watchForValue;
         }
 
         
@@ -364,7 +368,17 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
         {
             value=addressSpace.getByte(address);
         }
-        
+
+        public boolean isWatchingForValue()
+        {
+            return watchForValue;
+        }
+
+        public byte getWatchTarget()
+        {
+            return watchValue;
+        }
+
         public boolean isPrimary()
         {
             return isPrimary;
@@ -375,7 +389,7 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
     {
         WPModel()
         {
-            super(new String[]{"Address", "Name", "Primary"}, new int[]{100, 250, 100});
+            super(new String[]{"Address", "Name", "Primary", "Watch target", "Watch for value"}, new int[]{80, 250, 70, 90, 90});
         }
         
         public int getRowCount()
@@ -390,7 +404,7 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
 
         public Class getColumnClass(int col)
         {
-            if (col == 2)
+            if ((col == 2) || (col == 4))
                 return Boolean.class;
             return String.class;
         }
@@ -412,6 +426,10 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
                 wp.isPrimary = ((Boolean) obj).booleanValue();
             else if (column == 1)
                 wp.name = obj.toString();
+            else if (column == 3)
+                wp.watchValue = (byte)Integer.parseInt(obj.toString(), 16);
+            else if (column == 4)
+                wp.watchForValue = ((Boolean) obj).booleanValue();
 
             int selected = sortWatchpoints(row);
             JPC.getInstance().refresh();
@@ -437,6 +455,10 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
                 return wp.name;
             case 2:
                 return new Boolean(wp.isPrimary);
+            case 3:
+                return String.format("%02x", wp.watchValue);
+            case 4:
+                return new Boolean(wp.watchForValue);
             default:
                 return "";
             }
@@ -488,8 +510,15 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
                         continue;
                     
                     int addr = Integer.parseInt(elements[0], 16);
+                    byte watchValue = (byte) 0;
+                    boolean watchForValue = false;
+                    if (elements.length > 2)
+                    {
+                        watchValue = (byte) Integer.parseInt(elements[2], 16);
+                        watchForValue = true;
+                    }
 
-                    loaded.add(new Watchpoint(name, addr));
+                    loaded.add(new Watchpoint(name, addr, watchValue, watchForValue));
                 }
             } catch (IOException e) {
                 return false;
@@ -532,8 +561,10 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
                 int addr = din.readInt();
                 boolean primary = din.readBoolean();
                 String name = din.readUTF();
+                byte watchValue = din.readByte();
+                boolean watchForValue = din.readBoolean();
 
-                Watchpoint wp = new Watchpoint(addr, primary);
+                Watchpoint wp = new Watchpoint(addr, primary, watchValue, watchForValue);
                 wp.name = name;
                 watchpoints.add(wp);
             }
@@ -574,6 +605,8 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
                 dout.writeInt(wp.address);
                 dout.writeBoolean(wp.isPrimary);
                 dout.writeUTF(wp.name);
+                dout.writeByte(wp.watchValue);
+                dout.writeBoolean(wp.watchForValue);
             }
             
             setTitle("Watchpoints: "+watchpointFileName);

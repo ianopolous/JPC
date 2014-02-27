@@ -561,7 +561,7 @@ public class JPC extends ApplicationFrame implements ActionListener {
                 bringToFront(wp);
             } else {
                 wp = new WatchpointsFrame();
-                addInternalFrame(desktop, 550, 360, wp);
+                addInternalFrame(desktop, 550, 560, wp);
             }
         } else if (src == traceFrame) {
             ExecutionTraceFrame tr = (ExecutionTraceFrame) objects.getObject(ExecutionTraceFrame.class);

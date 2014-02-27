@@ -252,8 +252,11 @@ public class RunMenu extends JMenu implements ActionListener {
                                 int newVal = wp.getValue();
                                 if (newVal != old)
                                 {
-                                    new Alerter("Watchpoint", String.format("Watch at %08x: old value=%02x new value=%02x" + wp.getName(), wp.getAddress(), old, newVal), JOptionPane.INFORMATION_MESSAGE).show();
-                                    break;
+                                    if (!wp.isWatchingForValue() || (wp.getWatchTarget() == (byte)newVal))
+                                    {
+                                        new Alerter("Watchpoint", String.format("Watch at %08x: old value=%02x new value=%02x " + wp.getName(), wp.getAddress(), old, newVal), JOptionPane.INFORMATION_MESSAGE).show();
+                                        break;
+                                    }
                                 }
                             }
                         }

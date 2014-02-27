@@ -126,7 +126,7 @@ public class JPCControl extends EmulatorControl
         {
             Throwable c = e.getCause();
             if (c instanceof IllegalStateException)
-                throw (RuntimeException) c;
+                return c.getMessage();
             throw new RuntimeException(e.getMessage());
         }
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
