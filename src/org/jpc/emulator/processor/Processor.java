@@ -793,6 +793,7 @@ public class Processor implements HardwareComponent
 
                     cs(returnSegment);
                     eip = newEIP;
+                    incrementStack(6);
 
                     //Set EFlags
                     int eflags = getEFlags();
