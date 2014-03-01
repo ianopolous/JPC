@@ -855,12 +855,13 @@ public class Processor implements HardwareComponent
 
     public void iret_o32_a16()
     {
-        int tmpEip = pop32();
-        int tmpcs = pop32();
-        int tmpflags = pop32();
+        int tmpEip = stack32(0);
+        int tmpcs = stack32(4);
+        int tmpflags = stack32(8);
         cs.checkAddress(tmpEip);
         cs.setSelector(0xffff & tmpcs);
         eip = tmpEip;
+        incrementStack(12);
         setEFlags(tmpflags, 0x257fd5); // VIF, VIP, VM unchanged
     }
 
@@ -1585,14 +1586,8 @@ public class Processor implements HardwareComponent
 
     public final void ret_far_o16_a32(int stackdelta)
     {
-        try {
-            ss.checkAddress(r_esp.get32() + 3);
-        } catch (ProcessorException e) {
-            throw ProcessorException.STACK_SEGMENT_0;
-        }
-
-        int tempEIP = 0xFFFF & ss.getWord(r_esp.get32());
-        int tempCS = 0xFFFF & ss.getWord(r_esp.get32() + 2);
+        int tempEIP = 0xFFFF & stack16(0);
+        int tempCS = 0xFFFF & stack16(2);
 
         Segment returnSegment = getSegment(tempCS);
 
@@ -1616,9 +1611,37 @@ public class Processor implements HardwareComponent
 
                 if (returnSegment.getRPL() > getCPL()) {
                     //OUTER PRIVILEGE-LEVEL
-                    //esp += 8;
-                    LOGGING.log(Level.WARNING, "Non-conforming outer privilege level not implemented");
-                    throw new IllegalStateException("Execute Failed");
+                    int tmpSS = 0xffff & stack16(6 + stackdelta);
+                    int tmpSP = 0xffff & stack16(4 + stackdelta);
+
+                    if ((tmpSS & 0xfffc) == 0)
+                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
+
+                    Segment newStack = getSegment(tmpSS, true);
+
+                    if (newStack.getRPL() != returnSegment.getRPL())
+                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, tmpSS & 0xfffc, true);
+
+                    if (!((ProtectedModeSegment)newStack).isDataWritable() || ((ProtectedModeSegment)newStack).isCode())
+                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, tmpSS & 0xfffc, true);
+
+                    if (newStack.getDPL() != returnSegment.getRPL())
+                        throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, tmpSS & 0xfffc, true);
+
+                    if (!newStack.isPresent())
+                        throw new ProcessorException(ProcessorException.Type.STACK_SEGMENT, tmpSS & 0xfffc, true);
+
+                    // commit cs and eip
+                    returnSegment.checkAddress(tempEIP);
+                    cs(returnSegment);
+                    eip = tempEIP;
+
+                    ss(newStack);
+                    if (ss.getDefaultSizeFlag())
+                        r_esp.set32(tmpSP + stackdelta);
+                    else
+                        r_sp.set16(tmpSP + stackdelta);
+                    LOGGING.log(Level.WARNING, "Non-conforming outer privilege level ret_far used");
                 } else {
                     //SAME PRIVILEGE-LEVEL
                     returnSegment.checkAddress(tempEIP);
