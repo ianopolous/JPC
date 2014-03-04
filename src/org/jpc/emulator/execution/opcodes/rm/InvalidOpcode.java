@@ -19,7 +19,7 @@ public class InvalidOpcode extends Executable
         blockLength = (int)input.getAddress()-blockStart;
         input.seek(-instructionLength);
         Instruction in = Disassembler.disassemble(input, Prefices.isAddr16(prefices) ? 32 : 16);
-        error = in.toString() + ", x86 byte = " + Disassembler.getRawBytes(input, eip-blockStart);
+        error = in.toString() + ", x86 byte = " + Disassembler.getRawBytes(input, 0);
     }
 
     public Branch execute(Processor cpu)
