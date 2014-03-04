@@ -46,7 +46,9 @@ public class pop_Ew_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        op1.set16(cpu, (short)cpu.pop16());
+        int tmp = cpu.stack16(0);
+        op1.set16(cpu, (short)tmp);
+        cpu.incrementStack(2);
         return Branch.None;
     }
 

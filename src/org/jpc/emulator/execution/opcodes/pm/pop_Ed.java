@@ -47,7 +47,9 @@ public class pop_Ed extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        op1.set32(cpu.pop32());
+        int tmp = cpu.stack32(0);
+        op1.set32(tmp);
+        cpu.incrementStack(4);
         return Branch.None;
     }
 

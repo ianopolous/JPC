@@ -224,6 +224,11 @@ public class CodeBlockRecord {
         if (block == null) {
             return null;
         }
+        int esp = processor.r_esp.get32();
+        int ebp = processor.r_ebp.get32();
+        int ssbase = processor.ss.getBase();
+        boolean ss32Bit = processor.ss.getDefaultSizeFlag();
+
         try {
             if (block instanceof RealModeCodeBlock) {
                 try {
@@ -283,8 +288,9 @@ public class CodeBlockRecord {
                 listener.codeBlockExecuted(ip, physical, block);
             }
         }
-        int esp = processor.r_esp.get32();
-        trace[(int) (blockCount % trace.length)] = new CodeBlockHolder(block, processor.ss.getBase() + (processor.ss.getDefaultSizeFlag() ? esp : 0xffff & esp), processor.r_ebp.get32());
+
+        trace[(int) (blockCount % trace.length)] =
+                new CodeBlockHolder(block, ssbase + (ss32Bit ? esp : 0xffff & esp), esp, ebp);
         addresses[(int) (blockCount % trace.length)] = ip;
         blockCount++;
         instructionCount += block.getX86Count();
@@ -345,6 +351,17 @@ public class CodeBlockRecord {
         return trace[row].ssESP;
     }
 
+    public int getTraceESPAt(int row) {
+        if (blockCount <= trace.length) {
+            return trace[row].esp;
+        }
+        row += (blockCount % trace.length);
+        if (row >= trace.length) {
+            row -= trace.length;
+        }
+        return trace[row].esp;
+    }
+
     public int getTraceEBPAt(int row) {
         if (blockCount <= trace.length) {
             return trace[row].ebp;
@@ -401,12 +418,14 @@ public class CodeBlockRecord {
     {
         CodeBlock block;
         int ssESP;
+        int esp;
         int ebp;
 
-        private CodeBlockHolder(CodeBlock b, int ssESP, int ebp)
+        private CodeBlockHolder(CodeBlock b, int ssESP, int esp, int ebp)
         {
             block = b;
             this.ssESP = ssESP;
+            this.esp = esp;
             this.ebp = ebp;
         }
     }

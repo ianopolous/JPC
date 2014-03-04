@@ -1526,8 +1526,17 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="pop">
     <return>Branch.None</return>
-    <snippet>        $op1.set$castcpu.pop$size());</snippet>
+    <snippet>        int tmp = cpu.stack16(0);
+        $op1.set$casttmp);
+        cpu.incrementStack(2);</snippet>
     <args size="16">Ew</args>
+  </opcode>
+
+  <opcode mnemonic="pop">
+    <return>Branch.None</return>
+    <snippet>        int tmp = cpu.stack32(0);
+        $op1.set$casttmp);
+        cpu.incrementStack(4);</snippet>
     <args size="32">Ed</args>
   </opcode>
 

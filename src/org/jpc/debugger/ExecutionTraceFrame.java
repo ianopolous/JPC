@@ -122,7 +122,8 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
     {
         TraceModel()
         {
-            super(new String[]{"Index", "Code Block", "Address", "SS:(E)SP", "EBP", "X86 Length", "X86 Count", "raw x86"}, new int[]{100, 400, 80, 80, 80, 50, 50, 400});
+            super(new String[]{"Index", "Code Block", "Address", "SS:(E)SP", "ESP", "EBP", "X86 Length", "X86 Count", "raw x86"},
+                    new int[]{100, 400, 80, 80, 80, 80, 50, 50, 400});
         }
 
         public int getRowCount()
@@ -149,12 +150,14 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
             case 3:
                 return Integer.toHexString(codeBlocks.getTraceSSESPAt(row)).toUpperCase();
             case 4:
-                return Integer.toHexString(codeBlocks.getTraceEBPAt(row)).toUpperCase();
+                return Integer.toHexString(codeBlocks.getTraceESPAt(row)).toUpperCase();
             case 5:
-                return Integer.valueOf(block.getX86Length());
+                return Integer.toHexString(codeBlocks.getTraceEBPAt(row)).toUpperCase();
             case 6:
-                return Integer.valueOf(block.getX86Count());
+                return Integer.valueOf(block.getX86Length());
             case 7:
+                return Integer.valueOf(block.getX86Count());
+            case 8:
                 int address = codeBlocks.getBlockAddress(row);
                 int len = block.getX86Length();
                 byte[] buf = new byte[len];

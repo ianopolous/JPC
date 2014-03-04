@@ -47,7 +47,9 @@ public class pop_Ew extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-        op1.set16((short)cpu.pop16());
+        int tmp = cpu.stack16(0);
+        op1.set16((short)tmp);
+        cpu.incrementStack(2);
         return Branch.None;
     }
 
