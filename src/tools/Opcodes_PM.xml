@@ -1083,12 +1083,14 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <return>Branch.None</return>
     <snippet>        if (cpu.ss.getDefaultSizeFlag())
         {
-            cpu.r_esp.set32(cpu.r_ebp.get32());
-            cpu.r_bp.set16(cpu.pop16());
+            int tmp = cpu.ss.getWord(cpu.r_ebp.get32());
+            cpu.r_esp.set32(cpu.r_ebp.get32() + 2);
+            cpu.r_bp.set16(tmp);
         } else
         {
-            cpu.r_sp.set16(cpu.r_bp.get16());
-            cpu.r_bp.set16(cpu.pop16());
+            int tmp = cpu.ss.getWord(0xffff &amp; cpu.r_bp.get16());
+            cpu.r_sp.set16(cpu.r_bp.get16() + 2);
+            cpu.r_bp.set16(tmp);
         }</snippet>
     <args size="0"></args>
   </opcode>
@@ -1097,12 +1099,14 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <return>Branch.None</return>
     <snippet>        if (cpu.ss.getDefaultSizeFlag())
         {
-            cpu.r_esp.set32(cpu.r_ebp.get32());
-            cpu.r_ebp.set32(cpu.pop32());
+            int tmp = cpu.ss.getDoubleWord(cpu.r_ebp.get32());
+            cpu.r_esp.set32(cpu.r_ebp.get32() + 4);
+            cpu.r_ebp.set32(tmp);
         } else
         {
-            cpu.r_sp.set16(cpu.r_bp.get16());
-            cpu.r_ebp.set32(cpu.pop32());
+            int tmp = cpu.ss.getDoubleWord(0xffff &amp; cpu.r_bp.get16());
+            cpu.r_sp.set16(cpu.r_bp.get16() + 4);
+            cpu.r_ebp.set32(tmp);
         }</snippet>
     <args size="0"></args>
   </opcode>

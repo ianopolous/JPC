@@ -45,12 +45,14 @@ public class leave_o32 extends Executable
     {
         if (cpu.ss.getDefaultSizeFlag())
         {
-            cpu.r_esp.set32(cpu.r_ebp.get32());
-            cpu.r_ebp.set32(cpu.pop32());
+            int tmp = cpu.ss.getDoubleWord(cpu.r_ebp.get32());
+            cpu.r_esp.set32(cpu.r_ebp.get32() + 4);
+            cpu.r_ebp.set32(tmp);
         } else
         {
-            cpu.r_sp.set16(cpu.r_bp.get16());
-            cpu.r_ebp.set32(cpu.pop32());
+            int tmp = cpu.ss.getDoubleWord(0xffff & cpu.r_bp.get16());
+            cpu.r_sp.set16(cpu.r_bp.get16() + 4);
+            cpu.r_ebp.set32(tmp);
         }
         return Branch.None;
     }
