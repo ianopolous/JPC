@@ -283,7 +283,8 @@ public class CodeBlockRecord {
                 listener.codeBlockExecuted(ip, physical, block);
             }
         }
-        trace[(int) (blockCount % trace.length)] = new CodeBlockHolder(block, processor.ss.getBase() + processor.r_esp.get32());
+        int esp = processor.r_esp.get32();
+        trace[(int) (blockCount % trace.length)] = new CodeBlockHolder(block, processor.ss.getBase() + (processor.ss.getDefaultSizeFlag() ? esp : 0xffff & esp), processor.r_ebp.get32());
         addresses[(int) (blockCount % trace.length)] = ip;
         blockCount++;
         instructionCount += block.getX86Count();
@@ -344,6 +345,17 @@ public class CodeBlockRecord {
         return trace[row].ssESP;
     }
 
+    public int getTraceEBPAt(int row) {
+        if (blockCount <= trace.length) {
+            return trace[row].ebp;
+        }
+        row += (blockCount % trace.length);
+        if (row >= trace.length) {
+            row -= trace.length;
+        }
+        return trace[row].ebp;
+    }
+
     public int getRowForIndex(long index) {
         if (blockCount <= trace.length) {
             return (int) index;
@@ -389,11 +401,13 @@ public class CodeBlockRecord {
     {
         CodeBlock block;
         int ssESP;
+        int ebp;
 
-        private CodeBlockHolder(CodeBlock b, int ssESP)
+        private CodeBlockHolder(CodeBlock b, int ssESP, int ebp)
         {
             block = b;
             this.ssESP = ssESP;
+            this.ebp = ebp;
         }
     }
 }

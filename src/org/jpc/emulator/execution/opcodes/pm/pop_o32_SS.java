@@ -43,7 +43,9 @@ public class pop_o32_SS extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.ss(cpu.pop32());
+        int tmp = cpu.stack32(0);
+        cpu.ss(tmp);
+        cpu.incrementStack(4);
         cpu.eflagsInterruptEnable = false;
         return Branch.None;
     }

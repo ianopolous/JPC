@@ -43,7 +43,9 @@ public class pop_o32_FS extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.fs(cpu.pop32());
+        int tmp = cpu.stack32(0);
+        cpu.fs(tmp);
+        cpu.incrementStack(4);
         return Branch.None;
     }
 

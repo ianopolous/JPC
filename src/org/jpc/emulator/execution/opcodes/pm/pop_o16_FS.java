@@ -43,7 +43,9 @@ public class pop_o16_FS extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.fs((short)cpu.pop16());
+        int tmp = cpu.stack16(0);
+        cpu.fs((short)tmp);
+        cpu.incrementStack(2);
         return Branch.None;
     }
 

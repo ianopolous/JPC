@@ -1529,7 +1529,9 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="pop_o16">
     <return>Branch.None</return>
-    <snippet>        $op1.set$castcpu.pop$size());</snippet>
+    <snippet>        int tmp = cpu.stack16(0);
+        $op1.set$casttmp);
+        cpu.incrementStack(2);</snippet>
     <args size="16">Ew</args>
     <args size="16">DS</args>
     <args size="16">ES</args>
@@ -1539,13 +1541,17 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="pop_o16">
     <return>Branch.None</return>
-    <snippet>        $op1.set$castcpu.pop$size());</snippet>
+    <snippet>        int tmp = cpu.stack16(0);
+        $op1.set$casttmp);
+        cpu.incrementStack(2);</snippet>
     <args size="16">SS</args>
   </opcode>
 
   <opcode mnemonic="pop_o32">
     <return>Branch.None</return>
-    <snippet>        $op1.set$castcpu.pop$size());
+    <snippet>        int tmp = cpu.stack32(0);
+        $op1.set$casttmp);
+        cpu.incrementStack(4);
         cpu.eflagsInterruptEnable = false;</snippet>
     <args size="32">SS</args>
   </opcode>
@@ -1565,11 +1571,18 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
 
   <opcode mnemonic="pop_o32">
     <return>Branch.None</return>
-    <snippet>        $op1.setcpu.pop$size());</snippet>
+    <snippet>        int tmp = cpu.stack32(0);
+        $op1.settmp);
+        cpu.incrementStack(4);</snippet>
     <args size="32">DS</args>
     <args size="32">ES</args>
     <args size="32">FS</args>
     <args size="32">GS</args>
+  </opcode>
+
+  <opcode mnemonic="pop_o32">
+    <return>Branch.None</return>
+    <snippet>        $op1.setcpu.pop$size());</snippet>
     <args size="32">rAXr8</args>
     <args size="32">rCXr9</args>
     <args size="32">rDXr10</args>

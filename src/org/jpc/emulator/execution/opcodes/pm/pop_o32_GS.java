@@ -43,7 +43,9 @@ public class pop_o32_GS extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.gs(cpu.pop32());
+        int tmp = cpu.stack32(0);
+        cpu.gs(tmp);
+        cpu.incrementStack(4);
         return Branch.None;
     }
 

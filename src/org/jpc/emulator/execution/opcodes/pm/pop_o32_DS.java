@@ -43,7 +43,9 @@ public class pop_o32_DS extends Executable
 
     public Branch execute(Processor cpu)
     {
-        cpu.ds(cpu.pop32());
+        int tmp = cpu.stack32(0);
+        cpu.ds(tmp);
+        cpu.incrementStack(4);
         return Branch.None;
     }
 
