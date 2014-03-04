@@ -78,7 +78,7 @@ public class CodeBlockRecord {
     private PC pc;
     private Processor processor;
     private AddressSpace linear,  physical;
-    private CodeBlock[] trace;
+    private CodeBlockHolder[] trace;
     private int[] addresses;
     private CodeBlockListener listener;
 
@@ -94,7 +94,7 @@ public class CodeBlockRecord {
         instructionCount = 0;
         maxBlockSize = 1000;
 
-        trace = new CodeBlock[5000];
+        trace = new CodeBlockHolder[5000];
         addresses = new int[trace.length];
     }
 
@@ -283,7 +283,7 @@ public class CodeBlockRecord {
                 listener.codeBlockExecuted(ip, physical, block);
             }
         }
-        trace[(int) (blockCount % trace.length)] = block;
+        trace[(int) (blockCount % trace.length)] = new CodeBlockHolder(block, processor.ss.getBase() + processor.r_esp.get32());
         addresses[(int) (blockCount % trace.length)] = ip;
         blockCount++;
         instructionCount += block.getX86Count();
@@ -324,13 +324,24 @@ public class CodeBlockRecord {
 
     public CodeBlock getTraceBlockAt(int row) {
         if (blockCount <= trace.length) {
-            return trace[row];
+            return trace[row].block;
         }
         row += (blockCount % trace.length);
         if (row >= trace.length) {
             row -= trace.length;
         }
-        return trace[row];
+        return trace[row].block;
+    }
+
+    public int getTraceSSESPAt(int row) {
+        if (blockCount <= trace.length) {
+            return trace[row].ssESP;
+        }
+        row += (blockCount % trace.length);
+        if (row >= trace.length) {
+            row -= trace.length;
+        }
+        return trace[row].ssESP;
     }
 
     public int getRowForIndex(long index) {
@@ -372,5 +383,17 @@ public class CodeBlockRecord {
 
     public long getDecodedCount() {
         return decodedCount;
+    }
+
+    private class CodeBlockHolder
+    {
+        CodeBlock block;
+        int ssESP;
+
+        private CodeBlockHolder(CodeBlock b, int ssESP)
+        {
+            block = b;
+            this.ssESP = ssESP;
+        }
     }
 }

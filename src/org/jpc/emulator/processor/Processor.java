@@ -1457,7 +1457,7 @@ public class Processor implements HardwareComponent
         if (returnSegment.getRPL() < getCPL())
         {
             System.out.println("RPL too small in far ret: RPL=" + returnSegment.getRPL() + ", CPL=" + getCPL() + ", new CS=" + Integer.toHexString(tempCS));
-            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, tempCS, true);
+            throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, tempCS & 0xfffc, true);
         }
 
         switch (returnSegment.getType()) {
@@ -1544,7 +1544,7 @@ public class Processor implements HardwareComponent
                     //SAME PRIVILEGE-LEVEL
                     returnSegment.checkAddress(tempEIP);
 
-                    r_esp.set16(r_esp.get32() + 4 + stackdelta);
+                    incrementStack(4 + stackdelta);
                     eip = tempEIP;
                     cs(returnSegment);
                 }
@@ -1570,7 +1570,7 @@ public class Processor implements HardwareComponent
                     //SAME PRIVILEGE-LEVEL
                     returnSegment.checkAddress(tempEIP);
 
-                    r_esp.set16(((r_esp.get32() + 4 + stackdelta) & 0xFFFF));
+                    incrementStack(4 + stackdelta);
                     eip = tempEIP;
                     cs(returnSegment);
                 }
