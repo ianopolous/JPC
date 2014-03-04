@@ -1444,14 +1444,8 @@ public class Processor implements HardwareComponent
 
     public final void ret_far_o16_a16(int stackdelta)
     {
-        try {
-            ss.checkAddress((r_esp.get32() + 3) & 0xFFFF);
-        } catch (ProcessorException e) {
-            throw ProcessorException.STACK_SEGMENT_0;
-        }
-
-        int tempEIP = 0xFFFF & ss.getWord(r_esp.get16() & 0xFFFF);
-        int tempCS = 0xFFFF & ss.getWord((r_esp.get32() + 2) & 0xFFFF);
+        int tempEIP = 0xFFFF & stack16(0);
+        int tempCS = 0xFFFF & stack16(2);
 
         if ((tempCS & 0xfffc) == 0)
             throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
@@ -1486,8 +1480,8 @@ public class Processor implements HardwareComponent
                         throw ProcessorException.STACK_SEGMENT_0;
                     }
 
-                    int returnESP = 0xffff & ss.getWord((r_esp.get32() + 4 + stackdelta) & 0xFFFF);
-                    int newSS = 0xffff & ss.getWord((r_esp.get32() + 6 + stackdelta) & 0xFFFF);
+                    int returnESP = 0xffff & stack16(4 + stackdelta);
+                    int newSS = 0xffff & stack16(6 + stackdelta);
 
                     if ((newSS & 0xfffc) == 0)
                         throw new ProcessorException(ProcessorException.Type.GENERAL_PROTECTION, 0, true);
@@ -1507,7 +1501,7 @@ public class Processor implements HardwareComponent
                     cs(returnSegment);
 
                     ss(returnStackSegment);
-                    r_esp.set32(returnESP + stackdelta);
+                    r_esp.set16(returnESP + stackdelta);
 
                     setCPL(cs.getRPL());
 
@@ -1550,7 +1544,7 @@ public class Processor implements HardwareComponent
                     //SAME PRIVILEGE-LEVEL
                     returnSegment.checkAddress(tempEIP);
 
-                    r_esp.set16(((r_esp.get32() + 4 + stackdelta) & 0xFFFF));
+                    r_esp.set16(r_esp.get32() + 4 + stackdelta);
                     eip = tempEIP;
                     cs(returnSegment);
                 }
@@ -1867,15 +1861,10 @@ public class Processor implements HardwareComponent
         if (eflagsNestedTask)
             iretFromTask();
         else {
-            try {
-                ss.checkAddress((r_esp.get16() & 0xffff) + 11);
-            } catch (ProcessorException e) {
-                throw ProcessorException.STACK_SEGMENT_0;
-            }
             int tmpESP = 0xffff & r_esp.get32();
-            int tempEIP = ss.getDoubleWord(tmpESP);
-            int tempCS = 0xffff & ss.getDoubleWord(tmpESP+4);
-            int tempEFlags = ss.getDoubleWord(tmpESP+8);
+            int tempEIP = stack32(0);
+            int tempCS = 0xffff & stack32(4);
+            int tempEFlags = stack32(8);
 
             if ((tempEFlags & (1 << 17)) != 0)
             {
@@ -1894,15 +1883,10 @@ public class Processor implements HardwareComponent
         if (eflagsNestedTask)
             iretFromTask();
         else {
-            try {
-                ss.checkAddress(r_esp.get32() + 11);
-            } catch (ProcessorException e) {
-                throw ProcessorException.STACK_SEGMENT_0;
-            }
             int tmpESP = r_esp.get32();
-            int tempEIP = ss.getDoubleWord(tmpESP);
-            int tempCS = 0xffff & ss.getDoubleWord(tmpESP+4);
-            int tempEFlags = ss.getDoubleWord(tmpESP+8);
+            int tempEIP = stack32(0);
+            int tempCS = 0xffff & stack32(4);
+            int tempEFlags = stack32(8);
 
             if ((tempEFlags & (1 << 17)) != 0)
             {
@@ -1923,25 +1907,13 @@ public class Processor implements HardwareComponent
 
     private final void iretToVirtual8086Mode(int newCS, int newEIP, int newEFlags)
     {
-        int tmpESP;
-        if (ss.getDefaultSizeFlag())
-            tmpESP = r_esp.get32();
-        else
-            tmpESP = 0xffff & r_sp.get16();
+        int newESP = stack32(12);
+        int ssSelector = 0xffff & stack32(16);
 
-        try {
-            ss.checkAddress(tmpESP + 31);
-        } catch (ProcessorException e) {
-            throw ProcessorException.STACK_SEGMENT_0;
-        }
-
-        int newESP = ss.getDoubleWord(tmpESP + 12);
-        int ssSelector = 0xffff & ss.getDoubleWord(tmpESP + 16);
-
-        int esSelector = 0xffff & ss.getDoubleWord(tmpESP + 20);
-        int dsSelector = 0xffff & ss.getDoubleWord(tmpESP + 24);
-        int fsSelector = 0xffff & ss.getDoubleWord(tmpESP + 28);
-        int gsSelector = 0xffff & ss.getDoubleWord(tmpESP + 32);
+        int esSelector = 0xffff & stack32(20);
+        int dsSelector = 0xffff & stack32(24);
+        int fsSelector = 0xffff & stack32(28);
+        int gsSelector = 0xffff & stack32(32);
 
         cs(SegmentFactory.createVirtual8086ModeSegment(linearMemory, newCS, true));
         eip = newEIP & 0xffff;
@@ -1987,10 +1959,7 @@ public class Processor implements HardwareComponent
                 changeMask |= EFLAGS_VIP_MASK | EFLAGS_VIF_MASK | EFLAGS_IOPL_MASK;
             setEFlags(newEFlags, changeMask);
 
-            if (ss.getDefaultSizeFlag())
-                r_esp.set32(tmpESP + 12);
-            else
-                r_sp.set16(tmpESP + 12);
+            incrementStack(12);
         }
         else
         {
