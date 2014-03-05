@@ -46,9 +46,14 @@ public class pop_Ed_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        int tmp = cpu.stack32(0);
-        op1.set32(cpu, tmp);
-        cpu.incrementStack(4);
+        int tmp = cpu.pop32();
+        try {
+            op1.set32(cpu, tmp);
+        } catch (ProcessorException e)
+        {
+            cpu.incrementStack(-4);
+            throw e;
+        }
         return Branch.None;
     }
 

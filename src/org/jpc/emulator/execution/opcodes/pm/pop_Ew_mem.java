@@ -46,9 +46,14 @@ public class pop_Ew_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-        int tmp = cpu.stack16(0);
-        op1.set16(cpu, (short)tmp);
-        cpu.incrementStack(2);
+        int tmp = cpu.pop16();
+        try {
+            op1.set16(cpu, (short)tmp);
+        } catch (ProcessorException e)
+        {
+            cpu.incrementStack(-2);
+            throw e;
+        }
         return Branch.None;
     }
 

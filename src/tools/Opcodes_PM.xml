@@ -1524,7 +1524,7 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="0"></args>
   </opcode>
 
-  <opcode mnemonic="pop">
+  <opcode mnemonic="pop" mem="false">
     <return>Branch.None</return>
     <snippet>        int tmp = cpu.stack16(0);
         $op1.set$casttmp);
@@ -1532,11 +1532,35 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <args size="16">Ew</args>
   </opcode>
 
-  <opcode mnemonic="pop">
+  <opcode mnemonic="pop" mem="true">
+    <return>Branch.None</return>
+    <snippet>        int tmp = cpu.pop16();
+        try {
+            $op1.set$casttmp);
+        } catch (ProcessorException e) {
+            cpu.incrementStack(-2);
+            throw e;
+        }</snippet>
+    <args size="16">Ew</args>
+  </opcode>
+
+  <opcode mnemonic="pop" mem="false">
     <return>Branch.None</return>
     <snippet>        int tmp = cpu.stack32(0);
         $op1.set$casttmp);
         cpu.incrementStack(4);</snippet>
+    <args size="32">Ed</args>
+  </opcode>
+
+  <opcode mnemonic="pop" mem="true">
+    <return>Branch.None</return>
+    <snippet>        int tmp = cpu.pop32();
+        try {
+            $op1.set$casttmp);
+        } catch (ProcessorException e) {
+            cpu.incrementStack(-4);
+            throw e;
+        }</snippet>
     <args size="32">Ed</args>
   </opcode>
 
@@ -1545,7 +1569,6 @@ cpu.jumpFar_pm(cs, 0xffff &amp; targetEip);</snippet>
     <snippet>        int tmp = cpu.stack16(0);
         $op1.set$casttmp);
         cpu.incrementStack(2);</snippet>
-    <args size="16">Ew</args>
     <args size="16">DS</args>
     <args size="16">ES</args>
     <args size="16">FS</args>
