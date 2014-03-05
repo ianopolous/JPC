@@ -613,24 +613,28 @@ public class Processor implements HardwareComponent
             offmask = 0xffff;
         }
 
-        //Bochs claims no checking need on POPs
-        //if (offset + 16 >= ss.limit)
-        //    throw exceptionSS;
-        r_edi.set16(ss.getWord(offmask & offset));
+        int edi = ss.getWord(offmask & offset);
         offset += 2;
-        r_esi.set16(ss.getWord(offmask & offset));
+        int esi = ss.getWord(offmask & offset);
         offset += 2;
-        r_ebp.set16(ss.getWord(offmask & offset));
+        int ebp = ss.getWord(offmask & offset);
         offset += 4;// yes - skip 2 bytes in order to skip SP
-        r_ebx.set16(ss.getWord(offmask & offset));
+        int ebx = ss.getWord(offmask & offset);
         offset += 2;
-        r_edx.set16(ss.getWord(offmask & offset));
+        int edx = ss.getWord(offmask & offset);
         offset += 2;
-        r_ecx.set16(ss.getWord(offmask & offset));
+        int ecx = ss.getWord(offmask & offset);
         offset += 2;
-        r_eax.set16(ss.getWord(offmask & offset));
+        int eax = ss.getWord(offmask & offset);
         offset += 2;
-		
+
+        r_edi.set16(edi);
+        r_esi.set16(esi);
+        r_ebp.set16(ebp);
+        r_ebx.set16(ebx);
+        r_edx.set16(edx);
+        r_ecx.set16(ecx);
+        r_eax.set16(eax);
         r_esp.set32((r_esp.get32() & ~offmask) | (offset & offmask));
     }
 
@@ -645,24 +649,28 @@ public class Processor implements HardwareComponent
             offmask = 0xffff;
         }
 
-        //Bochs claims no checking need on POPs
-        //if (offset + 16 >= ss.limit)
-        //    throw exceptionSS;
-        r_edi.set32(ss.getDoubleWord(offmask & offset));
+        int edi = ss.getDoubleWord(offmask & offset);
         offset += 4;
-        r_esi.set32(ss.getDoubleWord(offmask & offset));
+        int esi = ss.getDoubleWord(offmask & offset);
         offset += 4;
-        r_ebp.set32(ss.getDoubleWord(offmask & offset));
+        int ebp = ss.getDoubleWord(offmask & offset);
         offset += 8;// yes - skip 4 bytes in order to skip SP
-        r_ebx.set32(ss.getDoubleWord(offmask & offset));
+        int ebx = ss.getDoubleWord(offmask & offset);
         offset += 4;
-        r_edx.set32(ss.getDoubleWord(offmask & offset));
+        int edx = ss.getDoubleWord(offmask & offset);
         offset += 4;
-        r_ecx.set32(ss.getDoubleWord(offmask & offset));
+        int ecx = ss.getDoubleWord(offmask & offset);
         offset += 4;
-        r_eax.set32(ss.getDoubleWord(offmask & offset));
+        int eax =ss.getDoubleWord(offmask & offset);
         offset += 4;
 
+        r_edi.set32(edi);
+        r_esi.set32(esi);
+        r_ebp.set32(ebp);
+        r_ebx.set32(ebx);
+        r_edx.set32(edx);
+        r_ecx.set32(ecx);
+        r_eax.set32(eax);
         r_esp.set32((r_esp.get32() & ~offmask) | (offset & offmask));
     }
 
