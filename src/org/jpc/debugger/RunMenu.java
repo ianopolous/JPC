@@ -48,25 +48,20 @@ public class RunMenu extends JMenu implements ActionListener {
 
     private Runner runner;
     private JCheckBoxMenuItem background, pauseTimer;
-    private JMenuItem run,  step,  reset, multiStep, skip;
+    private JMenuItem run,  step,  reset, multiStep;
     private FunctionKeys functionKeys;
     private Processor processor;
     private CodeBlockRecord codeBlockRecord;
     private Clock clock;
     private int multiSteps;
     private Processor cpu = null;
-    public volatile int breakpointsLeft = 0;
-    public BreakpointsFrame bpf;
-    public WatchpointsFrame wpf;
-    private DataInputStream uniqueIn = null;
-    private Thread smartt = null;
 
     public RunMenu() {
         super("Run");
 
         run = add("Start");
         run.addActionListener(this);
-        run.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0, false));
+        run.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0, false));
 
         step = add("Single Step");
         step.addActionListener(this);
@@ -76,8 +71,6 @@ public class RunMenu extends JMenu implements ActionListener {
         multiStep = add("Multiple Steps (" + multiSteps + ")");
         multiStep.addActionListener(this);
         multiStep.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0, false));
-        skip = add("Skip multiple breakpoints.");
-        skip.addActionListener(this);
 
         addSeparator();
         background = new JCheckBoxMenuItem("Background Execution");
@@ -85,15 +78,13 @@ public class RunMenu extends JMenu implements ActionListener {
         background.setSelected(true);
         background.addActionListener(this);
 
-        ButtonGroup gp = new ButtonGroup();
-
         addSeparator();
         pauseTimer = new JCheckBoxMenuItem("Pause Virtual Clock");
         pauseTimer.setSelected(false);
         add(pauseTimer);
 
         addSeparator();
-        reset = add("Reset - NI");
+        reset = add("Reset");
         reset.addActionListener(this);
 
         runner = new Runner();
@@ -129,10 +120,6 @@ public class RunMenu extends JMenu implements ActionListener {
                 } else if (e.getKeyCode() == KeyEvent.VK_F7) {
                     executeSteps(multiSteps, true);
                     return true;
-                }
-
-                if (e.getKeyCode() == KeyEvent.VK_F2) {
-                    JPC.getInstance().statusReport();
                 }
             }
 
@@ -218,7 +205,7 @@ public class RunMenu extends JMenu implements ActionListener {
 
             try {
                 int delay = 2000;
-                boolean bg = false;
+                boolean bg;
                 BreakpointsFrame bps = (BreakpointsFrame) JPC.getObject(BreakpointsFrame.class);
                 WatchpointsFrame wps = (WatchpointsFrame) JPC.getObject(WatchpointsFrame.class);
                 ExecutionTraceFrame trace = (ExecutionTraceFrame) JPC.getObject(ExecutionTraceFrame.class);
@@ -273,17 +260,8 @@ public class RunMenu extends JMenu implements ActionListener {
 
                                 String addr = MemoryViewPanel.zeroPadHex(bp.getAddress(), 8);
                                 String name = bp.getName();
-                                synchronized (this) {
-                                    if (breakpointsLeft > 0) {
-                                        breakpointsLeft--;
-                                        System.out.println("Break at " + addr + ": " + name + ". " + breakpointsLeft + " breakpoints left.");
-                                    } else {
-
-                                        //new Alerter("Breakpoint", "Break at " + addr + ": " + name, JOptionPane.INFORMATION_MESSAGE).show();
-                                        break;
-                                    }
+                                new Alerter("Breakpoint", "Break at " + addr + ": " + name, JOptionPane.INFORMATION_MESSAGE).show();
                                 }
-                            }
                         }
                     } catch (Exception e) {
 
@@ -438,11 +416,6 @@ public class RunMenu extends JMenu implements ActionListener {
             }
         } else if (src == run) {
             toggleRun();
-        } else if (src == skip) {
-            int nbps = Integer.parseInt(JOptionPane.showInputDialog(JPC.getInstance(), "Enter the new number of breakpoints to skip", "10"));
-            synchronized (this) {
-                breakpointsLeft = nbps;
-            }
         }
     }
 }

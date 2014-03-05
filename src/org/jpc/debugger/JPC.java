@@ -305,11 +305,6 @@ public class JPC extends ApplicationFrame implements ActionListener {
         }
     }
 
-    // Hook for F2 - print status report
-    public void statusReport() {
-        System.out.println("No status to report");
-    }
-
     public Object get(Class cls) {
         return objects.getObject(cls);
     }
