@@ -32,13 +32,8 @@ import java.util.Map;
 
 public class TimeTravelProcessorAccess extends ProcessorAccess
 {
-    private CodeBlockRecord history;
-    private Map<String, Integer> indices = new HashMap();
-    private int[] currentState;
-
-    public TimeTravelProcessorAccess()
-    {
-        this.history = (CodeBlockRecord) JPC.getObject(CodeBlockRecord.class);
+    private static final Map<String, Integer> indices = new HashMap();
+    static {
         indices.put("r_eax", ProcessorState.EAX);
         indices.put("r_ecx", ProcessorState.ECX);
         indices.put("r_edx", ProcessorState.EDX);
@@ -64,9 +59,23 @@ public class TimeTravelProcessorAccess extends ProcessorAccess
         indices.put("fs", ProcessorState.FS);
         indices.put("gs", ProcessorState.GS);
 
+        indices.put("esL", ProcessorState.ES_LIMIT);
+        indices.put("csL", ProcessorState.CS_LIMIT);
+        indices.put("ssL", ProcessorState.SS_LIMIT);
+        indices.put("dsL", ProcessorState.DS_LIMIT);
+        indices.put("fsL", ProcessorState.FS_LIMIT);
+        indices.put("gsL", ProcessorState.GS_LIMIT);
+
         indices.put("idtr", ProcessorState.IDTR);
         indices.put("gdtr", ProcessorState.GDTR);
         indices.put("ldtr", ProcessorState.LDTR);
+    }
+    private CodeBlockRecord history;
+    private int[] currentState;
+
+    public TimeTravelProcessorAccess()
+    {
+        this.history = (CodeBlockRecord) JPC.getObject(CodeBlockRecord.class);
     }
     
     @Override

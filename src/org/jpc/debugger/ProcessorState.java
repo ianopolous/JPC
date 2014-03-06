@@ -57,13 +57,20 @@ public class ProcessorState
     public static final int FS = 19;
     public static final int GS = 20;
 
-    public static final int IDTR = 21;
-    public static final int GDTR = 22;
-    public static final int LDTR = 23;
+    public static final int ES_LIMIT = 21;
+    public static final int CS_LIMIT = 22;
+    public static final int SS_LIMIT = 23;
+    public static final int DS_LIMIT = 24;
+    public static final int FS_LIMIT = 25;
+    public static final int GS_LIMIT = 26;
+
+    public static final int IDTR = 27;
+    public static final int GDTR = 28;
+    public static final int LDTR = 29;
 
     public static int[] extract(Processor cpu)
     {
-        int[] regs = new int[24];
+        int[] regs = new int[30];
         regs[EAX] = cpu.r_eax.get32();
         regs[ECX] = cpu.r_ecx.get32();
         regs[EDX] = cpu.r_edx.get32();
@@ -85,10 +92,23 @@ public class ProcessorState
         regs[DS] = getBase(cpu.ds);
         regs[FS] = getBase(cpu.fs);
         regs[GS] = getBase(cpu.gs);
+        regs[ES_LIMIT] = getLimit(cpu.es);
+        regs[CS_LIMIT] = getLimit(cpu.cs);
+        regs[SS_LIMIT] = getLimit(cpu.ss);
+        regs[DS_LIMIT] = getLimit(cpu.ds);
+        regs[FS_LIMIT] = getLimit(cpu.fs);
+        regs[GS_LIMIT] = getLimit(cpu.gs);
         regs[IDTR] = getBase(cpu.idtr);
         regs[GDTR] = getBase(cpu.gdtr);
         regs[LDTR] = getBase(cpu.ldtr);
         return regs;
+    }
+
+    private static int getLimit(Segment s)
+    {
+        if (s instanceof SegmentFactory.NullSegment)
+            return 0;
+        return s.getLimit();
     }
 
     private static int getBase(Segment s)

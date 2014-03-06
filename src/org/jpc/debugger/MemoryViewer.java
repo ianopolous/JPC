@@ -332,12 +332,12 @@ public class MemoryViewer extends UtilityFrame implements PCListener
     {
         controllable.refresh();
 
-        ds.setViewLimits(memory, 0xFFFFF & (getSegmentBase("ds") << 4), getSegmentLimit("ds")+1);
-        cs.setViewLimits(memory, 0xFFFFF & (getSegmentBase("cs") << 4), getSegmentLimit("cs")+1);
-        ss.setViewLimits(memory, 0xFFFFF & (getSegmentBase("ss") << 4), getSegmentLimit("ss")+1);
-        es.setViewLimits(memory, 0xFFFFF & (getSegmentBase("es") << 4), getSegmentLimit("es")+1);
-        fs.setViewLimits(memory, 0xFFFFF & (getSegmentBase("fs") << 4), getSegmentLimit("fs")+1);
-        gs.setViewLimits(memory, 0xFFFFF & (getSegmentBase("gs") << 4), getSegmentLimit("gs")+1);
+        ds.setViewLimits(memory, getSegmentBase("ds"), getSegmentLimit("ds")+1);
+        cs.setViewLimits(memory, getSegmentBase("cs"), getSegmentLimit("cs")+1);
+        ss.setViewLimits(memory, getSegmentBase("ss"), getSegmentLimit("ss")+1);
+        es.setViewLimits(memory, getSegmentBase("es"), getSegmentLimit("es")+1);
+        fs.setViewLimits(memory, getSegmentBase("fs"), getSegmentLimit("fs")+1);
+        gs.setViewLimits(memory, getSegmentBase("gs"), getSegmentLimit("gs")+1);
     }
 
     private static final Method getMemoryBlock;
