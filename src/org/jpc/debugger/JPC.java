@@ -665,7 +665,6 @@ public class JPC extends ApplicationFrame implements ActionListener {
         for (int i = 0; i < frames.length; i++) {
             frames[i].dispose();
         }
-        runMenu.refresh();
 
         objects.removeObject(Processor.class);
         objects.removeObject(PhysicalAddressSpace.class);

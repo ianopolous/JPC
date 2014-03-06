@@ -337,9 +337,6 @@ public class RunMenu extends JMenu implements ActionListener {
                     System.out.println("Done " + i + " blocks.");
                 }
                 CodeBlock block = codeBlockRecord.executeBlock();
-//                while (cpu.eflagsInterruptEnable == false) {
-//                    executeStep(false);
-//                }
 
                 if (block == null) {
                     throw new Exception("Unimplemented Opcode at " + Integer.toHexString(processor.getInstructionPointer()).toUpperCase());

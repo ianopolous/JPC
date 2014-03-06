@@ -80,6 +80,7 @@ public class TimeTravelProcessorAccess extends ProcessorAccess
 
     @Override
     public void rowChanged(int row) {
-        currentState = history.getStateAt(row);
+        if (row >= 0)
+            currentState = history.getStateAt(row);
     }
 }

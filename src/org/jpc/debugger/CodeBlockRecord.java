@@ -224,7 +224,6 @@ public class CodeBlockRecord {
         if (block == null) {
             return null;
         }
-        CodeBlockHolder priorState = new CodeBlockHolder(block, processor);
 
         try {
             if (block instanceof RealModeCodeBlock) {
@@ -286,21 +285,19 @@ public class CodeBlockRecord {
             }
         }
 
-        trace[(int) (blockCount % trace.length)] = priorState;
-        addresses[(int) (blockCount % trace.length)] = ip;
-        blockCount++;
         instructionCount += block.getX86Count();
         return block;
     }
 
     public CodeBlock advanceDecode() {
-        return advanceDecode(false);
-    }
-
-    public CodeBlock advanceDecode(boolean force) {
         int ip = processor.getInstructionPointer();
         try {
-            return decodeBlockAt(ip);
+            CodeBlock block = decodeBlockAt(ip);
+            CodeBlockHolder priorState = new CodeBlockHolder(block, processor);
+            trace[(int) (blockCount % trace.length)] = priorState;
+            addresses[(int) (blockCount % trace.length)] = ip;
+            blockCount++;
+            return block;
         } catch (ProcessorException e) {
             processor.handleProtectedModeException(e);
             return advanceDecode();
@@ -411,7 +408,7 @@ public class CodeBlockRecord {
     }
 
     public long getExecutedBlockCount() {
-        return blockCount;
+        return blockCount-1;
     }
 
     public long getInstructionCount() {
