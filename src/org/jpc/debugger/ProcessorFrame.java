@@ -44,19 +44,14 @@ import org.jpc.emulator.processor.Processor;
 
 public class ProcessorFrame extends UtilityFrame implements PCListener
 {
-    private Processor processor;
     private ProcessorAccess access;
-
     private ProcessorModel model;
-    private boolean editableModel;
     private JTable registerTable;
     private Font f = new Font("Monospaced", Font.BOLD, 12);
 
     public ProcessorFrame()
     {
         super("Processor Registers");
-        editableModel = false;
-        processor = null;
         model = new ProcessorModel();
         
         registerTable = new JTable(model);
@@ -83,6 +78,11 @@ public class ProcessorFrame extends UtilityFrame implements PCListener
         pcCreated();
     }
 
+    public void refreshAccess()
+    {
+        access = (ProcessorAccess) JPC.getObject(ProcessorAccess.class);
+    }
+
     public void frameClosed()
     {
         JPC.getInstance().objects().removeObject(this);
@@ -90,32 +90,25 @@ public class ProcessorFrame extends UtilityFrame implements PCListener
 
     public void pcCreated()
     {
-        processor = (Processor) JPC.getObject(Processor.class);
         access = (ProcessorAccess) JPC.getObject(ProcessorAccess.class);
 
-        if (processor != null)
-            editableModel = true;
         model.recreateWrappers();
         refreshDetails();
     }
 
     public void pcDisposed()
     {
-        processor = null;
         access = null;
-        editableModel = false;
         model.recreateWrappers();
         refreshDetails();
     }
     
     public void executionStarted() 
     {
-        editableModel = false;
     }
 
     public void executionStopped() 
     {
-        editableModel = true;
         refreshDetails();
     }
 

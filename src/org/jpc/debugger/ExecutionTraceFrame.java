@@ -70,7 +70,7 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
         JPC.getInstance().refresh();
     }
 
-    public void valueChanged(ListSelectionEvent e) 
+    public void valueChanged(ListSelectionEvent e)
     {
         if (codeBlocks == null)
             return;
@@ -78,6 +78,8 @@ public class ExecutionTraceFrame extends UtilityFrame implements PCListener, Lis
         int r = trace.getSelectedRow();
         if (r >= 0)
             selectedBlock = codeBlocks.getIndexNumberForRow(r);
+        ((ProcessorAccess)JPC.getObject(ProcessorAccess.class)).rowChanged(r);
+        ((ProcessorFrame)JPC.getObject(ProcessorFrame.class)).refreshDetails();
     }
 
     public void pcCreated() {}

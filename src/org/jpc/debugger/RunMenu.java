@@ -47,7 +47,7 @@ import org.jpc.emulator.execution.codeblock.CodeBlock;
 public class RunMenu extends JMenu implements ActionListener {
 
     private Runner runner;
-    private JCheckBoxMenuItem background, pauseTimer;
+    private JCheckBoxMenuItem background, timetravel, pauseTimer;
     private JMenuItem run,  step,  reset, multiStep;
     private FunctionKeys functionKeys;
     private Processor processor;
@@ -73,6 +73,10 @@ public class RunMenu extends JMenu implements ActionListener {
         multiStep.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0, false));
 
         addSeparator();
+        timetravel = new JCheckBoxMenuItem("Time travel mode");
+        add(timetravel);
+        timetravel.setSelected(false);
+        timetravel.addActionListener(this);
         background = new JCheckBoxMenuItem("Background Execution");
         add(background);
         background.setSelected(true);
@@ -90,6 +94,11 @@ public class RunMenu extends JMenu implements ActionListener {
         runner = new Runner();
         functionKeys = new FunctionKeys();
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(functionKeys);
+    }
+
+    public boolean isTimeTravel()
+    {
+        return timetravel.getState();
     }
 
     public void refresh() {
@@ -261,7 +270,8 @@ public class RunMenu extends JMenu implements ActionListener {
                                 String addr = MemoryViewPanel.zeroPadHex(bp.getAddress(), 8);
                                 String name = bp.getName();
                                 new Alerter("Breakpoint", "Break at " + addr + ": " + name, JOptionPane.INFORMATION_MESSAGE).show();
-                                }
+                                break;
+                            }
                         }
                     } catch (Exception e) {
 
@@ -416,6 +426,12 @@ public class RunMenu extends JMenu implements ActionListener {
             }
         } else if (src == run) {
             toggleRun();
+        } else if (src == timetravel)
+        {
+            ProcessorAccess pa = ProcessorAccess.create(timetravel.getState(), processor);
+            JPC.getInstance().objects().removeObject(ProcessorAccess.class);
+            JPC.getInstance().objects().addObject(ProcessorAccess.class, pa);
+            ((ProcessorFrame)JPC.getObject(ProcessorFrame.class)).refreshAccess();
         }
     }
 }

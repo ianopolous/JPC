@@ -224,10 +224,7 @@ public class CodeBlockRecord {
         if (block == null) {
             return null;
         }
-        int esp = processor.r_esp.get32();
-        int ebp = processor.r_ebp.get32();
-        int ssbase = processor.ss.getBase();
-        boolean ss32Bit = processor.ss.getDefaultSizeFlag();
+        CodeBlockHolder priorState = new CodeBlockHolder(block, processor);
 
         try {
             if (block instanceof RealModeCodeBlock) {
@@ -289,8 +286,7 @@ public class CodeBlockRecord {
             }
         }
 
-        trace[(int) (blockCount % trace.length)] =
-                new CodeBlockHolder(block, ssbase + (ss32Bit ? esp : 0xffff & esp), esp, ebp);
+        trace[(int) (blockCount % trace.length)] = priorState;
         addresses[(int) (blockCount % trace.length)] = ip;
         blockCount++;
         instructionCount += block.getX86Count();
@@ -353,24 +349,36 @@ public class CodeBlockRecord {
 
     public int getTraceESPAt(int row) {
         if (blockCount <= trace.length) {
-            return trace[row].esp;
+            return trace[row].state[ProcessorState.ESP];
         }
         row += (blockCount % trace.length);
         if (row >= trace.length) {
             row -= trace.length;
         }
-        return trace[row].esp;
+        return trace[row].state[ProcessorState.ESP];
     }
 
     public int getTraceEBPAt(int row) {
         if (blockCount <= trace.length) {
-            return trace[row].ebp;
+            return trace[row].state[ProcessorState.EBP];
         }
         row += (blockCount % trace.length);
         if (row >= trace.length) {
             row -= trace.length;
         }
-        return trace[row].ebp;
+        return trace[row].state[ProcessorState.EBP];
+    }
+
+    public int[] getStateAt(int row)
+    {
+        if (blockCount <= trace.length) {
+            return trace[row].state;
+        }
+        row += (blockCount % trace.length);
+        if (row >= trace.length) {
+            row -= trace.length;
+        }
+        return trace[row].state;
     }
 
     public int getRowForIndex(long index) {
@@ -418,15 +426,14 @@ public class CodeBlockRecord {
     {
         CodeBlock block;
         int ssESP;
-        int esp;
-        int ebp;
+        int[] state;
 
-        private CodeBlockHolder(CodeBlock b, int ssESP, int esp, int ebp)
+        private CodeBlockHolder(CodeBlock b, Processor cpu)
         {
             block = b;
-            this.ssESP = ssESP;
-            this.esp = esp;
-            this.ebp = ebp;
+            boolean is32BitStack = cpu.ss.getDefaultSizeFlag();
+            this.ssESP = cpu.ss.getBase() + (is32BitStack ? cpu.r_esp.get32() : 0xffff & cpu.r_esp.get32());
+            this.state = ProcessorState.extract(cpu);
         }
     }
 }

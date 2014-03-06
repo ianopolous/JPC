@@ -103,8 +103,6 @@ public class JPC extends ApplicationFrame implements ActionListener {
             }
         });
 
-
-
         JMenu windows = new JMenu("Windows");
         monitor = windows.add("PC Monitor");
         monitor.addActionListener(this);
@@ -159,9 +157,10 @@ public class JPC extends ApplicationFrame implements ActionListener {
     private void initialLayout()
     {
         ProcessorFrame pf = new ProcessorFrame();
+        objects.addObject(pf);
         addInternalFrame(desktop, -10, 10, pf);
         ExecutionTraceFrame tr = new ExecutionTraceFrame();
-        addInternalFrame(desktop, -(20+pf.getWidth()), 10, tr);
+        addInternalFrame(desktop, -(20 + pf.getWidth()), 10, tr);
     }
 
     private void resyncImageSelection(File dir) {
@@ -514,6 +513,7 @@ public class JPC extends ApplicationFrame implements ActionListener {
                 bringToFront(pf);
             } else {
                 pf = new ProcessorFrame();
+                objects.addObject(pf);
                 addInternalFrame(desktop, 10, 10, pf);
             }
         } else if (src == fpuFrame) {
@@ -564,6 +564,7 @@ public class JPC extends ApplicationFrame implements ActionListener {
                 bringToFront(tr);
             } else {
                 tr = new ExecutionTraceFrame();
+                objects.addObject(tr);
                 addInternalFrame(desktop, 30, 100, tr);
             }
         } else if (src == monitor) {
@@ -690,22 +691,17 @@ public class JPC extends ApplicationFrame implements ActionListener {
         objects.addObject(pc.getComponent(VGACard.class));
         objects.addObject(pc.getComponent(Keyboard.class));
 
-        ProcessorAccess pca = new ProcessorAccess(pc.getProcessor());
-        FPUAccess fpua = new FPUAccess((FpuState64)pc.getProcessor().fpu);
         codeBlocks = new CodeBlockRecord(pc);
-
-        objects.addObject(pca);
-        objects.addObject(fpua);
         objects.addObject(codeBlocks);
+        ProcessorAccess pca = ProcessorAccess.create(runMenu.isTimeTravel(), pc.getProcessor());
+        objects.addObject(ProcessorAccess.class, pca);
+        FPUAccess fpua = new FPUAccess((FpuState64)pc.getProcessor().fpu);
+        objects.addObject(fpua);
 
         runMenu.refresh();
         notifyPCCreated();
 
-        //processorFrame.doClick();
-        //breakpoints.doClick();
         monitor.doClick();
-        //codeBlockTreeFrame.doClick();
-        //opcodeFrame.doClick();
 
         return pc;
     }

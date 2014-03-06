@@ -1,10 +1,7 @@
 /*
     JPC: An x86 PC Hardware Emulator for a pure Java Virtual Machine
-    Release Version 2.4
 
-    A project from the Physics Dept, The University of Oxford
-
-    Copyright (C) 2007-2010 The University of Oxford
+    Copyright (C) 2012-2013 Ian Preston
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License version 2 as published by
@@ -18,124 +15,37 @@
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- 
-    Details (including contact information) can be found at: 
+
+    Details (including contact information) can be found at:
 
     jpc.sourceforge.net
     or the developer website
     sourceforge.net/projects/jpc/
 
-    Conceived and Developed by:
-    Rhys Newman, Ian Preston, Chris Dennis
-
     End of licence header
 */
 
-
 package org.jpc.debugger;
-
-import java.lang.reflect.*;
-import java.util.*;
 
 import org.jpc.emulator.processor.*;
 
-public class ProcessorAccess
+public abstract class ProcessorAccess
 {
-    private Processor processor;
-    private Map<String, Field> lookup;
-
-    public ProcessorAccess(Processor proc)
+    public static ProcessorAccess create(boolean timetravel, Processor cpu)
     {
-        processor = proc;
-
-        try
-        {
-            lookup = new HashMap<String, Field>();
-
-            addField("r_eax");
-            addField("r_ebx");
-            addField("r_ecx");
-            addField("r_edx");
-            addField("r_esp");
-            addField("r_ebp");
-            addField("r_esi");
-            addField("r_edi");
-
-            addField("eip");
-
-            addField("cr0");
-            addField("cr1");
-            addField("cr2");
-            addField("cr3");
-            addField("cr4");
-            
-            addField("cs");
-            addField("ds");
-            addField("ss");
-            addField("es");
-            addField("fs");
-            addField("gs");
-
-            addField("idtr");
-            addField("gdtr");
-            addField("ldtr");
-        }
-        catch (Throwable t) {t.printStackTrace();}
+        if (!timetravel)
+            return new ReflectionProcessorAccess(cpu);
+        return new TimeTravelProcessorAccess();
     }
 
-    private void addField(String fieldName) throws Exception
-    {
-        Field targetField = Processor.class.getDeclaredField(fieldName);
-        targetField.setAccessible(true);
+    public ProcessorAccess() {}
 
-        lookup.put(fieldName, targetField);   
-    }
+    public abstract void rowChanged(int row);
 
-    public int getValue(String name, int defaultValue)
-    {
-        if (name.equals("eflags"))
-            return processor.getEFlags();
-
-        Field f = lookup.get(name);
-        if (f == null)
-        {
-            return defaultValue;
-        }
-        if (f.getType().isPrimitive())
-            try {
-                return f.getInt(processor);
-            } catch (IllegalAccessException e) {
-                return defaultValue;
-            }
-        try {
-            Processor.Reg r = (Processor.Reg) f.get(processor);
-            return r.get32();
-        } catch (Exception e) {}
-        try {
-            Segment sel = (Segment) f.get(processor);
-            return sel.getBase();
-        } catch (IllegalAccessException e) {
-            return defaultValue;            
-        } catch (IllegalStateException g) {
-            return defaultValue;
-        }
-    }
+    public abstract int getValue(String name, int defaultValue);
 
     public boolean setValue(String name, int value)
     {
-        Field f = lookup.get(name);
-        if (f == null)
-            return false;
-
-        try {
-            Processor.Reg r = (Processor.Reg) f.get(processor);
-            r.set32(value);
-        } catch (Exception e) {e.printStackTrace();}
-        try {
-            f.setInt(processor, value);
-            return true;
-        } catch (IllegalAccessException e) {
-            return false;
-        }
+        return false;
     }
 }

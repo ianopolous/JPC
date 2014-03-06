@@ -45,7 +45,19 @@ public class ObjectDatabase
     {
         table = new HashMap<Class, Object>();
     }
-    
+
+    public synchronized boolean addObject(Class cls, Object value)
+    {
+        if (value == null)
+            return false;
+
+        if (table.containsKey(cls))
+            return false;
+
+        table.put(cls, value);
+        return true;
+    }
+
     public synchronized boolean addObject(Object value)
     {
         if (value == null)
@@ -53,11 +65,7 @@ public class ObjectDatabase
 
         Class cls = (Class) value.getClass();
 
-        if (table.containsKey(cls))
-            return false;
-        
-        table.put(cls, value);
-        return true;
+        return addObject(cls, value);
     }
 
     public synchronized Object getObject(Class cls)
