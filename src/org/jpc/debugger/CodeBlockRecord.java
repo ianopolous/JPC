@@ -291,6 +291,7 @@ public class CodeBlockRecord {
 
     public CodeBlock advanceDecode() {
         int ip = processor.getInstructionPointer();
+
         try {
             CodeBlock block = decodeBlockAt(ip);
             CodeBlockHolder priorState = new CodeBlockHolder(block, processor);

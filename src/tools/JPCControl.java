@@ -27,6 +27,7 @@
 
 package tools;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -58,13 +59,20 @@ public class JPCControl extends EmulatorControl
 
     public JPCControl(String jar, String[] args) throws IOException
     {
+        this(jar, args, false, false);
+    }
+
+    public JPCControl(String jar, String[] args, boolean showScreen, boolean disablePIT) throws IOException
+    {
         URL[] urls1 = new URL[]{new File(jar).toURL()};
         cl1 = new URLClassLoader(urls1, EmulatorControl.class.getClassLoader());
 
         try {
             Class opts = cl1.loadClass("org.jpc.j2se.Option");
             Method parse = opts.getMethod("parse", String[].class);
-            String[] pcargs = concat(new String[]{"-bochs"}, args);
+            String[] pcargs = args;
+            if (disablePIT)
+                pcargs = concat(new String[]{"-bochs"}, args);
             parse.invoke(opts, (Object)pcargs);
 
             Calendar start1 = Calendar.getInstance();
@@ -85,6 +93,18 @@ public class JPCControl extends EmulatorControl
             destroy = c1.getMethod("destroy");
             Method save = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
             Method load = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
+            Method startClock = c1.getMethod("start");
+            startClock.invoke(pc);
+
+            if (showScreen)
+            {
+                JPanel screen = (JPanel)c1.getMethod("getNewMonitor").invoke(pc);
+                JFrame frame = new JFrame();
+                frame.getContentPane().add("Center", new JScrollPane(screen));
+                frame.validate();
+                frame.setVisible(true);
+                frame.setBounds(100, 100, 760, 500);
+            }
         } catch (ClassNotFoundException e) {throw new RuntimeException(e.getMessage());}
         catch (NoSuchMethodException e) {throw new RuntimeException(e.getMessage());}
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}

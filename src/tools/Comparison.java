@@ -33,23 +33,8 @@ import java.util.*;
 import java.net.*;
 import java.lang.reflect.*;
 
-/**
- * User: Ian Preston
- */
 public class Comparison
 {
-    public static String[] oldnames = new String[]
-            {
-                    "eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp","eip", "flags",
-                    /*10*/"cs", "ds", "es", "fs", "gs", "ss", "ticks",
-                    /*17*/"cs-lim", "ds-lim", "es-lim", "fs-lim", "gs-lim", "ss-lim", "cs-prop",
-                    /*24*/"gdtrbase", "gdtr-lim", "idtrbase", "idtr-lim", "ldtrbase", "ldtr-lim",
-                    /*30*/"cs-base", "ds-base", "es-base", "fs-base", "gs-base", "ss-base",
-                    /*36*/"cr0",
-                    /*37*/"ST0H", "ST0L","ST1H", "ST1L","ST2H", "ST2L","ST3H", "ST3L",
-                    /*45*/"ST4H", "ST4L","ST5H", "ST5L","ST6H", "ST6L","ST7H", "ST7L",
-                    //"expiry"
-            };
     public static String[] names = new String[]
             {
                     "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi","eip", "flags",
@@ -59,15 +44,14 @@ public class Comparison
                     /*30*/"cs-base", "ds-base", "es-base", "fs-base", "gs-base", "ss-base",
                     /*36*/"cr0",
                     /*37*/"ST0H", "ST0L","ST1H", "ST1L","ST2H", "ST2L","ST3H", "ST3L",
-                    /*45*/"ST4H", "ST4L","ST5H", "ST5L","ST6H", "ST6L","ST7H", "ST7L",
+                    /*45*/"ST4H", "ST4L","ST5H", "ST5L","ST6H", "ST6L","ST7H", "ST7L"
                     //"expiry"
             };
     static String newJar = "JPCApplication.jar";
-    static String oldJar = "OldJPCApplication.jar";
+    public static final int flagMask = ~0;
     public static final boolean compareFlags = true;
-    public static final boolean compareStack = true;
-    public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
 
+    public static final String[] perf = {"-fda", "floppy.img", "-boot", "fda", "-hda", "dir:dos"};
     public static final String[] doom = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom10m.img"};
     public static final String[] doom2 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/doom2.img"};
     public static final String[] prince1 = {"-fda", "floppy.img", "-boot", "fda", "-hda", "../../tmpdrives/prince1.img"};
@@ -83,255 +67,39 @@ public class Comparison
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
+    public static final String[] win98 = {"-hda", "caching:../../tmpdrives/win98harddisk.img", "-boot", "hda", "-ips", "1193181"};
+    public static final String[] wolf3d = {"-hda", "WOLF3D.img", "-boot", "hda", "-fda", "floppy.img", "-ips", "1193181"};
 
-    public static String[] pcargs = prince1;
-
-    public static final int flagMask = ~0x000; // OF IF
-    public static final int flagAdoptMask = ~0x10; // OF AF
-
-    public final static Map<String, Integer> flagIgnores = new HashMap();
-    static
-    {
-        flagIgnores.put("test", ~0x10); // not defined in spec
-        flagIgnores.put("and", ~0x10); // not defined in spec
-        flagIgnores.put("sar", ~0x10); // not defined in spec for non zero shifts
-        flagIgnores.put("xor", ~0x10); // not defined in spec
-        flagIgnores.put("or", ~0x10); // not defined in spec
-        flagIgnores.put("mul", ~0xd4); // not defined in spec
-        flagIgnores.put("imul", ~0xd4); // not defined in spec
-        flagIgnores.put("popfw", ~0x895);
-        //flagIgnores.put("shl", ~0x810);
-        //flagIgnores.put("bt", ~0x894);
-
-        // not sure
-        //flagIgnores.put("bts", ~0x1);
-
-        // errors with the old JPC
-        //flagIgnores.put("add", ~0x800)
-        //flagIgnores.put("btr", ~0x1);
-        flagIgnores.put("rcl", ~0x800);
-        flagIgnores.put("shr", ~0x810);
-        //flagIgnores.put("shrd", ~0x810);
-        flagIgnores.put("shld", ~0x810);
-        flagIgnores.put("lss", ~0x200);
-        //flagIgnores.put("iret", ~0x10); // who cares about before the interrupt
-        //flagIgnores.put("iretw", ~0x810); // who cares about before the interrupt
-
-    }
-
-    public static TreeSet<KeyBoardEvent> keyPresses = new TreeSet<KeyBoardEvent>();
-    public static TreeSet<KeyBoardEvent> keyReleases = new TreeSet<KeyBoardEvent>();
-    public static final long START_KEYS = 380000000L;
-    static
-    {
-        //keyboardInput.add(new KeyBoardEvent(0x2000000L, "cd windows\n"));
-        //keyboardInput.add(new KeyBoardEvent(0x2000100L, "win\n"));
-        //keyboardInput.add(new KeyBoardEvent(0x7000000L, "./test-i386\n"));
-        // prince
-//        keyPresses.add(new KeyBoardEvent(200000000L, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(250000000L, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 10, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 20, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 30, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 40, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 50, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 60, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 70, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 80, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 90, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 100, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-//        keyPresses.add(new KeyBoardEvent(START_KEYS + 110, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
-    }
-
-    public static TreeSet<MouseEvent> mouseInput = new TreeSet<MouseEvent>();
-    static
-    {
-        //mouseInput.add(new MouseEvent(0x42bb000L, 0, 0, 0, true, false, false));
-        //mouseInput.add(new MouseEvent(0x42bb010L, 0, 0, 0, false, false, false));
-        //mouseInput.add(new MouseEvent(0x6000000L, 0, 0, 0, false, false, true));
-        //mouseInput.add(new MouseEvent(0x6000100L, 0, 0, 0, false, false, false));
+    public static final Map<String, String[]> possibleArgs = new HashMap();
+    static {
+        possibleArgs.put("win98", win98);
     }
 
     public static void main(String[] args) throws Exception
     {
         boolean mem = false;
         if ((args.length >0) && args[0].equals("-mem"))
+        {
             mem = true;
-        URL[] urls1 = new URL[]{new File(newJar).toURL()};
-        URL[] urls2 = new URL[]{new File(oldJar).toURL()};
-        ClassLoader cl1 = new URLClassLoader(urls1, Comparison.class.getClassLoader());
-        ClassLoader cl2 = new URLClassLoader(urls2, Comparison.class.getClassLoader());
+            String[] temp = new String[args.length];
+            System.arraycopy(args, 1, temp, 0, temp.length-1);
+            temp[temp.length-1] = "-track-writes"; // Force JPC Physical memory to track dirty pages
+            args = temp;
+        }
+        String[] pcargs = possibleArgs.get(args[0]);
+        EmulatorControl disciple = new JPCControl(newJar, pcargs);
+        EmulatorControl oracle = new JPCControl(newJar, pcargs, true, false);
 
-        Class opts = cl1.loadClass("org.jpc.j2se.Option");
-        Method parse = opts.getMethod("parse", String[].class);
-        parse.invoke(opts, (Object)args);
-
-        //Class opts2 = cl2.loadClass("org.jpc.j2se.Option");
-        //Method parse2 = opts2.getMethod("parse", String[].class);
-        //parse2.invoke(opts2, (Object)args);
-
-        Calendar start1 = Calendar.getInstance();
-        Class c1 = cl1.loadClass("org.jpc.emulator.PC");
-        Constructor ctor = c1.getConstructor(String[].class, Calendar.class);
-        Object newpc = ctor.newInstance((Object)pcargs, start1);
-
-        Calendar start2 = (Calendar)start1.clone();
-        Class c2 = cl2.loadClass("org.jpc.emulator.PC");
-        Constructor ctor2 = c2.getConstructor(String[].class, Calendar.class);
-        Object oldpc = ctor2.newInstance((Object)pcargs, start2);
-
-        Method m1 = c1.getMethod("hello");
-        m1.invoke(newpc);
-        Method m2 = c2.getMethod("hello");
-        m2.invoke(oldpc);
-
-        Method ints1 = c1.getMethod("checkInterrupts");
-        Method state1 = c1.getMethod("getState");
-        Method setState1 = c1.getMethod("setState", int[].class);
-        Method execute1 = c1.getMethod("executeBlock");
-        Method dirty1 = c1.getMethod("getDirtyPages", Set.class);
-        Method dirty2 = null;//c2.getMethod("getDirtyPages", Set.class);
-        Method state2 = c2.getMethod("getState");
-        Method execute2 = c2.getMethod("executeBlock");
-        Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
-        Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
-        Method save2 = c2.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
-        Method startClock1 = c1.getMethod("start");
-        Method startClock2 = c2.getMethod("start");
-        startClock1.invoke(newpc);
-        startClock2.invoke(oldpc);
-        Method break1 = c1.getMethod("eipBreak", Integer.class);
-        Method break2 = c2.getMethod("eipBreak", Integer.class);
-        Method instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
-
-        Method keysDown1 = c1.getMethod("sendKeysDown", String.class);
-        Method keysUp1 = c1.getMethod("sendKeysUp", String.class);
-        Method keysDown2 = c2.getMethod("sendKeysDown", String.class);
-        Method keysUp2 = c2.getMethod("sendKeysUp", String.class);
-        Method minput1 = c1.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
-        Method minput2 = c2.getMethod("sendMouse", Integer.class, Integer.class, Integer.class, Integer.class);
-
-        // setup screen from new JPC
-        JPanel screen = (JPanel)c1.getMethod("getNewMonitor").invoke(newpc);
-        JFrame frame = new JFrame();
-        frame.getContentPane().add("Center", new JScrollPane(screen));
-        frame.validate();
-        frame.setVisible(true);
-        frame.setBounds(100, 100, 760, 500);
-
-        if (mem)
-            System.out.println("Comparing memory"+(compareStack?", stack":"")+" and registers..");
-        else if (compareStack)
-            System.out.println("Comparing registers and stack..");
-        else
-            System.out.println("Comparing registers only..");
-        String line;
         byte[] sdata1 = new byte[4096];
         byte[] sdata2 = new byte[4096];
-        int[] fast = null, old=null;
-        boolean previousLss = false;
-        int previousStackAddr = 0;
-        boolean startedRight = false, startedLeft = false;
         while (true)
         {
-            Exception e1 = null;
-            try {
-                execute1.invoke(newpc);
-                ints1.invoke(newpc);
-            } catch (Exception e)
-            {
-                printHistory();
-                e.printStackTrace();
-                System.out.println("Exception during new JPC execution... look above");
-                e1 = e;
-            }
-            try {
-                execute2.invoke(oldpc);
-            } catch (Exception e)
-            {
-                printHistory();
-                e.printStackTrace();
-                System.out.println("Exception during old JPC execution... look above");
-                throw e;
-            }
-            fast = (int[])state1.invoke(newpc);
-            old = (int[])state2.invoke(oldpc);
-            try {
-                line = (String) instructionInfo.invoke(newpc, new Integer(1)); // instructions per block
-            } catch (Exception e)
-            {
-                if (!e.toString().contains("PAGE_FAULT"))
-                {
-                    e.printStackTrace();
-                    System.out.printf("Error getting instruction info.. at cs:eip = %08x\n", fast[8]+(fast[10]<<4));
-                    line = "Instruction decode error";
-                    printHistory();
-                    //continueExecution("after Invalid decode at cs:eip");
-                }
-                line = "PAGE_FAULT getting instruction";
-            }
-            if (e1 != null)
-                throw e1;
-            // send input events
-            if (fast[16] > 230000000)
-            {
-                if (fast[16] < 240000000)
-                {
-                    if (!startedRight)
-                    {
-                        startedRight = true;
-                        System.out.println("Started running right...");
-                    }
-                    keysDown1.invoke(newpc, ">");
-                    keysDown2.invoke(oldpc, ">");
-                }
-                else
-                {
-                    if (!startedLeft)
-                    {
-                        startedLeft = true;
-                        System.out.println("Started running Left...");
-                        keysUp1.invoke(newpc, ">");
-                        keysUp2.invoke(oldpc, ">");
-                    }
-                    keysDown1.invoke(newpc, "<");
-                    keysDown2.invoke(oldpc, "<");
-                }
-            }
-            if (!keyPresses.isEmpty())
-            {
-                KeyBoardEvent k = keyPresses.first();
-                if (fast[16] > k.time)
-                {
-                    keysDown1.invoke(newpc, k.text);
-                    keysDown2.invoke(oldpc, k.text);
-                    System.out.println("Sent key presses: "+k.text);
-                    keyPresses.remove(k);
-                }
-            }
-            if (!keyReleases.isEmpty())
-            {
-                KeyBoardEvent k = keyReleases.first();
-                if (fast[16] > k.time)
-                {
-                    keysUp1.invoke(newpc, k.text);
-                    keysUp2.invoke(oldpc, k.text);
-                    System.out.println("Sent key releases: "+k.text);
-                    keyReleases.remove(k);
-                }
-            }
-            if (!mouseInput.isEmpty())
-            {
-                MouseEvent k = mouseInput.first();
-                if (fast[16] > k.time)
-                {
-                    minput1.invoke(newpc, k.dx, k.dy, k.dz, k.buttons);
-                    minput2.invoke(oldpc, k.dx, k.dy, k.dz, k.buttons);
-                    mouseInput.remove(k);
-                }
-            }
-            if (fast[16] % 0x1000000 == 0)//F816CFC)
+            String line = oracle.executeInstruction();
+            disciple.executeInstruction();
+            int[] fast = oracle.getState();
+            int[] old = disciple.getState();
+
+            if (fast[16] % 0x1000000 == 0)
                 System.out.printf("Reached %x ticks!", fast[16]);
             if (history[historyIndex] == null)
                 history[historyIndex] = new Object[3];
@@ -339,91 +107,20 @@ public class Comparison
             history[historyIndex][1] = old;
             history[historyIndex][2] = line;
             historyIndex = (historyIndex+1)%history.length;
-            if (fast[16] == 0x1B3E656)
-                System.out.println("Here comes the bug!");
+//            if (fast[16] == 0x1B3E656)
+//                System.out.println("Here comes the bug!");
 
             Set<Integer> diff = new HashSet<Integer>();
             if (!sameStates(fast, old, compareFlags, diff))
             {
-                if ((diff.size() == 1) && diff.contains(9))
-                {
-                    // adopt flags
-                    String prevInstr = ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[0];
-                    String secondPrevInstr = ((String)(history[(historyIndex-3)&(history.length-1)][2])).split(" ")[0];
-                    if (prevInstr.startsWith("rep"))
-                        prevInstr += ((String)(history[(historyIndex-2)&(history.length-1)][2])).split(" ")[1];
-                    if (prevInstr.startsWith("cli") || secondPrevInstr.startsWith("cli"))
-                    {
-                         if ((fast[9]^old[9]) == 0x200)
-                         {
-                             fast[9] = old[9];
-                             setState1.invoke(newpc, (int[])fast);
-                         }
-                    }
-
-                    if (previousLss)
-                    {
-                        previousLss = false;
-                        fast[9] = old[9];
-                        setState1.invoke(newpc, (int[])fast);
-                    }
-                    else if (flagIgnores.containsKey(prevInstr))
-                    {
-                        int mask = flagIgnores.get(prevInstr);
-                        if ((fast[9]& mask) == (old[9] & mask))
-                        {
-                            fast[9] = old[9];
-                            setState1.invoke(newpc, (int[])fast);
-                        }
-                    } else if ((fast[9]& flagAdoptMask) == (old[9] & flagAdoptMask))
-                    {
-                        fast[9] = old[9];
-                        setState1.invoke(newpc, (int[])fast);
-                    }
-                    if (prevInstr.equals("lss"))
-                        previousLss = true;
-
-                }
-                else if ((diff.size() == 1) && diff.contains(0) && ((fast[0]^old[0]) == 0x10))
-                {
-                    //often eax is loaded with flags which contain arbirary AF values, ignore these
-                    fast[0] = old[0];
-                    setState1.invoke(newpc, (int[])fast);
-                }
-                diff.clear();
-                if (!sameStates(fast, old, compareFlags, diff))
-                {
-                    printHistory();
-                    for (int diffIndex: diff)
-                        System.out.printf("Difference: %s %08x - %08x : %08x\n", names[diffIndex], fast[diffIndex], old[diffIndex], fast[diffIndex]^old[diffIndex]);
-                        setState1.invoke(newpc, (int[])old);
-                }
+                printHistory();
             }
-            if (compareStack)
-            {
-                boolean pm = (fast[36] & 1) != 0;
-                int ssBase = fast[35];
-                int esp = fast[6] + ssBase;
-                int espPageIndex;
-                if (pm)
-                    espPageIndex = esp;
-                else
-                    espPageIndex = esp >>> 12;
-                if (previousStackAddr != espPageIndex)
-                {
-                    // we've changed stacks, compare the old one as well
-                    compareStacks(previousStackAddr, previousStackAddr, save1, newpc, sdata1, save2, oldpc, sdata2, pm, load1);
 
-                    previousStackAddr = espPageIndex;
-                }
-
-                compareStacks(espPageIndex, esp, save1, newpc, sdata1, save2, oldpc, sdata2, pm, load1);
-            }
             if (!mem)
                 continue;
             Set<Integer> dirtyPages = new HashSet<Integer>();
             //dirty1.invoke(newpc, dirtyPages);
-            dirty2.invoke(oldpc, dirtyPages);
+//            dirty2.invoke(oldpc, dirtyPages);
             //for (int i=0; i < 2*1024; i++)
             //    dirtyPages.add(i);
             if (dirtyPages.size() > 0)
@@ -435,18 +132,15 @@ public class Comparison
             }
             for (int i : dirtyPages)
             {
-                Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1, false);
-                Integer l2 = (Integer)save2.invoke(oldpc, new Integer(i<<12), sdata2, false);
+                Integer l1 = oracle.savePage(i << 12, sdata1, false);
+                Integer l2 = disciple.savePage(i << 12, sdata2, false);
                 if (l2 > 0)
                     if (!samePage(i, sdata1, sdata2, null))
                     {
                         printHistory();
                         System.out.println("Error here... look above");
                         printPage(sdata1, sdata2, i << 12);
-                        if (continueExecution("memory"))
-                            load1.invoke(newpc, new Integer(i), sdata2, false);
-                        else
-                            System.exit(0);
+                        System.exit(0);
                     }
             }
         }
