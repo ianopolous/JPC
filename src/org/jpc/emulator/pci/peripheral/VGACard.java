@@ -1609,7 +1609,7 @@ public abstract class VGACard extends AbstractPCIDevice implements IODevice
     //Public Methods Used By Output Device
     public final void updateDisplay()
     {
-
+        // note this causes NON-deterministic execution because of thread scheduling
         updatingScreen = true;
 
         boolean fullUpdate = false;

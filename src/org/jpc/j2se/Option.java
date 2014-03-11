@@ -58,6 +58,9 @@ public abstract class Option {
     public static final Opt min_addr_watch = opt("min-addr-watch");
     public static final Opt max_addr_watch = opt("max-addr-watch");
 
+    // required for deterministic execution
+    public static final Opt startTime = opt("start-time");
+    public static final Switch noScreen = createSwitch("no-screen");
     public static final Opt ss = opt("ss");
     public static final Opt ram = opt("ram");
     public static final Opt ips = opt("ips");

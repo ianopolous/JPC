@@ -38,9 +38,9 @@ import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Calendar;
 
-public class JPCControl extends EmulatorControl
+public class JPCDebuggerControl extends EmulatorControl
 {
-    private final Object pc;
+    private final Object debugger, pc;
     private final Method execute;
     private final Method setState;
     private final Method state;
@@ -52,32 +52,35 @@ public class JPCControl extends EmulatorControl
     private final Method destroy;
     private final URLClassLoader cl1;
 
-    public JPCControl(String jar, String pcName, String[] extraArgs) throws IOException
+    public JPCDebuggerControl(String jar, String pcName, String[] extraArgs) throws IOException
     {
         this(jar, concat(CompareToBochs.possibleArgs.get(pcName), extraArgs));
     }
 
-    public JPCControl(String jar, String[] args) throws IOException
+    public JPCDebuggerControl(String jar, String[] args) throws IOException
     {
         this(jar, args, false, false);
     }
 
-    public JPCControl(String jar, String[] args, boolean showScreen, boolean disablePIT) throws IOException
+    public JPCDebuggerControl(String jar, String[] args, boolean showScreen, boolean disablePIT) throws IOException
     {
         URL[] urls1 = new URL[]{new File(jar).toURL()};
         cl1 = new URLClassLoader(urls1, EmulatorControl.class.getClassLoader());
 
         try {
-            Class opts = cl1.loadClass("org.jpc.j2se.Option");
-            Method parse = opts.getMethod("parse", String[].class);
             String[] pcargs = args;
             if (disablePIT)
                 pcargs = concat(new String[]{"-bochs"}, args);
-            parse.invoke(opts, (Object)pcargs);
+
+            Class d1 = cl1.loadClass("org.jpc.debugger.JPC");
+            Method main = d1.getMethod("main", String[].class);
+            main.invoke(null, (Object)pcargs);
+            Method instance = d1.getMethod("getInstance");
+            debugger = instance.invoke(null);
+            Method getPC = d1.getMethod("getPC");
+            pc = getPC.invoke(null);
 
             Class c1 = cl1.loadClass("org.jpc.emulator.PC");
-            Constructor ctor = c1.getConstructor(String[].class);
-            pc = ctor.newInstance((Object)pcargs);
 
             ints = c1.getMethod("checkInterrupts", Integer.class, Boolean.class);
             state = c1.getMethod("getState");
@@ -92,21 +95,10 @@ public class JPCControl extends EmulatorControl
             Method load = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
             Method startClock = c1.getMethod("start");
             startClock.invoke(pc);
-
-            if (showScreen)
-            {
-                JPanel screen = (JPanel)c1.getMethod("getNewMonitor").invoke(pc);
-                JFrame frame = new JFrame();
-                frame.getContentPane().add("Center", new JScrollPane(screen));
-                frame.validate();
-                frame.setVisible(true);
-                frame.setBounds(100, 100, 760, 500);
-            }
         } catch (ClassNotFoundException e) {throw new RuntimeException(e.getMessage());}
         catch (NoSuchMethodException e) {throw new RuntimeException(e.getMessage());}
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
         catch (InvocationTargetException e) {throw new RuntimeException(e.getMessage());}
-        catch (InstantiationException e) {throw new RuntimeException(e.getMessage());}
     }
 
     public String disam(byte[] code, Integer ops, Boolean is32Bit)

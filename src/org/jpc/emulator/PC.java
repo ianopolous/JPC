@@ -107,7 +107,7 @@ public class PC {
     }
 
     public PC(Clock clock, DriveSet drives) throws IOException {
-        this(clock, drives, DEFAULT_RAM_SIZE, Calendar.getInstance());
+        this(clock, drives, DEFAULT_RAM_SIZE, getStartTime());
     }
 
     /**
@@ -194,7 +194,7 @@ public class PC {
     }
 
     public PC(Clock clock, DriveSet drives, int ramSize) throws IOException {
-       this(clock, drives, ramSize, Calendar.getInstance());
+       this(clock, drives, ramSize, getStartTime());
     }
 
     /**
@@ -209,7 +209,7 @@ public class PC {
     }
 
     public PC(Clock clock, String[] args) throws IOException {
-        this(clock, DriveSet.buildFromArgs(args), Calendar.getInstance());
+        this(clock, DriveSet.buildFromArgs(args), getStartTime());
     }
 
     /**
@@ -226,6 +226,18 @@ public class PC {
 
     public PC(String[] args, Calendar startTime) throws IOException {
         this(new VirtualClock(), args, startTime);
+    }
+
+    public PC(String[] args) throws IOException {
+        this(new VirtualClock(), args, getStartTime());
+    }
+
+    private static Calendar getStartTime()
+    {
+        Calendar start = Calendar.getInstance();
+        if (Option.startTime.isSet())
+            start.setTimeInMillis(Long.parseLong(Option.startTime.value()));
+        return start;
     }
 
     public void hello()
@@ -820,7 +832,7 @@ public class PC {
             }
         } catch (ModeSwitchException e)
         {
-            System.out.println("Switched mode: "+e.getMessage());
+//            System.out.println("Switched mode: "+e.getMessage());
             return true; // must have been triggered by the interrupt handler
         }
     }

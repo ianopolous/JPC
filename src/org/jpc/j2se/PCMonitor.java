@@ -171,7 +171,7 @@ public class PCMonitor extends KeyHandlingPanel
 
     class Updater extends Thread 
     {
-        private volatile boolean running = true;
+        private volatile boolean running = !Option.noScreen.isSet();
 
         public Updater() 
         {

@@ -48,6 +48,7 @@ public class Comparison
                     //"expiry"
             };
     static String newJar = "JPCApplication.jar";
+    static String debugJar = "JPCDebugger.jar";
     public static final int flagMask = ~0;
     public static final boolean compareFlags = true;
 
@@ -67,7 +68,8 @@ public class Comparison
     public static final String[] hurd = {"-cdrom", "hurd.iso", "-boot", "cdrom"};
     public static final String[] tty = {"-cdrom", "ttylinux-i386-5.3.iso", "-boot", "cdrom"};
     public static final String[] win311 = {"-hda", "../../tmpdrives/win311.img", "-boot", "hda"};
-    public static final String[] win98 = {"-hda", "caching:../../tmpdrives/win98harddisk.img", "-boot", "hda", "-ips", "1193181"};
+    public static final String[] win98 = {"-hda", "caching:../../tmpdrives/win98harddisk.img", "-boot", "hda", "-ips", "1193181",
+            "-max-block-size", "1", "-start-time", "1370072774000", "-no-screen"};
     public static final String[] wolf3d = {"-hda", "WOLF3D.img", "-boot", "hda", "-fda", "floppy.img", "-ips", "1193181"};
 
     public static final Map<String, String[]> possibleArgs = new HashMap();
@@ -87,7 +89,7 @@ public class Comparison
             args = temp;
         }
         String[] pcargs = possibleArgs.get(args[0]);
-        EmulatorControl disciple = new JPCControl(newJar, pcargs);
+        EmulatorControl disciple = new JPCDebuggerControl(debugJar, pcargs);
         EmulatorControl oracle = new JPCControl(newJar, pcargs, true, false);
 
         byte[] sdata1 = new byte[4096];
@@ -109,11 +111,14 @@ public class Comparison
             historyIndex = (historyIndex+1)%history.length;
 //            if (fast[16] == 0x1B3E656)
 //                System.out.println("Here comes the bug!");
+//            if (fast[8] + fast[30] == 0x80147130)
+//                System.out.printf("80147130, ticks = %08x\n", fast[16]);
 
             Set<Integer> diff = new HashSet<Integer>();
             if (!sameStates(fast, old, compareFlags, diff))
             {
                 printHistory();
+                System.exit(0);
             }
 
             if (!mem)

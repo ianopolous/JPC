@@ -57,15 +57,12 @@ public class JPC extends ApplicationFrame implements ActionListener {
 
     private static JPC instance = null;
     private ObjectDatabase objects;
-    private RunMenu runMenu;
     private CodeBlockRecord codeBlocks;
+    private RunMenu runMenu;
     private JDesktopPane desktop;
     private DiskSelector floppyDisk,  hardDisk, cdrom;
     private JMenuItem createPC,  scanForImages,  loadSnapshot,  saveSnapshot;
     private JMenuItem fpuFrame, processorFrame, physicalMemoryViewer, linearMemoryViewer, watchpoints, breakpoints, traceFrame,  monitor;
-    public static Process p = null;
-    public static BufferedReader input = null;
-    public static BufferedWriter output = null;
 
     private JPC(boolean fullScreen) {
         super("JPC Debugger");
@@ -805,6 +802,11 @@ public class JPC extends ApplicationFrame implements ActionListener {
 
     public static Object getObject(Class cls) {
         return instance.get(cls);
+    }
+
+    public static Object getPC()
+    {
+        return instance.getObject(PC.class);
     }
 
     public static JPC getInstance() {
