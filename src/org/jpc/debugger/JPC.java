@@ -747,13 +747,14 @@ public class JPC extends ApplicationFrame implements ActionListener {
             if (codeBlocks == null) {
                 return;
             }
+            long ticks = ((PC)objects.getObject(PC.class)).getState()[16];
             long count = codeBlocks.getInstructionCount();
             long decoded = codeBlocks.getDecodedCount();
             long executed = codeBlocks.getExecutedBlockCount();
             long now = System.currentTimeMillis();
 
             double mhz = 1000.0 * (count - lastCount) / (now - lastTime) / 1000000;
-            setText("Decoded: (" + decoded + " x86 Instr) | Executed: (" + commaSeparate(count) + " x86 Instr) (" + executed + " UBlocks) | " + fmt.format(mhz) + " MHz");
+            setText("Decoded: (" + decoded + " x86 Instr) | Executed: (" + commaSeparate(count) + " x86 Instr) (" + executed + " Blocks) ("+commaSeparate(ticks)+" ticks) | " + fmt.format(mhz) + " MHz");
             lastCount = count;
             lastTime = now;
         }

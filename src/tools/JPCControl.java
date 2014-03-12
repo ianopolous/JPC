@@ -36,7 +36,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
-import java.util.Calendar;
 
 public class JPCControl extends EmulatorControl
 {
@@ -146,7 +145,7 @@ public class JPCControl extends EmulatorControl
             Throwable c = e.getCause();
             if (c instanceof IllegalStateException)
                 return c.getMessage();
-            if (c.getMessage().contains("PAGE_FAULT"))
+            if ((c!= null) && c.getMessage().contains("PAGE_FAULT"))
                 return c.getMessage();
             throw new RuntimeException(e.getMessage());
         }

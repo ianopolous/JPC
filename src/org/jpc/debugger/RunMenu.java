@@ -217,7 +217,6 @@ public class RunMenu extends JMenu implements ActionListener {
                 boolean bg;
                 BreakpointsFrame bps = (BreakpointsFrame) JPC.getObject(BreakpointsFrame.class);
                 WatchpointsFrame wps = (WatchpointsFrame) JPC.getObject(WatchpointsFrame.class);
-                ExecutionTraceFrame trace = (ExecutionTraceFrame) JPC.getObject(ExecutionTraceFrame.class);
                 U1 u = new U1();
                 long t1 = System.currentTimeMillis();
 
@@ -250,6 +249,7 @@ public class RunMenu extends JMenu implements ActionListener {
                                 {
                                     if (!wp.isWatchingForValue() || (wp.getWatchTarget() == (byte)newVal))
                                     {
+                                        java.awt.Toolkit.getDefaultToolkit().beep();
                                         new Alerter("Watchpoint", String.format("Watch at %08x: old value=%02x new value=%02x " + wp.getName(), wp.getAddress(), old, newVal), JOptionPane.INFORMATION_MESSAGE).show();
                                         break;
                                     }
@@ -269,6 +269,7 @@ public class RunMenu extends JMenu implements ActionListener {
 
                                 String addr = MemoryViewPanel.zeroPadHex(bp.getAddress(), 8);
                                 String name = bp.getName();
+                                java.awt.Toolkit.getDefaultToolkit().beep();
                                 new Alerter("Breakpoint", "Break at " + addr + ": " + name, JOptionPane.INFORMATION_MESSAGE).show();
                                 break;
                             }
@@ -334,8 +335,6 @@ public class RunMenu extends JMenu implements ActionListener {
                 clock.resume();
             }
             for (int i = 0; i < count; i++) {
-//                if (i % 10 == 0)
-//                    System.out.println("Done " + i + " blocks.");
                 CodeBlock block = codeBlockRecord.executeBlock();
                 instructions += block.getX86Count();
 
@@ -354,6 +353,7 @@ public class RunMenu extends JMenu implements ActionListener {
                     if (bp != null) {
                         String addr = MemoryViewPanel.zeroPadHex(bp.getAddress(), 8);
                         String name = bp.getName();
+                        java.awt.Toolkit.getDefaultToolkit().beep();
                         JOptionPane.showMessageDialog(JPC.getInstance(), "Break at " + addr + ": " + name, "Breakpoint", JOptionPane.INFORMATION_MESSAGE);
                         break;
                     }

@@ -111,8 +111,8 @@ public class Comparison
             historyIndex = (historyIndex+1)%history.length;
 //            if (fast[16] == 0x1B3E656)
 //                System.out.println("Here comes the bug!");
-//            if (fast[8] + fast[30] == 0x80147130)
-//                System.out.printf("80147130, ticks = %08x\n", fast[16]);
+            if (fast[8] + fast[30] == 0x80147130)
+                System.out.printf("80147130, ticks = %08x\n", fast[16]);
 
             Set<Integer> diff = new HashSet<Integer>();
             if (!sameStates(fast, old, compareFlags, diff))

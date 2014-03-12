@@ -209,7 +209,6 @@ public class CodeBlockRecord {
         {
             block = s.getBlock();
         }
-        decodedCount += block.getX86Count();
 
         if (listener != null) {
             listener.codeBlockDecoded(address, addressSpace, block);
@@ -238,7 +237,9 @@ public class CodeBlockRecord {
             }
         }
 
-        instructionCount += blockLength;
+        synchronized (this) {
+            instructionCount += blockLength;
+        }
         return block;
     }
 
@@ -251,6 +252,7 @@ public class CodeBlockRecord {
             trace[(int) (blockCount % trace.length)] = priorState;
             addresses[(int) (blockCount % trace.length)] = ip;
             blockCount++;
+            decodedCount += block.getX86Count();
             return block;
         } catch (ProcessorException e) {
             processor.handleProtectedModeException(e);
@@ -365,11 +367,11 @@ public class CodeBlockRecord {
         return blockCount-1;
     }
 
-    public long getInstructionCount() {
+    public synchronized long getInstructionCount() {
         return instructionCount;
     }
 
-    public long getDecodedCount() {
+    public synchronized long getDecodedCount() {
         return decodedCount;
     }
 
