@@ -124,10 +124,10 @@ public class RunMenu extends JMenu implements ActionListener {
         public boolean dispatchKeyEvent(KeyEvent e) {
             if (e.getID() == KeyEvent.KEY_PRESSED) {
                 if (e.getKeyCode() == KeyEvent.VK_F8) {
-                    executeStep(true);
+                    executeStep();
                     return true;
                 } else if (e.getKeyCode() == KeyEvent.VK_F7) {
-                    executeSteps(multiSteps, true);
+                    executeSteps(multiSteps);
                     return true;
                 }
             }
@@ -309,13 +309,13 @@ public class RunMenu extends JMenu implements ActionListener {
         }
     }
 
-    public void executeStep(boolean doRemote) {
-        executeSteps(1, doRemote);
+    public int executeStep() {
+        return executeSteps(1);
     }
 
-    public void executeSteps(int count, boolean doRemote) {
+    public int executeSteps(int count) {
         if (codeBlockRecord == null) {
-            return;
+            return 0;
         }
         if (cpu == null) {
             cpu = (Processor) JPC.getObject(Processor.class);
@@ -325,6 +325,7 @@ public class RunMenu extends JMenu implements ActionListener {
 
         JPC.getInstance().notifyExecutionStarted();
 
+        int instructions = 0;
         try {
             BreakpointsFrame bps = (BreakpointsFrame) JPC.getObject(BreakpointsFrame.class);
             if (pauseTimer.isSelected()) {
@@ -333,10 +334,10 @@ public class RunMenu extends JMenu implements ActionListener {
                 clock.resume();
             }
             for (int i = 0; i < count; i++) {
-                if (i % 10 == 0) {
-                    System.out.println("Done " + i + " blocks.");
-                }
+//                if (i % 10 == 0)
+//                    System.out.println("Done " + i + " blocks.");
                 CodeBlock block = codeBlockRecord.executeBlock();
+                instructions += block.getX86Count();
 
                 if (block == null) {
                     throw new Exception("Unimplemented Opcode at " + Integer.toHexString(processor.getInstructionPointer()).toUpperCase());
@@ -373,6 +374,7 @@ public class RunMenu extends JMenu implements ActionListener {
             clock.pause();
             JPC.getInstance().notifyExecutionStopped();
         }
+        return instructions;
     }
 
     public void stop() {
@@ -413,7 +415,7 @@ public class RunMenu extends JMenu implements ActionListener {
                 JOptionPane.showMessageDialog(this, "Failed to load BIOS: " + e, "PC Init Error", JOptionPane.ERROR_MESSAGE);
             }
         } else if (src == step) {
-            executeStep(true);
+            executeStep();
         } else if (src == multiStep) {
             try {
                 String val = JOptionPane.showInputDialog(JPC.getInstance(), "Enter the new number of steps to take each time", "" + multiSteps);

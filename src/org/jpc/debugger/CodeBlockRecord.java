@@ -225,57 +225,10 @@ public class CodeBlockRecord {
             return null;
         }
 
-        try {
-            if (block instanceof RealModeCodeBlock) {
-                try {
-                    block.execute(processor);
-                    processor.processRealModeInterrupts(block.getX86Count());
-                } catch (ProcessorException p) {
-                    processor.handleRealModeException(p);
-                }
-            } else if (block instanceof ProtectedModeCodeBlock) {
-                try {
-                    block.execute(processor);
-                    processor.processProtectedModeInterrupts(block.getX86Count());
-                } catch (ProcessorException p) {
-                    processor.handleProtectedModeException(p);
-                }
-            } else if (block instanceof Virtual8086ModeCodeBlock) {
-                try {
-                    block.execute(processor);
-                    processor.processVirtual8086ModeInterrupts(block.getX86Count());
-                } catch (ProcessorException p) {
-                    processor.handleVirtual8086ModeException(p);
-                }
-            }
-        } catch (ModeSwitchException e) {
-        } catch (CodeBlockReplacementException f) {
-            try {
-                block = f.getReplacement();
-                if (block instanceof RealModeCodeBlock) {
-                    try {
-                        block.execute(processor);
-                        processor.processRealModeInterrupts(block.getX86Count());
-                    } catch (ProcessorException p) {
-                        processor.handleRealModeException(p);
-                    }
-                } else if (block instanceof ProtectedModeCodeBlock) {
-                    try {
-                        block.execute(processor);
-                        processor.processProtectedModeInterrupts(block.getX86Count());
-                    } catch (ProcessorException p) {
-                        processor.handleProtectedModeException(p);
-                    }
-                } else if (block instanceof Virtual8086ModeCodeBlock) {
-                    try {
-                        block.execute(processor);
-                        processor.processVirtual8086ModeInterrupts(block.getX86Count());
-                    } catch (ProcessorException p) {
-                        processor.handleVirtual8086ModeException(p);
-                    }
-                }
-            } catch (ModeSwitchException e) {}
-        }
+        pc.checkInterrupts(1, false);
+        int blockLength = pc.executeBlock();
+        if (blockLength > 1)
+            pc.checkInterrupts(blockLength - 1, false);
 
         if (listener != null) {
             if (processor.isProtectedMode()) {
@@ -285,7 +238,7 @@ public class CodeBlockRecord {
             }
         }
 
-        instructionCount += block.getX86Count();
+        instructionCount += blockLength;
         return block;
     }
 

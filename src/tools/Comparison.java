@@ -204,9 +204,9 @@ public class Comparison
         int[] fast = (int[]) sarr[0];
         int[] old = (int[]) sarr[1];
         String line = (String) sarr[2];
-        System.out.println("New JPC:");
+        System.out.println("JPC Application:");
         Fuzzer.printState(fast);
-        System.out.println("Old JPC:");
+        System.out.println("JPC Debugger:");
         Fuzzer.printState(old);
         System.out.println(line);
     }

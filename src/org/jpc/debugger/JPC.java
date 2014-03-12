@@ -151,6 +151,11 @@ public class JPC extends ApplicationFrame implements ActionListener {
         resyncImageSelection(new File(System.getProperty("user.dir")));
     }
 
+    public int executeStep()
+    {
+        return runMenu.executeStep();
+    }
+
     private void initialLayout()
     {
         ProcessorFrame pf = new ProcessorFrame();

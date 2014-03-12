@@ -138,6 +138,8 @@ public class JPCControl extends EmulatorControl
         try {
             ints.invoke(pc, new Integer(1), new Boolean(false));
             int blockLength = (Integer)execute.invoke(pc);
+            if (blockLength > 1)
+                ints.invoke(pc, new Integer(blockLength - 1), new Boolean(false));
             return (String) instructionInfo.invoke(pc, new Integer(blockLength));
         } catch (InvocationTargetException e)
         {

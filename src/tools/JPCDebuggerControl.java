@@ -79,13 +79,13 @@ public class JPCDebuggerControl extends EmulatorControl
             debugger = instance.invoke(null);
             Method getPC = d1.getMethod("getPC");
             pc = getPC.invoke(null);
+            execute = d1.getMethod("executeStep");
 
             Class c1 = cl1.loadClass("org.jpc.emulator.PC");
 
             ints = c1.getMethod("checkInterrupts", Integer.class, Boolean.class);
             state = c1.getMethod("getState");
             setState = c1.getMethod("setState", int[].class);
-            execute = c1.getMethod("executeBlock");
             instructionInfo = c1.getMethod("getInstructionInfo", Integer.class);
             setPhysicalMemory = c1.getMethod("setPhysicalMemory", Integer.class, byte[].class);
             disam = c1.getMethod("disam", byte[].class, Integer.class, Boolean.class);
@@ -128,8 +128,7 @@ public class JPCDebuggerControl extends EmulatorControl
     public String executeInstruction() throws IOException
     {
         try {
-            ints.invoke(pc, new Integer(1), new Boolean(false));
-            int blockLength = (Integer)execute.invoke(pc);
+            int blockLength = (Integer)execute.invoke(debugger);
             return (String) instructionInfo.invoke(pc, new Integer(blockLength));
         } catch (InvocationTargetException e)
         {
@@ -160,14 +159,6 @@ public class JPCDebuggerControl extends EmulatorControl
         } catch (InvocationTargetException e) {throw new RuntimeException(e.getMessage());}
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
     }
-
-    //public void setState(int[] state, int currentCSEIP) throws IOException
-    //{
-    //    try {
-    //    setState.invoke(pc, (int[])state);
-    //    } catch (InvocationTargetException e) {throw new RuntimeException(e.getMessage());}
-    //    catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
-    //}
 
     public void destroy()
     {
