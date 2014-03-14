@@ -39,9 +39,9 @@ public class Comparison
             {
                     "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi","eip", "flags",
                     /*10*/"es", "cs", "ss", "ds", "fs", "gs", "ticks",
-                    /*17*/"cs-lim", "ds-lim", "es-lim", "fs-lim", "gs-lim", "ss-lim", "cs-prop",
+                    /*17*/"es-lim", "cs-lim", "ss-lim", "ds-lim", "fs-lim", "gs-lim", "cs-prop",
                     /*24*/"gdtrbase", "gdtr-lim", "idtrbase", "idtr-lim", "ldtrbase", "ldtr-lim",
-                    /*30*/"cs-base", "ds-base", "es-base", "fs-base", "gs-base", "ss-base",
+                    /*30*/"es-base", "cs-base", "ss-base", "ds-base", "fs-base", "gs-base",
                     /*36*/"cr0",
                     /*37*/"ST0H", "ST0L","ST1H", "ST1L","ST2H", "ST2L","ST3H", "ST3L",
                     /*45*/"ST4H", "ST4L","ST5H", "ST5L","ST6H", "ST6L","ST7H", "ST7L"
@@ -111,7 +111,7 @@ public class Comparison
             historyIndex = (historyIndex+1)%history.length;
 //            if (fast[16] == 0x1B3E656)
 //                System.out.println("Here comes the bug!");
-            if (fast[8] + fast[30] == 0x80147130)
+            if (fast[8] + fast[31] == 0x80147130)
                 System.out.printf("80147130, ticks = %08x\n", fast[16]);
 
             Set<Integer> diff = new HashSet<Integer>();

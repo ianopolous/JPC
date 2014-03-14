@@ -63,7 +63,7 @@ public abstract class EmulatorControl
         {
             "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi","eip", "flags",
             /*10*/"es", "cs", "ss", "ds", "fs", "gs", "ticks",
-            /*17*/"es-lim", "cs-lim", "ss-lim", "ds-lim", "fs-lim", "gs-lim", "cs-prop",
+            /*17*/"es-lim", "cs-lim", "ss-lim", "ds-lim", "fs-lim", "gs-lim", "ss-cs-prop",
             /*24*/"gdtrbase", "gdtr-lim", "idtrbase", "idtr-lim", "ldtrbase", "ldtr-lim",
             /*30*/"es-base", "cs-base", "ss-base", "ds-base", "fs-base", "gs-base",
             /*36*/"cr0",

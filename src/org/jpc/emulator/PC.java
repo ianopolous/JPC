@@ -371,7 +371,7 @@ public class PC {
                         getLimit(processor.es), getLimit(processor.cs),
                         getLimit(processor.ss), getLimit(processor.ds),
                         getLimit(processor.fs), getLimit(processor.gs),
-                        processor.cs.getDefaultSizeFlag()? 1: 0,
+                        (processor.cs.getDefaultSizeFlag()? 1: 0) | (processor.ss.getDefaultSizeFlag()? 0x10: 0),
                         getBase(processor.gdtr),getLimit(processor.gdtr),
                         getBase(processor.idtr),getLimit(processor.idtr),
                         getBase(processor.ldtr),getLimit(processor.ldtr),

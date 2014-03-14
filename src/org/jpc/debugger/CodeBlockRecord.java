@@ -37,9 +37,12 @@ import java.lang.reflect.*;
 import java.util.Arrays;
 
 import org.jpc.emulator.PC;
+import org.jpc.emulator.execution.Executable;
+import org.jpc.emulator.execution.decoder.Instruction;
 import org.jpc.emulator.processor.*;
 import org.jpc.emulator.memory.*;
 import org.jpc.emulator.execution.codeblock.*;
+import org.jpc.j2se.Option;
 
 public class CodeBlockRecord {
 
@@ -176,13 +179,7 @@ public class CodeBlockRecord {
         if (memory instanceof LinearAddressSpace.PageFaultWrapper)
         {
             LinearAddressSpace.PageFaultWrapper fault = (LinearAddressSpace.PageFaultWrapper) memory;
-            if (processor.isProtectedMode())
-            {
-                processor.handleProtectedModeException(fault.getException());
-                return decodeBlockAt(processor.eip);
-            }
-            else
-                System.out.println("Shouldn't be here in real mode, are we in VM8086?");
+            return new PageFaultCodeBlock(fault);
         }
         
         if (!(memory instanceof LazyCodeBlockMemory)) {
@@ -255,12 +252,61 @@ public class CodeBlockRecord {
             decodedCount += block.getX86Count();
             return block;
         } catch (ProcessorException e) {
+            if (Option.noScreen.isSet())
+            {
+                return new PageFaultCodeBlock(e);
+            }
             processor.handleProtectedModeException(e);
             return advanceDecode();
         }
     }
 
-    public void reset() {
+    public class PageFaultCodeBlock implements CodeBlock
+    {
+        private String message;
+
+        public PageFaultCodeBlock(LinearAddressSpace.PageFaultWrapper pf)
+        {
+            message = pf.toString();
+        }
+
+        public PageFaultCodeBlock(ProcessorException e)
+        {
+            message = e.toString();
+        }
+
+        @Override
+        public int getX86Length() {
+            return 0;
+        }
+
+        @Override
+        public int getX86Count() {
+            return 0;
+        }
+
+        @Override
+        public Executable.Branch execute(Processor cpu) {
+            return null;
+        }
+
+        @Override
+        public String getDisplayString() {
+            return message;
+        }
+
+        @Override
+        public Instruction getInstructions() {
+            return null;
+        }
+
+        @Override
+        public boolean handleMemoryRegionChange(int startAddress, int endAddress) {
+            return false;
+        }
+    }
+
+    public synchronized void reset() {
         Arrays.fill(trace, null);
         instructionCount = 0;
         blockCount = 0;

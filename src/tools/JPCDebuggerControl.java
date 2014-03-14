@@ -135,8 +135,8 @@ public class JPCDebuggerControl extends EmulatorControl
             Throwable c = e.getCause();
             if (c instanceof IllegalStateException)
                 return c.getMessage();
-            if (c.getMessage().contains("PAGE_FAULT"))
-                return c.getMessage();
+            if (c.toString().contains("PAGE_FAULT"))
+                return c.toString();
             throw new RuntimeException(e.getMessage());
         }
         catch (IllegalAccessException e) {
