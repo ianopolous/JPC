@@ -341,12 +341,18 @@ public class WatchpointsFrame extends UtilityFrame implements PCListener
             if (!(another instanceof Watchpoint))
                 return false;
 
-            return address == ((Watchpoint) another).address;
+            return (address == ((Watchpoint) another).address) && (watchValue == ((Watchpoint) another).watchValue);
         }
 
         public int compareTo(Watchpoint wp)
         {
-            return address - wp.address;
+            if (address != wp.address)
+                return address - wp.address;
+            if (watchValue == wp.watchValue)
+                return 0;
+            if ((0xff & watchValue) < (0xff & wp.watchValue))
+                return -1;
+            return 1;
         }
 
         public String getName()
