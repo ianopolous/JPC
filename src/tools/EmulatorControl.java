@@ -53,6 +53,7 @@ public abstract class EmulatorControl
     public static int DS_LIMIT_INDEX = 20;
     public static int FS_LIMIT_INDEX = 21;
     public static int GS_LIMIT_INDEX = 22;
+    public static int SEG_PROP_INDEX = 23;
     public static int ES_BASE_INDEX = 30;
     public static int CS_BASE_INDEX = 31;
     public static int SS_BASE_INDEX = 32;
@@ -81,7 +82,8 @@ public abstract class EmulatorControl
     public abstract byte[] getCMOS() throws IOException;
     public abstract int[] getPit() throws IOException;
     public abstract int getPITIntTargetEIP() throws IOException;
-    public abstract Integer savePage(Integer page, byte[] data, Boolean linear) throws IOException;
+    public abstract Integer getPhysicalPage(Integer page, byte[] data) throws IOException;
+    public abstract Integer getLinearPage(Integer page, byte[] data) throws IOException;
 
     public abstract void setPhysicalMemory(int addr, byte[] data) throws IOException;
     public abstract void keysDown(String keys);

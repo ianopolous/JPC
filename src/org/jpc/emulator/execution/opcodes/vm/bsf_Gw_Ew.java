@@ -25,7 +25,7 @@
     End of licence header
 */
 
-package org.jpc.emulator.execution.opcodes.pm;
+package org.jpc.emulator.execution.opcodes.vm;
 
 import org.jpc.emulator.execution.*;
 import org.jpc.emulator.execution.decoder.*;
@@ -33,26 +33,32 @@ import org.jpc.emulator.processor.*;
 import org.jpc.emulator.processor.fpu64.*;
 import static org.jpc.emulator.processor.Processor.*;
 
-public class pop_Ed_mem extends Executable
+public class bsf_Gw_Ew extends Executable
 {
-    final Pointer op1;
+    final int op1Index;
+    final int op2Index;
 
-    public pop_Ed_mem(int blockStart, int eip, int prefices, PeekableInputStream input)
+    public bsf_Gw_Ew(int blockStart, int eip, int prefices, PeekableInputStream input)
     {
         super(blockStart, eip);
         int modrm = input.readU8();
-        op1 = Modrm.getPointer(prefices, modrm, input);
+        op1Index = Modrm.Gw(modrm);
+        op2Index = Modrm.Ew(modrm);
     }
 
     public Branch execute(Processor cpu)
     {
-        int tmp = cpu.pop32();
-        try {
-            op1.set32(cpu, tmp);
-        } catch (ProcessorException e) {
-            cpu.incrementStack(-4);
-            throw e;
-        }
+        Reg op1 = cpu.regs[op1Index];
+        Reg op2 = cpu.regs[op2Index];
+        if (op2.get16() == 0) {
+	    cpu.zf(true);
+	} else {
+	    cpu.zf(false);
+            cpu.of = cpu.af = cpu.cf = false;
+            cpu.flagStatus = SP;
+            cpu.flagResult = StaticOpcodes.numberOfTrailingZeros(op2.get16());
+	    op1.set16(cpu.flagResult);
+	}
         return Branch.None;
     }
 

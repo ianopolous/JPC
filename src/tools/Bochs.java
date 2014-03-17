@@ -275,9 +275,19 @@ public class Bochs extends EmulatorControl
         throw new IllegalStateException("Unimplemented sendMouse");
     }
 
-    public Integer savePage(Integer page, byte[] data, Boolean linear) throws IOException
+    public Integer getPhysicalPage(Integer page, byte[] data) throws IOException
     {
-        writeCommand("xp/4096bx "+page);
+        return getPage("xp/4096bx ", page, data);
+    }
+
+    public Integer getLinearPage(Integer page, byte[] data) throws IOException
+    {
+        return getPage("x/4096bx ", page, data);
+    }
+
+    public Integer getPage(String command, Integer page, byte[] data) throws IOException
+    {
+        writeCommand(command + page);
         String line = readLine();
         while (!line.contains("bogus"))
             line = readLine();

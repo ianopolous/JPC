@@ -48,6 +48,7 @@ public class JPCControl extends EmulatorControl
     private final Method setPhysicalMemory;
     private final Method disam;
     private final Method x86Length;
+    private final Method getPage;
     private final Method destroy;
     private final URLClassLoader cl1;
 
@@ -87,7 +88,7 @@ public class JPCControl extends EmulatorControl
             disam = c1.getMethod("disam", byte[].class, Integer.class, Boolean.class);
             x86Length = c1.getMethod("x86Length", byte[].class, Boolean.class);
             destroy = c1.getMethod("destroy");
-            Method save = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
+            getPage = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
             Method load = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
             Method startClock = c1.getMethod("start");
             startClock.invoke(pc);
@@ -189,9 +190,28 @@ public class JPCControl extends EmulatorControl
         catch (IllegalAccessException e) {throw new RuntimeException(e.getMessage());}
     }
 
-    public Integer savePage(Integer page, byte[] data, Boolean linear) throws IOException
+    public Integer getPhysicalPage(Integer page, byte[] data) throws IOException
     {
-        throw new IllegalStateException("Unimplemented!");
+        try {
+            return (Integer) getPage.invoke(pc, page, data, new Boolean(false));
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public Integer getLinearPage(Integer page, byte[] data) throws IOException
+    {
+        try {
+            return (Integer) getPage.invoke(pc, page, data, new Boolean(true));
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public byte[] getCMOS() throws IOException

@@ -49,8 +49,7 @@ public class pop_Ew_mem extends Executable
         int tmp = cpu.pop16();
         try {
             op1.set16(cpu, (short)tmp);
-        } catch (ProcessorException e)
-        {
+        } catch (ProcessorException e) {
             cpu.incrementStack(-2);
             throw e;
         }

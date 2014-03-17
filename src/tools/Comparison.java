@@ -27,10 +27,8 @@
 
 package tools;
 
-import javax.swing.*;
 import java.io.*;
 import java.util.*;
-import java.net.*;
 import java.lang.reflect.*;
 
 public class Comparison
@@ -137,8 +135,8 @@ public class Comparison
             }
             for (int i : dirtyPages)
             {
-                Integer l1 = oracle.savePage(i << 12, sdata1, false);
-                Integer l2 = disciple.savePage(i << 12, sdata2, false);
+                Integer l1 = oracle.getPhysicalPage(i << 12, sdata1);
+                Integer l2 = disciple.getPhysicalPage(i << 12, sdata2);
                 if (l2 > 0)
                     if (!samePage(i, sdata1, sdata2, null))
                     {

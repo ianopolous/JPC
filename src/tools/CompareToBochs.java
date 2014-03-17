@@ -27,8 +27,6 @@
 
 package tools;
 
-import org.jpc.emulator.processor.*;
-
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
@@ -188,7 +186,7 @@ public class CompareToBochs
         Method spurious1 = c1.getMethod("triggerSpuriousInterrupt");
         Method spuriousMaster1 = c1.getMethod("triggerSpuriousMasterInterrupt");
         Method dirty1 = c1.getMethod("getDirtyPages", Set.class);
-        Method save1 = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
+        Method save1 = c1.getMethod("getPhysicalPage", Integer.class, byte[].class, Boolean.class);
         Method load1 = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
         Method pitExpiry1 = c1.getMethod("setNextPITExpiry", Long.class);
         Method pitIrq1 = c1.getMethod("getPITIrqLevel");
@@ -648,8 +646,8 @@ public class CompareToBochs
             }
             for (int i : dirtyPages)
             {
-                Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1, false);
-                Integer l2 = bochs.savePage(new Integer(i<<12), sdata2, false);
+                Integer l1 = (Integer)save1.invoke(newpc, new Integer(i<<12), sdata1);
+                Integer l2 = bochs.getPhysicalPage(new Integer(i << 12), sdata2);
                 if ((l2 > 0) && (l1 > 0))
                 {
                     List<Integer> addrs = new ArrayList<Integer>();
@@ -744,7 +742,11 @@ public class CompareToBochs
     private static void compareStacks(int espPageIndex, int esp, Method save1, Object newpc, byte[] sdata1, EmulatorControl bochs,byte[] sdata2, boolean pm, Method load1) throws Exception
     {
         Integer sl1 = (Integer)save1.invoke(newpc, new Integer(espPageIndex), sdata1, pm);
-        Integer sl2 = bochs.savePage(new Integer(espPageIndex), sdata2, pm);
+        Integer sl2;
+        if (pm)
+            sl2 = bochs.getLinearPage(new Integer(espPageIndex), sdata2);
+        else
+            sl2 = bochs.getPhysicalPage(new Integer(espPageIndex), sdata2);
         List<Integer> addrs = new ArrayList();
         if (sl2 > 0)
             if (!samePage(espPageIndex, sdata1, sdata2, addrs))

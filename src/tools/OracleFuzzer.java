@@ -37,6 +37,7 @@ public class OracleFuzzer
     public static final int RM = 1;
     public static final int PM = 2;
     public static final int VM = 3;
+    public static final boolean compareStack = true;
     public static int codeEIP = 0x2000;
 
     private static String[] pcargs = new String[]
@@ -496,8 +497,23 @@ public class OracleFuzzer
         int[] us = disciple.getState();
         int[] good = oracle.getState();
 
+        boolean sameStack = true;
+        if (compareStack)
+        {
+            int stackTop = good[EmulatorControl.SS_BASE_INDEX];
+            if ((good[EmulatorControl.SEG_PROP_INDEX] & 2) != 0)
+                stackTop += good[EmulatorControl.ESP_INDEX];
+            else
+                stackTop += good[EmulatorControl.ESP_INDEX] & 0xffff;
+            int stackPage = stackTop & ~0xfff;
+            byte[] oracleStack = new byte[4096];
+            oracle.getLinearPage(stackPage, oracleStack);
+            byte[] discipleStack = new byte[4096];
+            oracle.getLinearPage(stackPage, discipleStack);
+            sameStack = Fuzzer.comparePage(stackPage, discipleStack, oracleStack);
+        }
         // need to compare memory if there are memory inputs
-        if (!sameState(us, good, flagMask))
+        if (!sameState(us, good, flagMask) || !sameStack)
         {
             printCase(code, x86, mode == RM ? false : is32Bit, disciple, inputState, us, good, flagMask, log);
             if (cases != null)

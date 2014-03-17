@@ -290,7 +290,7 @@ public class Fuzzer
             state = c1.getMethod("getState");
             setState = c1.getMethod("setState", int[].class);
             executeBlock = c1.getMethod("executeBlock");
-            savePage = c1.getMethod("savePage", Integer.class, byte[].class);
+            savePage = c1.getMethod("getPhysicalPage", Integer.class, byte[].class);
             setCode = c1.getMethod("setCode", byte[].class);
         }
 
