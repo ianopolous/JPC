@@ -51,9 +51,8 @@ public class mul_Ed extends Executable
             long res64 = (0xffffffffL & op1.get32()) * (0xffffffffL & cpu.r_eax.get32());
             cpu.r_eax.set32((int)res64);
             cpu.r_edx.set32((int)(res64 >> 32));
+            cpu.setOSZAPC_Logic32((int)res64);
             cpu.cf = cpu.of = (cpu.r_edx.get32() != 0);
-            cpu.flagResult = (int)res64;
-            cpu.flagStatus = SZP;
         return Branch.None;
     }
 

@@ -1130,6 +1130,25 @@ public class Processor implements HardwareComponent
         segs[SS_INDEX] = seg;
     }
 
+    public void setOSZAPC_Logic8(int res)
+    {
+        setOSZAPC_Logic32((byte) res);
+    }
+
+    public void setOSZAPC_Logic16(int res)
+    {
+        setOSZAPC_Logic32((short) res);
+    }
+
+    public void setOSZAPC_Logic32(int res)
+    {
+        flagResult = res;
+        flagStatus = SZP;
+        of = false;
+        af = false;
+        cf = false;
+    }
+
     public boolean of()
     {
         return getOverflowFlag(flagStatus, of, flagOp1, flagOp2, flagResult, flagIns);

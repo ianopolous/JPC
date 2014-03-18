@@ -1642,9 +1642,8 @@
     <snippet>            cpu.af = false;
         int res16 = ($op1.get &amp; 0xff) * (0xFF &amp; cpu.r_eax.get8());
         cpu.r_eax.set16(res16);
-        cpu.cf = cpu.of = (cpu.r_eax.getHigh() != 0);
-        cpu.flagResult = (short)res16;
-        cpu.flagStatus = SZP;</snippet>
+        cpu.setOSZAPC_Logic16(res16);
+        cpu.cf = cpu.of = (cpu.r_eax.getHigh() != 0);</snippet>
     <args size="8">Eb</args>
   </opcode>
   <opcode mnemonic="mul">
@@ -1653,9 +1652,8 @@
             long res64 = ($mask$op1.get) * ($mask cpu.r_eax.get$size());
             cpu.r_eax.set$size($castres64);
             cpu.r_edx.set$size($cast(res64 >> $size));
-            cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);
-            cpu.flagResult = (int)res64;
-            cpu.flagStatus = SZP;</snippet>
+            cpu.setOSZAPC_Logic32((int)res64);
+            cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);</snippet>
     <args size="16">Ew</args>
   </opcode>
   <opcode mnemonic="mul">
@@ -1664,9 +1662,8 @@
             long res64 = (0xffffffffL &amp; $op1.get) * (0xffffffffL &amp; cpu.r_eax.get$size());
             cpu.r_eax.set$size($castres64);
             cpu.r_edx.set$size($cast(res64 >> $size));
-            cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);
-            cpu.flagResult = (int)res64;
-            cpu.flagStatus = SZP;</snippet>
+            cpu.setOSZAPC_Logic32((int)res64);
+            cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);</snippet>
     <args size="32">Ed</args>
   </opcode>
 

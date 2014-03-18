@@ -49,9 +49,8 @@ public class mul_Eb_mem extends Executable
             cpu.af = false;
         int res16 = (op1.get8(cpu) & 0xff) * (0xFF & cpu.r_eax.get8());
         cpu.r_eax.set16(res16);
+        cpu.setOSZAPC_Logic16(res16);
         cpu.cf = cpu.of = (cpu.r_eax.getHigh() != 0);
-        cpu.flagResult = (short)res16;
-        cpu.flagStatus = SZP;
         return Branch.None;
     }
 

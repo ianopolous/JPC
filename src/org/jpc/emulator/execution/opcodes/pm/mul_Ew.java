@@ -51,9 +51,8 @@ public class mul_Ew extends Executable
             long res64 = (0xFFFF&op1.get16()) * (0xFFFF& cpu.r_eax.get16());
             cpu.r_eax.set16((short)res64);
             cpu.r_edx.set16((short)(res64 >> 16));
+            cpu.setOSZAPC_Logic32((int)res64);
             cpu.cf = cpu.of = (cpu.r_edx.get16() != 0);
-            cpu.flagResult = (int)res64;
-            cpu.flagStatus = SZP;
         return Branch.None;
     }
 
