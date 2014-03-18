@@ -54,14 +54,15 @@ public class shl_Ed_Ib extends Executable
         {
             if (shift <= 16)
             {
-                cpu.flagStatus = OSZAPC;
+                cpu.flagStatus = OSZPC;
             }
             else
             {
-                cpu.flagStatus = SZAP;
+                cpu.flagStatus = SZP;
                 cpu.of = false;
                 cpu.cf = false;
             }
+            cpu.af = false;
             cpu.flagOp1 = op1.get32();
             cpu.flagOp2 = shift;
             cpu.flagResult = (cpu.flagOp1 << cpu.flagOp2);

@@ -2285,14 +2285,15 @@
         {
             if (shift &lt;= 16)
             {
-                cpu.flagStatus = OSZAPC;
+                cpu.flagStatus = OSZPC;
             }
             else
             {
-                cpu.flagStatus = SZAP;
+                cpu.flagStatus = SZP;
                 cpu.of = false;
                 cpu.cf = false;
             }
+            cpu.af = false;
             cpu.flagOp1 = $op1.get;
             cpu.flagOp2 = shift;
             cpu.flagResult = $cast(cpu.flagOp1 &lt;&lt; cpu.flagOp2);

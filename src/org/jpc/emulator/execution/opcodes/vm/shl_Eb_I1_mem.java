@@ -51,14 +51,15 @@ public class shl_Eb_I1_mem extends Executable
         {
             if (shift <= 16)
             {
-                cpu.flagStatus = OSZAPC;
+                cpu.flagStatus = OSZPC;
             }
             else
             {
-                cpu.flagStatus = SZAP;
+                cpu.flagStatus = SZP;
                 cpu.of = false;
                 cpu.cf = false;
             }
+            cpu.af = false;
             cpu.flagOp1 = op1.get8(cpu);
             cpu.flagOp2 = shift;
             cpu.flagResult = (byte)(cpu.flagOp1 << cpu.flagOp2);

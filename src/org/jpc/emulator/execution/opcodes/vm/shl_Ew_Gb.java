@@ -55,14 +55,15 @@ public class shl_Ew_Gb extends Executable
         {
             if (shift <= 16)
             {
-                cpu.flagStatus = OSZAPC;
+                cpu.flagStatus = OSZPC;
             }
             else
             {
-                cpu.flagStatus = SZAP;
+                cpu.flagStatus = SZP;
                 cpu.of = false;
                 cpu.cf = false;
             }
+            cpu.af = false;
             cpu.flagOp1 = op1.get16();
             cpu.flagOp2 = shift;
             cpu.flagResult = (short)(cpu.flagOp1 << cpu.flagOp2);
