@@ -47,18 +47,16 @@ public class imul_Eb extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = (byte)op1.get8();
-            cpu.flagOp2 = (byte)cpu.r_eax.get8();
-            long res64 = cpu.flagOp1 * cpu.flagOp2;
-            cpu.flagResult = (short) res64;
-            cpu.r_eax.set16(cpu.flagResult);
-            cpu.flagIns = UCodes.IMUL8;
-            if (res64 < 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
-            
+            int iop1 = (byte)op1.get8();
+            int iop2 = (byte)cpu.r_eax.get8();
+            short res16 = (short) (iop1 * iop2);
+            cpu.r_eax.set16(res16);
+            cpu.setOSZAPC_Logic8(res16);
+            if (res16 != (byte) res16)
+            {
+               cpu.of(true);
+               cpu.cf(true);
+            }
         return Branch.None;
     }
 

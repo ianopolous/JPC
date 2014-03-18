@@ -50,7 +50,7 @@ public class mul_Eb extends Executable
             cpu.af = false;
         int res16 = (op1.get8() & 0xff) * (0xFF & cpu.r_eax.get8());
         cpu.r_eax.set16(res16);
-        cpu.setOSZAPC_Logic16(res16);
+        cpu.setOSZAPC_Logic8(res16);
         cpu.cf = cpu.of = (cpu.r_eax.getHigh() != 0);
         return Branch.None;
     }

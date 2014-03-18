@@ -55,21 +55,13 @@ public class imul_Gd_Ed_Id extends Executable
             int iop1 = immd;
             int iop2 = op2.get32();
             long res64 = (((long) iop1)*iop2);
-            int res32 = (int) res64;
-            op1.set32( res32);
-            if (res64 == res32)
+            op1.set32((int)res64);
+            cpu.setOSZAPC_Logic32((int)res64);
+            if (res64 != (int) res64)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
+               cpu.of(true);
+               cpu.cf(true);
             }
-            if (res32 < 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
         return Branch.None;
     }
 

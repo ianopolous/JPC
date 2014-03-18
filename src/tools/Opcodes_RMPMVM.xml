@@ -232,42 +232,30 @@
 
   <opcode mnemonic="imul">
     <return>Branch.None</return>
-    <snippet>            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = $cast$op1.get;
-            cpu.flagOp2 = $castcpu.r_eax.get$size();
-            long res64 = cpu.flagOp1 * cpu.flagOp2;
-            cpu.flagResult = (short) res64;
-            cpu.r_eax.set16(cpu.flagResult);
-            cpu.flagIns = UCodes.IMUL$size;
-            if (res64 &lt; 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
-            </snippet>
+    <snippet>            int iop1 = $cast$op1.get;
+            int iop2 = $castcpu.r_eax.get$size();
+            short res16 = (short) (iop1 * iop2);
+            cpu.r_eax.set16(res16);
+            cpu.setOSZAPC_Logic8(res16);
+            if (res16 != (byte) res16)
+            {
+               cpu.of(true);
+               cpu.cf(true);
+            }</snippet>
     <args size="8">Eb</args>
   </opcode>
   <opcode mnemonic="imul">
     <return>Branch.None</return>
-    <snippet>            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = $cast$op1.get;
-            cpu.flagOp2 = $castcpu.r_eax.get$size();
-            long res64 = (((int)(short) cpu.flagOp1)*((short)cpu.flagOp2));
-            cpu.flagResult = (short) res64;
-            cpu.r_eax.set$size($castcpu.flagResult);
-            cpu.r_edx.set$size($cast(int)(res64 >> $size));
-            cpu.flagIns = UCodes.IMUL$size;
-            if (res64 &lt; 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
-            if (res64 == cpu.flagResult)
+    <snippet>            int iop1 = $cast$op1.get;
+            int iop2 = $castcpu.r_eax.get$size();
+            int res32 = (((int)(short) iop1)*((short)iop2));
+            cpu.r_eax.set$size($castres32);
+            cpu.r_edx.set$size($cast(res32 >> $size));
+            cpu.setOSZAPC_Logic16(res32);
+            if (res32 != (short) res32)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
+               cpu.of(true);
+               cpu.cf(true);
             }</snippet>
     <args size="16">Ew</args>
   </opcode>
@@ -276,71 +264,43 @@
     <snippet>            int iop1 = $cast$op1.get;
             int iop2 = $castcpu.r_eax.get$size();
             long res64 = (((long) iop1)*iop2);
-            int res32 = (int) res64;
-            cpu.r_eax.set$size(res32);
+            cpu.r_eax.set$size((int)res64);
             cpu.r_edx.set$size($cast(int)(res64 >> $size));
-            if (res32 &lt; 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
-            if (res64 == res32)
+            cpu.setOSZAPC_Logic32((int)res64);
+            if (res64 != (int) res64)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
+               cpu.of(true);
+               cpu.cf(true);
             }</snippet>
     <args size="32">Ed</args>
   </opcode>
 
   <opcode mnemonic="imul">
     <return>Branch.None</return>
-    <snippet>            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = $cast$op1.get;
-            cpu.flagOp2 = $cast$op2.get;
-            long res64 = (((short) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = (short) res64;
-            $op1.set$castcpu.flagResult);
-            cpu.flagIns = UCodes.IMUL$size;
-            if (res64 == cpu.flagResult)
+    <snippet>            int iop1 = $cast$op1.get;
+            int iop2 = $cast$op2.get;
+            int res32 = (((int)(short) iop1)*((short)iop2));
+            $op1.set$castres32);
+            cpu.setOSZAPC_Logic16(res32);
+            if (res32 != (short) res32)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
-            }
-            if (res64 &lt; 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);</snippet>
+               cpu.of(true);
+               cpu.cf(true);
+            }</snippet>
     <args size="16">Gw;Ew</args>
   </opcode>
   <opcode mnemonic="imul">
     <return>Branch.None</return>
-    <snippet>            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = $cast$op1.get;
-            cpu.flagOp2 = $cast$op2.get;
-            long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = $cast(int) res64;
-            $op1.set$castcpu.flagResult);
-            cpu.flagIns = UCodes.IMUL$size;
-            if (res64 == cpu.flagResult)
+    <snippet>            int iop1 = $cast$op1.get;
+            int iop2 = $cast$op2.get;
+            long res64 = (((long) iop1)*iop2);
+            $op1.set(int)res64);
+            cpu.setOSZAPC_Logic32((int)res64);
+            if (res64 != (int) res64)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
-            }
-            if (res64 &lt; 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);</snippet>
+               cpu.of(true);
+               cpu.cf(true);
+            }</snippet>
     <args size="32">Gd;Ed</args>
   </opcode>
 
@@ -349,21 +309,13 @@
     <snippet>            short iop1 = $cast$op3.get;
             short iop2 = $cast$op2.get;
             int res32 = (((int) iop1)*iop2);
-            short res16 = (short) res32;
-            $op1.set$cast res16);
-            if (res32 == res16)
+            $op1.set$cast res32);
+            cpu.setOSZAPC_Logic16(res32);
+            if (res32 != (short) res32)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
-            }
-            if (res16 &lt; 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);</snippet>
+               cpu.of(true);
+               cpu.cf(true);
+            }</snippet>
     <args size="16">Gw;Ew;Ib</args>
     <args size="16">Gw;Ew;Iw</args>
   </opcode>
@@ -372,21 +324,13 @@
     <snippet>            int iop1 = $cast$op3.get;
             int iop2 = $cast$op2.get;
             long res64 = (((long) iop1)*iop2);
-            int res32 = (int) res64;
-            $op1.set res32);
-            if (res64 == res32)
+            $op1.set(int)res64);
+            cpu.setOSZAPC_Logic32((int)res64);
+            if (res64 != (int) res64)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
-            }
-            if (res32 &lt; 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);</snippet>
+               cpu.of(true);
+               cpu.cf(true);
+            }</snippet>
     <args size="32">Gd;Ed;Ib</args>
     <args size="32">Gd;Ed;Id</args>
   </opcode>
@@ -1642,7 +1586,7 @@
     <snippet>            cpu.af = false;
         int res16 = ($op1.get &amp; 0xff) * (0xFF &amp; cpu.r_eax.get8());
         cpu.r_eax.set16(res16);
-        cpu.setOSZAPC_Logic16(res16);
+        cpu.setOSZAPC_Logic8(res16);
         cpu.cf = cpu.of = (cpu.r_eax.getHigh() != 0);</snippet>
     <args size="8">Eb</args>
   </opcode>
@@ -1652,7 +1596,7 @@
             long res64 = ($mask$op1.get) * ($mask cpu.r_eax.get$size());
             cpu.r_eax.set$size($castres64);
             cpu.r_edx.set$size($cast(res64 >> $size));
-            cpu.setOSZAPC_Logic32((int)res64);
+            cpu.setOSZAPC_Logic16((int)res64);
             cpu.cf = cpu.of = (cpu.r_edx.get$size() != 0);</snippet>
     <args size="16">Ew</args>
   </opcode>

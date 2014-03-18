@@ -54,21 +54,13 @@ public class imul_Gw_Ew_Ib_mem extends Executable
             short iop1 = (short)immb;
             short iop2 = (short)op2.get16(cpu);
             int res32 = (((int) iop1)*iop2);
-            short res16 = (short) res32;
-            op1.set16((short) res16);
-            if (res32 == res16)
+            op1.set16((short) res32);
+            cpu.setOSZAPC_Logic16(res32);
+            if (res32 != (short) res32)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
+               cpu.of(true);
+               cpu.cf(true);
             }
-            if (res16 < 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
         return Branch.None;
     }
 

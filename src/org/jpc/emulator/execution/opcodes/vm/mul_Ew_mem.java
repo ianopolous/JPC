@@ -50,7 +50,7 @@ public class mul_Ew_mem extends Executable
             long res64 = (0xFFFF&op1.get16(cpu)) * (0xFFFF& cpu.r_eax.get16());
             cpu.r_eax.set16((short)res64);
             cpu.r_edx.set16((short)(res64 >> 16));
-            cpu.setOSZAPC_Logic32((int)res64);
+            cpu.setOSZAPC_Logic16((int)res64);
             cpu.cf = cpu.of = (cpu.r_edx.get16() != 0);
         return Branch.None;
     }

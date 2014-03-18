@@ -46,26 +46,16 @@ public class imul_Ew_mem extends Executable
 
     public Branch execute(Processor cpu)
     {
-            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = (short)op1.get16(cpu);
-            cpu.flagOp2 = (short)cpu.r_eax.get16();
-            long res64 = (((int)(short) cpu.flagOp1)*((short)cpu.flagOp2));
-            cpu.flagResult = (short) res64;
-            cpu.r_eax.set16((short)cpu.flagResult);
-            cpu.r_edx.set16((short)(int)(res64 >> 16));
-            cpu.flagIns = UCodes.IMUL16;
-            if (res64 < 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
-            if (res64 == cpu.flagResult)
+            int iop1 = (short)op1.get16(cpu);
+            int iop2 = (short)cpu.r_eax.get16();
+            int res32 = (((int)(short) iop1)*((short)iop2));
+            cpu.r_eax.set16((short)res32);
+            cpu.r_edx.set16((short)(res32 >> 16));
+            cpu.setOSZAPC_Logic16(res32);
+            if (res32 != (short) res32)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
+               cpu.of(true);
+               cpu.cf(true);
             }
         return Branch.None;
     }

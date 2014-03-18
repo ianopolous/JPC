@@ -49,21 +49,13 @@ public class imul_Ed_mem extends Executable
             int iop1 = op1.get32(cpu);
             int iop2 = cpu.r_eax.get32();
             long res64 = (((long) iop1)*iop2);
-            int res32 = (int) res64;
-            cpu.r_eax.set32(res32);
+            cpu.r_eax.set32((int)res64);
             cpu.r_edx.set32((int)(res64 >> 32));
-            if (res32 < 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
-            if (res64 == res32)
+            cpu.setOSZAPC_Logic32((int)res64);
+            if (res64 != (int) res64)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
+               cpu.of(true);
+               cpu.cf(true);
             }
         return Branch.None;
     }

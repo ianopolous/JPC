@@ -49,26 +49,16 @@ public class imul_Gd_Ed_mem extends Executable
     public Branch execute(Processor cpu)
     {
         Reg op1 = cpu.regs[op1Index];
-            cpu.flagStatus = OSZAPC;
-            cpu.flagOp1 = op1.get32();
-            cpu.flagOp2 = op2.get32(cpu);
-            long res64 = (((long) cpu.flagOp1)*cpu.flagOp2);
-            cpu.flagResult = (int) res64;
-            op1.set32(cpu.flagResult);
-            cpu.flagIns = UCodes.IMUL32;
-            if (res64 == cpu.flagResult)
+            int iop1 = op1.get32();
+            int iop2 = op2.get32(cpu);
+            long res64 = (((long) iop1)*iop2);
+            op1.set32((int)res64);
+            cpu.setOSZAPC_Logic32((int)res64);
+            if (res64 != (int) res64)
             {
-                cpu.of(false);
-                cpu.cf(false);
-            } else
-            {
-                cpu.of(true);
-                cpu.cf(true);
+               cpu.of(true);
+               cpu.cf(true);
             }
-            if (res64 < 0)
-                cpu.sf(true);
-            else
-                cpu.sf(false);
         return Branch.None;
     }
 
