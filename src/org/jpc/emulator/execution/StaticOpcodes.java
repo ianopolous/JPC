@@ -622,8 +622,8 @@ public class StaticOpcodes
             try {
                 if (cpu.df) {
                     while (count != 0) {
-                        dataOne = seg.getByte(addrOne);
-                        dataTwo = cpu.es.getByte(addrTwo);
+                        dataOne = seg.getByte(addrOne & 0xffff);
+                        dataTwo = cpu.es.getByte(addrTwo & 0xffff);
                         count--;
                         addrOne -= 1;
                         addrTwo -= 1;
@@ -632,8 +632,8 @@ public class StaticOpcodes
                     }
                 } else {
                     while (count != 0) {
-                        dataOne = seg.getByte(addrOne);
-                        dataTwo = cpu.es.getByte(addrTwo);
+                        dataOne = seg.getByte(addrOne & 0xffff);
+                        dataTwo = cpu.es.getByte(addrTwo & 0xffff);
                         count--;
                         addrOne += 1;
                         addrTwo += 1;
@@ -751,8 +751,8 @@ public class StaticOpcodes
             try {
                 if (cpu.df) {
                     while (count != 0) {
-                        dataOne = seg.getWord(addrOne);
-                        dataTwo = cpu.es.getWord(addrTwo);
+                        dataOne = seg.getWord(addrOne & 0xffff);
+                        dataTwo = cpu.es.getWord(addrTwo & 0xffff);
                         count--;
                         addrOne -= 2;
                         addrTwo -= 2;
@@ -761,8 +761,8 @@ public class StaticOpcodes
                     }
                 } else {
                     while (count != 0) {
-                        dataOne = seg.getWord(addrOne);
-                        dataTwo = cpu.es.getWord(addrTwo);
+                        dataOne = seg.getWord(addrOne & 0xffff);
+                        dataTwo = cpu.es.getWord(addrTwo & 0xffff);
                         count--;
                         addrOne += 2;
                         addrTwo += 2;
@@ -880,8 +880,8 @@ public class StaticOpcodes
             try {
                 if (cpu.df) {
                     while (count != 0) {
-                        dataOne = seg.getDoubleWord(addrOne);
-                        dataTwo = cpu.es.getDoubleWord(addrTwo);
+                        dataOne = seg.getDoubleWord(addrOne & 0xffff);
+                        dataTwo = cpu.es.getDoubleWord(addrTwo & 0xffff);
                         count--;
                         addrOne -= 4;
                         addrTwo -= 4;
@@ -890,8 +890,8 @@ public class StaticOpcodes
                     }
                 } else {
                     while (count != 0) {
-                        dataOne = seg.getDoubleWord(addrOne);
-                        dataTwo = cpu.es.getDoubleWord(addrTwo);
+                        dataOne = seg.getDoubleWord(addrOne & 0xffff);
+                        dataTwo = cpu.es.getDoubleWord(addrTwo & 0xffff);
                         count--;
                         addrOne += 4;
                         addrTwo += 4;
@@ -1940,13 +1940,13 @@ public class StaticOpcodes
         try {
             if (cpu.df) {
                 while (count != 0) {
-                    cpu.es.setWord(tAddr, data);
+                    cpu.es.setWord(tAddr & 0xffff, data);
                     count--;
                     tAddr -= 2;
                 }
             } else {
                 while (count != 0) {
-                    cpu.es.setWord(tAddr, data);
+                    cpu.es.setWord(tAddr & 0xffff, data);
                     count--;
                     tAddr += 2;
                 }
@@ -1994,13 +1994,13 @@ public class StaticOpcodes
         try {
             if (cpu.df) {
                 while (count != 0) {
-                    cpu.es.setDoubleWord(tAddr, data);
+                    cpu.es.setDoubleWord(tAddr & 0xffff, data);
                     count--;
                     tAddr -= 4;
                 }
             } else {
                 while (count != 0) {
-                    cpu.es.setDoubleWord(tAddr, data);
+                    cpu.es.setDoubleWord(tAddr & 0xffff, data);
                     count--;
                     tAddr += 4;
                 }
@@ -2170,22 +2170,22 @@ public class StaticOpcodes
         try {
             if (cpu.df) {
                 while (count != 0) {
-                    input = 0xff & cpu.es.getByte(addr);
+                    input = 0xff & cpu.es.getByte(addr & 0xffff);
                     count--;
                     addr -= 1;
                     if (data == input) break;
                 }
             } else {
                 while (count != 0) {
-                    input = 0xff & cpu.es.getByte(addr);
+                    input = 0xff & cpu.es.getByte(addr & 0xffff);
                     count--;
                     addr += 1;
                     if (data == input) break;
                 }
             }
         } finally {
-            cpu.r_ecx.set16(count & 0xffff);
-            cpu.r_edi.set16(addr & 0xffff);
+            cpu.r_ecx.set16(count);
+            cpu.r_edi.set16(addr);
             cpu.flagOp1 = (byte)data;
             cpu.flagOp2 = (byte)input;
             cpu.flagResult = (byte)(data-input);
@@ -2205,22 +2205,22 @@ public class StaticOpcodes
         try {
             if (cpu.df) {
                 while (count != 0) {
-                    input = 0xff & cpu.es.getByte(addr);
+                    input = 0xff & cpu.es.getByte(addr & 0xffff);
                     count--;
                     addr -= 1;
                     if (data != input) break;
                 }
             } else {
                 while (count != 0) {
-                    input = 0xff & cpu.es.getByte(addr);
+                    input = 0xff & cpu.es.getByte(addr & 0xffff);
                     count--;
                     addr += 1;
                     if (data != input) break;
                 }
             }
         } finally {
-            cpu.r_ecx.set16(count & 0xffff);
-            cpu.r_edi.set16(addr & 0xffff);
+            cpu.r_ecx.set16(count);
+            cpu.r_edi.set16(addr);
             cpu.flagOp1 = (byte)data;
             cpu.flagOp2 = (byte)input;
             cpu.flagResult = (byte)(data-input);
@@ -2307,22 +2307,22 @@ public class StaticOpcodes
         try {
             if (cpu.df) {
                 while (count != 0) {
-                    input = 0xffff & cpu.es.getWord(addr);
+                    input = 0xffff & cpu.es.getWord(addr & 0xffff);
                     count--;
                     addr -= 2;
                     if (data != input) break;
                 }
             } else {
                 while (count != 0) {
-                    input = 0xffff & cpu.es.getWord(addr);
+                    input = 0xffff & cpu.es.getWord(addr & 0xffff);
                     count--;
                     addr += 2;
                     if (data != input) break;
                 }
             }
         } finally {
-            cpu.r_ecx.set16(count & 0xffff);
-            cpu.r_edi.set16(addr & 0xffff);
+            cpu.r_ecx.set16(count);
+            cpu.r_edi.set16(addr);
             cpu.flagOp1 = (short)data;
             cpu.flagOp2 = (short)input;
             cpu.flagResult = (short)(data-input);
@@ -2375,22 +2375,22 @@ public class StaticOpcodes
         try {
             if (cpu.df) {
                 while (count != 0) {
-                    input = 0xffff & cpu.es.getWord(addr);
+                    input = 0xffff & cpu.es.getWord(addr & 0xffff);
                     count--;
                     addr -= 2;
                     if (data == input) break;
                 }
             } else {
                 while (count != 0) {
-                    input = 0xffff & cpu.es.getWord(addr);
+                    input = 0xffff & cpu.es.getWord(addr & 0xffff);
                     count--;
                     addr += 2;
                     if (data == input) break;
                 }
             }
         } finally {
-            cpu.r_ecx.set16(count & 0xffff);
-            cpu.r_edi.set16(addr & 0xffff);
+            cpu.r_ecx.set16(count);
+            cpu.r_edi.set16(addr);
             cpu.flagOp1 = (short)data;
             cpu.flagOp2 = (short)input;
             cpu.flagResult = (short)(data-input);

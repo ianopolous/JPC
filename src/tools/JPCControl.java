@@ -89,7 +89,6 @@ public class JPCControl extends EmulatorControl
             x86Length = c1.getMethod("x86Length", byte[].class, Boolean.class);
             destroy = c1.getMethod("destroy");
             getPage = c1.getMethod("savePage", Integer.class, byte[].class, Boolean.class);
-            Method load = c1.getMethod("loadPage", Integer.class, byte[].class, Boolean.class);
             Method startClock = c1.getMethod("start");
             startClock.invoke(pc);
 
