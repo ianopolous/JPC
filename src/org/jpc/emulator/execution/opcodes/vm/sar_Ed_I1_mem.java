@@ -48,14 +48,13 @@ public class sar_Ed_I1_mem extends Executable
     {
         if(1 != 0)
         {
-            boolean inOF = cpu.of();
             cpu.flagOp1 = op1.get32(cpu);
             cpu.flagOp2 = 1;
-            cpu.flagResult = (cpu.flagOp1 >> cpu.flagOp2);
-            op1.set32(cpu, cpu.flagResult);
+            int res = (cpu.flagOp1 >> cpu.flagOp2);
+            op1.set32(cpu, res);
+            cpu.setOSZAPC_Logic32(res);
+            cpu.flagStatus |= CF;
             cpu.flagIns = UCodes.SAR32;
-            cpu.flagStatus = OSZAPC;
-            cpu.of(false);
         }
         return Branch.None;
     }

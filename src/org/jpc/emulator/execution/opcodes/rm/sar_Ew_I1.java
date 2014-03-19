@@ -49,14 +49,13 @@ public class sar_Ew_I1 extends Executable
         Reg op1 = cpu.regs[op1Index];
         if(1 != 0)
         {
-            boolean inOF = cpu.of();
             cpu.flagOp1 = op1.get16();
             cpu.flagOp2 = 1;
-            cpu.flagResult = (short)(cpu.flagOp1 >> cpu.flagOp2);
-            op1.set16((short)cpu.flagResult);
+            int res = (short)(cpu.flagOp1 >> cpu.flagOp2);
+            op1.set16((short)res);
+            cpu.setOSZAPC_Logic16(res);
+            cpu.flagStatus |= CF;
             cpu.flagIns = UCodes.SAR16;
-            cpu.flagStatus = OSZAPC;
-            cpu.of(false);
         }
         return Branch.None;
     }

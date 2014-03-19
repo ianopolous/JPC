@@ -50,14 +50,13 @@ public class sar_Eb_Ib_mem extends Executable
     {
         if(immb != 0)
         {
-            boolean inOF = cpu.of();
             cpu.flagOp1 = op1.get8(cpu);
             cpu.flagOp2 = immb;
-            cpu.flagResult = (byte)(cpu.flagOp1 >> cpu.flagOp2);
-            op1.set8(cpu, (byte)cpu.flagResult);
+            int res = (byte)(cpu.flagOp1 >> cpu.flagOp2);
+            op1.set8(cpu, (byte)res);
+            cpu.setOSZAPC_Logic8(res);
+            cpu.flagStatus |= CF;
             cpu.flagIns = UCodes.SAR8;
-            cpu.flagStatus = OSZAPC;
-            cpu.of(false);
         }
         return Branch.None;
     }
