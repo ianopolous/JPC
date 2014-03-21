@@ -121,10 +121,21 @@ public abstract class EmulatorControl
             bout.write(0x66);
             bout.write(0xc7);
             bout.write(0xc0+i);
-            bout.write(state[i]);
-            bout.write(state[i] >> 8);
-            bout.write(state[i] >> 16);
-            bout.write(state[i] >> 24);
+            if (i == 4)
+            {
+                int esp = 0x1000;
+                bout.write(esp);
+                bout.write(esp >> 8);
+                bout.write(esp >> 16);
+                bout.write(esp >> 24);
+            }
+            else
+            {
+                bout.write(state[i]);
+                bout.write(state[i] >> 8);
+                bout.write(state[i] >> 16);
+                bout.write(state[i] >> 24);
+            }
             intCount++;
         }
         // set segments
@@ -235,6 +246,16 @@ public abstract class EmulatorControl
         bout.write(state[0] >> 8);
         bout.write(state[0] >> 16);
         bout.write(state[0] >> 24);
+        intCount++;
+
+        // set esp (push and popf needed it different): mov reg, ID
+        bout.write(0x66);
+        bout.write(0xc7);
+        bout.write(0xc4);
+        bout.write(state[4]);
+        bout.write(state[4] >> 8);
+        bout.write(state[4] >> 16);
+        bout.write(state[4] >> 24);
         intCount++;
 
         // set cs:eip with far jmp
