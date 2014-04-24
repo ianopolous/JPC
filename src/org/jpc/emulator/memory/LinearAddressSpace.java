@@ -75,6 +75,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         writeProtectPages = false;
         pageSizeExtensions = false;
         tlb = new SlowTLB();
+//        tlb = new FastTLB();
     }
 
     public void saveState(DataOutput output) throws IOException
@@ -300,6 +301,10 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
                 tlb.addNonGlobalPage(fourMegPageStartAddress);
             }
 
+            if (offset == 0x90273fb4)
+                System.out.println("HEre in TLB");
+            if (tlb.getReadMemoryBlockAt(isSupervisor, offset) == null) // offset == 0x90273fb4
+                System.out.println("Null page lookup!");
             return tlb.getReadMemoryBlockAt(isSupervisor, offset);
         }
         else 
@@ -342,11 +347,11 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
             if (!pageCacheEnabled)
                 return target.getReadMemoryBlockAt(fourKStartAddress);
 
-            tlb.setPageSize(offset, FOUR_K);
             if (!tableGlobal)
                 tlb.addNonGlobalPage(offset);
 
             tlb.setReadMemoryBlockAt(isSupervisor, offset, target.getReadMemoryBlockAt(fourKStartAddress));
+            tlb.setPageSize(offset, FOUR_K);
             return tlb.getReadMemoryBlockAt(isSupervisor, offset);
 	}
     }
@@ -504,12 +509,12 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
             if (!pageCacheEnabled)
                 return target.getWriteMemoryBlockAt(fourKStartAddress);
 
-            tlb.setPageSize(offset, FOUR_K);
 
             if (!tableGlobal)
                 tlb.addNonGlobalPage(offset);
 
             tlb.setWriteMemoryBlockAt(isSupervisor, offset, target.getWriteMemoryBlockAt(fourKStartAddress));
+            tlb.setPageSize(offset, FOUR_K);
             return tlb.getWriteMemoryBlockAt(isSupervisor, offset);
         }
     }

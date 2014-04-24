@@ -243,7 +243,7 @@ public class SlowTLB extends TLB
 
     protected void setPageSize(int addr, byte type)
     {
-        pageSize[addr >>> AddressSpace.INDEX_SHIFT] = FOUR_M;
+        pageSize[addr >>> AddressSpace.INDEX_SHIFT] = type;
     }
 
     protected void replaceBlocks(Memory oldBlock, Memory newBlock)
