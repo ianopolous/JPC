@@ -74,8 +74,8 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
         pagingDisabled = true;
         writeProtectPages = false;
         pageSizeExtensions = false;
-        tlb = new SlowTLB();
-//        tlb = new FastTLB();
+//        tlb = new SlowTLB();
+        tlb = new FastTLB();
     }
 
     public void saveState(DataOutput output) throws IOException
@@ -290,21 +290,18 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
             if (!pageCacheEnabled)
                 return target.getReadMemoryBlockAt(fourMegPageStartAddress | (offset & 0x3FFFFF));
 
-            for (int i=0; i<1024; i++,fourMegPageStartAddress += BLOCK_SIZE )
+            int mapAddress = 0xFFC00000 & offset;
+            for (int i=0; i<1024; i++,fourMegPageStartAddress += BLOCK_SIZE, mapAddress += BLOCK_SIZE)
             {
                 Memory m = target.getReadMemoryBlockAt(fourMegPageStartAddress);
-                tlb.setPageSize(fourMegPageStartAddress, FOUR_M);
-                tlb.setReadMemoryBlockAt(isSupervisor, fourMegPageStartAddress, m);
+                tlb.setPageSize(mapAddress, FOUR_M);
+                tlb.setReadMemoryBlockAt(isSupervisor, mapAddress, m);
                 if (directoryGlobal)
                     continue;
 
-                tlb.addNonGlobalPage(fourMegPageStartAddress);
+                tlb.addNonGlobalPage(mapAddress);
             }
 
-            if (offset == 0x90273fb4)
-                System.out.println("HEre in TLB");
-            if (tlb.getReadMemoryBlockAt(isSupervisor, offset) == null) // offset == 0x90273fb4
-                System.out.println("Null page lookup!");
             return tlb.getReadMemoryBlockAt(isSupervisor, offset);
         }
         else 
@@ -425,16 +422,17 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
             if (!pageCacheEnabled)
                 return target.getWriteMemoryBlockAt(fourMegPageStartAddress | (offset & 0x3FFFFF));
 
-            for (int i=0; i<1024; i++, fourMegPageStartAddress += BLOCK_SIZE)
+            int mapAddress = 0xFFC00000 & offset;
+            for (int i=0; i<1024; i++, fourMegPageStartAddress += BLOCK_SIZE, mapAddress += BLOCK_SIZE)
             {
                 Memory m = target.getWriteMemoryBlockAt(fourMegPageStartAddress);
-                tlb.setPageSize(fourMegPageStartAddress, FOUR_M);
-                tlb.setWriteMemoryBlockAt(isSupervisor, fourMegPageStartAddress, m);
+                tlb.setPageSize(mapAddress, FOUR_M);
+                tlb.setWriteMemoryBlockAt(isSupervisor, mapAddress, m);
 
                 if (directoryGlobal)
                     continue;
 
-                tlb.addNonGlobalPage(fourMegPageStartAddress);
+                tlb.addNonGlobalPage(mapAddress);
             }
             
             return tlb.getWriteMemoryBlockAt(isSupervisor, offset);
