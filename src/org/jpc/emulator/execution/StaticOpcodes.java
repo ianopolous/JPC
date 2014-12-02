@@ -130,47 +130,45 @@ public class StaticOpcodes
 
     public static final void daa(Processor cpu)
     {
-        int al = cpu.r_al.get8() & 0xff;
-        boolean newCF;
-        if (((cpu.r_al.get8() & 0xf) > 0x9) || cpu.af()) {
-            al += 6;
-            cpu.af(true);
-        } else
-            cpu.af(false);
+        int tempAL = cpu.r_al.get8() & 0xff;
+        boolean tempCF = false, tempAF = false;
+        if (((tempAL & 0xf) > 0x9) || cpu.af())
+        {
+            tempCF = (tempAL > 0xF9) || cpu.cf();
+            cpu.r_al.set8(tempAL + 6);
+            tempAF = true;
+        }
 
-        if (((al & 0xff) > 0x9f) || cpu.cf()) {
-            al += 0x60;
-            newCF = true;
-        } else
-            newCF = false;
-
-        cpu.r_al.set8(al);
+        if ((tempAL > 0x99) || cpu.cf()) {
+            cpu.r_al.set8(cpu.r_al.get8() + 0x60);
+            tempCF = true;
+        }
 
         cpu.of(false);
-        cpu.flagResult = (byte)al;
+        cpu.flagResult = (byte)cpu.r_al.get8();
         cpu.flagStatus = SZP;
-        cpu.cf(newCF);
+        cpu.cf(tempCF);
+        cpu.af(tempAF);
     }
 
     public static final void das(Processor cpu)
     {
-        boolean tempCF = cpu.cf();
-        cpu.cf(false);
+        boolean tempCF = false, tempAF = false;
         int tempAL = 0xff & cpu.r_al.get8();
         if (((tempAL & 0xf) > 0x9) || cpu.af()) {
-            cpu.af(true);
-            cpu.r_al.set8(cpu.r_al.get8() - 0x06);
-            cpu.cf(tempCF || (tempAL < 0x06));
+            tempCF = (tempAL < 0x06) || cpu.cf();
+            cpu.r_al.set8(tempAL - 0x06);
+            tempAF = true;
         }
-        else
-            cpu.af(false);
 
-        if ((tempAL > 0x99) || tempCF) {
-            cpu.r_al.set8(cpu.r_al.get8() - 0x60);
-            cpu.cf(true);
+        if ((tempAL > 0x99) || cpu.cf()) {
+            cpu.r_al.set8(0xFF & cpu.r_al.get8() - 0x60);
+            tempCF = true;
         }
 
         cpu.of(false); // strictly undefined
+        cpu.cf(tempCF);
+        cpu.af(tempAF);
         cpu.flagResult = cpu.r_al.get8();
         cpu.flagStatus = SZP;
     }

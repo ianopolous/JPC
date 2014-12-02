@@ -32,6 +32,7 @@ import org.jpc.emulator.motherboard.*;
 import org.jpc.emulator.memory.*;
 import org.jpc.emulator.processor.fpu64.*;
 import org.jpc.j2se.Option;
+import org.jpc.j2se.VirtualClock;
 import org.jpc.support.*;
 
 import java.io.*;

@@ -31,6 +31,7 @@ import org.jpc.emulator.*;
 import org.jpc.emulator.motherboard.*;
 import org.jpc.support.Clock;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -39,7 +40,7 @@ import org.jpc.emulator.processor.Processor;
 
 public class VirtualClock extends AbstractHardwareComponent implements Clock
 {
-    public static final long IPS = Option.ips.intValue(150000000);
+    public static final long IPS = Option.ips.intValue(25000000);
     public static final long NSPI = 1000000000L/IPS; //Nano seconds per instruction
     private static final Logger LOGGING = Logger.getLogger(VirtualClock.class.getName());
     private PriorityQueue<Timer> timers;
@@ -48,7 +49,7 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
     private long ticksStatic;
     private long currentTime;
     private long totalTicks = 0;
-    private static final boolean REALTIME = false; //sync clock with real clock
+    private static final boolean REALTIME = Option.realtime.isSet(); //sync clock with real clock
 
     public VirtualClock()
     {
@@ -202,6 +203,10 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
                     Logger.getLogger(VirtualClock.class.getName()).log(Level.SEVERE, null, ex);
                 }
             totalTicks += (expiry - ticksOffset - currentTime)/NSPI;
+            if (totalTicks < 0) {
+                System.out.println(printTimerQueue());
+                throw new IllegalStateException("Time cannot be negative! expiry=" + expiry + ", tick rate=" + getTickRate() + ", IPS=" + IPS);
+            }
             currentTime = getSystemTimer();
 
             tempTimer.check(getTime());
@@ -223,7 +228,11 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
                     Logger.getLogger(VirtualClock.class.getName()).log(Level.SEVERE, null, ex);
                 }
             // cast time difference to microseconds, then convert to cycles
-            totalTicks = expiry * IPS / getTickRate();//totalTicks += ((expiry - getEmulatedNanos())/1000)*1000 * IPS / getTickRate();
+            totalTicks = (long)((double)expiry * IPS / getTickRate());//totalTicks += ((expiry - getEmulatedNanos())/1000)*1000 * IPS / getTickRate();
+            if (totalTicks < 0) {
+                System.out.println(printTimerQueue());
+                throw new IllegalStateException("Time cannot be negative! expiry=" + expiry + ", tick rate=" + getTickRate() + ", IPS=" + IPS);
+            }
             if ((expiry * IPS) % getTickRate() != 0)
                 totalTicks++;
 //            if ((expiry - ticksOffset - currentTime)/NSPI == 0)
@@ -267,6 +276,19 @@ public class VirtualClock extends AbstractHardwareComponent implements Clock
     public long ticksToNanos(long ticks)
     {
         return (long)((double)ticks*1000000000/getIPS());
+    }
+
+    public String printTimerQueue() {
+        StringBuilder b = new StringBuilder();
+        int n = timers.size();
+        List<Timer> all = new ArrayList<Timer>(n);
+        for (int i=0; i < n; i++) {
+            Timer t = timers.poll();
+            all.add(t);
+            b.append(String.format("Timer class: %s expiry %d", t.callback.getClass(), t.getExpiry()));
+        }
+        timers.addAll(all);
+        return b.toString();
     }
 
     // Only used to force interupts at certain times
