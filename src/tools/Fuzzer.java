@@ -188,7 +188,7 @@ public class Fuzzer
             f.format("[%8s] ", "ST"+(i-start)/2);
         f.format("\n");
         for (int i=start; i < end; i+=2)
-            f.format("[%f] ", Double.longBitsToDouble(vals[i]&0xffffffffL | ((vals[i+1]&0xffffffffL) << 32)));
+            f.format("[%f] ", Double.longBitsToDouble((vals[i]&0xffffffffL) << 32 | (vals[i+1]&0xffffffffL)));
         f.format("\n");
     }
 

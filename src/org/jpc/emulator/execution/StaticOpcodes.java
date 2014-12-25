@@ -1333,6 +1333,7 @@ public class StaticOpcodes
         int port = cpu.r_dx.get16() & 0xffff;
         int addr = cpu.r_di.get16() & 0xffff;
 
+        seg.setByte(addr & 0xffff, (byte)0); // test memory writable
         seg.setByte(addr, (byte)cpu.ioports.ioPortRead8(port));
         if (cpu.df) {
             addr -= 1;
@@ -1347,6 +1348,7 @@ public class StaticOpcodes
         int port = cpu.r_dx.get16() & 0xffff;
         int addr = cpu.r_edi.get32();
 
+        seg.setByte(addr, (byte)0); // test memory writable
         seg.setByte(addr, (byte)cpu.ioports.ioPortRead8(port));
         if (cpu.df) {
             addr -= 1;
@@ -1361,6 +1363,7 @@ public class StaticOpcodes
         int port = cpu.r_dx.get16() & 0xffff;
         int addr = cpu.r_di.get16() & 0xffff;
 
+        seg.setWord(addr & 0xffff, (short)0); // test memory writable
         seg.setWord(addr, (short)cpu.ioports.ioPortRead16(port));
         if (cpu.df) {
             addr -= 2;
@@ -1375,6 +1378,7 @@ public class StaticOpcodes
         int port = cpu.r_dx.get16() & 0xffff;
         int addr = cpu.r_edi.get32();
 
+        seg.setWord(addr, (short)0); // test memory writable
         seg.setWord(addr, (short)cpu.ioports.ioPortRead16(port));
         if (cpu.df) {
             addr -= 2;
@@ -1394,6 +1398,7 @@ public class StaticOpcodes
             if (cpu.df) {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setByte(addr, (byte)0); // test memory writable
                     seg.setByte(addr, (byte)cpu.ioports.ioPortRead8(port));
                     count--;
                     addr -= 1;
@@ -1401,6 +1406,7 @@ public class StaticOpcodes
             } else {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setByte(addr, (byte)0); // test memory writable
                     seg.setByte(addr, (byte)cpu.ioports.ioPortRead8(port));
                     count--;
                     addr += 1;
@@ -1423,6 +1429,7 @@ public class StaticOpcodes
             if (cpu.df) {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setWord(addr & 0xffff, (short)0); // test memory writable
                     seg.setWord(addr & 0xffff, (short)cpu.ioports.ioPortRead16(port));
                     count--;
                     addr -= 2;
@@ -1430,6 +1437,7 @@ public class StaticOpcodes
             } else {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setWord(addr & 0xffff, (short)0); // test memory writable
                     seg.setWord(addr & 0xffff, (short)cpu.ioports.ioPortRead16(port));
                     count--;
                     addr += 2;
@@ -1452,6 +1460,7 @@ public class StaticOpcodes
             if (cpu.df) {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setWord(addr, (short)0); // test memory writable
                     seg.setWord(addr, (short)cpu.ioports.ioPortRead16(port));
                     count--;
                     addr -= 2;
@@ -1459,6 +1468,7 @@ public class StaticOpcodes
             } else {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setWord(addr, (short)0); // test memory writable
                     seg.setWord(addr, (short)cpu.ioports.ioPortRead16(port));
                     count--;
                     addr += 2;
@@ -1481,6 +1491,7 @@ public class StaticOpcodes
             if (cpu.df) {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setDoubleWord(addr & 0xffff, 0); // test memory writable
                     seg.setDoubleWord(addr & 0xffff, cpu.ioports.ioPortRead32(port));
                     count--;
                     addr -= 4;
@@ -1488,6 +1499,7 @@ public class StaticOpcodes
             } else {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setDoubleWord(addr & 0xffff, 0); // test memory writable
                     seg.setDoubleWord(addr & 0xffff, cpu.ioports.ioPortRead32(port));
                     count--;
                     addr += 4;
@@ -1510,6 +1522,7 @@ public class StaticOpcodes
             if (cpu.df) {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setDoubleWord(addr, 0); // test memory writable
                     seg.setDoubleWord(addr, cpu.ioports.ioPortRead32(port));
                     count--;
                     addr -= 4;
@@ -1517,6 +1530,7 @@ public class StaticOpcodes
             } else {
                 while (count != 0) {
                     //check hardware interrupts
+                    seg.setDoubleWord(addr, 0); // test memory writable
                     seg.setDoubleWord(addr, cpu.ioports.ioPortRead32(port));
                     count--;
                     addr += 4;

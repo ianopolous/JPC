@@ -509,7 +509,7 @@ public class OracleFuzzer
             byte[] oracleStack = new byte[4096];
             oracle.getLinearPage(stackPage, oracleStack);
             byte[] discipleStack = new byte[4096];
-            oracle.getLinearPage(stackPage, discipleStack);
+            disciple.getLinearPage(stackPage, discipleStack);
             sameStack = Fuzzer.comparePage(stackPage, discipleStack, oracleStack);
         }
         // need to compare memory if there are memory inputs
