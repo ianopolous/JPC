@@ -150,13 +150,20 @@ public class Bochs extends EmulatorControl
         // get FPU stack
         writeCommand("fpu");
         String fline;
+        fline = readLine();
+        int status=0;
+        if (fline.contains("status")) {
+            int start = fline.indexOf("0x") + 2;
+            status = Integer.parseInt(fline.substring(start, fline.indexOf(":", start)), 16);
+        }
         while (!(fline = readLine()).contains("fds"));
         for (int i=0; i < 8; i++)
         {
+            int findex = (i - ((status >> 11) & 7)) & 7;
             fline = readLine();
             long val = parseFPUReg(fline);
-            regs[37+2*i] = (int)(val >> 32);
-            regs[37+2*i+1] = (int)val;
+            regs[37+2*findex] = (int)(val >> 32);
+            regs[37+2*findex+1] = (int)val;
         }
         readLine(); // Mouse capture off
         //print(regs);
