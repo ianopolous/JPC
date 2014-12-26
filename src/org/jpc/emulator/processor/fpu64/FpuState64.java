@@ -53,6 +53,8 @@ public class FpuState64 extends FpuState
 
     public final static double UNDERFLOW_THRESHOLD = Math.pow(2.0, -1022.0);
 
+    public static final double DEFAULT_NAN = -1.5; // Double.longBitsToDouble(0xFFF8000000000000L);// to match Bochs' floatx80_default_nan truncation
+
     private final Processor cpu;
 
     double[] data;
@@ -345,7 +347,7 @@ public class FpuState64 extends FpuState
             setStackFault();
             conditionCode |= 2; // C1 set to indicate stack overflow
             checkExceptions();
-            // if IE is masked, then we just continue and overwrite
+            x = DEFAULT_NAN;
         }
         data[top] = x;
         tag[top] = tagCode(x);

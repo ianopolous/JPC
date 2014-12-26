@@ -323,7 +323,7 @@ public class Bochs extends EmulatorControl
     {
         String line = in.readLine();
         if (PRINT)
-            System.out.println((lineCount++) + line);
+            System.out.println((lineCount++) + " " + line);
         return line;
     }
 

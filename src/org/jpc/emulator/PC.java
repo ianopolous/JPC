@@ -789,6 +789,7 @@ public class PC {
         for (int i=0; i < ops; i++)
         {
             Instruction disam = is32Bit ? Disassembler.disassemble32(mem) : Disassembler.disassemble16(mem);
+            mem.seek(disam.x86Length);
             b.append(disam.toString()+"\n");
         }
         return b.toString();
