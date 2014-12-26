@@ -1,16 +1,13 @@
 JPC TODO (In rough order of desirability)
 
-* auto resize JFrame in application
 * make cpu report it is i486 (all linuxes require this)
-* rewrite TLB
 * CPU instruction tests - memory input values, optional compare memory afterwards
 * make tests with multiple 66 and 67 prefices
 * -log-disam for win95 => fuzz test cases
 * test TombRaider and create bootable hd with autorun
 * fix bug leading to top ~1/3 of screen being redrawn at the bottom third (e.g. dsl and kolibri)
 * Soundblaster - fix PCM sound
-* boot windows 95
-* boot windows 98
+* boot windows 98 in non safe mode
 * boot windows XP
 * boot Ubuntu
 * userspace ethernet router + dhcp server (slirp port)
@@ -19,7 +16,7 @@ JPC TODO (In rough order of desirability)
 * APIC for >= windows 2000
 * boot tests for various OSs* USB port + USB fat32 drive for host directories mounted at runtime
 * VDI format
-* VDI/VMDK runtime use
+* VDI/VMDK/QCOW runtime use
 * Voodoo graphics card
 * block chaining
 * compiler (fun)

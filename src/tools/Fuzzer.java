@@ -83,7 +83,7 @@ public class Fuzzer
         saxParser.parse("tests/pm.tests", pmhandler);
     }
 
-    public static boolean executeCase(String opclass, String disam, byte[] code, int[] initialState, PCHandle pc1, PCHandle pc2, boolean mem, boolean flags) throws Exception
+    public static boolean executeCase(String opclass, String disam, byte[] code, int[] initialState, PCHandle pc1, PCHandle pc2, boolean mem, boolean flags, BufferedWriter log) throws Exception
     {
         pc1.setState(initialState);
         pc2.setState(initialState);
@@ -98,11 +98,11 @@ public class Fuzzer
             return false;
         }
         pc2.executeBlock();
-        doCompare(mem, flags, pc1, pc2, initialState, opclass, disam, code);
+        doCompare(mem, flags, pc1, pc2, initialState, opclass, disam, code, log);
         return true;
     }
 
-    public static void doCompare(boolean mem, boolean compareFlags, PCHandle newpc, PCHandle oldpc, int[] input, String opclass, String disam, byte[] code) throws Exception
+    public static void doCompare(boolean mem, boolean compareFlags, PCHandle newpc, PCHandle oldpc, int[] input, String opclass, String disam, byte[] code, BufferedWriter log) throws Exception
     {
         compareStates(input, opclass, disam, code, newpc.getState(), oldpc.getState(), compareFlags);
         if (!mem)
@@ -114,19 +114,19 @@ public class Fuzzer
             Integer l1 = newpc.savePage(new Integer(i), data1);
             Integer l2 = oldpc.savePage(new Integer(i), data2);
             if (l2 > 0)
-                if (!comparePage(i, data1, data2))
+                if (!comparePage(i, data1, data2, log))
                     printAllStates(code, input, newpc.getState(), oldpc.getState(), opclass, disam);
         }
     }
 
-    public static boolean comparePage(int index, byte[] fast, byte[] old)
+    public static boolean comparePage(int index, byte[] fast, byte[] old, BufferedWriter log) throws IOException
     {
         if (fast.length != old.length)
             throw new IllegalStateException(String.format("different page data lengths %d != %d", fast.length, old.length));
         for (int i=0; i < fast.length; i++)
             if (fast[i] != old[i])
             {
-                System.out.printf("Difference in memory state: %08x=> %02x - %02x\n", index*4096+i, fast[i], old[i]);
+                log.write(String.format("Difference in memory state: %08x=> %02x - %02x\n", index*4096+i, fast[i], old[i]));
                 
                 return false;
             }
@@ -385,6 +385,7 @@ public class Fuzzer
         enum Type {None, Class, Code, Disam, Input}
         Type type;
         int opcodeCount=0, testCount=0;
+        BufferedWriter log;
 
         public TestParser(String mode, PCHandle pc1, PCHandle pc2, boolean mem, boolean flags)
         {
@@ -393,6 +394,11 @@ public class Fuzzer
             this.pc2 = pc2;
             this.mem = mem;
             this.flags = flags;
+            try {
+                this.log = new BufferedWriter(new FileWriter("Fuzz_" + mode + (mem ? "mem" : "")));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException
@@ -440,7 +446,7 @@ public class Fuzzer
                 input[15] = 0x18; // ss
                 // now do the test case
                 try {
-                    if (!executeCase(currentClass, currentDisam, currentCode, input, pc1, pc2, mem, flags))
+                    if (!executeCase(currentClass, currentDisam, currentCode, input, pc1, pc2, mem, flags, log))
                         unimplemented.add(currentClass);
                 } catch (Exception e) {e.printStackTrace();}
                 testCount++;

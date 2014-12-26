@@ -1534,37 +1534,61 @@ public class Processor implements HardwareComponent
                     setCPL(cs.getRPL());
 
                     try {
-                        if ((((es.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((es.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > es.getDPL()))
+                        if ((((es.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))
+                                == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) ||
+                                ((es.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE |
+                                        ProtectedModeSegment.TYPE_CODE_CONFORMING)) ==
+                                        (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)))
+                                && (getCPL() > es.getDPL())) {
                             // can't use lower dpl data segment at higher cpl
                             System.out.println("Setting ES to NULL in ret far");
-                        es(SegmentFactory.NULL_SEGMENT);
+                            es(SegmentFactory.NULL_SEGMENT);
+                        }
                     } catch (ProcessorException e) {
                     } catch (Exception e) {
                     }
 
                     try {
-                        if ((((ds.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((ds.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > ds.getDPL()))
+                        if ((((ds.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))
+                                == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) ||
+                                ((ds.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE |
+                                        ProtectedModeSegment.TYPE_CODE_CONFORMING)) ==
+                                        (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)))
+                                && (getCPL() > ds.getDPL())) {
                             // can't use lower dpl data segment at higher cpl
                             System.out.println("Setting DS to NULL in ret far");
-                        ds(SegmentFactory.NULL_SEGMENT);
+                            ds(SegmentFactory.NULL_SEGMENT);
+                        }
                     } catch (ProcessorException e) {
                     } catch (Exception e) {
                     }
 
                     try {
-                        if ((((fs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((fs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > fs.getDPL()))
+                        if ((((fs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))
+                                == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) ||
+                                ((fs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE |
+                                        ProtectedModeSegment.TYPE_CODE_CONFORMING)) ==
+                                        (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)))
+                                && (getCPL() > fs.getDPL())) {
                             // can't use lower dpl data segment at higher cpl
                             System.out.println("Setting FS to NULL in ret far");
-                        fs(SegmentFactory.NULL_SEGMENT);
+                            fs(SegmentFactory.NULL_SEGMENT);
+                        }
                     } catch (ProcessorException e) {
                     } catch (Exception e) {
                     }
 
                     try {
-                        if ((((gs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)) == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) || ((gs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE | ProtectedModeSegment.TYPE_CODE_CONFORMING)) == (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))) && (getCPL() > gs.getDPL()))
+                        if ((((gs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE))
+                                == ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA) ||
+                                ((gs.getType() & (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE |
+                                        ProtectedModeSegment.TYPE_CODE_CONFORMING)) ==
+                                        (ProtectedModeSegment.DESCRIPTOR_TYPE_CODE_DATA | ProtectedModeSegment.TYPE_CODE)))
+                                && (getCPL() > gs.getDPL())) {
                             // can't use lower dpl data segment at higher cpl
                             System.out.println("Setting GS to NULL in ret far");
-                        gs(SegmentFactory.NULL_SEGMENT);
+                            gs(SegmentFactory.NULL_SEGMENT);
+                        }
                     } catch (ProcessorException e) {
                     } catch (Exception e) {
                     }
