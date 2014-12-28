@@ -364,6 +364,64 @@ public final class PhysicalAddressSpace extends AddressSpace implements Hardware
         return getMemoryBlockAt(offset);
     }
 
+    public byte getByte(int offset)
+    {
+        return getReadMemoryBlockAt(offset).getByte(offset & BLOCK_MASK);
+    }
+
+    public void setByte(int offset, byte data)
+    {
+        getWriteMemoryBlockAt(offset).setByte(offset & BLOCK_MASK, data);
+    }
+
+    public short getWord(int offset)
+    {
+        try
+        {
+            return getReadMemoryBlockAt(offset).getWord(offset & BLOCK_MASK);
+        }
+        catch (ArrayIndexOutOfBoundsException e)
+        {
+            return super.getWord(offset);
+        }
+    }
+
+    public void setWord(int offset, short data)
+    {
+        try
+        {
+            getWriteMemoryBlockAt(offset).setWord(offset & BLOCK_MASK, data);
+        }
+        catch (ArrayIndexOutOfBoundsException e)
+        {
+            super.setWord(offset, data);
+        }
+    }
+
+    public int getDoubleWord(int offset)
+    {
+        try
+        {
+            return getReadMemoryBlockAt(offset).getDoubleWord(offset & BLOCK_MASK);
+        }
+        catch (ArrayIndexOutOfBoundsException e)
+        {
+            return super.getDoubleWord(offset);
+        }
+    }
+
+    public void setDoubleWord(int offset, int data)
+    {
+        try
+        {
+            getWriteMemoryBlockAt(offset).setDoubleWord(offset & BLOCK_MASK, data);
+        }
+        catch (ArrayIndexOutOfBoundsException e)
+        {
+            super.setDoubleWord(offset, data);
+        }
+    }
+
     protected Memory getWriteMemoryBlockAt(int offset) {
         logWrite(offset);
         return getMemoryBlockAt(offset);

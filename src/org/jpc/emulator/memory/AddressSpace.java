@@ -38,7 +38,7 @@ import org.jpc.emulator.processor.Processor;
 /**
  * Represents a complete 32-bit address-space composed of a sequence of blocks
  * <code>BLOCK_SIZE</code> long.
- * @author Chris Dennis
+ * @author Ian Preston
  */
 public abstract class AddressSpace extends AbstractMemory 
 {
@@ -78,39 +78,18 @@ public abstract class AddressSpace extends AbstractMemory
 
     public abstract void clear();
 
-    public byte getByte(int offset)
-    {
-        return getReadMemoryBlockAt(offset).getByte(offset & BLOCK_MASK);
-    }
+    public abstract byte getByte(int offset);
 
-    public void setByte(int offset, byte data)
-    {
-//        System.out.println("Mem.setByte " + offset);
-        getWriteMemoryBlockAt(offset).setByte(offset & BLOCK_MASK, data);
-    }
+    public abstract void setByte(int offset, byte data);
 
     public short getWord(int offset)
     {
-        try
-        {
-            return getReadMemoryBlockAt(offset).getWord(offset & BLOCK_MASK);
-        }
-        catch (ArrayIndexOutOfBoundsException e)
-        {
-            return super.getWord(offset);
-        }
+        return super.getWord(offset);
     }
 
     public int getDoubleWord(int offset)
     {
-        try
-        {
-            return getReadMemoryBlockAt(offset).getDoubleWord(offset & BLOCK_MASK);
-        }
-        catch (ArrayIndexOutOfBoundsException e)
-        {
-            return super.getDoubleWord(offset);
-        }
+        return super.getDoubleWord(offset);
     }
 
     public long getQuadWord(int offset)
@@ -151,33 +130,16 @@ public abstract class AddressSpace extends AbstractMemory
 
     public void setWord(int offset, short data)
     {
-//        System.out.println("Mem.setWord " + offset);
-        try
-        {
-            getWriteMemoryBlockAt(offset).setWord(offset & BLOCK_MASK, data);
-        }
-        catch (ArrayIndexOutOfBoundsException e)
-        {
-            super.setWord(offset, data);
-        }
+        super.setWord(offset, data);
     }
 
     public void setDoubleWord(int offset, int data)
     {
-//        System.out.println("Mem.setDoubleWord " + offset);
-        try
-        {
-            getWriteMemoryBlockAt(offset).setDoubleWord(offset & BLOCK_MASK, data);
-        }
-        catch (ArrayIndexOutOfBoundsException e)
-        {
-            super.setDoubleWord(offset, data);
-        }
+        super.setDoubleWord(offset, data);
     }
 
     public void setQuadWord(int offset, long data)
     {
-//        System.out.println("Mem.setQuadWord " + offset);
         try
         {
             getWriteMemoryBlockAt(offset).setQuadWord(offset & BLOCK_MASK, data);
@@ -190,7 +152,6 @@ public abstract class AddressSpace extends AbstractMemory
 
     public void setLowerDoubleQuadWord(int offset, long data)
     {
-//        System.out.println("Mem.setlowerquad " + offset);
         try
         {
             getWriteMemoryBlockAt(offset).setLowerDoubleQuadWord(offset & BLOCK_MASK, data);

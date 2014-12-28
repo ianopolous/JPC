@@ -1,10 +1,7 @@
 /*
     JPC: An x86 PC Hardware Emulator for a pure Java Virtual Machine
-    Release Version 2.4
 
-    A project from the Physics Dept, The University of Oxford
-
-    Copyright (C) 2007-2010 The University of Oxford
+    Copyright (C) 2012-2013 Ian Preston
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License version 2 as published by
@@ -18,15 +15,12 @@
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- 
-    Details (including contact information) can be found at: 
+
+    Details (including contact information) can be found at:
 
     jpc.sourceforge.net
     or the developer website
     sourceforge.net/projects/jpc/
-
-    Conceived and Developed by:
-    Rhys Newman, Ian Preston, Chris Dennis
 
     End of licence header
 */
@@ -34,7 +28,6 @@
 package org.jpc.emulator.memory;
 
 import java.io.*;
-import java.util.*;
 import java.util.logging.*;
 
 import org.jpc.emulator.HardwareComponent;
@@ -60,7 +53,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
     private boolean isSupervisor, pagingDisabled, pageCacheEnabled, writeProtectPages, pageSizeExtensions;
     private int baseAddress, lastAddress;
     private PhysicalAddressSpace target;
-    private final TLB tlb;
+    private final FastTLB tlb;
 
     /**
      * Constructs a <code>LinearAddressSpace</code> with paging initially disabled
@@ -542,7 +535,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
     {        
         try 
         {
-            return super.getByte(offset);
+            return getReadMemoryBlockAt(offset).getByte(offset & BLOCK_MASK);
         } 
         catch (NullPointerException e) {}
         catch (ProcessorException p) {}
@@ -554,7 +547,14 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
     { 
         try 
         {
-            return super.getWord(offset);
+            try
+            {
+                return getReadMemoryBlockAt(offset).getWord(offset & BLOCK_MASK);
+            }
+            catch (ArrayIndexOutOfBoundsException e)
+            {
+                return super.getWord(offset);
+            }
         } 
         catch (NullPointerException e) {}
         catch (ProcessorException p) {}
@@ -574,7 +574,14 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
     {
         try 
         {
-            return super.getDoubleWord(offset);
+            try
+            {
+                return getReadMemoryBlockAt(offset).getDoubleWord(offset & BLOCK_MASK);
+            }
+            catch (ArrayIndexOutOfBoundsException e)
+            {
+                return super.getDoubleWord(offset);
+            }
         } 
         catch (NullPointerException e) {}
         catch (ProcessorException p) {}
@@ -594,7 +601,7 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
     {        
         try 
         {
-            super.setByte(offset, data);
+            getWriteMemoryBlockAt(offset).setByte(offset & BLOCK_MASK, data);
             return;
         } 
         catch (NullPointerException e) {}
@@ -607,7 +614,14 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
     { 
         try 
         {
-            super.setWord(offset, data);
+            try
+            {
+                getWriteMemoryBlockAt(offset).setWord(offset & BLOCK_MASK, data);
+            }
+            catch (ArrayIndexOutOfBoundsException e)
+            {
+                super.setWord(offset, data);
+            }
             return;
         } 
         catch (NullPointerException e) {}
@@ -628,7 +642,14 @@ public final class LinearAddressSpace extends AddressSpace implements HardwareCo
     {
         try 
         {
-            super.setDoubleWord(offset, data);
+            try
+            {
+                getWriteMemoryBlockAt(offset).setDoubleWord(offset & BLOCK_MASK, data);
+            }
+            catch (ArrayIndexOutOfBoundsException e)
+            {
+                super.setDoubleWord(offset, data);
+            }
             return;
         } 
         catch (NullPointerException e) {}
