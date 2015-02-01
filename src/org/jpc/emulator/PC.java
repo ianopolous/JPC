@@ -170,6 +170,9 @@ public class PC {
         parts.add(new PCIISABridge());
         parts.add(new PCIBus());
 
+        if (Option.ethernet.isSet())
+            parts.add(new EthernetCard());
+
         //BIOSes
         parts.add(new SystemBIOS(Option.bios.value("/resources/bios/bios.bin")));
         parts.add(new VGABIOS("/resources/bios/vgabios.bin"));

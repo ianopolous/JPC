@@ -88,7 +88,7 @@ application: build_core
 
 	jar -cfm JPCApplication.jar jpc.manifest \
 	    resources/bios/vgabios.bin \
-	    resources/bios/bios.bin resources/images/dosgames.img \
+	    resources/bios/bios.bin  \
 	    resources/images/floppy.img resources/icon.png \
 	    resources/licence.html resources/jpc.png \
 	    resources/smallpause.png \
