@@ -22,7 +22,7 @@ debugger: build_core
 	    resources/smallpause.png \
 	    resources/smallplay.png \
 	    resources/tick.png \
-	    -C build org/jpc/classfile -C build org/jpc/emulator \
+	    -C build org/jpc/emulator \
 	    -C build org/jpc/support -C build org/jpc/j2se \
 	    -C build org/jpc/debugger
 	rm -f debugger.manifest
