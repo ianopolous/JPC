@@ -65,11 +65,11 @@ public class Disassembler
     {
         // load instruction classes
         ClassLoader cl = Disassembler.class.getClassLoader();
-        String path = "org/jpc/emulator/execution/opcodes/"+mode;
+        String path = "src/org/jpc/emulator/execution/opcodes/"+mode;
         try
         {
             List<String> names=  new ArrayList();
-            InputStream nameListIn = null;//Disassembler.class.getResourceAsStream("org/jpc/emulator/execution/opcodes/"+mode+"opcodes.txt");
+            InputStream nameListIn = null;
             if (nameListIn == null)
             {
                 Enumeration<URL> resources = cl.getResources(path);

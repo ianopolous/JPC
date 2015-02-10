@@ -8,7 +8,7 @@ build: jpc
 debugger: build_core
 	mkdir -p build
 	echo "Name: JPC Debugger" > debugger.manifest
-	echo "Author: Ian Preston" >> application.manifest
+	echo "Author: Ian Preston" >> debugger.manifest
 	echo "Main-Class: org.jpc.debugger.JPC" >> debugger.manifest
 	echo "Build-Date: " `date` >> debugger.manifest
 	echo "Default-Args: -fda mem:resources/images/floppy.img -hda mem:resources/images/dosgames.img -boot fda" >> debugger.manifest
@@ -31,17 +31,15 @@ debugger: build_core
 .PHONY: build_core
 build_core:
 	mkdir -p build
-	javac $(JAVA_BUILD_OPTS) -d build `find org/jpc/emulator -name \*.java` \
-	    `find org/jpc/support -name \*.java` \
-	    `find org/jpc/debugger -name \*.java` \
-	    `find org/jpc/classfile -name \*.java` \
-	    `find org/jpc/debugger -name \*.java` \
-	    `find org/jpc/j2se -name \*.java`
+	javac $(JAVA_BUILD_OPTS) -d build `find src/org/jpc/emulator -name \*.java` \
+	    `find src/org/jpc/support -name \*.java` \
+	    `find src/org/jpc/debugger -name \*.java` \
+	    `find src/org/jpc/j2se -name \*.java`
 
 .PHONY: tools
-tools:
+tools: build_core
 	mkdir -p build
-	javac $(JAVA_BUILD_OPTS) -d build `find tools -name \*.java`
+	javac $(JAVA_BUILD_OPTS) -cp build/ -d build `find src/tools -name \*.java`
 	echo "Name: JPC Tools" > jpc.manifest
 	echo "Main-Class: tools.Tools" >> jpc.manifest
 	echo "Author: Ian Preston" >> jpc.manifest
@@ -51,12 +49,12 @@ tools:
 	rm -f jpc.manifest
 
 .PHONY: tests
-tests:
+tests: build_core
 	mkdir -p build
-	javac $(JAVA_BUILD_OPTS) -d build `find tools -name \*.java` \
-	`find org/jpc/emulator/execution/decoder -name \*.java` \
-	org/jpc/emulator/execution/Executable.java \
-	org/jpc/j2se/Option.java
+	javac $(JAVA_BUILD_OPTS) -cp build/ -d build `find src/tools -name \*.java` \
+	`find src/org/jpc/emulator/execution/decoder -name \*.java` \
+	src/org/jpc/emulator/execution/Executable.java \
+	src/org/jpc/j2se/Option.java
 	echo "Name: JPC Tools" > jpc.manifest
 	echo "Main-Class: tools.TestGenerator" >> jpc.manifest
 	echo "Class-Path: Tools.jar:." >> jpc.manifest

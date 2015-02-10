@@ -3,7 +3,6 @@ JPC TODO (In rough order of desirability)
 * make cpu report it is i486 (all linuxes require this)
 * CPU instruction tests - memory input values, optional compare memory afterwards
 * make tests with multiple 66 and 67 prefices
-* -log-disam for win95 => fuzz test cases
 * test TombRaider and create bootable hd with autorun
 * fix bug leading to top ~1/3 of screen being redrawn at the bottom third (e.g. dsl and kolibri)
 * Soundblaster - fix PCM sound

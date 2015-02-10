@@ -374,7 +374,7 @@ public class Opcode
     public void writeToFile(String mode)
     {
         try {
-            BufferedWriter w = new BufferedWriter(new FileWriter("org/jpc/emulator/execution/opcodes/"+mode+"/"+getName()+".java"));
+            BufferedWriter w = new BufferedWriter(new FileWriter("src/org/jpc/emulator/execution/opcodes/"+mode+"/"+getName()+".java"));
             w.write(getSource(mode));
             w.flush();
             w.close();

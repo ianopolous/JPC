@@ -16,5 +16,14 @@ make application
 To build the debugger run:<br>
 make debugger
 
+To run some dos games easily, put them in a directory on your real computer and use JPC's ability to view a directory tree as a virtual FAT32 drive. For example, if some games are in "dosgames" in the directory where you expanded all the JPC files then type:<br/>
+	java -jar JPCApplication.jar -boot fda -fda resources/images/floppy.img -hda dir:dosgames<br/>
+This won't save any writes you make to the virtual FAT32 drive. If you would like to sync write to the underlying files, run with -hda dir:sync:dosgames<br/>
+
+###Credits
+* The BIOS used in JPC is the Bochs BIOS; see http://bochs.sourceforge.net/
+* The VGA BIOS used in JPC is the Plex86/Bochs LGPL'd bios; see http://www.nongnu.org/vgabios
+* The test Floppy image "floppy.img" is from the Odin FreeDOS project; see http://odin.fdos.org/
+
 ###History
 The JPC project was originally started in the Particle Physics department of Oxford university by Dr Rhys Newman and Dr Jeff Tseng. The original team included Chris Dennis, Ian Preston, Mike Moleschi and Guillaume Kirsch. The current team includes Ian Preston and Kevin O'Dwyer. 

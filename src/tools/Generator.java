@@ -125,7 +125,7 @@ public class Generator
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
-            return db.parse("tools/Opcodes_"+mode+".xml");
+            return db.parse("src/tools/Opcodes_"+mode+".xml");
         }catch(ParserConfigurationException pce) {
             pce.printStackTrace();
         }catch(SAXException se) {
