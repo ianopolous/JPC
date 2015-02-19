@@ -20,6 +20,11 @@ To run some dos games easily, put them in a directory on your real computer and 
 	java -jar JPCApplication.jar -boot fda -fda resources/images/floppy.img -hda dir:dosgames<br/>
 This won't save any writes you make to the virtual FAT32 drive. If you would like to sync write to the underlying files, run with -hda dir:sync:dosgames<br/>
 
+###Debugger
+The JPC debugger allows you to run x86 code step by step, use breakpoints, memory watchpoints, directly view the memory, cpu state etc in a nice colourful GUI.
+Once you've set your disks in the debugger (you can pass command line options identical to the Application or just use the menus), click "create new pc" in the File menu. Then to start execution click "start" in the run menu.
+![Debugger](/resources/debugger.png)
+
 ###Credits
 * The BIOS used in JPC is the Bochs BIOS; see http://bochs.sourceforge.net/
 * The VGA BIOS used in JPC is the Plex86/Bochs LGPL'd bios; see http://www.nongnu.org/vgabios
