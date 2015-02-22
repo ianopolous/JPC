@@ -692,7 +692,7 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
             System.exit(0);
         }
 
-        if ((args.length == 0) && (!Option.boot.isSet() && !Option.hda.isSet() && Option.cdrom.isSet() && Option.fda.isSet()))
+        if ((args.length == 0) && (!Option.boot.isSet() && !Option.hda.isSet() && !Option.cdrom.isSet() && !Option.fda.isSet()))
         {
             ClassLoader cl = JPCApplication.class.getClassLoader();
             if (cl instanceof URLClassLoader)

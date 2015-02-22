@@ -102,14 +102,7 @@ application: fast
 	jar -i JPCApplication.jar
 
 .PHONY: release
-release: 
-	mkdir -p build
-	javac $(JAVA_RELEASE_OPTS) -d build `find org/jpc/emulator -name \*.java` \
-	    `find org/jpc/support -name \*.java` \
-	    `find org/jpc/debugger -name \*.java` \
-	    `find org/jpc/classfile -name \*.java` \
-	    `find org/jpc/debugger -name \*.java` \
-	    `find org/jpc/j2se -name \*.java`
+release: build_core
 	echo "Name: JPC Application" > jpc.manifest
 	echo "Author: Ian Preston" >> jpc.manifest
 	echo "Main-Class: org.jpc.j2se.JPCApplication" >> jpc.manifest
