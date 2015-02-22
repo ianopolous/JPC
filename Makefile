@@ -75,8 +75,8 @@ cleanse: clean
 	rm -f `find . -iname \*.class`
 	rm -f `find . -name \*~ -o -name \*#`
 
-.PHONY: application
-application: build_core
+.PHONY: fast
+fast: build_core
 	echo "Name: JPC Application" > jpc.manifest
 	echo "Author: Ian Preston" >> jpc.manifest
 	echo "Main-Class: org.jpc.j2se.JPCApplication" >> jpc.manifest
@@ -96,6 +96,9 @@ application: build_core
 	    -C build org/jpc/emulator \
 	    -C build org/jpc/support -C build org/jpc/j2se -C build org/jpc/debugger
 	rm -f jpc.manifest
+
+.PHONY: application
+application: fast
 	jar -i JPCApplication.jar
 
 .PHONY: release

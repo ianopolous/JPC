@@ -3530,15 +3530,6 @@ public class Processor implements HardwareComponent
             ints++;
         }
         System.out.printf("END HALT ticks=%016x, interrupts=%d\n", vmClock.getTicks(), ints);
-//        if (isProtectedMode()) {
-//            if (isVirtual8086Mode()) {
-//                processProtectedModeInterrupts(0);
-//            } else {
-//                processProtectedModeInterrupts(0);
-//            }
-//        } else {
-//            processRealModeInterrupts(0);
-//        }
     }
 
     public void requestReset()

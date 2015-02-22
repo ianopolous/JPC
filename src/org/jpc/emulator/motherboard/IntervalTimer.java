@@ -263,7 +263,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         private int mode; // 3 bits from command word register
         private boolean bcd; /* uimplemented */
 
-        private long countStartCycles;
+        private long countStartCycles; // currently these are microseconds
         /* irq handling */
         private long nextChangeTime;
         private Timer irqTimer;
@@ -493,7 +493,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                 case MODE_HARDWARE_TRIGGERED_STROBE:
                     if (!gate && value) {
                         /* restart counting on rising edge */
-                        countStartCycles = getTime();
+                        countStartCycles = timingSource.getEmulatedNanos();
                         irqTimerUpdate(countStartCycles);
                     }
                     break;
@@ -501,7 +501,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
                 case MODE_SQUARE_WAVE:
                     if (!gate && value) {
                         /* restart counting on rising edge */
-                        countStartCycles = getTime();
+                        countStartCycles = timingSource.getEmulatedNanos();
                         irqTimerUpdate(countStartCycles);
                     }
                     /* XXX: disable/enable counting */
@@ -511,7 +511,7 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
         }
 
         private int getCount() {
-            long now = scale64(getTime() - countStartCycles, PIT_FREQ, (int) getTickRate());
+            long now = scale64(timingSource.getEmulatedNanos() - countStartCycles, PIT_FREQ, (int) timingSource.getTickRate());
 
             switch (mode) {
                 case MODE_INTERRUPT_ON_TERMINAL_COUNT:
@@ -613,56 +613,21 @@ public class IntervalTimer extends AbstractHardwareComponent implements IODevice
             if (value == 0) {
                 value = 0x10000;
             }
-            countStartCycles = timingSource.getTicks();
+            countStartCycles = timingSource.getEmulatedNanos();
             countValue = value;
             this.irqTimerUpdate(0);
-        }
-
-        public long convertPitTicksToCycles(long startCycles, long currentPITTicks)
-        {
-            // this is a fudge to emulate bochs' timings
-            double delta = (double)currentPITTicks * timingSource.getIPS()/ PIT_FREQ;
-            double uS = (double)startCycles*1000000/timingSource.getIPS() + (double)currentPITTicks * 1000000/ PIT_FREQ;
-            double diff = (double)Math.round(uS)-uS;
-            if ((diff > 0) && (diff < 0.1632))
-                delta += 1.0;
-            return startCycles + (long)delta;
-
-            // round up to ensure we are after the given time, and be careful about overflow
-            //return startCycles + (scale64(currentPITTicks, 1000000, PIT_FREQ) + 1)*(timingSource.getIPS()/1000)/1000;
-        }
-
-        public long convertCyclesToNanos(long cycles)
-        {
-            return scale64(cycles, 1000000000, (int) timingSource.getIPS());
         }
 
         private void irqTimerUpdate(long currentTime) {
             if (irqTimer == null) {
                 return;
             }
-            if (Option.useBochs.isSet())
-            {
-                long expiryTicks = bochs.getNextExpiry(); // necessary to increment index counter
-                int out = bochs.getOut();
-                irqDevice.setIRQ(irq, out);
-//                irqTimer.setExpiry(convertCyclesToNanos(expiryTicks));
-                irqTimer.setExpiry(Long.MAX_VALUE); // avoid any overflow issues, we manually set expire times anyway
-//                if ((nextChangeTime == expiryTicks) && (nextChangeTime != (long)Integer.MAX_VALUE))
-//                {
-//                    irqTimer.setExpiry(convertCyclesToNanos(expiryTicks));
-//                    timingSource.updateAndProcess(0);
-//                }
-//                else
-//                    nextChangeTime = expiryTicks;
-                return;
-            }
             nextChangeTime = getNextTransitionTime(currentTime);
 
             int out = getOut(currentTime);
             irqDevice.setIRQ(irq, out);
-//            System.out.println("set PIT IRQ "+irqLevel);
-            long nanos = convertCyclesToNanos(convertPitTicksToCycles(countStartCycles, nextChangeTime));
+//            long nanos = convertCyclesToNanos(convertPitTicksToCycles(countStartCycles, nextChangeTime));
+            long nanos = countStartCycles + scale64(nextChangeTime, 1000000000, PIT_FREQ);
 
             if (irqTimer.getExpiry() == nanos) // we need to trigger the next int now
             {

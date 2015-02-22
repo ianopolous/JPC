@@ -307,11 +307,6 @@ public class PC {
         physicalAddr.copyArrayIntoContents(addr, data, 0, data.length);
     }
 
-    public void setNextPITExpiry(Long ticks)
-    {
-        ((VirtualClock)vmClock).setNextPitExpiry(ticks);
-    }
-
     public Boolean getPITIrqLevel()
     {
         return BochsPIT.getIrqLevel();

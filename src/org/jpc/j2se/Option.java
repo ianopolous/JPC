@@ -53,15 +53,17 @@ public abstract class Option {
     public static final Switch fullscreen = createSwitch("fullscreen");
     public static final Switch history = createSwitch("history");
     public static final Switch useBochs = createSwitch("bochs");
-    public static final Switch realtime = createSwitch("realtime");
+
     public static final Switch printCHS = createSwitch("printCHS");
     public static final Switch help = createSwitch("help");
     public static final Opt min_addr_watch = opt("min-addr-watch");
     public static final Opt max_addr_watch = opt("max-addr-watch");
 
     // required for deterministic execution
+    public static final Switch deterministic = createSwitch("deterministic");
     public static final Opt startTime = opt("start-time");
     public static final Switch noScreen = createSwitch("no-screen");
+
     public static final Opt ss = opt("ss");
     public static final Opt ram = opt("ram");
     public static final Opt ips = opt("ips");

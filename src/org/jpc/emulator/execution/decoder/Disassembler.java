@@ -65,7 +65,7 @@ public class Disassembler
     {
         // load instruction classes
         ClassLoader cl = Disassembler.class.getClassLoader();
-        String path = "src/org/jpc/emulator/execution/opcodes/"+mode;
+        String path = "org/jpc/emulator/execution/opcodes/"+mode;
         try
         {
             List<String> names=  new ArrayList();
