@@ -21,9 +21,9 @@
  
     Details (including contact information) can be found at: 
 
-    jpc.sourceforge.net
-    or the developer website
-    sourceforge.net/projects/jpc/
+    javapc.sourceforge.net
+             or
+    www-jpc.physics.ox.ac.uk
 
     Conceived and Developed by:
     Rhys Newman, Ian Preston, Chris Dennis
@@ -33,15 +33,12 @@
 
 package org.jpc.emulator.pci.peripheral;
 
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
-import javax.imageio.ImageIO;
-import org.jpc.j2se.PCMonitor;
+import android.view.*;
+import org.jpc.*;
+//import android.graphics.*;
+//import org.jpc.j2se.PCMonitor;
 
 /**
  *
@@ -51,11 +48,27 @@ public final class DefaultVGACard extends VGACard {
 
     private int[] rawImageData;
     private int xmin,  xmax,  ymin,  ymax,  width,  height;
-    private BufferedImage buffer;
-    PCMonitor monitor;
+    //    private Bitmap screen;
+    JPCView view;
+    //    SurfaceHolder holder;
 
     public DefaultVGACard() 
     {
+    }
+
+    //    public void setHolder(SurfaceHolder holder)
+    //    {
+    //        this.holder = holder;
+    //    }
+
+    public int getWidth()
+    {
+        return width;
+    }
+
+    public int getHeight()
+    {
+        return height;
     }
 
     public int getXMin() {
@@ -80,19 +93,22 @@ public final class DefaultVGACard extends VGACard {
 
     public void resizeDisplay(int width, int height) 
     {
+        System.out.println("Setting VGA dimension to : " + width + " by " + height);
         if ((width == 0) || (height == 0))
             return;
         this.width = width;
         this.height = height;
-
-        buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        buffer.setAccelerationPriority(1);
-        DataBufferInt buf = (DataBufferInt) buffer.getRaster().getDataBuffer();
-        rawImageData = buf.getData();
-        monitor.resizeDisplay(width, height);
+        //screen = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        //buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        //buffer.setAccelerationPriority(1);
+        //DataBufferInt buf = (DataBufferInt) buffer.getRaster().getDataBuffer();
+        //rawImageData = buf.getData();
+        rawImageData = new int[width*height];
+        view.resizeDisplay(width, height);
+        //monitor.resizeDisplay(width, height);
     }
 
-    public void saveScreenshot()
+    /*    public void saveScreenshot()
     {
         File out = new File("Screenshot.png");
         try
@@ -103,15 +119,15 @@ public final class DefaultVGACard extends VGACard {
         {
             e.printStackTrace();
         }
+        }*/
+
+    public void setView(JPCView view) {
+        this.view = view;
     }
 
-    public void setMonitor(PCMonitor mon) {
-        this.monitor = mon;
-    }
-
-    public Dimension getDisplaySize()
+    public int[] getDisplaySize()
     {
-        return new Dimension(width, height);
+        return new int[]{width, height};
     }
 
     public int[] getDisplayBuffer() 
@@ -127,19 +143,20 @@ public final class DefaultVGACard extends VGACard {
         ymax = Math.max(y + h, ymax);
     }
 
-    public void paintPCMonitor(Graphics2D g, PCMonitor monitor)
+    /*    public void paintPCMonitor(Graphics g, PCMonitor monitor)
     {
+        g.drawImage(buffer, 0, 0, null);
         Dimension s = monitor.getSize();
-        
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.drawImage(buffer, 0, 0, s.width,  s.height, 0, 0, width, height, null);
-    }
+        g.setColor(monitor.getBackground());
+        g.fillRect(width, 0, s.width - width, height);
+        g.fillRect(0, height, s.width, s.height - height);
+        }*/
 
     public final void prepareUpdate() 
     {
-        xmin = width;
-        xmax = 0;
-        ymin = height;
-        ymax = 0;
+        xmin = 0;
+        xmax = width;
+        ymin = 0;
+        ymax = height;
     }
 }

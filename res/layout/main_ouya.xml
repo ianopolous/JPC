@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="32dp"
+    android:layout_centerInParent="true">
+  <org.jpc.JPCView  
+      android:id="@+id/JPCView"
+      android:focusable="true" android:focusableInTouchMode="true"  
+      android:layout_height="fill_parent" android:layout_width="fill_parent" />
+  <org.jpc.LatinKeyboardView  
+      android:id="@+id/keyboardView" android:visibility="gone"  
+      android:focusable="true" android:focusableInTouchMode="true"  
+      android:layout_alignParentBottom="true"
+      android:layout_height="wrap_content"
+      android:layout_width="fill_parent"
+      android:layout_marginLeft="0dp"
+      android:layout_marginRight="0dp"
+      android:layout_weight="0"/>
+</RelativeLayout>

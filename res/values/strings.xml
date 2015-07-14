@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ConSoul</string>
+    <string name="menu_keyboard">Toggle Keyboard</string>
+    <string name="menu_newpc">Create new PC</string>
+    <string name="menu_resetpc">Reset PC</string>
+    <string name="menu_help">Help</string>
+    <string name="menu_about">About ConSoul</string>
+    <string name="menu_exit">Exit</string>
+    <string name="launch">Launch!</string>
+    <string name="consoul_title">Select a game</string>
+</resources>
