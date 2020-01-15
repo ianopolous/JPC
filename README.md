@@ -23,7 +23,7 @@ This won't save any writes you make to the virtual FAT32 drive. If you would lik
 ### Debugger
 The JPC debugger allows you to run x86 code step by step, use breakpoints, memory watchpoints, directly view the memory, cpu state etc in a nice colourful GUI.
 Once you've set your disks in the debugger (you can pass command line options identical to the Application or just use the menus), click "create new pc" in the File menu. Then to start execution click "start" in the run menu.
-![Debugger](/resources/debugger.png)
+[Debugger](https://raw.githubusercontent.com/ianopolous/JPC/master/resources/debugger.png)
 
 ### Credits
 * The BIOS used in JPC is the Bochs BIOS; see http://bochs.sourceforge.net/
