@@ -589,41 +589,48 @@ public class JPCApplication extends PCMonitorFrame implements PCControl
         List<String> resources = new ArrayList<String>();
 
         ClassLoader cl = JPCApplication.class.getClassLoader();
-        if (!(cl instanceof URLClassLoader))
-            throw new IllegalStateException();
-        URL[] urls = ((URLClassLoader) cl).getURLs();
+        
+        URL[] urls;
+        if (cl instanceof URLClassLoader)
+        {
+            URLClassLoader urlClassLoader = (URLClassLoader) cl;
+            urls = urlClassLoader.getURLs();
+        } 
+        else 
+        {
+            urls = new URL[] {
+                JPCApplication.class.getProtectionDomain().getCodeSource().getLocation()
+            };
+        }
         
         int slash = directory.lastIndexOf("/");
         String dir = directory.substring(0, slash + 1);
-        for (int i=0; i<urls.length; i++)
-        {
-            if (!urls[i].toString().endsWith(".jar"))
+        for (URL url : urls) {
+            if (!url.toString().endsWith(".jar")) {
                 continue;
-            try
-            {
-                JarInputStream jarStream = new JarInputStream(urls[i].openStream());
-                while (true)
-                {
-                    ZipEntry entry = jarStream.getNextEntry();
-                    if (entry == null)
-                        break;
-                    if (entry.isDirectory())
-                        continue;
-
-                    String name = entry.getName();
-                    slash = name.lastIndexOf("/");
-                    String thisDir = "";
-                    if (slash >= 0)
-                        thisDir = name.substring(0, slash + 1);
-
-                    if (!dir.equals(thisDir))
-                        continue;
-                    resources.add(name);
-                }
-
-                jarStream.close();
             }
-            catch (IOException e) { e.printStackTrace();}
+            try {
+                try (JarInputStream jarStream = new JarInputStream(url.openStream())) {
+                    while (true)
+                    {
+                        ZipEntry entry = jarStream.getNextEntry();
+                        if (entry == null)
+                            break;
+                        if (entry.isDirectory())
+                            continue;
+                        
+                        String name = entry.getName();
+                        slash = name.lastIndexOf("/");
+                        String thisDir = "";
+                        if (slash >= 0)
+                            thisDir = name.substring(0, slash + 1);
+                        
+                        if (!dir.equals(thisDir))
+                            continue;
+                        resources.add(name);
+                    }
+                }
+            }catch (IOException e) { e.printStackTrace();}
         }
         InputStream stream = context.getResourceAsStream(directory);
         try
